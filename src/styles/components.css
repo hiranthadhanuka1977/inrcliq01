@@ -1219,8 +1219,19 @@
   border: 2px solid var(--color-bg-page);
 }
 
+.verify-email-inbox-backdrop.is-open {
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: calc(var(--space-4) + 40px + var(--space-2));
+  padding-right: var(--layout-content-padding-sm);
+  padding-bottom: var(--space-6);
+  padding-left: var(--space-6);
+}
+
 .verify-email-inbox {
+  width: min(32rem, calc(100vw - (var(--layout-content-padding-sm) * 2)));
   max-width: 32rem;
+  max-height: calc(100dvh - var(--space-4) - 40px - var(--space-2) - var(--space-6));
   text-align: left;
 }
 

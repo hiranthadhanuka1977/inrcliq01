@@ -32,6 +32,12 @@ export function ParentApprovalEmailInbox({
 
   const subject = `${childFirstName} wants to join InrCliq`;
 
+  function handleOpenApproval(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    onClose();
+    window.open(approveUrl, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div
       className="modal-backdrop is-open verify-email-inbox-backdrop"
@@ -80,6 +86,7 @@ export function ParentApprovalEmailInbox({
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn--primary verify-email-inbox__verify-btn"
+              onClick={handleOpenApproval}
             >
               Review request
             </a>
@@ -90,6 +97,7 @@ export function ParentApprovalEmailInbox({
             target="_blank"
             rel="noopener noreferrer"
             className="verify-email-inbox__link"
+            onClick={handleOpenApproval}
           >
             {approveUrl}
           </a>
