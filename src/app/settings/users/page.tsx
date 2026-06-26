@@ -1,6 +1,8 @@
 import { UsersTable } from "@/components/settings/UsersTable";
 import { listSettingsUsers } from "@/lib/settings/users";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsUsersPage() {
   const users = await listSettingsUsers();
 
