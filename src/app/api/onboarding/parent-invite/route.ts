@@ -60,11 +60,8 @@ export async function POST(request: Request) {
       ok: true,
       redirectTo: "/onboarding/waiting",
       cooldownRemaining: invite.cooldownRemaining,
+      approveUrl: invite.approveUrl,
     };
-
-    if (process.env.NODE_ENV === "development") {
-      response.devApproveUrl = invite.approveUrl;
-    }
 
     return NextResponse.json(response);
   } catch (error) {

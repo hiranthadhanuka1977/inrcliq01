@@ -39,16 +39,11 @@ export async function POST(request: Request) {
 
     await sendVerificationEmail(email, tokenResult.verifyUrl);
 
-    const response: Record<string, unknown> = {
+    return NextResponse.json({
       ok: true,
       cooldownRemaining: tokenResult.cooldownRemaining,
-    };
-
-    if (process.env.NODE_ENV === "development") {
-      response.devVerifyUrl = tokenResult.verifyUrl;
-    }
-
-    return NextResponse.json(response);
+      verifyUrl: tokenResult.verifyUrl,
+    });
   } catch (error) {
     console.error("verify-email/resend error", error);
     return NextResponse.json({ error: "Unable to resend verification email." }, { status: 500 });

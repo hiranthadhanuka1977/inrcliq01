@@ -6,6 +6,8 @@ import { getParentEmailValidationError } from "@/lib/form-validation";
 import { Disclosure } from "@/components/auth/Disclosure";
 import { FieldError } from "@/components/ui/FieldError";
 
+const PARENT_APPROVE_URL_KEY = "inrcliq_parent_approve_url";
+
 export function ParentInviteForm({ firstName }: { firstName: string }) {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -68,8 +70,8 @@ export function ParentInviteForm({ firstName }: { firstName: string }) {
         return;
       }
 
-      if (data.devApproveUrl) {
-        console.info(`Dev parent approve URL: ${data.devApproveUrl}`);
+      if (data.approveUrl) {
+        sessionStorage.setItem(PARENT_APPROVE_URL_KEY, data.approveUrl);
       }
 
       router.push(data.redirectTo ?? "/onboarding/waiting");

@@ -37,16 +37,11 @@ export async function POST() {
       user.firstName ?? "Your child",
     );
 
-    const response: Record<string, unknown> = {
+    return NextResponse.json({
       ok: true,
       cooldownRemaining: invite.cooldownRemaining,
-    };
-
-    if (process.env.NODE_ENV === "development") {
-      response.devApproveUrl = invite.approveUrl;
-    }
-
-    return NextResponse.json(response);
+      approveUrl: invite.approveUrl,
+    });
   } catch (error) {
     console.error("parent-invite/resend error", error);
     return NextResponse.json({ error: "Unable to resend parent invite." }, { status: 500 });
@@ -69,6 +64,7 @@ export async function GET() {
       parentEmail: latest.parentEmail,
       sentAt: latest.sentAt.toISOString(),
       expiresAt: latest.expiresAt.toISOString(),
+      childFirstName: user.firstName ?? "Your child",
     });
   } catch (error) {
     console.error("parent-invite/status error", error);

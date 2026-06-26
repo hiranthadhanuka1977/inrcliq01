@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { clearApplicationClientStorage } from "@/lib/auth/app-storage";
+import { resetPrototype } from "@/lib/prototype/reset-prototype";
 
 export function ResetPanel() {
   const [loading, setLoading] = useState(false);
@@ -18,26 +18,15 @@ export function ResetPanel() {
     setError("");
     setMessage("");
 
-    try {
-      const response = await fetch("/api/settings/reset", {
-        method: "POST",
-        credentials: "same-origin",
-      });
-      const data = await response.json();
+    const result = await resetPrototype();
 
-      if (!response.ok) {
-        setError(data.error ?? "Unable to reset platform data.");
-        setLoading(false);
-        return;
-      }
-
-      clearApplicationClientStorage();
-      setMessage("All users and related data have been removed. Signing out…");
-      window.location.assign(data.redirectTo ?? "/");
-    } catch {
-      setError("Unable to reset platform data.");
+    if (!result.ok) {
+      setError(result.error);
       setLoading(false);
+      return;
     }
+
+    setMessage("All users and related data have been removed. Signing out…");
   }
 
   return (

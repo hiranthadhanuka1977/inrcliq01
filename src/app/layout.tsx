@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { PrototypeControls } from "@/components/prototype/PrototypeControls";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={plusJakarta.className}>{children}</body>
+      <body className={plusJakarta.className}>
+        <PrototypeControls />
+        {children}
+      </body>
     </html>
   );
 }

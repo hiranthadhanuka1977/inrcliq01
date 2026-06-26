@@ -14,10 +14,12 @@ import { formatVerifyEmailDisplay } from "@/lib/utils/email-display";
 import { Disclosure } from "@/components/auth/Disclosure";
 import { FieldError } from "@/components/ui/FieldError";
 import { SignupProgressBar } from "@/components/auth/SignupProgressBar";
+import { VerificationEmailInbox } from "@/components/auth/VerificationEmailInbox";
 
 type Step = 1 | 2 | 3;
 
 const SIGNUP_EMAIL_KEY = "inrcliq_signup_email";
+const SIGNUP_VERIFY_URL_KEY = "inrcliq_signup_verify_url";
 
 const GoogleIcon = () => (
   <svg className="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -82,6 +84,8 @@ export function SignupFlow() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [verifyUrl, setVerifyUrl] = useState("");
+  const [inboxOpen, setInboxOpen] = useState(false);
 
   const years = useMemo(() => buildYearOptions(), []);
   const days = useMemo(() => buildDayOptions(), []);
@@ -96,9 +100,13 @@ export function SignupFlow() {
 
   useEffect(() => {
     const savedEmail = sessionStorage.getItem(SIGNUP_EMAIL_KEY);
+    const savedVerifyUrl = sessionStorage.getItem(SIGNUP_VERIFY_URL_KEY);
     if (savedEmail) {
       setEmail(savedEmail);
       setStep(3);
+      if (savedVerifyUrl) {
+        setVerifyUrl(savedVerifyUrl);
+      }
     }
   }, []);
 
@@ -186,8 +194,16 @@ export function SignupFlow() {
     clearNameErrors();
   }
 
+  function persistVerifyUrl(url: string) {
+    setVerifyUrl(url);
+    sessionStorage.setItem(SIGNUP_VERIFY_URL_KEY, url);
+  }
+
   function handleChangeEmail() {
     sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
+    sessionStorage.removeItem(SIGNUP_VERIFY_URL_KEY);
+    setVerifyUrl("");
+    setInboxOpen(false);
     setStep(2);
     window.setTimeout(() => emailRef.current?.focus(), 0);
   }
@@ -241,11 +257,10 @@ export function SignupFlow() {
       sessionStorage.setItem(SIGNUP_EMAIL_KEY, data.email);
       setEmail(data.email);
       setCooldown(data.cooldownRemaining ?? EMAIL_VERIFY_COOLDOWN_SECONDS);
-      setStep(3);
-
-      if (data.devVerifyUrl) {
-        console.info(`Dev verify URL: ${data.devVerifyUrl}`);
+      if (data.verifyUrl) {
+        persistVerifyUrl(data.verifyUrl);
       }
+      setStep(3);
     } catch {
       setApiError("Unable to complete signup.");
     } finally {
@@ -278,8 +293,8 @@ export function SignupFlow() {
 
       setCooldown(data.cooldownRemaining ?? EMAIL_VERIFY_COOLDOWN_SECONDS);
 
-      if (data.devVerifyUrl) {
-        console.info(`Dev verify URL: ${data.devVerifyUrl}`);
+      if (data.verifyUrl) {
+        persistVerifyUrl(data.verifyUrl);
       }
     } catch {
       setApiError("Unable to resend verification email.");
@@ -297,6 +312,39 @@ export function SignupFlow() {
 
   return (
     <>
+    {step === 3 && verifyUrl ? (
+      <button
+        type="button"
+        className="verify-email__inbox-btn"
+        id="btn-open-verify-email-inbox"
+        aria-label="Open verification email"
+        aria-expanded={inboxOpen}
+        onClick={() => setInboxOpen(true)}
+      >
+        <svg
+          className="verify-email__inbox-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <polyline points="22,6 12,13 2,6" />
+        </svg>
+        <span className="verify-email__inbox-badge" aria-hidden="true" />
+      </button>
+    ) : null}
+
+    <VerificationEmailInbox
+      open={inboxOpen}
+      email={email}
+      verifyUrl={verifyUrl}
+      onClose={() => setInboxOpen(false)}
+    />
+
     <section className={`auth-center${step >= 2 ? " auth-center--signup-step" : ""}`}>
       <div className={`auth-center__card${cardClass ? ` ${cardClass}` : ""}`} id="signup-auth-card">
         <div className={`auth-split__auth-inner${innerClass ? ` ${innerClass}` : ""}`} id="landing-auth-inner">
@@ -704,12 +752,6 @@ export function SignupFlow() {
               {apiError ? (
                 <p className="field-error mt-4" role="alert">
                   {apiError}
-                </p>
-              ) : null}
-
-              {process.env.NODE_ENV === "development" ? (
-                <p className="verify-email__dev-note mt-6">
-                  Check the server console for the verification link, or resend to log a new one.
                 </p>
               ) : null}
             </div>
