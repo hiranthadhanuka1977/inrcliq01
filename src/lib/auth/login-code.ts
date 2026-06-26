@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 import { LOGIN_CODE_COOLDOWN_SECONDS, LOGIN_CODE_EXPIRY_MINUTES } from "@/lib/auth/login-code.constants";
+import { buildLoginCodeEmail } from "@/lib/email/templates";
+import { sendTransactionalEmailOrThrow } from "@/lib/email/send";
 
 function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -89,11 +91,13 @@ export async function findUserForLogin(email: string) {
 }
 
 export async function sendLoginCodeEmail(email: string, code: string) {
-  if (process.env.RESEND_API_KEY) {
-    // TODO: integrate Resend in production
-    console.info(`[email] login code for ${email}: ${code}`);
-    return;
-  }
+  const template = buildLoginCodeEmail(code);
 
-  console.info(`[dev] Login code for ${email}: ${code}`);
+  await sendTransactionalEmailOrThrow({
+    to: email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+    debugMessage: `[email] Login code for ${email}: ${code}`,
+  });
 }

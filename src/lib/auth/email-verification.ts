@@ -6,6 +6,8 @@ import {
   EMAIL_VERIFY_COOLDOWN_SECONDS,
   EMAIL_VERIFY_EXPIRY_HOURS,
 } from "@/lib/auth/email-verification.constants";
+import { buildVerificationEmail } from "@/lib/email/templates";
+import { sendTransactionalEmailOrThrow } from "@/lib/email/send";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
@@ -81,10 +83,13 @@ export async function verifyEmailToken(rawToken: string) {
 }
 
 export async function sendVerificationEmail(email: string, verifyUrl: string) {
-  if (process.env.RESEND_API_KEY) {
-    console.info(`[email] verification link for ${email}: ${verifyUrl}`);
-    return;
-  }
+  const template = buildVerificationEmail(verifyUrl);
 
-  console.info(`[dev] Verify email for ${email}: ${verifyUrl}`);
+  await sendTransactionalEmailOrThrow({
+    to: email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+    debugMessage: `[email] Verify email for ${email}: ${verifyUrl}`,
+  });
 }
