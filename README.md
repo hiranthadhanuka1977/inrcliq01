@@ -83,5 +83,6 @@ In development, verification and parent-approval links are logged to the server 
 
 1. Add Vercel Postgres or Neon
 2. Set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`
-3. Add `RESEND_API_KEY` for real email delivery
-4. Build command: `prisma generate && prisma migrate deploy && next build`
+3. Build command: `prisma generate && prisma migrate deploy && next build`
+
+Verification links, parent invites, and login codes are logged to the server console (check Vercel function logs in production).

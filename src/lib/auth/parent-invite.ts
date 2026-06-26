@@ -7,8 +7,6 @@ import {
   PARENT_INVITE_COOLDOWN_SECONDS,
   PARENT_INVITE_EXPIRY_HOURS,
 } from "@/lib/auth/parent-invite.constants";
-import { buildParentInviteEmail } from "@/lib/email/templates";
-import { sendTransactionalEmail, type SendEmailResult } from "@/lib/email/send";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
@@ -119,20 +117,8 @@ export async function sendParentInviteEmail(
   parentEmail: string,
   approveUrl: string,
   childFirstName: string,
-): Promise<SendEmailResult> {
-  const template = buildParentInviteEmail(childFirstName, approveUrl);
-
-  const result = await sendTransactionalEmail({
-    to: parentEmail,
-    subject: template.subject,
-    html: template.html,
-    text: template.text,
-    debugMessage: `[email] Parent invite for ${parentEmail} (${childFirstName}): ${approveUrl}`,
-  });
-
-  if (!result.ok) {
-    console.error("Parent invite email failed:", result.error);
-  }
-
-  return result;
+) {
+  console.info(
+    `[email] Parent invite for ${parentEmail} (${childFirstName}): ${approveUrl}`,
+  );
 }

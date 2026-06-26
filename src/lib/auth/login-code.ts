@@ -2,8 +2,6 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 import { LOGIN_CODE_COOLDOWN_SECONDS, LOGIN_CODE_EXPIRY_MINUTES } from "@/lib/auth/login-code.constants";
-import { buildLoginCodeEmail } from "@/lib/email/templates";
-import { sendTransactionalEmail, type SendEmailResult } from "@/lib/email/send";
 
 function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -90,20 +88,6 @@ export async function findUserForLogin(email: string) {
   return { ok: true as const, user };
 }
 
-export async function sendLoginCodeEmail(email: string, code: string): Promise<SendEmailResult> {
-  const template = buildLoginCodeEmail(code);
-
-  const result = await sendTransactionalEmail({
-    to: email,
-    subject: template.subject,
-    html: template.html,
-    text: template.text,
-    debugMessage: `[email] Login code for ${email}: ${code}`,
-  });
-
-  if (!result.ok) {
-    console.error("Login code email failed:", result.error);
-  }
-
-  return result;
+export async function sendLoginCodeEmail(email: string, code: string) {
+  console.info(`[email] Login code for ${email}: ${code}`);
 }
