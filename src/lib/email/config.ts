@@ -1,5 +1,8 @@
 export function getEmailFrom() {
-  const from = process.env.EMAIL_FROM?.trim();
+  let from = process.env.EMAIL_FROM?.trim();
+  if (from && from.startsWith('"') && from.endsWith('"')) {
+    from = from.slice(1, -1).trim();
+  }
   if (from) return from.includes("<") ? from : `InrCliq <${from}>`;
   return "InrCliq <onboarding@resend.dev>";
 }

@@ -7,7 +7,7 @@ import {
   EMAIL_VERIFY_EXPIRY_HOURS,
 } from "@/lib/auth/email-verification.constants";
 import { buildVerificationEmail } from "@/lib/email/templates";
-import { sendTransactionalEmailOrThrow } from "@/lib/email/send";
+import { sendTransactionalEmail, type SendEmailResult } from "@/lib/email/send";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
@@ -82,14 +82,23 @@ export async function verifyEmailToken(rawToken: string) {
   return { ok: false as const, reason: "invalid" as const };
 }
 
-export async function sendVerificationEmail(email: string, verifyUrl: string) {
+export async function sendVerificationEmail(
+  email: string,
+  verifyUrl: string,
+): Promise<SendEmailResult> {
   const template = buildVerificationEmail(verifyUrl);
 
-  await sendTransactionalEmailOrThrow({
+  const result = await sendTransactionalEmail({
     to: email,
     subject: template.subject,
     html: template.html,
     text: template.text,
     debugMessage: `[email] Verify email for ${email}: ${verifyUrl}`,
   });
+
+  if (!result.ok) {
+    console.error("Verification email failed:", result.error);
+  }
+
+  return result;
 }

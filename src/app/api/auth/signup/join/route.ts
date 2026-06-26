@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       );
     }
 
-    await sendVerificationEmail(normalizedEmail, tokenResult.verifyUrl);
+    const emailResult = await sendVerificationEmail(normalizedEmail, tokenResult.verifyUrl);
 
     const response: Record<string, unknown> = {
       ok: true,
@@ -93,7 +93,13 @@ export async function POST(request: Request) {
       accountType,
       userId: user.id,
       cooldownRemaining: tokenResult.cooldownRemaining,
+      emailSent: emailResult.sent,
     };
+
+    if (!emailResult.ok) {
+      response.emailWarning =
+        "Your account was created, but we could not send the verification email. Check server logs for the verification link.";
+    }
 
     if (process.env.NODE_ENV === "development") {
       response.devVerifyUrl = tokenResult.verifyUrl;
