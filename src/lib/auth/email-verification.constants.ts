@@ -1,0 +1,2 @@
+export const EMAIL_VERIFY_COOLDOWN_SECONDS = 30;
+export const EMAIL_VERIFY_EXPIRY_HOURS = 24;

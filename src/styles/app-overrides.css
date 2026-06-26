@@ -1,0 +1,259 @@
+/**
+ * Next.js app overrides — replicate prototype .screen.is-active layout
+ * without the SPA screen-switching system.
+ */
+
+.auth-split {
+  display: block;
+  min-height: 100dvh;
+}
+
+.auth-center {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* Standalone parent/email pages (PAR-01, PAR-S1) — prototype uses .screen.page-centered.is-active */
+.page-centered,
+.screen.page-centered {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.parent-signup {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.screen.parent-signup {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell,
+.app-frame {
+  overflow-x: clip;
+}
+
+/* 100vw progress divider overflows when a vertical scrollbar is present (e.g. PAR-05) */
+.parent-signup__progress-divider {
+  width: auto;
+  max-width: none;
+  margin-inline: calc(-1 * var(--layout-content-padding-sm));
+}
+
+.parent-signup--stepper-width .parent-signup__main,
+.identity-review {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.identity-review__detail,
+.identity-review__detail-value,
+.identity-review__toggle-card,
+.identity-review__toggle-card-main {
+  min-width: 0;
+}
+
+.identity-review__success-banner {
+  display: flex;
+}
+
+/* SignupFlow manages step visibility via is-active; always show active step in Next.js */
+.auth-center .auth-split__step.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  position: relative;
+}
+
+.auth-center .auth-split__step:not(.is-active) {
+  display: none;
+}
+
+/* Next/Image wrapper should not break illustration layout */
+.auth-split__illustration span,
+.auth-split__illustration img,
+.logo--img span,
+.logo--img img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.auth-split__illustration > span {
+  position: static !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+.auth-split__illustration img {
+  filter: drop-shadow(0 20px 48px rgba(0, 0, 0, 0.16));
+}
+
+.logo--img img {
+  width: auto;
+  height: 27px;
+}
+
+.logo--img.logo--inverse img,
+.logo__img--inverse {
+  filter: brightness(0) invert(1);
+}
+
+.verify-email__dev-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ——— Settings ——— */
+.settings-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.settings-header__inner {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: 0 var(--layout-content-padding-sm);
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+}
+
+.settings-shell {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--layout-content-padding-sm) var(--space-16);
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-8);
+}
+
+@media (max-width: 767px) {
+  .settings-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-nav__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.settings-nav__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.settings-nav__link:hover,
+.settings-nav__link.is-active {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+}
+
+.settings-content {
+  min-width: 0;
+}
+
+.settings-panel__head {
+  margin-bottom: var(--space-6);
+}
+
+.settings-panel__title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+}
+
+.settings-panel__subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+}
+
+.settings-panel__error {
+  margin-bottom: var(--space-4);
+}
+
+.settings-search {
+  margin-bottom: var(--space-4);
+  max-width: 360px;
+}
+
+.settings-search__input {
+  width: 100%;
+}
+
+.settings-empty,
+.settings-message {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-secondary);
+}
+
+.settings-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.settings-table th,
+.settings-table td {
+  padding: var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.settings-table th {
+  background: var(--color-bg-subtle);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.settings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.settings-table__actions {
+  width: 120px;
+  text-align: right;
+}
+

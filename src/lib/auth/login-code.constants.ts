@@ -1,0 +1,2 @@
+export const LOGIN_CODE_COOLDOWN_SECONDS = 30;
+export const LOGIN_CODE_EXPIRY_MINUTES = 10;
