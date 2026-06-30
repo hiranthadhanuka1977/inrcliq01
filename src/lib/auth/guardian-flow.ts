@@ -1,6 +1,6 @@
 import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { hashPassword } from "@/lib/auth/credentials";
-import { unlockChildAfterParentApproval, verifyParentApprovalToken } from "@/lib/auth/parent-invite";
+import { verifyParentApprovalToken } from "@/lib/auth/parent-invite";
 import { getCountryLabel } from "@/lib/constants/locations";
 import { getDefaultAdultDob } from "@/lib/form-validation";
 import { simulateExtractedIdNumber } from "@/lib/guardian/constants";
@@ -239,17 +239,21 @@ export async function quickApproveReturningGuardian(requestId: string) {
 
   const protectionLevel: ProtectionTier = "standard";
 
-  await prisma.parentApprovalRequest.update({
-    where: { id: requestId },
-    data: {
-      status: ApprovalStatus.APPROVED,
-      resolvedAt: new Date(),
-      guardianUserId: guardian.id,
-      protectionLevel,
-    },
-  });
-
-  await unlockChildAfterParentApproval(request.childUserId);
+  await prisma.$transaction([
+    prisma.parentApprovalRequest.update({
+      where: { id: requestId },
+      data: {
+        status: ApprovalStatus.APPROVED,
+        resolvedAt: new Date(),
+        guardianUserId: guardian.id,
+        protectionLevel,
+      },
+    }),
+    prisma.user.update({
+      where: { id: request.childUserId },
+      data: { onboardingStep: "approved" },
+    }),
+  ]);
 
   return {
     ok: true as const,
@@ -276,8 +280,18 @@ export async function completeGuardianApproval(
     return { ok: false as const, error: "Invalid or expired approval link." };
   }
 
-  if (!request.guardianUserId) {
-    return { ok: false as const, error: "Guardian account not set up yet." };
+  let guardianUserId = request.guardianUserId;
+  let guardianCountry = request.guardianCountry;
+  let guardianRegion = request.guardianRegion;
+
+  if (!guardianUserId) {
+    const returningGuardian = await findReturningGuardian(request.parentEmail);
+    if (!returningGuardian) {
+      return { ok: false as const, error: "Guardian account not set up yet." };
+    }
+    guardianUserId = returningGuardian.id;
+    guardianCountry = guardianCountry ?? returningGuardian.country;
+    guardianRegion = guardianRegion ?? returningGuardian.region;
   }
 
   await prisma.$transaction([
@@ -286,18 +300,19 @@ export async function completeGuardianApproval(
       data: {
         status: ApprovalStatus.APPROVED,
         resolvedAt: new Date(),
+        guardianUserId,
         protectionLevel: data.protectionLevel,
         childLivesWithGuardian: data.childLivesWithGuardian,
         childLocationCountry: data.childLivesWithGuardian
-          ? request.guardianCountry
+          ? guardianCountry
           : data.childLocationCountry ?? null,
         childLocationRegion: data.childLivesWithGuardian
-          ? request.guardianRegion
+          ? guardianRegion
           : data.childLocationRegion ?? null,
       },
     }),
     prisma.user.update({
-      where: { id: request.guardianUserId },
+      where: { id: guardianUserId },
       data: { onboardingStep: "complete" },
     }),
     prisma.user.update({

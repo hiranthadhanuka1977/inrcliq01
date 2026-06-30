@@ -8,6 +8,11 @@ export function getOnboardingRedirect(
   if (user.onboardingStep === "handle") return "/onboarding/handle";
   if (user.onboardingStep === "approved") return "/onboarding/approved";
   if (user.onboardingStep === "password") return "/onboarding/password";
+
+  if (user.accountType === "MINOR" && parentRequest?.status === "APPROVED") {
+    return "/onboarding/approved";
+  }
+
   if (user.onboardingStep === "waiting") return "/onboarding/waiting";
   if (user.onboardingStep === "parent") return "/onboarding/parent";
 
@@ -16,7 +21,6 @@ export function getOnboardingRedirect(
   if (user.accountType === "MINOR") {
     if (parentRequest?.status === "PENDING") return "/onboarding/waiting";
     if (parentRequest?.status === "DECLINED") return "/onboarding/waiting";
-    if (parentRequest?.status === "APPROVED") return "/onboarding/approved";
     return "/onboarding/parent";
   }
 

@@ -92,16 +92,23 @@ export async function unlockChildAfterParentApproval(childUserId: string) {
 }
 
 export async function approveParentRequest(requestId: string) {
-  const request = await prisma.parentApprovalRequest.update({
+  const request = await prisma.parentApprovalRequest.findUniqueOrThrow({
     where: { id: requestId },
-    data: {
-      status: ApprovalStatus.APPROVED,
-      resolvedAt: new Date(),
-    },
-    include: { childUser: true },
   });
 
-  await unlockChildAfterParentApproval(request.childUserId);
+  await prisma.$transaction([
+    prisma.parentApprovalRequest.update({
+      where: { id: requestId },
+      data: {
+        status: ApprovalStatus.APPROVED,
+        resolvedAt: new Date(),
+      },
+    }),
+    prisma.user.update({
+      where: { id: request.childUserId },
+      data: { onboardingStep: "approved" },
+    }),
+  ]);
 
   return request;
 }

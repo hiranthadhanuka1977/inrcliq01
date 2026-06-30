@@ -4,8 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ChildRequestSidebar } from "@/components/guardian/ChildRequestSidebar";
 import { CaptureSuccessModal, DeclineModal } from "@/components/guardian/GuardianModals";
-import { ParentAccountStep } from "@/components/guardian/ParentAccountStep";
 import { ParentApprovedStep } from "@/components/guardian/ParentApprovedStep";
+import { ParentAccountStep } from "@/components/guardian/ParentAccountStep";
 import { ParentConsentStep, ParentDeclinedStep } from "@/components/guardian/ParentConsentStep";
 import { ParentFaceScanStep, ParentIdCaptureStep } from "@/components/guardian/ParentIdVerifySteps";
 import { ParentIdentityReviewStep } from "@/components/guardian/ParentIdentityReviewStep";
@@ -28,7 +28,7 @@ type GuardianStep =
   | "approved"
   | "declined";
 
-type ApprovedSummary = {
+type GuardianCompletion = {
   childFullName: string;
   childFirstName: string;
   childHandle: string | null;
@@ -37,6 +37,11 @@ type ApprovedSummary = {
   protectionLevel: ProtectionTier;
   activatedAt: string;
 };
+
+
+function redirectParentToLanding() {
+  window.location.assign("/?parentDone=1");
+}
 
 export function GuardianFlow() {
   const router = useRouter();
@@ -54,12 +59,12 @@ export function GuardianFlow() {
     childLocationCountry: null as string | null,
     childLocationRegion: null as string | null,
   });
-  const [approvedSummary, setApprovedSummary] = useState<ApprovedSummary | null>(null);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [idCapturedOpen, setIdCapturedOpen] = useState(false);
   const [selfieCapturedOpen, setSelfieCapturedOpen] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [completion, setCompletion] = useState<GuardianCompletion | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -123,37 +128,7 @@ export function GuardianFlow() {
     if (!context) return;
 
     if (context.isReturningGuardian) {
-      setIsSubmitting(true);
-      setSubmitError("");
-
-      try {
-        const response = await fetch("/api/guardian/quick-approve", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          setSubmitError(data.error ?? "Unable to approve request.");
-          return;
-        }
-
-        setApprovedSummary({
-          childFullName: context.child.fullName,
-          childFirstName: data.childFirstName ?? context.child.firstName,
-          childHandle: context.child.handle,
-          childAge: context.child.age,
-          parentEmail: context.parentEmail,
-          protectionLevel: data.protectionLevel ?? "standard",
-          activatedAt: new Date().toISOString(),
-        });
-        setStep("approved");
-      } catch {
-        setSubmitError("Unable to approve request.");
-      } finally {
-        setIsSubmitting(false);
-      }
+      setStep("protection");
       return;
     }
 
@@ -219,7 +194,7 @@ export function GuardianFlow() {
         return;
       }
 
-      setApprovedSummary({
+      setCompletion({
         childFullName: data.childFullName,
         childFirstName: data.childFirstName,
         childHandle: data.childHandle,
@@ -318,13 +293,10 @@ export function GuardianFlow() {
     );
   }
 
-  if (step === "approved" && approvedSummary) {
+  if (step === "approved" && completion) {
     return (
-      <ParentSignupLayout stepperStep={5} completeCurrentStep single>
-        <ParentApprovedStep
-          {...approvedSummary}
-          onDone={() => router.push("/")}
-        />
+      <ParentSignupLayout stepperStep={5} single completeCurrentStep>
+        <ParentApprovedStep {...completion} onDone={redirectParentToLanding} />
       </ParentSignupLayout>
     );
   }

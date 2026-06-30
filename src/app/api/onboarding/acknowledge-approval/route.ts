@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { requireSessionUser } from "@/lib/api-helpers";
+import { getLatestParentRequest } from "@/lib/auth/parent-invite";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
@@ -7,7 +9,12 @@ export async function POST() {
     const { user, error } = await requireSessionUser();
     if (error) return error;
 
-    if (user.onboardingStep !== "approved") {
+    const parentRequest =
+      user.accountType === AccountType.MINOR ? await getLatestParentRequest(user.id) : null;
+    const parentHasApproved = parentRequest?.status === ApprovalStatus.APPROVED;
+    const canAcknowledge = user.onboardingStep === "approved" || parentHasApproved;
+
+    if (!canAcknowledge) {
       return NextResponse.json({ error: "Invalid onboarding step." }, { status: 400 });
     }
 

@@ -57,7 +57,7 @@ export function PrototypeControls() {
 
   async function handleResetPrototype() {
     const confirmed = window.confirm(
-      "Reset the prototype? This clears all users and data, removes your session cookie, clears saved signup state in this browser, and returns you to the landing page.",
+      "Reset the prototype? This clears your session cookie and saved signup state in this browser, then returns you to the landing page. User accounts in the database are not deleted.",
     );
     if (!confirmed) return;
 

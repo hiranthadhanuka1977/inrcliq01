@@ -6,6 +6,10 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { LOGIN_CODE_COOLDOWN_SECONDS } from "@/lib/auth/login-code.constants";
 import { getEmailValidationError } from "@/lib/form-validation";
 import { FieldError } from "@/components/ui/FieldError";
+import { LoginCodeInbox } from "@/components/auth/LoginCodeInbox";
+
+const LOGIN_CODE_KEY = "inrcliq_login_code";
+const LOGIN_CODE_EMAIL_KEY = "inrcliq_login_code_email";
 
 const GoogleIcon = () => (
   <svg className="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -34,30 +38,90 @@ const AppleIcon = () => (
   </svg>
 );
 
+const PasswordLoginIcon = () => (
+  <svg
+    className="login-method-switch__icon"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const CodeLoginIcon = () => (
+  <svg
+    className="login-method-switch__icon"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>
+);
+
 type Step = "email" | "otp";
+type LoginMethod = "code" | "password";
 
 export function LoginForm() {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
   const otpRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("code");
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState({ visible: false, message: "" });
   const [otpError, setOtpError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [showSendAgain, setShowSendAgain] = useState(false);
+  const [loginCode, setLoginCode] = useState("");
+  const [inboxOpen, setInboxOpen] = useState(false);
   const isLoggingInRef = useRef(false);
+
+  useEffect(() => {
+    const savedCode = sessionStorage.getItem(LOGIN_CODE_KEY);
+    const savedEmail = sessionStorage.getItem(LOGIN_CODE_EMAIL_KEY);
+    if (savedCode && savedEmail) {
+      setEmail(savedEmail);
+      setLoginCode(savedCode);
+      setStep("otp");
+    }
+  }, []);
 
   useEffect(() => {
     emailRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (step !== "otp") return;
+    if (loginMethod !== "password") return;
+
+    const timer = window.setTimeout(() => {
+      passwordRef.current?.focus();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loginMethod]);
+
+  useEffect(() => {
+    if (step !== "otp" || loginMethod !== "code") return;
 
     const timer = window.setTimeout(() => {
       otpRef.current?.focus();
@@ -84,7 +148,7 @@ export function LoginForm() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [cooldown, step]);
+  }, [cooldown, step, loginMethod]);
 
   function clearEmailErrors() {
     setEmailError({ visible: false, message: "" });
@@ -110,6 +174,12 @@ export function LoginForm() {
       return false;
     }
     return true;
+  }
+
+  function persistLoginCode(code: string, normalizedEmail: string) {
+    setLoginCode(code);
+    sessionStorage.setItem(LOGIN_CODE_KEY, code);
+    sessionStorage.setItem(LOGIN_CODE_EMAIL_KEY, normalizedEmail);
   }
 
   const sendCode = useCallback(async () => {
@@ -141,8 +211,8 @@ export function LoginForm() {
       setCooldown(data.cooldownRemaining ?? LOGIN_CODE_COOLDOWN_SECONDS);
       setShowSendAgain(false);
 
-      if (data.devCode) {
-        console.info(`Dev login code: ${data.devCode}`);
+      if (data.loginCode) {
+        persistLoginCode(data.loginCode, email.trim().toLowerCase());
       }
     } catch {
       setEmailFieldError("Unable to send login code.");
@@ -173,6 +243,9 @@ export function LoginForm() {
           return;
         }
 
+        sessionStorage.removeItem(LOGIN_CODE_KEY);
+        sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
+
         router.push(data.redirectTo ?? "/home");
         router.refresh();
       } catch {
@@ -201,6 +274,90 @@ export function LoginForm() {
     await sendCode();
   }
 
+  function switchToPasswordLogin() {
+    setLoginMethod("password");
+    setInboxOpen(false);
+    setOtpError("");
+    setPasswordError("");
+    clearEmailErrors();
+  }
+
+  function switchToCodeLogin() {
+    setLoginMethod("code");
+    setPasswordError("");
+    setPassword("");
+    setShowPassword(false);
+    clearEmailErrors();
+    window.setTimeout(() => emailRef.current?.focus(), 0);
+  }
+
+  async function handlePasswordSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!validateEmailField()) return;
+
+    if (!password.trim()) {
+      setPasswordError("Please enter your password.");
+      passwordRef.current?.focus();
+      return;
+    }
+
+    setPasswordError("");
+    setIsLoggingIn(true);
+
+    try {
+      const response = await fetch("/api/auth/login/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setPasswordError(data.error ?? "Unable to log in.");
+        return;
+      }
+
+      sessionStorage.removeItem(LOGIN_CODE_KEY);
+      sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
+
+      router.push(data.redirectTo ?? "/home");
+      router.refresh();
+    } catch {
+      setPasswordError("Unable to log in.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  }
+
+  const usePasswordLink = (
+    <p className="login-method-switch">
+      <button
+        type="button"
+        className="link-btn login-method-switch__link"
+        id="link-use-password-login"
+        onClick={switchToPasswordLogin}
+      >
+        <PasswordLoginIcon />
+        Use password to login
+      </button>
+    </p>
+  );
+
+  const useCodeLink = (
+    <p className="login-method-switch">
+      <button
+        type="button"
+        className="link-btn login-method-switch__link"
+        id="link-use-code-login"
+        onClick={switchToCodeLogin}
+      >
+        <CodeLoginIcon />
+        Use login code instead
+      </button>
+    </p>
+  );
+
   const isOtpComplete = otp.length === 6;
   const cooldownPercent =
     cooldown > 0
@@ -209,6 +366,39 @@ export function LoginForm() {
 
   return (
     <>
+      {step === "otp" && loginMethod === "code" && loginCode ? (
+        <button
+          type="button"
+          className="verify-email__inbox-btn"
+          id="btn-open-login-code-inbox"
+          aria-label="Open login code email"
+          aria-expanded={inboxOpen}
+          onClick={() => setInboxOpen(true)}
+        >
+          <svg
+            className="verify-email__inbox-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
+          </svg>
+          <span className="verify-email__inbox-badge" aria-hidden="true" />
+        </button>
+      ) : null}
+
+      <LoginCodeInbox
+        open={inboxOpen}
+        email={email}
+        loginCode={loginCode}
+        onClose={() => setInboxOpen(false)}
+      />
+
       <div className="gap-3 mt-8">
         <button type="button" className="btn btn--secondary btn-login-oauth" disabled>
           <GoogleIcon />
@@ -220,7 +410,7 @@ export function LoginForm() {
         </button>
         <div className="divider">or</div>
 
-        <div id="login-email-step" className={`gap-3${step === "otp" ? " hidden" : ""}`}>
+        <div id="login-email-step" className={`gap-3${step === "otp" || loginMethod === "password" ? " hidden" : ""}`}>
           <form className="gap-3" onSubmit={handleEmailSubmit}>
             <div className="field">
               <label className="field-label" htmlFor="login-email">
@@ -251,10 +441,11 @@ export function LoginForm() {
             <button type="submit" className="btn btn--primary" disabled={isSending}>
               <span className="btn__label">{isSending ? "Sending…" : "Send login code"}</span>
             </button>
+            {usePasswordLink}
           </form>
         </div>
 
-        <div id="login-otp-step" className={`gap-3${step === "email" ? " hidden" : ""}`}>
+        <div id="login-otp-step" className={`gap-3${step === "email" || loginMethod === "password" ? " hidden" : ""}`}>
           <form className="gap-3" onSubmit={handleOtpSubmit}>
             <div className="field">
               <label className="field-label" htmlFor="login-otp">
@@ -324,16 +515,134 @@ export function LoginForm() {
             >
               <span className="btn__label">{isLoggingIn ? "Logging in…" : "Log in"}</span>
             </button>
+            {usePasswordLink}
+          </form>
+        </div>
+
+        <div id="login-password-step" className={`gap-3${loginMethod === "password" ? "" : " hidden"}`}>
+          <form className="gap-3" onSubmit={handlePasswordSubmit}>
+            <div className="field">
+              <label className="field-label" htmlFor="login-password-email">
+                Email
+              </label>
+              <input
+                className={`input${emailError.visible ? " input--error" : ""}`}
+                type="email"
+                id="login-password-email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  updateEmailErrorsOnInput(event.target.value);
+                }}
+                autoComplete="email"
+                placeholder="you@example.com"
+                aria-describedby="login-password-email-error"
+                aria-invalid={emailError.visible}
+              />
+              <FieldError
+                id="login-password-email-error"
+                message={emailError.message}
+                hidden={!emailError.visible}
+                defaultMessage="Please enter a valid email address."
+              />
+            </div>
+
+            <div className="field">
+              <label className="field-label" htmlFor="login-password">
+                Password
+              </label>
+              <div className="input-with-action">
+                <input
+                  ref={passwordRef}
+                  className="input"
+                  type={showPassword ? "text" : "password"}
+                  id="login-password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  placeholder="Enter password"
+                  autoComplete="current-password"
+                  aria-describedby="login-password-error"
+                />
+                <button
+                  type="button"
+                  className="input-with-action__btn"
+                  id="btn-login-password-toggle"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((value) => !value)}
+                >
+                  <svg
+                    className={`password-toggle__icon password-toggle__icon--show${showPassword ? " hidden" : ""}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg
+                    className={`password-toggle__icon password-toggle__icon--hide${showPassword ? "" : " hidden"}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
+              </div>
+              {passwordError ? (
+                <p className="field-error" id="login-password-error" role="alert">
+                  {passwordError}
+                </p>
+              ) : null}
+            </div>
+
+            <button type="submit" className="btn btn--primary" id="btn-login-password" disabled={isLoggingIn}>
+              <span className="btn__label">{isLoggingIn ? "Logging in…" : "Log in"}</span>
+            </button>
+            {useCodeLink}
           </form>
         </div>
       </div>
 
-      <p className="auth-switch mt-8">
-        New here?{" "}
-        <Link href="/signup" className="link-btn">
-          Sign up
-        </Link>
-      </p>
+      <Link href="/signup" className="auth-signup-nudge mt-8">
+        <span className="auth-signup-nudge__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2.5v2.5" />
+            <path d="M12 19v2.5" />
+            <path d="M4.5 12H2" />
+            <path d="M22 12h-2.5" />
+            <path d="M6.4 6.4 8.2 8.2" />
+            <path d="M15.8 15.8l1.8 1.8" />
+            <path d="M17.6 6.4l-1.8 1.8" />
+            <path d="M8.2 15.8 6.4 17.6" />
+            <path
+              d="M12 8.5 13.1 11.4 16.2 12 13.1 12.6 12 15.5 10.9 12.6 7.8 12 10.9 11.4 12 8.5Z"
+              fill="currentColor"
+              stroke="none"
+            />
+          </svg>
+        </span>
+        <span className="auth-signup-nudge__body">
+          <span className="auth-signup-nudge__eyebrow">New here?</span>
+          <span className="auth-signup-nudge__title">Create your free account</span>
+          <span className="auth-signup-nudge__subtitle">Free to join — set up your profile in a few simple steps</span>
+        </span>
+        <span className="auth-signup-nudge__chevron" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </span>
+      </Link>
     </>
   );
 }

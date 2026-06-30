@@ -6,11 +6,13 @@ import {
   getSignupPasswordFieldError,
   isPasswordRequirementMet,
 } from "@/lib/form-validation";
+import { formatPasswordPageEmailDisplay } from "@/lib/utils/email-display";
 import { FieldError } from "@/components/ui/FieldError";
 
 export function PasswordForm({ email }: { email: string }) {
   const router = useRouter();
   const passwordRef = useRef<HTMLInputElement>(null);
+  const displayEmail = formatPasswordPageEmailDisplay(email);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [fieldError, setFieldError] = useState({ visible: false, message: "" });
@@ -93,7 +95,7 @@ export function PasswordForm({ email }: { email: string }) {
       <p className="password-alt mt-6">
         You can skip setting a password and sign in with a code sent to{" "}
         <span className="password-alt__email" id="password-skip-email">
-          {email}
+          {displayEmail}
         </span>{" "}
         instead. You can always add a password later.
       </p>

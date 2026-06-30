@@ -6,11 +6,13 @@
 
 :root {
   /* ——— Brand ——— */
-  --color-brand-primary: #e0245e;
-  --color-brand-primary-hover: #c91f52;
-  --color-brand-primary-active: #b01a48;
-  --color-brand-primary-subtle: #fce8ef;
-  --color-brand-gradient: linear-gradient(135deg, #e0245e 0%, #ff6b6b 50%, #ff8e53 100%);
+  --color-brand-primary: #1241a6;
+  --color-brand-primary-hover: #0f3690;
+  --color-brand-primary-active: #0d2e7a;
+  --color-brand-primary-subtle: #e8eef9;
+  --color-brand-secondary: #3d6fd4;
+  --color-brand-tertiary: #6892e0;
+  --color-brand-gradient: linear-gradient(135deg, #1241a6 0%, #3d6fd4 50%, #6892e0 100%);
 
   /* ——— Neutrals ——— */
   --color-neutral-0: #ffffff;
@@ -125,10 +127,10 @@
   --auth-steps-min-height: 480px;
   --auth-steps-min-height-join: 760px;
   --auth-marketing-gradient-overlay: linear-gradient(
-    135deg,
-    rgba(224, 36, 94, 0.9) 0%,
-    rgba(255, 107, 107, 0.84) 52%,
-    rgba(255, 142, 83, 0.8) 100%
+    145deg,
+    #c75b9a 0%,
+    #8f4f9e 42%,
+    #1241a6 100%
   );
 
   /* ——— Motion ——— */

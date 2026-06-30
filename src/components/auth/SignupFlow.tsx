@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
 import { EMAIL_VERIFY_COOLDOWN_SECONDS } from "@/lib/auth/email-verification.constants";
@@ -17,6 +18,10 @@ import { SignupProgressBar } from "@/components/auth/SignupProgressBar";
 import { VerificationEmailInbox } from "@/components/auth/VerificationEmailInbox";
 
 type Step = 1 | 2 | 3;
+type SignupMethod = "email" | "google" | "apple" | null;
+
+const SOCIAL_SIGNUP_FIRST_NAME = "Chloe";
+const SOCIAL_SIGNUP_LAST_NAME = "Ferdinand";
 
 const SIGNUP_EMAIL_KEY = "inrcliq_signup_email";
 const SIGNUP_VERIFY_URL_KEY = "inrcliq_signup_verify_url";
@@ -57,12 +62,13 @@ function applyDefaultDob(setters: {
 }
 
 export function SignupFlow() {
+  const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
   const firstNameRef = useRef<HTMLInputElement>(null);
   const monthRef = useRef<HTMLSelectElement>(null);
 
   const [step, setStep] = useState<Step>(1);
-  const [signupMethod, setSignupMethod] = useState<"email" | null>(null);
+  const [signupMethod, setSignupMethod] = useState<SignupMethod>(null);
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -186,6 +192,21 @@ export function SignupFlow() {
     window.setTimeout(() => emailRef.current?.focus(), 0);
   }
 
+  function startSocialSignup(provider: "google" | "apple") {
+    setSignupMethod(provider);
+    setEmail("");
+    setFirstName(SOCIAL_SIGNUP_FIRST_NAME);
+    setLastName(SOCIAL_SIGNUP_LAST_NAME);
+    applyDefaultDob({ setMonth, setDay, setYear });
+    clearEmailErrors();
+    clearNameErrors();
+    setApiError("");
+    setStep(2);
+    window.setTimeout(() => monthRef.current?.focus(), 0);
+  }
+
+  const isSocialSignup = signupMethod === "google" || signupMethod === "apple";
+
   function handleBack() {
     setStep(1);
     setSignupMethod(null);
@@ -238,7 +259,8 @@ export function SignupFlow() {
         body: JSON.stringify({
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          email: email.trim(),
+          ...(signupMethod === "email" ? { email: email.trim() } : {}),
+          ...(isSocialSignup ? { oauthProvider: signupMethod } : {}),
           month: Number(month),
           day: Number(day),
           year: Number(year),
@@ -251,6 +273,12 @@ export function SignupFlow() {
 
       if (!response.ok) {
         setApiError(data.error ?? "Unable to complete signup.");
+        return;
+      }
+
+      if (data.skipVerification && data.redirectTo) {
+        router.push(data.redirectTo);
+        router.refresh();
         return;
       }
 
@@ -376,11 +404,11 @@ export function SignupFlow() {
               </div>
 
               <div className="gap-3 mt-8">
-                <button type="button" className="btn btn--secondary" data-oauth="google" disabled>
+                <button type="button" className="btn btn--secondary" data-oauth="google" onClick={() => startSocialSignup("google")}>
                   <GoogleIcon />
                   Continue with Google
                 </button>
-                <button type="button" className="btn btn--dark" data-oauth="apple" disabled>
+                <button type="button" className="btn btn--dark" data-oauth="apple" onClick={() => startSocialSignup("apple")}>
                   <AppleIcon />
                   Continue with Apple
                 </button>

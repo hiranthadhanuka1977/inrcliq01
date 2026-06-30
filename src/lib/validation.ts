@@ -21,16 +21,29 @@ export const loginCodeSchema = z
   .trim()
   .regex(/^\d{6}$/, "Please enter the 6-digit code.");
 
-export const signupJoinSchema = z.object({
-  firstName: z.string().trim().min(1, "Please enter your first name."),
-  lastName: z.string().trim().min(1, "Please enter your last name."),
-  email: emailSchema,
-  month: z.number().int().min(1).max(12),
-  day: z.number().int().min(1).max(31),
-  year: z.number().int().min(1900).max(new Date().getFullYear()),
-  country: z.string().trim().min(1, "Please select your country."),
-  region: z.string().trim().optional(),
-});
+const oauthProviderSchema = z.enum(["google", "apple"]);
+
+export const signupJoinSchema = z
+  .object({
+    firstName: z.string().trim().min(1, "Please enter your first name."),
+    lastName: z.string().trim().min(1, "Please enter your last name."),
+    email: emailSchema.optional(),
+    oauthProvider: oauthProviderSchema.optional(),
+    month: z.number().int().min(1).max(12),
+    day: z.number().int().min(1).max(31),
+    year: z.number().int().min(1900).max(new Date().getFullYear()),
+    country: z.string().trim().min(1, "Please select your country."),
+    region: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.oauthProvider && !data.email) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Please enter your email address.",
+        path: ["email"],
+      });
+    }
+  });
 
 export const parentEmailSchema = z.object({
   parentEmail: z

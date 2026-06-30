@@ -104,7 +104,7 @@ export function ParentApprovedStep({
       </div>
 
       <div className="parent-approved__actions mt-8">
-        <Link href="/" className="btn btn--primary">
+        <Link href="/?parentDone=1" className="btn btn--primary">
           Go to family center
         </Link>
         <button type="button" className="btn btn--outline-info" onClick={onDone}>

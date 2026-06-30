@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       cooldownRemaining: result.cooldownRemaining,
-      devCode: process.env.NODE_ENV === "development" ? result.code : undefined,
+      loginCode: result.code,
     });
   } catch (error) {
     console.error("send-code error", error);

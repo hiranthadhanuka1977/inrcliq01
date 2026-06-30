@@ -3,11 +3,11 @@
   <defs>
     <linearGradient id="screenGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#fff5f8" stop-opacity="0.88"/>
+      <stop offset="100%" stop-color="#eef3fb" stop-opacity="0.88"/>
     </linearGradient>
     <linearGradient id="liveGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#e0245e"/>
-      <stop offset="100%" stop-color="#ff6b6b"/>
+      <stop offset="0%" stop-color="#1241A6"/>
+      <stop offset="100%" stop-color="#3d6fd4"/>
     </linearGradient>
     <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.14"/>
@@ -25,9 +25,9 @@
   <!-- Video card (top left) -->
   <g filter="url(#cardShadow)" transform="translate(24 36) rotate(-6)">
     <rect width="118" height="78" rx="14" fill="#fff" fill-opacity="0.92"/>
-    <rect x="10" y="10" width="98" height="46" rx="8" fill="#ffe8ef"/>
+    <rect x="10" y="10" width="98" height="46" rx="8" fill="#e8eef9"/>
     <circle cx="59" cy="33" r="14" fill="#fff" fill-opacity="0.95"/>
-    <path d="M55 27l12 6-12 6V27z" fill="#e0245e"/>
+    <path d="M55 27l12 6-12 6V27z" fill="#1241A6"/>
     <rect x="10" y="62" width="52" height="6" rx="3" fill="#222" fill-opacity="0.12"/>
     <rect x="10" y="62" width="34" height="6" rx="3" fill="#222" fill-opacity="0.22"/>
   </g>
@@ -35,12 +35,12 @@
   <!-- Music card (top right) -->
   <g filter="url(#cardShadow)" transform="translate(292 28) rotate(8)">
     <rect width="112" height="72" rx="14" fill="#fff" fill-opacity="0.92"/>
-    <circle cx="34" cy="36" r="22" fill="#fff5f0" stroke="#ff8e53" stroke-width="2" stroke-opacity="0.45"/>
-    <circle cx="34" cy="36" r="8" fill="#ff8e53" fill-opacity="0.35"/>
+    <circle cx="34" cy="36" r="22" fill="#eef3fb" stroke="#6892e0" stroke-width="2" stroke-opacity="0.45"/>
+    <circle cx="34" cy="36" r="8" fill="#6892e0" fill-opacity="0.35"/>
     <rect x="62" y="22" width="36" height="5" rx="2.5" fill="#222" fill-opacity="0.15"/>
     <rect x="62" y="34" width="28" height="5" rx="2.5" fill="#222" fill-opacity="0.1"/>
-    <path d="M66 48c6 4 14 4 20 0" stroke="#e0245e" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.55"/>
-    <path d="M66 54c4 3 10 3 14 0" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.45"/>
+    <path d="M66 48c6 4 14 4 20 0" stroke="#1241A6" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.55"/>
+    <path d="M66 54c4 3 10 3 14 0" stroke="#3d6fd4" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.45"/>
   </g>
 
   <!-- Central app / creator hub -->
@@ -48,9 +48,9 @@
     <rect width="196" height="196" rx="28" fill="#fff" fill-opacity="0.96"/>
     <rect x="14" y="14" width="168" height="118" rx="16" fill="url(#screenGrad)"/>
     <!-- Creator avatar -->
-    <circle cx="98" cy="58" r="22" fill="#ffd4e3"/>
-    <circle cx="98" cy="52" r="9" fill="#ffb8cc"/>
-    <path d="M78 78c4-10 14-14 20-14s16 4 20 14" fill="#ffb8cc"/>
+    <circle cx="98" cy="58" r="22" fill="#c5d8f5"/>
+    <circle cx="98" cy="52" r="9" fill="#a8c4ee"/>
+    <path d="M78 78c4-10 14-14 20-14s16 4 20 14" fill="#a8c4ee"/>
     <!-- Content rows -->
     <rect x="28" y="92" width="88" height="8" rx="4" fill="#222" fill-opacity="0.12"/>
     <rect x="28" y="108" width="112" height="8" rx="4" fill="#222" fill-opacity="0.08"/>
@@ -58,7 +58,7 @@
     <rect x="28" y="146" width="140" height="28" rx="14" fill="url(#liveGrad)"/>
     <rect x="44" y="155" width="72" height="8" rx="4" fill="#fff" fill-opacity="0.92"/>
     <!-- Bottom nav dots -->
-    <circle cx="82" cy="178" r="4" fill="#e0245e" fill-opacity="0.35"/>
+    <circle cx="82" cy="178" r="4" fill="#1241A6" fill-opacity="0.35"/>
     <circle cx="98" cy="178" r="4" fill="#222" fill-opacity="0.12"/>
     <circle cx="114" cy="178" r="4" fill="#222" fill-opacity="0.12"/>
   </g>
@@ -66,7 +66,7 @@
   <!-- Live session badge -->
   <g filter="url(#cardShadow)" transform="translate(48 214) rotate(-4)">
     <rect width="104" height="44" rx="22" fill="#fff" fill-opacity="0.94"/>
-    <circle cx="28" cy="22" r="8" fill="#e0245e">
+    <circle cx="28" cy="22" r="8" fill="#1241A6">
       <animate attributeName="opacity" values="1;0.45;1" dur="2s" repeatCount="indefinite"/>
     </circle>
     <rect x="44" y="14" width="48" height="7" rx="3.5" fill="#222" fill-opacity="0.16"/>
@@ -76,10 +76,10 @@
   <!-- Community / chat bubble -->
   <g filter="url(#cardShadow)" transform="translate(286 196) rotate(5)">
     <path d="M0 0h92a16 16 0 0 1 16 16v28a16 16 0 0 1-16 16H36l-18 16v-16H0a16 16 0 0 1-16-16V16A16 16 0 0 1 0 0z" transform="translate(16 0)" fill="#fff" fill-opacity="0.92"/>
-    <circle cx="38" cy="30" r="10" fill="#ffe8ef"/>
-    <circle cx="58" cy="30" r="10" fill="#fff5f0"/>
-    <circle cx="78" cy="30" r="10" fill="#ffe8ef"/>
-    <path d="M34 52h44" stroke="#e0245e" stroke-width="2" stroke-linecap="round" stroke-opacity="0.35"/>
+    <circle cx="38" cy="30" r="10" fill="#e8eef9"/>
+    <circle cx="58" cy="30" r="10" fill="#eef3fb"/>
+    <circle cx="78" cy="30" r="10" fill="#e8eef9"/>
+    <path d="M34 52h44" stroke="#1241A6" stroke-width="2" stroke-linecap="round" stroke-opacity="0.35"/>
   </g>
 
   <!-- Sparkle accents -->
