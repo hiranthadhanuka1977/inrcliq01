@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INRCLIQ · Home Feed Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="left-nav">
+        <div class="left-nav__body">
+        <div class="brand">INRCLIQ<span class="dot">.</span></div>
+        <nav>
+          <a class="nav-item active" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon nav-icon--home" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+                </svg>
+              </span>
+              Home
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="4" />
+                  <path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none" />
+                </svg>
+              </span>
+              Snaps
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </span>
+              Audio
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                </svg>
+              </span>
+              Explore
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </span>
+              Messages
+            </span>
+            <span class="badge">3</span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </span>
+              Notifications
+            </span>
+            <span class="badge">4</span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+              </span>
+              Purchases
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+              </span>
+              Profile
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+              </span>
+              More
+            </span>
+          </a>
+        </nav>
+        </div>
+
+        <div class="nav-profile">
+          <a class="nav-profile__link" href="#">
+            <span class="nav-profile__avatar" aria-hidden="true">D</span>
+            <span class="nav-profile__info">
+              <span class="nav-profile__name">Dhanuka</span>
+              <span class="nav-profile__meta">Your memberships</span>
+            </span>
+          </a>
+          <button type="button" class="nav-profile__menu" aria-label="Account menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="1.75" />
+              <circle cx="12" cy="12" r="1.75" />
+              <circle cx="12" cy="19" r="1.75" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <div class="main-content">
+        <div class="content-layout">
+        <section class="stories card">
+          <button class="story-nav story-nav--prev" aria-label="Previous stories">‹</button>
+          <div class="stories-track" id="stories-track">
+            <div class="story story--snap">
+              <div class="story-avatar story-avatar--snap">+</div>
+              <span>Your Snap</span>
+            </div>
+
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#4f46e5">TS</div>
+              <span>Taylor</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#8b5cf6">JL</div>
+              <span>Jennifer</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#a21caf">BM</div>
+              <span>Bruno</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#c026d3">DL</div>
+              <span>Dua</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#0f766e">BE</div>
+              <span>Billie</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#6d28d9">OR</div>
+              <span>Olivia</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#ef4444">MC</div>
+              <span>Miley</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#166534">ED</div>
+              <span>Ed S.</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#f97316">AG</div>
+              <span>Ariana</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#4338ca">PM</div>
+              <span>Post M.</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#be185d">SZ</div>
+              <span>SZA</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#374151">DR</div>
+              <span>Drake</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#b45309">AD</div>
+              <span>Adele</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#0e7490">SS</div>
+              <span>Sam S.</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#7c2d12">WK</div>
+              <span>The Week...</span>
+            </div>
+            <div class="story">
+              <div class="story-avatar" style="--story-color:#6d28d9">DC</div>
+              <span>Doja</span>
+            </div>
+          </div>
+          <button class="story-nav story-nav--next" aria-label="Next stories">›</button>
+        </section>
+
+        <div class="content-row">
+          <main class="feed-main">
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Bruno Mars</strong>
+              <p>@brunomarsofficial · Monetised ✦ · 5h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>
+            🎵 "Die With a Smile" is here! Feel the soul, the rhythm, the emotion. Hit play!
+            <br />
+            <span class="tag">#BrunoMars</span><span class="tag">#DieWithASmile</span><span class="tag">#NewMusic</span>
+          </p>
+          <a class="muted-link" href="#">View all <strong>2,345 comments</strong></a>
+          <div class="post-stats">14.2M · 2,345 · Save</div>
+        </article>
+
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Taylor Swift</strong>
+              <p>@taylorswiftmusic · Monetised ✦ · 2h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>
+            The Fortnight music video is finally here 🎬✨ Every frame was a labour of love.
+            <br />
+            <span class="tag">#Fortnight</span><span class="tag">#ErasTour</span><span class="tag">#TTPD</span>
+          </p>
+          <a class="muted-link" href="#">View all <strong>18,420 comments</strong></a>
+          <div class="post-stats">2.4M · 18.4K · Save</div>
+        </article>
+
+        <section class="rail card">
+          <div class="rail-title">
+            <h3>Snaps · trending now</h3>
+            <a href="#">See all →</a>
+          </div>
+          <div class="snap-grid">
+            <div>2.4M views · 0:45 · @taylorswiftmusic · 12m ago</div>
+            <div>6.8M views · 0:38 · @dualipa · 2h ago</div>
+            <div>4.1M views · 0:52 · @billieeilish · 8h ago</div>
+            <div>14.2M views · 0:55 · @brunomarsofficial · 5h ago</div>
+            <div>892K views · 0:28 · @jenniferlopez · 1h ago</div>
+            <div>1.1M views · 0:33 · @edsheeran · 6h ago</div>
+          </div>
+        </section>
+
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Ed Sheeran</strong>
+              <p>@edsheeran · Monetised ✦ · 6h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>Choosing the next live album. Your vote literally decides this 🎼</p>
+          <div class="poll">
+            <h4>Which era do you want as a live album?</h4>
+            <div>🎸 The Folk Era 28%</div>
+            <div>🎹 Pop Perfection 41%</div>
+            <div>🎷 Jazz Collab 19%</div>
+            <div>🎤 Acoustic Sessions 12%</div>
+            <small>312,880 votes · 6 hours left</small>
+          </div>
+          <div class="post-stats">1.1M · 58K · Save</div>
+        </article>
+
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Dua Lipa</strong>
+              <p>@dualipa · Monetised ✦ · 2h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>Behind the scenes from the Houdini shoot 🎥 Cannot believe this team 💜</p>
+          <p><span class="tag">#Houdini</span><span class="tag">#RadicalOptimism</span></p>
+          <div class="post-stats">6.8M · 142K · Save</div>
+        </article>
+
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Miley Cyrus</strong>
+              <p>@mileycyrus · Monetised ✦ · 4h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>
+            "The best thing I did for my career was stop trying to be what everyone expected. Build an audience by
+            being unapologetically yourself — not by being safe. The stage was built for risk-takers."
+            <br />
+            <span class="tag">#Authentic</span><span class="tag">#Creator</span>
+          </p>
+          <div class="post-stats">4.2M · 88K · Save</div>
+        </article>
+
+        <section class="rail card">
+          <div class="rail-title">
+            <h3>Snaps · because you watched Dua Lipa</h3>
+            <a href="#">See all →</a>
+          </div>
+          <div class="snap-grid">
+            <div>4.1M views · 0:41 · @streetbeats · viral</div>
+            <div>2.8M views · 0:36 · @nomadlens · viral</div>
+            <div>1.9M views · 0:48 · @daydream · rising</div>
+            <div>3.4M views · 0:29 · @loudmind · viral</div>
+            <div>890K views · 0:52 · @soulfood · new</div>
+          </div>
+        </section>
+
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Billie Eilish</strong>
+              <p>@billieeilish · Monetised ✦ · 8h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>Dropped a little acoustic session for you all. Just me and a guitar 🎸</p>
+          <p><span class="tag">#HitMeHard</span><span class="tag">#Acoustic</span></p>
+          <p class="song">Birds of a Feather — Acoustic · Billie Eilish · 3:42 · 18.2M plays</p>
+          <div class="post-stats">18.2M · 204K · Save</div>
+        </article>
+
+        <article class="post card">
+          <div class="post-head">
+            <div>
+              <strong>Jennifer Lopez</strong>
+              <p>@jenniferlopez · Monetised ✦ · 1h</p>
+            </div>
+            <button class="more">···</button>
+          </div>
+          <p>Rehearsal day 💃 Something BIG is coming ✨</p>
+          <p><span class="tag">#NewEra</span><span class="tag">#Dance</span></p>
+          <div class="post-stats">892K · 34K · Save</div>
+        </article>
+          </main>
+
+          <aside class="right-rail">
+        <section class="card">
+          <div class="rail-title">
+            <h3>Creators to follow · grow your circle</h3>
+            <a href="#">See all →</a>
+          </div>
+          <div class="follow-item"><span>Bruno Mars · 89.4M followers · ✦ Monetised</span><button>Follow</button></div>
+          <div class="follow-item"><span>Jennifer Lopez · 48.2M followers · ✦ Monetised</span><button>Follow</button></div>
+          <div class="follow-item"><span>Ed Sheeran · 64.1M followers · ✦ Monetised</span><button>Follow</button></div>
+          <div class="follow-item"><span>Mike Osei · 2.4K followers · Creator</span><button>Follow</button></div>
+          <div class="follow-item"><span>Ariana Grande · 89.4M followers · ✦ Monetised</span><button class="following">Following</button></div>
+        </section>
+
+        <section class="card">
+          <h3>Trending 🔥</h3>
+          <p>#ErasTour · 2.4M posts</p>
+          <p>#Snaps · 1.8M posts</p>
+          <p>#NewMusic · 982K posts</p>
+          <p>#INRCLIQ · 3.1M posts</p>
+        </section>
+
+        <section class="card premium">
+          <h3>Upgrade to Premium ⭐</h3>
+          <p>Unlock exclusive content. Ad-free. Early access.</p>
+          <button>Get Premium →</button>
+        </section>
+          </aside>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const track = document.getElementById("stories-track");
+      const prevBtn = document.querySelector(".story-nav--prev");
+      const nextBtn = document.querySelector(".story-nav--next");
+      const scrollAmount = 320;
+
+      if (track && prevBtn && nextBtn) {
+        prevBtn.addEventListener("click", () => track.scrollBy({ left: -scrollAmount, behavior: "smooth" }));
+        nextBtn.addEventListener("click", () => track.scrollBy({ left: scrollAmount, behavior: "smooth" }));
+      }
+    </script>
+
+    <nav class="mobile-nav">
+      <a href="#" class="active">
+        <span class="nav-icon nav-icon--home" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+          </svg>
+        </span>
+        Home
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4" />
+            <path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        Snaps
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+          </svg>
+        </span>
+        Audio
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </span>
+        Messages
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+        </span>
+        Profile
+      </a>
+    </nav>
+  </body>
+</html>
