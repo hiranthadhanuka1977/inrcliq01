@@ -24,6 +24,9 @@ Production app converted from the static prototype in `../prototype/`.
    DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/inrcliq?schema=public"
    AUTH_SECRET="generate-with-openssl-rand-base64-32"
    NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   EMAIL_PROVIDER=sendgrid
+   EMAIL_FROM=support@insider-hub.com
+   SENDGRID_API_KEY=your-sendgrid-api-key
    ```
 
 3. **Create database** (if it does not exist)
@@ -70,19 +73,26 @@ Production app converted from the static prototype in `../prototype/`.
 - `/guardian/approve?token=…` — parent approval page
 - Dev only: simulate parent approval from the waiting screen
 
-In development, verification and parent-approval links are logged to the server console.
+## Email (SendGrid)
+
+Set `EMAIL_PROVIDER=sendgrid` with `EMAIL_FROM` and `SENDGRID_API_KEY` to send real emails. Use `EMAIL_PROVIDER=console` (or omit SendGrid vars) to log messages to the server console instead.
+
+Emails are sent for:
+
+- Signup email verification
+- Login one-time codes
+- Parent/guardian approval invites
+- Child notification when a parent approves or declines
+- Profile completion after handle setup
 
 ## Next migration slices
 
 1. OAuth (Google / Apple)
 2. Topic selection (ONB-08)
-3. Resend email integration
-4. Guardian ID verification screens
+3. Guardian ID verification screens
 
 ## Deploying to Vercel
 
 1. Add Vercel Postgres or Neon
-2. Set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`
+2. Set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, `EMAIL_PROVIDER`, `EMAIL_FROM`, and `SENDGRID_API_KEY`
 3. Build command: `prisma generate && prisma migrate deploy && next build`
-
-Verification links, parent invites, and login codes are logged to the server console (check Vercel function logs in production).

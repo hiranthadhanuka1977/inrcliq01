@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 type LoginCodeInboxProps = {
   open: boolean;
@@ -11,21 +12,7 @@ type LoginCodeInboxProps = {
 
 export function LoginCodeInbox({ open, email, loginCode, onClose }: LoginCodeInboxProps) {
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) setCopied(false);
-  }, [open]);
+  const { dialogRef } = useDialogA11y(open, onClose);
 
   if (!open) return null;
 
@@ -38,6 +25,11 @@ export function LoginCodeInbox({ open, email, loginCode, onClose }: LoginCodeInb
     }
   }
 
+  function handleClose() {
+    setCopied(false);
+    onClose();
+  }
+
   return (
     <div
       className="modal-backdrop is-open verify-email-inbox-backdrop"
@@ -45,15 +37,15 @@ export function LoginCodeInbox({ open, email, loginCode, onClose }: LoginCodeInb
       aria-modal="true"
       aria-labelledby="login-code-inbox-title"
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) handleClose();
       }}
     >
-      <div className="modal verify-email-inbox">
+      <div className="modal verify-email-inbox" ref={dialogRef} tabIndex={-1}>
         <button
           type="button"
           className="modal__close verify-email-inbox__close"
           aria-label="Close email"
-          onClick={onClose}
+          onClick={handleClose}
         >
           ×
         </button>

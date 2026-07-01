@@ -18,9 +18,9 @@ export async function POST(request: Request) {
     if (skip) {
       await prisma.user.update({
         where: { id: user.id },
-        data: { onboardingStep: "complete" },
+        data: { onboardingStep: "interests" },
       });
-      return NextResponse.json({ ok: true, redirectTo: "/home" });
+      return NextResponse.json({ ok: true, redirectTo: "/onboarding/interests" });
     }
 
     const parsed = parseHandle(body.handle);
@@ -47,11 +47,10 @@ export async function POST(request: Request) {
       where: { id: user.id },
       data: {
         handle,
-        onboardingStep: "complete",
+        onboardingStep: "interests",
       },
     });
-
-    return NextResponse.json({ ok: true, redirectTo: "/home" });
+    return NextResponse.json({ ok: true, redirectTo: "/onboarding/interests" });
   } catch (error) {
     console.error("onboarding/handle error", error);
     return NextResponse.json({ error: "Unable to save handle." }, { status: 500 });

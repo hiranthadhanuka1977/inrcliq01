@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { GuardianChildContext } from "@/lib/auth/guardian-flow";
 
 export function ParentConsentStep({
@@ -28,7 +29,9 @@ export function ParentConsentStep({
         <section className="parent-consent__section" aria-labelledby="par-about-heading">
           <div className="parent-consent__section-head">
             <h2 id="par-about-heading">What is InrCliq?</h2>
-            <span className="link-btn parent-consent__explore-link">Explore more about InrCliq</span>
+            <Link href="/" className="link-btn parent-consent__explore-link">
+              Explore more about InrCliq
+            </Link>
           </div>
           <div className="parent-consent__features">
             <article className="parent-consent__feature">

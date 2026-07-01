@@ -1,12 +1,14 @@
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import { ApprovalStatus } from "@/generated/prisma/client";
+import { sendParentApprovedChildEmail } from "@/lib/email/notifications";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/api-helpers";
 import {
   PARENT_INVITE_COOLDOWN_SECONDS,
   PARENT_INVITE_EXPIRY_HOURS,
 } from "@/lib/auth/parent-invite.constants";
+import { sendParentInviteEmail as deliverParentInviteEmail } from "@/lib/email/notifications";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
@@ -94,6 +96,7 @@ export async function unlockChildAfterParentApproval(childUserId: string) {
 export async function approveParentRequest(requestId: string) {
   const request = await prisma.parentApprovalRequest.findUniqueOrThrow({
     where: { id: requestId },
+    include: { childUser: true },
   });
 
   await prisma.$transaction([
@@ -110,6 +113,11 @@ export async function approveParentRequest(requestId: string) {
     }),
   ]);
 
+  await sendParentApprovedChildEmail(
+    request.childUser.email,
+    request.childUser.firstName ?? "there",
+  );
+
   return request;
 }
 
@@ -125,7 +133,5 @@ export async function sendParentInviteEmail(
   approveUrl: string,
   childFirstName: string,
 ) {
-  console.info(
-    `[email] Parent invite for ${parentEmail} (${childFirstName}): ${approveUrl}`,
-  );
+  await deliverParentInviteEmail(parentEmail, approveUrl, childFirstName);
 }

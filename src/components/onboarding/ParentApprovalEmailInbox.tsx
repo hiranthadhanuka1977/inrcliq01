@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 type ParentApprovalEmailInboxProps = {
   open: boolean;
@@ -17,16 +17,7 @@ export function ParentApprovalEmailInbox({
   approveUrl,
   onClose,
 }: ParentApprovalEmailInboxProps) {
-  useEffect(() => {
-    if (!open) return;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const { dialogRef } = useDialogA11y(open, onClose);
 
   if (!open) return null;
 
@@ -48,7 +39,7 @@ export function ParentApprovalEmailInbox({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="modal verify-email-inbox">
+      <div className="modal verify-email-inbox" ref={dialogRef} tabIndex={-1}>
         <button
           type="button"
           className="modal__close verify-email-inbox__close"

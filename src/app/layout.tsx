@@ -23,9 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={plusJakarta.className}>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <MicrosoftClarity />
         <PrototypeControls />
-        {children}
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
       </body>
     </html>
   );

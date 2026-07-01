@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 const PROTOTYPE_CONSENT_KEY = "inrcliq_prototype_consent";
 
 export function PrototypeConsentModal() {
   const [open, setOpen] = useState(false);
+  const [consented, setConsented] = useState(false);
+  const { dialogRef } = useDialogA11y(open, () => {});
 
   useEffect(() => {
     try {
@@ -18,9 +21,7 @@ export function PrototypeConsentModal() {
     }
   }, []);
 
-  function handleConsentChange(event: React.ChangeEvent<HTMLInputElement>) {
-    if (!event.target.checked) return;
-
+  function persistConsentAndClose() {
     try {
       sessionStorage.setItem(PROTOTYPE_CONSENT_KEY, "1");
     } catch {
@@ -39,7 +40,7 @@ export function PrototypeConsentModal() {
       aria-modal="true"
       aria-labelledby="prototype-consent-title"
     >
-      <div className="modal prototype-consent">
+      <div className="modal prototype-consent" ref={dialogRef} tabIndex={-1}>
         <h2 id="prototype-consent-title" className="prototype-consent__title">
           Data Privacy &amp; Consent
         </h2>
@@ -75,12 +76,25 @@ export function PrototypeConsentModal() {
         </dl>
 
         <label className="prototype-consent__checkbox">
-          <input type="checkbox" id="prototype-consent-checkbox" onChange={handleConsentChange} />
+          <input
+            type="checkbox"
+            id="prototype-consent-checkbox"
+            checked={consented}
+            onChange={(event) => setConsented(event.target.checked)}
+          />
           <span>
             I agree to the collection and processing of my personal data for the purpose of testing this
             onboarding prototype as described above.
           </span>
         </label>
+        <button
+          type="button"
+          className="btn btn--primary mt-4"
+          onClick={persistConsentAndClose}
+          disabled={!consented}
+        >
+          Continue
+        </button>
       </div>
     </div>
   );

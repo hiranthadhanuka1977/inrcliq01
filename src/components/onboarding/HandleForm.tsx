@@ -20,6 +20,7 @@ export function HandleForm({
   const [handle, setHandle] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [fieldError, setFieldError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export function HandleForm({
 
   async function submit(skip = false) {
     setApiError("");
+    setFieldError("");
     setIsSubmitting(true);
 
     try {
@@ -62,10 +64,11 @@ export function HandleForm({
     event.preventDefault();
     const validationError = validateHandle(handle);
     if (validationError) {
-      window.alert(validationError);
+      setFieldError(validationError);
       handleRef.current?.focus();
       return;
     }
+    setFieldError("");
     await submit(false);
   }
 
@@ -99,9 +102,15 @@ export function HandleForm({
               placeholder="yourname"
               autoComplete="username"
               spellCheck={false}
-              aria-describedby="signup-handle-requirement"
+              aria-invalid={Boolean(fieldError)}
+              aria-describedby={fieldError ? "signup-handle-error signup-handle-requirement" : "signup-handle-requirement"}
             />
           </div>
+          {fieldError ? (
+            <p className="field-error mt-3" id="signup-handle-error" role="alert">
+              {fieldError}
+            </p>
+          ) : null}
           <p className={`password-requirement mt-4${requirementMet ? " is-met" : ""}`} id="signup-handle-requirement">
             <span className="password-requirement__mark" aria-hidden="true" />
             <span>No spaces · Max 24 characters · Letters, numbers, underscores, and periods only</span>

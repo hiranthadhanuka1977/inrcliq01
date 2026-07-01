@@ -6,6 +6,7 @@ import {
   EMAIL_VERIFY_COOLDOWN_SECONDS,
   EMAIL_VERIFY_EXPIRY_HOURS,
 } from "@/lib/auth/email-verification.constants";
+import { sendVerificationEmail as deliverVerificationEmail } from "@/lib/email/notifications";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
@@ -81,5 +82,5 @@ export async function verifyEmailToken(rawToken: string) {
 }
 
 export async function sendVerificationEmail(email: string, verifyUrl: string) {
-  console.info(`[email] Verify email for ${email}: ${verifyUrl}`);
+  await deliverVerificationEmail(email, verifyUrl);
 }

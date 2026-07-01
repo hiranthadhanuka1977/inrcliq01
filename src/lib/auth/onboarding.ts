@@ -5,6 +5,7 @@ export function getOnboardingRedirect(
   parentRequest?: ParentApprovalRequest | null,
 ) {
   if (user.onboardingStep === "complete") return "/home";
+  if (user.onboardingStep === "interests") return "/onboarding/interests";
   if (user.onboardingStep === "handle") return "/onboarding/handle";
   if (user.onboardingStep === "approved") return "/onboarding/approved";
   if (user.onboardingStep === "password") return "/onboarding/password";

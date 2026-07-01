@@ -1,3 +1,7 @@
+"use client";
+
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
+
 export function DeclineModal({
   open,
   childFirstName,
@@ -11,11 +15,13 @@ export function DeclineModal({
   onConfirm: () => void;
   isSubmitting?: boolean;
 }) {
+  const { dialogRef } = useDialogA11y(open, onCancel);
+
   if (!open) return null;
 
   return (
     <div className="modal-backdrop is-open" role="dialog" aria-modal="true" aria-labelledby="decline-modal-title">
-      <div className="modal decline-modal text-center">
+      <div className="modal decline-modal text-center" ref={dialogRef} tabIndex={-1}>
         <div className="decline-modal__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -57,11 +63,13 @@ export function CaptureSuccessModal({
   buttonLabel: string;
   onContinue: () => void;
 }) {
+  const { dialogRef } = useDialogA11y(open, onContinue);
+
   if (!open) return null;
 
   return (
     <div className="modal-backdrop is-open" role="dialog" aria-modal="true" aria-labelledby="capture-modal-title">
-      <div className="modal id-captured-modal text-center">
+      <div className="modal id-captured-modal text-center" ref={dialogRef} tabIndex={-1}>
         <div className="id-captured-modal__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />

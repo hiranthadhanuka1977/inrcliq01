@@ -8,6 +8,10 @@ import type { IdDocType, ProtectionTier } from "@/lib/guardian/constants";
 import { prisma } from "@/lib/prisma";
 import { calculateAge } from "@/lib/utils/age";
 import { formatLongDate } from "@/lib/utils/format-dates";
+import {
+  sendParentApprovedChildEmail,
+  sendParentDeclinedChildEmail,
+} from "@/lib/email/notifications";
 
 export type GuardianChildContext = {
   firstName: string;
@@ -219,6 +223,11 @@ export async function declineParentRequestById(requestId: string) {
     include: { childUser: true },
   });
 
+  await sendParentDeclinedChildEmail(
+    request.childUser.email,
+    request.childUser.firstName ?? "there",
+  );
+
   return request;
 }
 
@@ -254,6 +263,11 @@ export async function quickApproveReturningGuardian(requestId: string) {
       data: { onboardingStep: "approved" },
     }),
   ]);
+
+  await sendParentApprovedChildEmail(
+    request.childUser.email,
+    request.childUser.firstName ?? "there",
+  );
 
   return {
     ok: true as const,
@@ -320,6 +334,11 @@ export async function completeGuardianApproval(
       data: { onboardingStep: "approved" },
     }),
   ]);
+
+  await sendParentApprovedChildEmail(
+    request.childUser.email,
+    request.childUser.firstName ?? "there",
+  );
 
   return {
     ok: true as const,

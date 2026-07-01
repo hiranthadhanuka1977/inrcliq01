@@ -21,6 +21,16 @@ export function ParentProtectionStep({
   const firstName = child.firstName;
   const childAge = child.age ?? 14;
   const [tier, setTier] = useState<ProtectionTier>("standard");
+  const tierOptions: ProtectionTier[] = ["strict", "standard", "relaxed"];
+
+  function selectByArrow(current: ProtectionTier, direction: "next" | "prev") {
+    const currentIndex = tierOptions.indexOf(current);
+    const nextIndex =
+      direction === "next"
+        ? (currentIndex + 1) % tierOptions.length
+        : (currentIndex - 1 + tierOptions.length) % tierOptions.length;
+    setTier(tierOptions[nextIndex]);
+  }
 
   return (
     <div className="protection-setup">
@@ -35,20 +45,30 @@ export function ParentProtectionStep({
         </p>
       </div>
 
-      <h1 className="parent-signup__title protection-setup__title text-center mt-8">
+      <h1 id="par-protection-title" className="parent-signup__title protection-setup__title text-center mt-8">
         Choose {firstName}&apos;s protection level
       </h1>
       <p className="subtitle mt-2 text-center">You can change this anytime from your dashboard.</p>
 
       <div className="protection-tiers mt-8" role="radiogroup" aria-labelledby="par-protection-title">
-        {(["strict", "standard", "relaxed"] as ProtectionTier[]).map((value) => (
+        {tierOptions.map((value) => (
           <button
             key={value}
             type="button"
             className={`protection-tier${tier === value ? " is-selected" : ""}`}
             role="radio"
             aria-checked={tier === value}
+            aria-label={`${PROTECTION_TIER_LABELS[value]} protection`}
             onClick={() => setTier(value)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                event.preventDefault();
+                selectByArrow(value, "next");
+              } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                event.preventDefault();
+                selectByArrow(value, "prev");
+              }
+            }}
           >
             <span className={`protection-tier__icon protection-tier__icon--${value}`} aria-hidden="true">
               {value === "standard" ? (

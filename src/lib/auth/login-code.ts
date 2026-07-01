@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 import { LOGIN_CODE_COOLDOWN_SECONDS, LOGIN_CODE_EXPIRY_MINUTES } from "@/lib/auth/login-code.constants";
+import { sendLoginCodeEmail as deliverLoginCodeEmail } from "@/lib/email/notifications";
 
 function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -89,5 +90,5 @@ export async function findUserForLogin(email: string) {
 }
 
 export async function sendLoginCodeEmail(email: string, code: string) {
-  console.info(`[email] Login code for ${email}: ${code}`);
+  return deliverLoginCodeEmail(email, code);
 }
