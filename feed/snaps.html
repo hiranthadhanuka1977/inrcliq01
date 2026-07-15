@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INRCLIQ · Snaps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./buttons.css" />
+    <link rel="stylesheet" href="./snaps.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="left-nav">
+        <div class="left-nav__body">
+          <div class="left-nav__header">
+            <div class="brand"><a href="./index.html" style="color:inherit;text-decoration:none">INRCLIQ<span class="dot">.</span></a></div>
+            <a class="nav-notify" href="#" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span class="nav-notify__dot" aria-hidden="true"></span>
+            </a>
+          </div>
+          <nav>
+            <a class="nav-item" href="./index.html">
+              <span class="nav-item__label">
+                <span class="nav-icon nav-icon--home" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+                  </svg>
+                </span>
+                Home
+              </span>
+            </a>
+            <a class="nav-item active" href="./snaps.html">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="4" />
+                    <path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none" />
+                  </svg>
+                </span>
+                Snaps
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </span>
+                Photos
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+                  </svg>
+                </span>
+                Videos
+              </span>
+            </a>
+            <a class="nav-item" href="./audio.html">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13" />
+                    <circle cx="6" cy="18" r="3" />
+                    <circle cx="18" cy="16" r="3" />
+                  </svg>
+                </span>
+                Audio
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                  </svg>
+                </span>
+                Explore
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </span>
+                <span class="nav-item__text">
+                  Messages
+                  <span class="badge">3</span>
+                </span>
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                </span>
+                Purchases
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                  </svg>
+                </span>
+                More
+              </span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="nav-premium">
+          <a class="premium-upsell" href="#">
+            <span class="premium-upsell__shine" aria-hidden="true"></span>
+            <span class="premium-upsell__orb premium-upsell__orb--gold" aria-hidden="true"></span>
+            <span class="premium-upsell__orb premium-upsell__orb--blue" aria-hidden="true"></span>
+            <span class="premium-upsell__badge">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              Premium
+            </span>
+            <span class="premium-upsell__title">Go Premium</span>
+            <span class="premium-upsell__desc">Unlock the full INRCLIQ experience</span>
+            <span class="premium-upsell__perks">
+              <span class="premium-upsell__perk">Ad-free</span>
+              <span class="premium-upsell__perk">Exclusive</span>
+              <span class="premium-upsell__perk">Monetise</span>
+            </span>
+            <span class="premium-upsell__cta">Try 1 month free</span>
+          </a>
+        </div>
+
+        <div class="nav-create">
+          <button type="button" class="nav-create__btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Create
+          </button>
+        </div>
+
+        <div class="nav-profile">
+          <a class="nav-profile__link" href="#">
+            <span class="nav-profile__avatar" aria-hidden="true">D</span>
+            <span class="nav-profile__info">
+              <span class="nav-profile__name">Dhanuka</span>
+              <span class="nav-profile__meta">Your memberships</span>
+            </span>
+          </a>
+          <button type="button" class="nav-profile__menu" aria-label="Account menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="1.75" />
+              <circle cx="12" cy="12" r="1.75" />
+              <circle cx="12" cy="19" r="1.75" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <div class="main-content">
+        <div class="feed-header">
+          <section class="feed-filters" aria-label="Snaps feed">
+            <div class="feed-filters__track" role="tablist">
+              <button type="button" class="feed-filter" role="tab" aria-selected="false">Following</button>
+              <button type="button" class="feed-filter is-active" role="tab" aria-selected="true">For you</button>
+              <button type="button" class="feed-filter" role="tab" aria-selected="false">Explore</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="content-layout content-layout--snaps">
+          <main class="feed-main feed-main--snaps">
+            <section class="snaps-player" aria-label="Snaps player">
+              <div class="snaps-arrows" aria-hidden="true">
+                <button type="button" class="snaps-arrow" data-scroll="-1" aria-label="Previous snap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
+                </button>
+                <button type="button" class="snaps-arrow" data-scroll="1" aria-label="Next snap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                </button>
+              </div>
+
+              <div class="snaps-track" id="snaps-track">
+            <article class="snap-slide">
+              <div class="snap-slide__stage">
+                <div class="snap-slide__frame">
+              <img class="snap-slide__bg" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=900&q=80&auto=format&fit=crop" alt="" />
+              <div class="snap-slide__grad" aria-hidden="true"></div>
+              <span class="snap-slide__dur">0:45</span>
+              <button type="button" class="snap-slide__playpause" aria-label="Pause snap">
+                <span class="snap-slide__pp-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                </span>
+              </button>
+              <div class="snap-slide__rail">
+                <button type="button" class="snap-rail-btn" aria-label="Follow Taylor Swift">
+                  <span class="snap-disc">
+                    <span class="snap-disc__av" style="--story-color:#4f46e5">
+                      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&q=80&auto=format&fit=crop" alt="" />
+                    </span>
+                    <span class="snap-disc__plus">+</span>
+                  </span>
+                </button>
+                <button type="button" class="snap-rail-btn" data-like aria-label="Like snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                  <span class="snap-rail-btn__count">2.4M</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Comments">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">18K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Save snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">Save</span>
+                </button>
+              </div>
+              <div class="snap-slide__info">
+                <div class="snap-slide__creator">
+                  <span class="snap-slide__handle">@taylorswiftmusic</span>
+                  <span class="snap-slide__since">· 2h</span>
+                  <button type="button" class="snap-follow-btn">Follow</button>
+                </div>
+                <p class="snap-slide__caption">Fortnight — official music video out NOW 🎬✨ #ErasTour #Fortnight</p>
+                <div class="snap-slide__audio"><span class="snap-vinyl" aria-hidden="true"></span>Fortnight (ft. Post Malone) · 924K uses</div>
+              </div>
+                  <div class="snap-slide__progress" aria-hidden="true"><span style="width: 38%"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="snap-slide">
+              <div class="snap-slide__stage">
+                <div class="snap-slide__frame">
+              <img class="snap-slide__bg" src="https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=900&q=80&auto=format&fit=crop" alt="" />
+              <div class="snap-slide__grad" aria-hidden="true"></div>
+              <span class="snap-slide__dur">0:38</span>
+              <button type="button" class="snap-slide__playpause" aria-label="Pause snap">
+                <span class="snap-slide__pp-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                </span>
+              </button>
+              <div class="snap-slide__rail">
+                <button type="button" class="snap-rail-btn" aria-label="Follow Dua Lipa">
+                  <span class="snap-disc">
+                    <span class="snap-disc__av" style="--story-color:#c026d3">DL</span>
+                    <span class="snap-disc__plus">+</span>
+                  </span>
+                </button>
+                <button type="button" class="snap-rail-btn" data-like aria-label="Like snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                  <span class="snap-rail-btn__count">6.8M</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Comments">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">142K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Save snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">Save</span>
+                </button>
+              </div>
+              <div class="snap-slide__info">
+                <div class="snap-slide__creator">
+                  <span class="snap-slide__handle">@dualipa</span>
+                  <span class="snap-slide__since">· 2h</span>
+                  <button type="button" class="snap-follow-btn">Follow</button>
+                </div>
+                <p class="snap-slide__caption">Houdini BTS — 30 seconds of pure magic 🎥✨ Full video tonight #Houdini</p>
+                <div class="snap-slide__audio"><span class="snap-vinyl" aria-hidden="true"></span>Houdini — Dua Lipa · 1.4M uses</div>
+              </div>
+                  <div class="snap-slide__progress" aria-hidden="true"><span style="width: 52%"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="snap-slide">
+              <div class="snap-slide__stage">
+                <div class="snap-slide__frame">
+              <img class="snap-slide__bg" src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=900&q=80&auto=format&fit=crop" alt="" />
+              <div class="snap-slide__grad" aria-hidden="true"></div>
+              <span class="snap-slide__dur">0:52</span>
+              <button type="button" class="snap-slide__playpause" aria-label="Pause snap">
+                <span class="snap-slide__pp-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                </span>
+              </button>
+              <div class="snap-slide__rail">
+                <button type="button" class="snap-rail-btn" aria-label="Follow Billie Eilish">
+                  <span class="snap-disc">
+                    <span class="snap-disc__av" style="--story-color:#0f766e">BE</span>
+                    <span class="snap-disc__plus">+</span>
+                  </span>
+                </button>
+                <button type="button" class="snap-rail-btn" data-like aria-label="Like snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                  <span class="snap-rail-btn__count">4.1M</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Comments">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">88K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Save snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">Save</span>
+                </button>
+              </div>
+              <div class="snap-slide__info">
+                <div class="snap-slide__creator">
+                  <span class="snap-slide__handle">@billieeilish</span>
+                  <span class="snap-slide__since">· 8h</span>
+                  <button type="button" class="snap-follow-btn is-following">Following</button>
+                </div>
+                <p class="snap-slide__caption">Recording this one in my bedroom at 2am 🎙️ raw and real #HitMeHard</p>
+                <div class="snap-slide__audio"><span class="snap-vinyl" aria-hidden="true"></span>Birds of a Feather — Billie Eilish</div>
+              </div>
+                  <div class="snap-slide__progress" aria-hidden="true"><span style="width: 67%"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="snap-slide">
+              <div class="snap-slide__stage">
+                <div class="snap-slide__frame">
+              <img class="snap-slide__bg" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=900&q=80&auto=format&fit=crop" alt="" />
+              <div class="snap-slide__grad" aria-hidden="true"></div>
+              <span class="snap-slide__dur">0:55</span>
+              <button type="button" class="snap-slide__playpause" aria-label="Pause snap">
+                <span class="snap-slide__pp-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                </span>
+              </button>
+              <div class="snap-slide__rail">
+                <button type="button" class="snap-rail-btn" aria-label="Follow Bruno Mars">
+                  <span class="snap-disc">
+                    <span class="snap-disc__av" style="--story-color:#a21caf">
+                      <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&q=80&auto=format&fit=crop" alt="" />
+                    </span>
+                    <span class="snap-disc__plus">+</span>
+                  </span>
+                </button>
+                <button type="button" class="snap-rail-btn" data-like aria-label="Like snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                  <span class="snap-rail-btn__count">14.2M</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Comments">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">230K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Save snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">Save</span>
+                </button>
+              </div>
+              <div class="snap-slide__info">
+                <div class="snap-slide__creator">
+                  <span class="snap-slide__handle">@brunomarsofficial</span>
+                  <span class="snap-slide__since">· 5h</span>
+                  <button type="button" class="snap-follow-btn">Follow</button>
+                </div>
+                <p class="snap-slide__caption">Die With a Smile is finally HERE 🎹❤️ #BrunoMars #NewMusic</p>
+                <div class="snap-slide__audio"><span class="snap-vinyl" aria-hidden="true"></span>Die With a Smile — Bruno Mars &amp; Lady Gaga</div>
+              </div>
+                  <div class="snap-slide__progress" aria-hidden="true"><span style="width: 24%"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="snap-slide">
+              <div class="snap-slide__stage">
+                <div class="snap-slide__frame">
+              <img class="snap-slide__bg" src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&q=80&auto=format&fit=crop" alt="" />
+              <div class="snap-slide__grad" aria-hidden="true"></div>
+              <span class="snap-slide__dur">0:28</span>
+              <button type="button" class="snap-slide__playpause" aria-label="Pause snap">
+                <span class="snap-slide__pp-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                </span>
+              </button>
+              <div class="snap-slide__rail">
+                <button type="button" class="snap-rail-btn" aria-label="Follow Jennifer Lopez">
+                  <span class="snap-disc">
+                    <span class="snap-disc__av" style="--story-color:#8b5cf6">JL</span>
+                    <span class="snap-disc__plus">+</span>
+                  </span>
+                </button>
+                <button type="button" class="snap-rail-btn" data-like aria-label="Like snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                  <span class="snap-rail-btn__count">892K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Comments">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">34K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Save snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">Save</span>
+                </button>
+              </div>
+              <div class="snap-slide__info">
+                <div class="snap-slide__creator">
+                  <span class="snap-slide__handle">@jenniferlopez</span>
+                  <span class="snap-slide__since">· 1h</span>
+                  <button type="button" class="snap-follow-btn">Follow</button>
+                </div>
+                <p class="snap-slide__caption">Rehearsal day 💃 Something BIG is coming ✨ #NewEra #Dance</p>
+                <div class="snap-slide__audio"><span class="snap-vinyl" aria-hidden="true"></span>Waiting for Tonight — Jennifer Lopez</div>
+              </div>
+                  <div class="snap-slide__progress" aria-hidden="true"><span style="width: 41%"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="snap-slide">
+              <div class="snap-slide__stage">
+                <div class="snap-slide__frame">
+              <img class="snap-slide__bg" src="https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=900&q=80&auto=format&fit=crop" alt="" />
+              <div class="snap-slide__grad" aria-hidden="true"></div>
+              <span class="snap-slide__dur">0:41</span>
+              <button type="button" class="snap-slide__playpause" aria-label="Pause snap">
+                <span class="snap-slide__pp-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                </span>
+              </button>
+              <div class="snap-slide__rail">
+                <button type="button" class="snap-rail-btn" aria-label="Follow Nomad Lens">
+                  <span class="snap-disc">
+                    <span class="snap-disc__av" style="--story-color:#374151">NL</span>
+                    <span class="snap-disc__plus">+</span>
+                  </span>
+                </button>
+                <button type="button" class="snap-rail-btn" data-like aria-label="Like snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                  <span class="snap-rail-btn__count">89K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Comments">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">3.1K</span>
+                </button>
+                <button type="button" class="snap-rail-btn" aria-label="Save snap">
+                  <span class="snap-rail-btn__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></span>
+                  <span class="snap-rail-btn__count">Save</span>
+                </button>
+              </div>
+              <div class="snap-slide__info">
+                <div class="snap-slide__creator">
+                  <span class="snap-slide__handle">@nomadlens</span>
+                  <span class="snap-slide__since">· 12h</span>
+                  <button type="button" class="snap-follow-btn is-following">Following</button>
+                </div>
+                <p class="snap-slide__caption">Gave a 9-year-old a camera for a week. Every frame a banger 📷👧</p>
+                <div class="snap-slide__audio"><span class="snap-vinyl" aria-hidden="true"></span>An Ending — Brian Eno · 1.4K uses</div>
+              </div>
+                  <div class="snap-slide__progress" aria-hidden="true"><span style="width: 73%"></span></div>
+                </div>
+              </div>
+            </article>
+          </div>
+            </section>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <nav class="mobile-nav">
+      <a href="./index.html">
+        <span class="nav-icon nav-icon--home" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+          </svg>
+        </span>
+        Home
+      </a>
+      <a href="./snaps.html" class="active">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4" />
+            <path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        Snaps
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        </span>
+        Photos
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+          </svg>
+        </span>
+        Videos
+      </a>
+      <a href="./audio.html">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+          </svg>
+        </span>
+        Audio
+      </a>
+      <a href="#" aria-label="More">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="18" x2="20" y2="18" />
+          </svg>
+        </span>
+        More
+      </a>
+    </nav>
+
+    <script src="./feed-filters.js"></script>
+    <script>
+      (function () {
+        var track = document.getElementById("snaps-track");
+        if (!track) return;
+
+        var player = track.closest(".snaps-player");
+
+        function syncSnapHeights() {
+          var h = track.clientHeight;
+          if (h < 1 && player) {
+            h = player.clientHeight;
+          }
+          if (h < 1) return;
+          track.querySelectorAll(".snap-slide").forEach(function (slide) {
+            slide.style.height = h + "px";
+            slide.style.minHeight = h + "px";
+          });
+        }
+
+        function scrollSnap(dir) {
+          syncSnapHeights();
+          track.scrollBy({ top: dir * track.clientHeight, behavior: "smooth" });
+        }
+
+        syncSnapHeights();
+        window.addEventListener("load", syncSnapHeights);
+        window.addEventListener("resize", syncSnapHeights);
+        requestAnimationFrame(syncSnapHeights);
+
+        if (typeof ResizeObserver !== "undefined" && player) {
+          new ResizeObserver(syncSnapHeights).observe(player);
+        }
+
+        document.querySelectorAll(".snaps-arrow").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            scrollSnap(Number(btn.dataset.scroll || 0));
+          });
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+            e.preventDefault();
+            scrollSnap(1);
+          }
+          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            scrollSnap(-1);
+          }
+        });
+
+        var touchStartY = 0;
+        track.addEventListener(
+          "touchstart",
+          function (e) {
+            touchStartY = e.touches[0].clientY;
+          },
+          { passive: true }
+        );
+        track.addEventListener(
+          "touchend",
+          function (e) {
+            var delta = e.changedTouches[0].clientY - touchStartY;
+            if (delta < -50) scrollSnap(1);
+            if (delta > 50) scrollSnap(-1);
+          },
+          { passive: true }
+        );
+
+        FeedFilters.init(
+          document.querySelectorAll(".feed-filters__track"),
+          ["Following", "For you", "Explore"],
+          "For you"
+        );
+
+        document.querySelectorAll(".snap-follow-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var following = btn.classList.toggle("is-following");
+            btn.textContent = following ? "Following" : "Follow";
+          });
+        });
+
+        document.querySelectorAll("[data-like]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            btn.classList.toggle("is-liked");
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

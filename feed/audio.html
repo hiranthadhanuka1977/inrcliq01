@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INRCLIQ · Audio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./buttons.css" />
+    <link rel="stylesheet" href="./feed-home.css" />
+    <link rel="stylesheet" href="./feed-spotify.css" />
+    <link rel="stylesheet" href="./feed-audio.css" />
+  </head>
+  <body class="page-audio">
+    <div class="app-shell">
+      <aside class="left-nav">
+        <div class="left-nav__body">
+          <div class="left-nav__header">
+            <div class="brand"><a href="./index.html" style="color:inherit;text-decoration:none">INRCLIQ<span class="dot">.</span></a></div>
+            <a class="nav-notify" href="#" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span class="nav-notify__dot" aria-hidden="true"></span>
+            </a>
+          </div>
+          <nav>
+            <a class="nav-item" href="./index.html">
+              <span class="nav-item__label">
+                <span class="nav-icon nav-icon--home" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+                  </svg>
+                </span>
+                Home
+              </span>
+            </a>
+            <a class="nav-item" href="./snaps.html">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="4" />
+                    <path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none" />
+                  </svg>
+                </span>
+                Snaps
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </span>
+                Photos
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+                  </svg>
+                </span>
+                Videos
+              </span>
+            </a>
+            <a class="nav-item active" href="./audio.html">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13" />
+                    <circle cx="6" cy="18" r="3" />
+                    <circle cx="18" cy="16" r="3" />
+                  </svg>
+                </span>
+                Audio
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                  </svg>
+                </span>
+                Explore
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </span>
+                <span class="nav-item__text">
+                Messages
+                  <span class="badge">3</span>
+                </span>
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                </span>
+                Purchases
+              </span>
+            </a>
+            <a class="nav-item" href="#">
+              <span class="nav-item__label">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                  </svg>
+                </span>
+                More
+              </span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="nav-premium">
+          <a class="premium-upsell" href="#">
+            <span class="premium-upsell__shine" aria-hidden="true"></span>
+            <span class="premium-upsell__orb premium-upsell__orb--gold" aria-hidden="true"></span>
+            <span class="premium-upsell__orb premium-upsell__orb--blue" aria-hidden="true"></span>
+            <span class="premium-upsell__badge">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              Premium
+            </span>
+            <span class="premium-upsell__title">Go Premium</span>
+            <span class="premium-upsell__desc">Unlock the full INRCLIQ experience</span>
+            <span class="premium-upsell__perks">
+              <span class="premium-upsell__perk">Ad-free</span>
+              <span class="premium-upsell__perk">Exclusive</span>
+              <span class="premium-upsell__perk">Monetise</span>
+            </span>
+            <span class="premium-upsell__cta">Try 1 month free</span>
+          </a>
+        </div>
+
+        <div class="nav-create">
+          <button type="button" class="nav-create__btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Create
+          </button>
+        </div>
+
+        <div class="nav-profile">
+          <a class="nav-profile__link" href="#">
+            <span class="nav-profile__avatar" aria-hidden="true">D</span>
+            <span class="nav-profile__info">
+              <span class="nav-profile__name">Dhanuka</span>
+              <span class="nav-profile__meta">Your memberships</span>
+            </span>
+          </a>
+          <button type="button" class="nav-profile__menu" aria-label="Account menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="1.75" />
+              <circle cx="12" cy="12" r="1.75" />
+              <circle cx="12" cy="19" r="1.75" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <div class="main-content">
+        <div class="feed-header">
+          <section class="feed-filters feed-filters--audio" aria-label="Audio categories">
+            <div class="feed-filters__inner">
+              <p class="feed-filters__eyebrow">Browse</p>
+              <div class="feed-filters__track feed-filters__track--audio" role="tablist"></div>
+            </div>
+            <hr class="feed-filters__divider" aria-hidden="true" />
+          </section>
+        </div>
+
+        <div class="content-layout">
+          <div class="content-row">
+            <main class="feed-main feed-surface feed-surface--audio">
+              <section class="audio-landing" aria-label="Quick access">
+                <h1 class="audio-landing__greeting">Good evening</h1>
+                <div class="audio-shortcuts">
+                  <div class="audio-shortcut">
+                    <a class="audio-shortcut__body" href="#">
+                      <span class="audio-shortcut__art audio-shortcut__art--liked" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                      </span>
+                      <span class="audio-shortcut__label">Liked tracks</span>
+                    </a>
+                    <button type="button" class="audio-shortcut__play" aria-label="Play liked tracks">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                    </button>
+                  </div>
+                  <div class="audio-shortcut">
+                    <a class="audio-shortcut__body" href="#">
+                      <span class="audio-shortcut__art">
+                        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80&auto=format&fit=crop" alt="" />
+                      </span>
+                      <span class="audio-shortcut__label">Daily Mix 01</span>
+                    </a>
+                    <button type="button" class="audio-shortcut__play" aria-label="Play Daily Mix 01">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                    </button>
+                  </div>
+                  <div class="audio-shortcut">
+                    <a class="audio-shortcut__body" href="#">
+                      <span class="audio-shortcut__art">
+                        <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&q=80&auto=format&fit=crop" alt="" />
+                      </span>
+                      <span class="audio-shortcut__label">Discover Weekly</span>
+                    </a>
+                    <button type="button" class="audio-shortcut__play" aria-label="Play Discover Weekly">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                    </button>
+                  </div>
+                  <div class="audio-shortcut">
+                    <a class="audio-shortcut__body" href="#">
+                      <span class="audio-shortcut__art audio-shortcut__art--mix" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      </span>
+                      <span class="audio-shortcut__label">INRCLIQ Mix</span>
+                    </a>
+                    <button type="button" class="audio-shortcut__play" aria-label="Play INRCLIQ Mix">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                    </button>
+                  </div>
+                  <div class="audio-shortcut">
+                    <a class="audio-shortcut__body" href="#">
+                      <span class="audio-shortcut__art">
+                        <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&q=80&auto=format&fit=crop" alt="" />
+                      </span>
+                      <span class="audio-shortcut__label">Release Radar</span>
+                    </a>
+                    <button type="button" class="audio-shortcut__play" aria-label="Play Release Radar">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                    </button>
+                  </div>
+                  <div class="audio-shortcut">
+                    <a class="audio-shortcut__body" href="#">
+                      <span class="audio-shortcut__art">
+                        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&q=80&auto=format&fit=crop" alt="" />
+                      </span>
+                      <span class="audio-shortcut__label">On Repeat</span>
+                    </a>
+                    <button type="button" class="audio-shortcut__play" aria-label="Play On Repeat">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="rail rail--audio-row">
+                <div class="rail-title">
+                  <h3>Recently played</h3>
+                  <div class="rail-title__actions">
+                    <a class="rail-title__link" href="#">Show all</a>
+                    <div class="scroll-nav" data-scroll-target="recently-played-row">
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--prev" aria-label="Scroll recently played left" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                      </button>
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--next" aria-label="Scroll recently played right">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="audio-playlist-row" id="recently-played-row">
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Birds of a Feather">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Birds of a Feather</h4>
+                    <p class="audio-playlist-card__meta">Billie Eilish</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play The Eras Tour">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">The Eras Tour</h4>
+                    <p class="audio-playlist-card__meta">Taylor Swift</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Hard Fork">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Hard Fork</h4>
+                    <p class="audio-playlist-card__meta">The Verge · Podcast</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Die With a Smile">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Die With a Smile</h4>
+                    <p class="audio-playlist-card__meta">Bruno Mars</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Shape of You">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Shape of You</h4>
+                    <p class="audio-playlist-card__meta">Ed Sheeran</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Houdini">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Houdini</h4>
+                    <p class="audio-playlist-card__meta">Dua Lipa</p>
+                  </article>
+                </div>
+              </section>
+
+              <section class="rail rail--audio-row">
+                <div class="rail-title">
+                  <h3>Made for you</h3>
+                  <div class="rail-title__actions">
+                    <a class="rail-title__link" href="#">Show all</a>
+                    <div class="scroll-nav" data-scroll-target="made-for-you-row">
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--prev" aria-label="Scroll made for you left" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                      </button>
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--next" aria-label="Scroll made for you right">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="audio-playlist-row" id="made-for-you-row">
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Mix</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Your Mix">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Your Mix</h4>
+                    <p class="audio-playlist-card__meta">Billie Eilish, Taylor Swift, and more</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Mix</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Chill Mix">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Chill Mix</h4>
+                    <p class="audio-playlist-card__meta">Lo-fi, acoustic, and mellow</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Mix</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Podcast Mix">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Podcast Mix</h4>
+                    <p class="audio-playlist-card__meta">Tech, culture, and creator economy</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Mix</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Workout Mix">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Workout Mix</h4>
+                    <p class="audio-playlist-card__meta">High energy tracks for you</p>
+                  </article>
+                  <article class="audio-playlist-card">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=320&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Mix</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Late Night Mix">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Late Night Mix</h4>
+                    <p class="audio-playlist-card__meta">After hours vibes</p>
+                  </article>
+                  </div>
+              </section>
+
+              <section class="rail rail--audio-row">
+                <div class="rail-title">
+                  <h3>Staff picks</h3>
+                  <div class="rail-title__actions">
+                    <a class="rail-title__link" href="#">See all →</a>
+                    <div class="scroll-nav" data-scroll-target="staff-picks-row">
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--prev" aria-label="Scroll staff picks left" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                      </button>
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--next" aria-label="Scroll staff picks right">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="audio-playlist-row" id="staff-picks-row">
+                  <article class="audio-playlist-card audio-playlist-card--wide">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=480&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Staff pick</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play The Eras Tour — Live Sessions">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">The Eras Tour — Live Sessions</h4>
+                    <p class="audio-playlist-card__meta">Taylor Swift · 2h 14m</p>
+                  </article>
+                  <article class="audio-playlist-card audio-playlist-card--wide">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=480&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">Trending</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Birds of a Feather — Acoustic">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">Birds of a Feather — Acoustic</h4>
+                    <p class="audio-playlist-card__meta">Billie Eilish · 18.2M plays</p>
+                  </article>
+                  <article class="audio-playlist-card audio-playlist-card--wide">
+                    <div class="audio-playlist-card__art">
+                      <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=480&q=80&auto=format&fit=crop" alt="" />
+                      <span class="audio-playlist-card__badge">New episode</span>
+                      <button type="button" class="audio-playlist-card__play" aria-label="Play Hard Fork episode">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+                      </button>
+                    </div>
+                    <h4 class="audio-playlist-card__title">AI, Music &amp; The Creator Economy</h4>
+                    <p class="audio-playlist-card__meta">Hard Fork · Ep 204</p>
+                  </article>
+                </div>
+              </section>
+
+              <section class="rail rail--continue">
+                <div class="rail-title">
+                  <h3>Continue listening</h3>
+                  <a class="rail-title__link" href="#">See all →</a>
+                </div>
+                <ul class="resume-list">
+                  <li class="resume-item">
+                    <div class="resume-item__art">
+                    <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&q=80&auto=format&fit=crop" alt="" />
+                  </div>
+                    <div class="resume-item__body">
+                      <strong class="resume-item__title">Birds of a Feather</strong>
+                      <span class="resume-item__meta">Billie Eilish · 2:18 left</span>
+                      <div class="resume-item__progress" aria-hidden="true"><span style="width: 62%"></span></div>
+                  </div>
+                    <button type="button" class="resume-item__play" aria-label="Resume Birds of a Feather">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5" /></svg>
+                  </button>
+                  </li>
+                  <li class="resume-item">
+                    <div class="resume-item__art">
+                    <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&q=80&auto=format&fit=crop" alt="" />
+                  </div>
+                    <div class="resume-item__body">
+                      <strong class="resume-item__title">Die With a Smile</strong>
+                      <span class="resume-item__meta">Bruno Mars · 1:32 left</span>
+                      <div class="resume-item__progress" aria-hidden="true"><span style="width: 78%"></span></div>
+                  </div>
+                    <button type="button" class="resume-item__play" aria-label="Resume Die With a Smile">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5" /></svg>
+                  </button>
+                  </li>
+                  <li class="resume-item">
+                    <div class="resume-item__art">
+                    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&q=80&auto=format&fit=crop" alt="" />
+                  </div>
+                    <div class="resume-item__body">
+                      <strong class="resume-item__title">AI, Music &amp; The Creator Economy</strong>
+                      <span class="resume-item__meta">Hard Fork · 38 min left</span>
+                      <div class="resume-item__progress" aria-hidden="true"><span style="width: 41%"></span></div>
+                  </div>
+                    <button type="button" class="resume-item__play" aria-label="Resume Hard Fork episode">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5" /></svg>
+                  </button>
+                  </li>
+                  <li class="resume-item">
+                    <div class="resume-item__art">
+                    <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200&q=80&auto=format&fit=crop" alt="" />
+                  </div>
+                    <div class="resume-item__body">
+                      <strong class="resume-item__title">Fortnight</strong>
+                      <span class="resume-item__meta">Taylor Swift · 0:52 left</span>
+                      <div class="resume-item__progress" aria-hidden="true"><span style="width: 88%"></span></div>
+                  </div>
+                    <button type="button" class="resume-item__play" aria-label="Resume Fortnight">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5" /></svg>
+                  </button>
+                  </li>
+                  <li class="resume-item">
+                    <div class="resume-item__art">
+                    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=200&q=80&auto=format&fit=crop" alt="" />
+                  </div>
+                    <div class="resume-item__body">
+                      <strong class="resume-item__title">Shape of You</strong>
+                      <span class="resume-item__meta">Ed Sheeran · 1:48 left</span>
+                      <div class="resume-item__progress" aria-hidden="true"><span style="width: 55%"></span></div>
+                  </div>
+                    <button type="button" class="resume-item__play" aria-label="Resume Shape of You">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5" /></svg>
+                  </button>
+                  </li>
+                </ul>
+              </section>
+
+              <section class="mood-section">
+                <div class="rail-title">
+                  <h3>Play a mood</h3>
+                </div>
+                <div class="mood-strip" role="list">
+                  <button type="button" class="mood-cell" style="--mood-tint: rgba(30, 58, 138, 0.42)" role="listitem">
+                    <img class="mood-cell__img" src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=480&q=80&auto=format&fit=crop" alt="" />
+                    <span class="mood-cell__label">Focus</span>
+                  </button>
+                  <button type="button" class="mood-cell" style="--mood-tint: rgba(190, 18, 60, 0.38)" role="listitem">
+                    <img class="mood-cell__img" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=480&q=80&auto=format&fit=crop" alt="" />
+                    <span class="mood-cell__label">Hype</span>
+                  </button>
+                  <button type="button" class="mood-cell" style="--mood-tint: rgba(15, 118, 110, 0.4)" role="listitem">
+                    <img class="mood-cell__img" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=480&q=80&auto=format&fit=crop" alt="" />
+                    <span class="mood-cell__label">Chill</span>
+                  </button>
+                  <button type="button" class="mood-cell" style="--mood-tint: rgba(15, 23, 42, 0.55)" role="listitem">
+                    <img class="mood-cell__img" src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=480&q=80&auto=format&fit=crop" alt="" />
+                    <span class="mood-cell__label">Late Night</span>
+                  </button>
+                  <button type="button" class="mood-cell" style="--mood-tint: rgba(185, 28, 28, 0.4)" role="listitem">
+                    <img class="mood-cell__img" src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=480&q=80&auto=format&fit=crop" alt="" />
+                    <span class="mood-cell__label">Workout</span>
+                  </button>
+                  <button type="button" class="mood-cell" style="--mood-tint: rgba(180, 83, 9, 0.42)" role="listitem">
+                    <img class="mood-cell__img" src="https://images.unsplash.com/photo-1515169067868-5387ec356754?w=480&q=80&auto=format&fit=crop" alt="" />
+                    <span class="mood-cell__label">Commute</span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="rail">
+                <div class="rail-title">
+                  <h3>Trending tracks</h3>
+                  <div class="rail-title__actions">
+                    <a class="rail-title__link" href="#">See all →</a>
+                    <div class="scroll-nav" data-scroll-target="trending-tracks-track">
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--prev" aria-label="Scroll tracks left" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
+                      </button>
+                      <button type="button" class="scroll-nav__btn scroll-nav__btn--next" aria-label="Scroll tracks right">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="album-row" id="trending-tracks-track">
+                  <div class="album-card">
+                    <div class="album-card__art">
+                      <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=240&q=80&auto=format&fit=crop" alt="" />
+                      <span class="album-card__rank">#1</span>
+                    </div>
+                    <div class="album-card__title">Birds of a Feather</div>
+                    <div class="album-card__artist">Billie Eilish</div>
+                    <div class="album-card__plays">18.2M plays</div>
+                  </div>
+                  <div class="album-card">
+                    <div class="album-card__art">
+                      <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=240&q=80&auto=format&fit=crop" alt="" />
+                      <span class="album-card__rank">#2</span>
+                    </div>
+                    <div class="album-card__title">Die With a Smile</div>
+                    <div class="album-card__artist">Bruno Mars</div>
+                    <div class="album-card__plays">14.2M plays</div>
+                  </div>
+                  <div class="album-card">
+                    <div class="album-card__art">
+                      <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=240&q=80&auto=format&fit=crop" alt="" />
+                    </div>
+                    <div class="album-card__title">Houdini</div>
+                    <div class="album-card__artist">Dua Lipa</div>
+                    <div class="album-card__plays">6.8M plays</div>
+                  </div>
+                  <div class="album-card">
+                    <div class="album-card__art">
+                      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=240&q=80&auto=format&fit=crop" alt="" />
+                    </div>
+                    <div class="album-card__title">Fortnight</div>
+                    <div class="album-card__artist">Taylor Swift</div>
+                    <div class="album-card__plays">2.4M plays</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="rail rail--chart">
+                <div class="chart-board">
+                  <header class="chart-board__banner">
+                    <div class="chart-board__banner-left">
+                      <span class="chart-board__vinyl" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" opacity="0.25"/><circle cx="12" cy="12" r="3"/></svg>
+                      </span>
+                      <span class="chart-board__top-num">TOP 5</span>
+                    </div>
+                    <div class="chart-board__banner-title">
+                      <span>PODCAST</span>
+                      <strong>CHART · YOUR GENRES</strong>
+                    </div>
+                    <div class="chart-board__brand">
+                      <span class="chart-board__brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="14" width="3" height="6" rx="0.5"/><rect x="10" y="10" width="3" height="10" rx="0.5"/><rect x="16" y="6" width="3" height="14" rx="0.5"/></svg>
+                      </span>
+                      <span class="chart-board__brand-text">INRCLIQ<br />Chart</span>
+                    </div>
+                  </header>
+
+                  <div class="chart-board__period">
+                    <span class="chart-board__period-icon" aria-hidden="true">▶</span>
+                    JUNE 24TH ~ 30TH 2026
+                  </div>
+
+                  <ol class="chart-board__list">
+                    <li class="chart-board__item">
+                      <span class="chart-board__rank">
+                        <span class="chart-board__crown" aria-hidden="true">♛</span>
+                        1
+                      </span>
+                      <img class="chart-board__cover" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&q=80&auto=format&fit=crop" alt="" />
+                      <div class="chart-board__info">
+                        <span class="chart-board__name">HARD FORK</span>
+                        <span class="chart-board__artist">THE VERGE</span>
+                </div>
+                      <span class="chart-board__move chart-board__move--up">
+                        <span class="chart-board__move-arrow" aria-hidden="true">▲</span>
+                        2
+                  </span>
+                    </li>
+                    <li class="chart-board__item">
+                      <span class="chart-board__rank">2</span>
+                      <img class="chart-board__cover" src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&q=80&auto=format&fit=crop" alt="" />
+                      <div class="chart-board__info">
+                        <span class="chart-board__name">INVISIBLE CITIES</span>
+                        <span class="chart-board__artist">DESIGN &amp; CULTURE</span>
+                </div>
+                      <span class="chart-board__move chart-board__move--up">
+                        <span class="chart-board__move-arrow" aria-hidden="true">▲</span>
+                        5
+                  </span>
+                    </li>
+                    <li class="chart-board__item">
+                      <span class="chart-board__rank">3</span>
+                      <img class="chart-board__cover" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&q=80&auto=format&fit=crop" alt="" />
+                      <div class="chart-board__info">
+                        <span class="chart-board__name">LAGOS FREQUENCIES</span>
+                        <span class="chart-board__artist">AFRO SONIC LAB</span>
+                </div>
+                      <span class="chart-board__move chart-board__move--up">
+                        <span class="chart-board__move-arrow" aria-hidden="true">▲</span>
+                        8
+                  </span>
+                    </li>
+                    <li class="chart-board__item">
+                      <span class="chart-board__rank">4</span>
+                      <img class="chart-board__cover" src="https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=120&q=80&auto=format&fit=crop" alt="" />
+                      <div class="chart-board__info">
+                        <span class="chart-board__name">REWIRED</span>
+                        <span class="chart-board__artist">FUTURE OF WORK</span>
+                </div>
+                      <span class="chart-board__move chart-board__move--down">
+                        <span class="chart-board__move-arrow" aria-hidden="true">▼</span>
+                        1
+                  </span>
+                    </li>
+                    <li class="chart-board__item">
+                      <span class="chart-board__rank">5</span>
+                      <img class="chart-board__cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80&auto=format&fit=crop" alt="" />
+                      <div class="chart-board__info">
+                        <span class="chart-board__name">THE LONG GAME</span>
+                        <span class="chart-board__artist">CREATIVITY &amp; STRATEGY</span>
+                </div>
+                      <span class="chart-board__move chart-board__move--up">
+                        <span class="chart-board__move-arrow" aria-hidden="true">▲</span>
+                        3
+                  </span>
+                    </li>
+                  </ol>
+
+                  <footer class="chart-board__foot">
+                    <a class="chart-board__link" href="#">Full charts →</a>
+                  </footer>
+                </div>
+              </section>
+
+              <section class="rail">
+                <div class="rail-title"><h3>Friends listening now</h3></div>
+                <div class="follow-item">
+                  <span class="list-av" style="--story-color:#8b5cf6" aria-hidden="true">JL</span>
+                  <span class="follow-item__text">
+                    <strong>Jennifer Lopez</strong><br />
+                    <span class="song__detail">Listening to <strong class="tag">Houdini — Dua Lipa</strong></span>
+                  </span>
+                  <button type="button" class="btn btn--outline-brand btn--xs">Join</button>
+                </div>
+                <div class="follow-item">
+                  <span class="list-av" style="--story-color:#166534" aria-hidden="true">ED</span>
+                  <span class="follow-item__text">
+                    <strong>Ed Sheeran</strong><br />
+                    <span class="song__detail">Listening to <strong class="tag">Hard Fork Ep 204 · 24 min in</strong></span>
+                  </span>
+                  <button type="button" class="btn btn--outline-brand btn--xs">Join</button>
+                </div>
+                <div class="follow-item">
+                  <span class="list-av" style="--story-color:#f97316" aria-hidden="true">AG</span>
+                  <span class="follow-item__text">
+                    <strong>Ariana Grande</strong><br />
+                    <span class="song__detail">Listening to <strong class="tag">Birds of a Feather — Billie Eilish</strong></span>
+                  </span>
+                  <button type="button" class="btn btn--outline-brand btn--xs">Join</button>
+                </div>
+              </section>
+            </main>
+
+            <aside class="right-rail">
+              <section class="rail-widget rail-widget--player">
+                <div class="rail-widget__head">
+                  <h3>Now playing</h3>
+                </div>
+                <div class="audio-player">
+                  <div class="audio-player__art">
+                    <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80&auto=format&fit=crop" alt="Birds of a Feather album art" />
+                  </div>
+                  <div class="audio-player__body">
+                    <div class="audio-player__meta">
+                      <strong class="audio-player__title">Birds of a Feather</strong>
+                      <span class="audio-player__artist">Billie Eilish</span>
+                    </div>
+                    <div class="audio-player__timeline">
+                      <div class="audio-player__scrubber" role="slider" aria-label="Playback position" aria-valuemin="0" aria-valuemax="222" aria-valuenow="84">
+                        <span class="audio-player__scrubber-fill" style="width: 62%"></span>
+                        <span class="audio-player__scrubber-thumb" style="left: 62%"></span>
+                      </div>
+                      <div class="audio-player__times">
+                        <span>1:24</span>
+                        <span>3:42</span>
+                      </div>
+                    </div>
+                    <div class="audio-player__controls">
+                      <button type="button" class="audio-player__btn" aria-label="Shuffle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <polyline points="16 3 21 3 21 8" />
+                          <line x1="4" y1="20" x2="21" y2="3" />
+                          <polyline points="21 16 21 21 16 21" />
+                          <line x1="15" y1="15" x2="21" y2="21" />
+                          <line x1="4" y1="4" x2="9" y2="9" />
+                        </svg>
+                      </button>
+                      <button type="button" class="audio-player__btn" aria-label="Previous track">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="audio-player__btn audio-player__btn--primary" aria-label="Pause">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <rect x="6" y="5" width="4" height="14" rx="1" />
+                          <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                      </button>
+                      <button type="button" class="audio-player__btn" aria-label="Next track">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <path d="M16 18h2V6h-2v12zm-11.5-6 8.5-6v12l-8.5-6z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="audio-player__btn" aria-label="Repeat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <polyline points="17 1 21 5 17 9" />
+                          <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                          <polyline points="7 23 3 19 7 15" />
+                          <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                        </svg>
+                  </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="rail-widget">
+                <div class="rail-widget__head">
+                  <h3>Trending <span class="suggest-sub">· audio</span></h3>
+                </div>
+                <ul class="trend-list">
+                  <li class="trend-item">
+                    <span class="trend-item__rank" aria-hidden="true">1</span>
+                    <div class="trend-item__body">
+                      <span class="trend-item__tag">#NewMusic</span>
+                      <span class="trend-item__meta">982K posts</span>
+                    </div>
+                  </li>
+                  <li class="trend-item">
+                    <span class="trend-item__rank" aria-hidden="true">2</span>
+                    <div class="trend-item__body">
+                      <span class="trend-item__tag">#Acoustic</span>
+                      <span class="trend-item__meta">641K posts</span>
+                    </div>
+                  </li>
+                  <li class="trend-item">
+                    <span class="trend-item__rank" aria-hidden="true">3</span>
+                    <div class="trend-item__body">
+                      <span class="trend-item__tag">#Podcasts</span>
+                      <span class="trend-item__meta">412K posts</span>
+                    </div>
+                  </li>
+                  <li class="trend-item">
+                    <span class="trend-item__rank" aria-hidden="true">4</span>
+                    <div class="trend-item__body">
+                      <span class="trend-item__tag">#LateNight</span>
+                      <span class="trend-item__meta">288K posts</span>
+                    </div>
+                  </li>
+                </ul>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="mobile-nav">
+      <a href="./index.html">
+        <span class="nav-icon nav-icon--home" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+          </svg>
+        </span>
+        Home
+      </a>
+      <a href="./snaps.html">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4" />
+            <path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        Snaps
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        </span>
+        Photos
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+          </svg>
+        </span>
+        Videos
+      </a>
+      <a href="./audio.html" class="active">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+          </svg>
+        </span>
+        Audio
+      </a>
+      <a href="#" aria-label="More">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="18" x2="20" y2="18" />
+          </svg>
+        </span>
+        More
+      </a>
+    </nav>
+
+    <script src="./feed-filters.js"></script>
+    <script>
+      function initHorizontalScroll(nav) {
+        const targetId = nav.dataset.scrollTarget;
+        const scrollTrack = document.getElementById(targetId);
+        const prev = nav.querySelector(".scroll-nav__btn--prev");
+        const next = nav.querySelector(".scroll-nav__btn--next");
+        if (!scrollTrack || !prev || !next) return;
+
+        const updateButtons = () => {
+          const maxScroll = scrollTrack.scrollWidth - scrollTrack.clientWidth;
+          prev.disabled = scrollTrack.scrollLeft <= 1;
+          next.disabled = maxScroll <= 1 || scrollTrack.scrollLeft >= maxScroll - 1;
+        };
+
+        const step = () => Math.max(scrollTrack.clientWidth * 0.75, 180);
+
+        prev.addEventListener("click", () => scrollTrack.scrollBy({ left: -step(), behavior: "smooth" }));
+        next.addEventListener("click", () => scrollTrack.scrollBy({ left: step(), behavior: "smooth" }));
+        scrollTrack.addEventListener("scroll", updateButtons, { passive: true });
+        window.addEventListener("resize", updateButtons);
+        updateButtons();
+      }
+
+      document.querySelectorAll(".scroll-nav[data-scroll-target]").forEach(initHorizontalScroll);
+
+      const greetingEl = document.querySelector(".audio-landing__greeting");
+      if (greetingEl) {
+        const hour = new Date().getHours();
+        const greeting =
+          hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+        greetingEl.textContent = greeting;
+      }
+
+      const AUDIO_FILTERS = [
+        {
+          label: "For you",
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 13.5 8.5 19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/><path d="M5 19l1 2 2 1-1-2-2-1z"/><path d="M19 5l1 2 2 1-1-2-2-1z"/></svg>',
+        },
+        {
+          label: "New",
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+        },
+        {
+          label: "Following",
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z"/><path d="M8 13c1.66 0 3-1.34 3-3S9.66 7 8 7 5 8.34 5 10s1.34 3 3 3z"/><path d="M16 13c-1.85 0-3.5.95-4.45 2.4"/><path d="M8 13c-1.85 0-3.5.95-4.45 2.4"/><path d="M12 21v-2c0-1.5-2.5-3-4-3s-4 1.5-4 3v2"/><path d="M20 21v-2c0-1.5-2.5-3-4-3"/></svg>',
+        },
+        {
+          label: "Topics",
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3 14 21"/></svg>',
+        },
+        {
+          label: "Series",
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><rect x="3" y="11" width="18" height="5" rx="1"/><rect x="3" y="18" width="12" height="3" rx="1"/></svg>',
+        },
+        {
+          label: "Recent",
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+        },
+      ];
+      const AUDIO_DEFAULT_FILTER = "For you";
+
+      FeedFilters.init(document.querySelectorAll(".feed-filters__track--audio"), AUDIO_FILTERS, AUDIO_DEFAULT_FILTER);
+    </script>
+  </body>
+</html>

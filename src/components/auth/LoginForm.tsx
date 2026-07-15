@@ -358,6 +358,14 @@ export function LoginForm() {
     </p>
   );
 
+  const forgotLoginLink = (
+    <p className="auth-forgot-link">
+      <Link href="/forgot-login" className="link-btn" id="link-forgot-login-details">
+        Forgot login details?
+      </Link>
+    </p>
+  );
+
   const isOtpComplete = otp.length === 6;
   const cooldownPercent =
     cooldown > 0
@@ -441,6 +449,7 @@ export function LoginForm() {
             <button type="submit" className="btn btn--primary" disabled={isSending}>
               <span className="btn__label">{isSending ? "Sending…" : "Send login code"}</span>
             </button>
+            {forgotLoginLink}
             {usePasswordLink}
           </form>
         </div>
@@ -609,40 +618,11 @@ export function LoginForm() {
             <button type="submit" className="btn btn--primary" id="btn-login-password" disabled={isLoggingIn}>
               <span className="btn__label">{isLoggingIn ? "Logging in…" : "Log in"}</span>
             </button>
+            {forgotLoginLink}
             {useCodeLink}
           </form>
         </div>
       </div>
-
-      <Link href="/signup" className="auth-signup-nudge mt-8">
-        <span className="auth-signup-nudge__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2.5v2.5" />
-            <path d="M12 19v2.5" />
-            <path d="M4.5 12H2" />
-            <path d="M22 12h-2.5" />
-            <path d="M6.4 6.4 8.2 8.2" />
-            <path d="M15.8 15.8l1.8 1.8" />
-            <path d="M17.6 6.4l-1.8 1.8" />
-            <path d="M8.2 15.8 6.4 17.6" />
-            <path
-              d="M12 8.5 13.1 11.4 16.2 12 13.1 12.6 12 15.5 10.9 12.6 7.8 12 10.9 11.4 12 8.5Z"
-              fill="currentColor"
-              stroke="none"
-            />
-          </svg>
-        </span>
-        <span className="auth-signup-nudge__body">
-          <span className="auth-signup-nudge__eyebrow">New here?</span>
-          <span className="auth-signup-nudge__title">Create your free account</span>
-          <span className="auth-signup-nudge__subtitle">Free to join — set up your profile in a few simple steps</span>
-        </span>
-        <span className="auth-signup-nudge__chevron" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </span>
-      </Link>
     </>
   );
 }

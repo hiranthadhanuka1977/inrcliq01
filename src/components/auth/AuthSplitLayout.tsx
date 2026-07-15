@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { LoginForm } from "@/components/auth/LoginForm";
 
 export function AuthSplitLayout({
   title,
@@ -12,6 +11,15 @@ export function AuthSplitLayout({
 }) {
   return (
     <section className="auth-split">
+      <header className="auth-split__topbar">
+        <div className="auth-split__signup-prompt">
+          <span className="auth-split__signup-prompt-text">New here?</span>
+          <Link href="/signup" className="btn btn--outline-brand btn--xs">
+            Create a free account
+          </Link>
+        </div>
+      </header>
+
       <aside className="auth-split__marketing" aria-label="About InrCliq">
         <div className="auth-split__illustration" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -11,14 +11,27 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./buttons.css" />
+    <link rel="stylesheet" href="./feed-home.css" />
+    <link rel="stylesheet" href="./feed-spotify.css" />
+    <link rel="stylesheet" href="./feed-simple.css" />
+    <link rel="stylesheet" href="./feed-fb-post.css" />
   </head>
-  <body>
+  <body class="page-home">
     <div class="app-shell">
       <aside class="left-nav">
         <div class="left-nav__body">
-        <div class="brand">INRCLIQ<span class="dot">.</span></div>
+        <div class="left-nav__header">
+          <div class="brand"><a href="./index.html" style="color:inherit;text-decoration:none">INRCLIQ<span class="dot">.</span></a></div>
+          <a class="nav-notify" href="#" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <span class="nav-notify__dot" aria-hidden="true"></span>
+          </a>
+        </div>
         <nav>
-          <a class="nav-item active" href="#">
+          <a class="nav-item active" href="./index.html">
             <span class="nav-item__label">
               <span class="nav-icon nav-icon--home" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -28,7 +41,7 @@
               Home
             </span>
           </a>
-          <a class="nav-item" href="#">
+          <a class="nav-item" href="./snaps.html">
             <span class="nav-item__label">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -40,6 +53,28 @@
             </span>
           </a>
           <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+              </span>
+              Photos
+            </span>
+          </a>
+          <a class="nav-item" href="#">
+            <span class="nav-item__label">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+                </svg>
+              </span>
+              Videos
+            </span>
+          </a>
+          <a class="nav-item" href="./audio.html">
             <span class="nav-item__label">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -62,7 +97,7 @@
               Explore
             </span>
           </a>
-          <a class="nav-item" href="#">
+          <a class="nav-item" href="#messages" id="messages">
             <span class="nav-item__label">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -70,20 +105,11 @@
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
               </span>
+              <span class="nav-item__text">
               Messages
-            </span>
             <span class="badge">3</span>
-          </a>
-          <a class="nav-item" href="#">
-            <span class="nav-item__label">
-              <span class="nav-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
               </span>
-              Notifications
             </span>
-            <span class="badge">4</span>
           </a>
           <a class="nav-item" href="#">
             <span class="nav-item__label">
@@ -101,17 +127,6 @@
             <span class="nav-item__label">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                </svg>
-              </span>
-              Profile
-            </span>
-          </a>
-          <a class="nav-item" href="#">
-            <span class="nav-item__label">
-              <span class="nav-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="4" y1="6" x2="20" y2="6" />
                   <line x1="4" y1="12" x2="20" y2="12" />
                   <line x1="4" y1="18" x2="20" y2="18" />
@@ -121,6 +136,38 @@
             </span>
           </a>
         </nav>
+        </div>
+
+        <div class="nav-premium">
+          <a class="premium-upsell" href="#">
+            <span class="premium-upsell__shine" aria-hidden="true"></span>
+            <span class="premium-upsell__orb premium-upsell__orb--gold" aria-hidden="true"></span>
+            <span class="premium-upsell__orb premium-upsell__orb--blue" aria-hidden="true"></span>
+            <span class="premium-upsell__badge">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              Premium
+            </span>
+            <span class="premium-upsell__title">Go Premium</span>
+            <span class="premium-upsell__desc">Unlock the full INRCLIQ experience</span>
+            <span class="premium-upsell__perks">
+              <span class="premium-upsell__perk">Ad-free</span>
+              <span class="premium-upsell__perk">Exclusive</span>
+              <span class="premium-upsell__perk">Monetise</span>
+            </span>
+            <span class="premium-upsell__cta">Try 1 month free</span>
+          </a>
+        </div>
+
+        <div class="nav-create">
+          <button type="button" class="nav-create__btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Create
+          </button>
         </div>
 
         <div class="nav-profile">
@@ -142,251 +189,1041 @@
       </aside>
 
       <div class="main-content">
-        <div class="content-layout">
-        <section class="stories card">
-          <button class="story-nav story-nav--prev" aria-label="Previous stories">‹</button>
+        <div class="feed-header">
+        <section class="stories-bar">
+          <div class="stories">
           <div class="stories-track" id="stories-track">
-            <div class="story story--snap">
-              <div class="story-avatar story-avatar--snap">+</div>
+            <a class="story story--snap" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+              <div class="story-avatar story-avatar--snap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                </div>
+              </div>
               <span>Your Snap</span>
-            </div>
+            </a>
 
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#4f46e5">TS</div>
+            <a class="story" href="./profile-taylor.html">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+              <div class="story-avatar" style="--story-color:#4f46e5">
+                <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&q=80&auto=format&fit=crop" alt="Taylor Swift" />
+                </div>
+              </div>
               <span>Taylor</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#8b5cf6">JL</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#8b5cf6">JL</div>
+              </div>
               <span>Jennifer</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#a21caf">BM</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar" style="--story-color:#a21caf">
+                  <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&q=80&auto=format&fit=crop" alt="Bruno Mars" />
+                </div>
+              </div>
               <span>Bruno</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#c026d3">DL</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#c026d3">
+                  <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&q=80&auto=format&fit=crop" alt="Dua Lipa" />
+                </div>
+              </div>
               <span>Dua</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#0f766e">BE</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#0f766e">BE</div>
+              </div>
               <span>Billie</span>
-            </div>
-            <div class="story">
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
               <div class="story-avatar" style="--story-color:#6d28d9">OR</div>
+              </div>
               <span>Olivia</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#ef4444">MC</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#ef4444">MC</div>
+              </div>
               <span>Miley</span>
-            </div>
-            <div class="story">
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
               <div class="story-avatar" style="--story-color:#166534">ED</div>
+              </div>
               <span>Ed S.</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#f97316">AG</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar" style="--story-color:#f97316">
+                  <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=120&q=80&auto=format&fit=crop" alt="Ariana Grande" />
+                </div>
+              </div>
               <span>Ariana</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#4338ca">PM</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#4338ca">PM</div>
+              </div>
               <span>Post M.</span>
-            </div>
-            <div class="story">
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
               <div class="story-avatar" style="--story-color:#be185d">SZ</div>
+              </div>
               <span>SZA</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#374151">DR</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#374151">
+                  <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&q=80&auto=format&fit=crop" alt="Drake" />
+                </div>
+              </div>
               <span>Drake</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#b45309">AD</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar" style="--story-color:#b45309">
+                  <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&q=80&auto=format&fit=crop" alt="Adele" />
+                </div>
+              </div>
               <span>Adele</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#0e7490">SS</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#0e7490">SS</div>
+              </div>
               <span>Sam S.</span>
-            </div>
-            <div class="story">
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
               <div class="story-avatar" style="--story-color:#7c2d12">WK</div>
+              </div>
               <span>The Week...</span>
-            </div>
-            <div class="story">
-              <div class="story-avatar" style="--story-color:#6d28d9">DC</div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#6d28d9">DC</div>
+              </div>
               <span>Doja</span>
-            </div>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar" style="--story-color:#2563eb">
+                  <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&q=80&auto=format&fit=crop" alt="Harry Styles" />
           </div>
-          <button class="story-nav story-nav--next" aria-label="Next stories">›</button>
+              </div>
+              <span>Harry</span>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar" style="--story-color:#9d174d">LD</div>
+              </div>
+              <span>Lana</span>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#1f2937">KL</div>
+              </div>
+              <span>Kendrick</span>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar" style="--story-color:#dc2626">
+                  <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80&auto=format&fit=crop" alt="Rihanna" />
+                </div>
+              </div>
+              <span>Rihanna</span>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--muted">
+                <div class="story-avatar" style="--story-color:#ca8a04">SM</div>
+              </div>
+              <span>Shawn</span>
+            </a>
+            <a class="story" href="#">
+              <div class="story-avatar-ring story-avatar-ring--gradient">
+                <div class="story-avatar story-avatar--offline" style="--story-color:#db2777">
+                  <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&q=80&auto=format&fit=crop" alt="Camila Cabello" />
+                </div>
+              </div>
+              <span>Camila</span>
+            </a>
+          </div>
+          <button class="story-nav story-nav--prev" type="button" aria-label="Previous stories" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <button class="story-nav story-nav--next" type="button" aria-label="Next stories" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+          </div>
         </section>
+        </div>
 
+        <div class="content-layout">
         <div class="content-row">
-          <main class="feed-main">
-        <article class="post card">
-          <div class="post-head">
-            <div>
-              <strong>Bruno Mars</strong>
-              <p>@brunomarsofficial · Monetised ✦ · 5h</p>
-            </div>
-            <button class="more">···</button>
-          </div>
-          <p>
-            🎵 "Die With a Smile" is here! Feel the soul, the rhythm, the emotion. Hit play!
-            <br />
-            <span class="tag">#BrunoMars</span><span class="tag">#DieWithASmile</span><span class="tag">#NewMusic</span>
-          </p>
-          <a class="muted-link" href="#">View all <strong>2,345 comments</strong></a>
-          <div class="post-stats">14.2M · 2,345 · Save</div>
-        </article>
+          <main class="feed-main feed-surface feed-surface--simple">
 
-        <article class="post card">
-          <div class="post-head">
-            <div>
-              <strong>Taylor Swift</strong>
-              <p>@taylorswiftmusic · Monetised ✦ · 2h</p>
-            </div>
-            <button class="more">···</button>
+        <section class="feed-filters feed-filters--audio feed-filters--collapsible feed-filters--in-feed feed-landing" id="home-feed-filters" aria-label="Feed categories">
+          <div class="feed-landing__header">
+            <section class="spotify-landing" aria-label="Quick access">
+              <div class="spotify-landing__intro">
+                <div class="spotify-landing__greeting-row">
+                  <span class="spotify-landing__avatar spotify-landing__avatar--live" style="--story-color:#0d9488" aria-hidden="true">HI</span>
+                  <h1 class="spotify-landing__greeting">Good morning, Hiran</h1>
+                </div>
           </div>
-          <p>
-            The Fortnight music video is finally here 🎬✨ Every frame was a labour of love.
-            <br />
-            <span class="tag">#Fortnight</span><span class="tag">#ErasTour</span><span class="tag">#TTPD</span>
-          </p>
-          <a class="muted-link" href="#">View all <strong>18,420 comments</strong></a>
-          <div class="post-stats">2.4M · 18.4K · Save</div>
-        </article>
-
-        <section class="rail card">
-          <div class="rail-title">
-            <h3>Snaps · trending now</h3>
-            <a href="#">See all →</a>
-          </div>
-          <div class="snap-grid">
-            <div>2.4M views · 0:45 · @taylorswiftmusic · 12m ago</div>
-            <div>6.8M views · 0:38 · @dualipa · 2h ago</div>
-            <div>4.1M views · 0:52 · @billieeilish · 8h ago</div>
-            <div>14.2M views · 0:55 · @brunomarsofficial · 5h ago</div>
-            <div>892K views · 0:28 · @jenniferlopez · 1h ago</div>
-            <div>1.1M views · 0:33 · @edsheeran · 6h ago</div>
+        </section>
+            <button type="button" class="feed-filters__toggle" aria-expanded="false" aria-controls="home-feed-filter-pills" aria-label="Show category filters">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="feed-filters__toggle-icon">
+                <path d="M4 7h16M7 12h10M10 17h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                <circle cx="9" cy="7" r="2" fill="currentColor" stroke="none"></circle>
+                <circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"></circle>
+                <circle cx="12" cy="17" r="2" fill="currentColor" stroke="none"></circle>
+              </svg>
+            </button>
+        </div>
+          <div class="feed-filters__pills-wrap" id="home-feed-filter-pills">
+            <div class="feed-filters__track feed-filters__track--audio" role="tablist"></div>
           </div>
         </section>
 
-        <article class="post card">
+        <article class="post post--simple">
           <div class="post-head">
-            <div>
-              <strong>Ed Sheeran</strong>
-              <p>@edsheeran · Monetised ✦ · 6h</p>
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#a21caf" aria-hidden="true">BM</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Bruno Mars</strong>
+                <time class="post-head__time">5h</time>
             </div>
-            <button class="more">···</button>
           </div>
-          <p>Choosing the next live album. Your vote literally decides this 🎼</p>
-          <div class="poll">
-            <h4>Which era do you want as a live album?</h4>
-            <div>🎸 The Folk Era 28%</div>
-            <div>🎹 Pop Perfection 41%</div>
-            <div>🎷 Jazz Collab 19%</div>
-            <div>🎤 Acoustic Sessions 12%</div>
-            <small>312,880 votes · 6 hours left</small>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
           </div>
-          <div class="post-stats">1.1M · 58K · Save</div>
+          </div>
+          <div class="post__body">
+            <div class="post-tags">
+              <span class="tag">#BrunoMars</span>
+              <span class="tag">#DieWithASmile</span>
+              <span class="tag">#NewMusic</span>
+            </div>
+            <p>Die With a Smile is here — feel the soul, the rhythm, the emotion.</p>
+            <div class="post-media post-media--collage post-media--collage-3">
+              <div class="post-media__cell post-media__cell--main">
+                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80&auto=format&fit=crop" alt="Bruno Mars on stage" />
+              </div>
+              <div class="post-media__cell">
+                <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80&auto=format&fit=crop" alt="Live performance lights" />
+              </div>
+              <div class="post-media__cell">
+                <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&q=80&auto=format&fit=crop" alt="Concert crowd" />
+              </div>
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>14.2M</span>
+              </button>
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>2,345</span>
+              </button>
+              <button type="button" class="post-action post-action--save" aria-label="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span>Save</span>
+              </button>
+            </div>
+            <div class="post-comments post-comments--rich">
+              <ul class="post-comments__list">
+                <li class="post-comment">
+                  <div class="post-comment__avatar" style="--story-color:#4f46e5" aria-hidden="true">
+                    <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&q=80&auto=format&fit=crop" alt="" />
+                  </div>
+                  <div class="post-comment__body">
+                    <div class="post-comment__bubble">
+                      <div class="post-comment__head">
+                        <strong class="post-comment__author">Taylor Swift</strong>
+                        <span class="post-comment__handle">@taylorswiftmusic</span>
+                      </div>
+                      <p class="post-comment__message">This song hits different every single time. Absolutely beautiful work.</p>
+                    </div>
+                    <div class="post-comment__meta">
+                      <span class="post-comment__time">2h</span>
+                      <button type="button" class="post-comment__action">Like</button>
+                      <span class="post-comment__likes">12.4K</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
         </article>
 
-        <article class="post card">
+        <article class="post post--simple">
           <div class="post-head">
-            <div>
-              <strong>Dua Lipa</strong>
-              <p>@dualipa · Monetised ✦ · 2h</p>
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#4f46e5" aria-hidden="true">
+                <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&q=80&auto=format&fit=crop" alt="" />
             </div>
-            <button class="more">···</button>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Taylor Swift</strong>
+                <span class="post-head__badge">
+                  <svg class="post-head__badge-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+                  Verified
+                </span>
+                <time class="post-head__time">2h</time>
           </div>
-          <p>Behind the scenes from the Houdini shoot 🎥 Cannot believe this team 💜</p>
-          <p><span class="tag">#Houdini</span><span class="tag">#RadicalOptimism</span></p>
-          <div class="post-stats">6.8M · 142K · Save</div>
+            </div>
+            <div class="post-head__tools">
+              <button type="button" class="post-head__follow">Follow</button>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>The Fortnight music video is finally here. Every frame was a labour of love.</p>
+          <div class="post-media">
+            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80&auto=format&fit=crop" alt="Taylor Swift concert" />
+          </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>2.4M</span>
+                </button>
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>18.4K</span>
+              </button>
+              <button type="button" class="post-action post-action--save" aria-label="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span>Save</span>
+                </button>
+              </div>
+            </div>
         </article>
 
-        <article class="post card">
-          <div class="post-head">
-            <div>
-              <strong>Miley Cyrus</strong>
-              <p>@mileycyrus · Monetised ✦ · 4h</p>
-            </div>
-            <button class="more">···</button>
+        <section class="creator-rail" id="creators-rail" aria-label="Creators to follow">
+          <div class="rail-title">
+            <h3>Creators to follow</h3>
           </div>
-          <p>
-            "The best thing I did for my career was stop trying to be what everyone expected. Build an audience by
-            being unapologetically yourself — not by being safe. The stage was built for risk-takers."
-            <br />
-            <span class="tag">#Authentic</span><span class="tag">#Creator</span>
-          </p>
-          <div class="post-stats">4.2M · 88K · Save</div>
+          <div class="spotify-card-row creator-rail__track" id="creators-rail-row">
+            <article class="spotify-card">
+              <div class="spotify-card__art-wrap">
+                <div class="spotify-card__art spotify-card__art--round">
+                  <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&q=80&auto=format&fit=crop" alt="" />
+              </div>
+                <button type="button" class="spotify-card__follow" aria-label="Follow Bruno Mars">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+              <span class="spotify-card__title-row">
+                <span class="spotify-card__title">Bruno Mars</span>
+                <span class="spotify-card__verified" aria-label="Verified">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+                </span>
+              </span>
+              <span class="spotify-card__meta">@brunomars · 89.4M</span>
+            </article>
+            <article class="spotify-card">
+              <div class="spotify-card__art-wrap">
+                <div class="spotify-card__art spotify-card__art--round">
+                  <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=200&q=80&auto=format&fit=crop" alt="" />
+              </div>
+                <button type="button" class="spotify-card__follow" aria-label="Follow Jennifer Lopez">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+              <span class="spotify-card__title-row">
+                <span class="spotify-card__title">Jennifer Lopez</span>
+                <span class="spotify-card__verified" aria-label="Verified">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+                </span>
+              </span>
+              <span class="spotify-card__meta">@jlo · 48.2M</span>
+            </article>
+            <article class="spotify-card">
+              <div class="spotify-card__art-wrap">
+                <div class="spotify-card__art spotify-card__art--round">
+                  <span class="spotify-card__placeholder" style="--story-color:#166534" aria-hidden="true">ED</span>
+              </div>
+                <button type="button" class="spotify-card__follow" aria-label="Follow Ed Sheeran">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+              <span class="spotify-card__title-row">
+                <span class="spotify-card__title">Ed Sheeran</span>
+              </span>
+              <span class="spotify-card__meta">@edsheeran · 64.1M</span>
+            </article>
+            <article class="spotify-card">
+              <div class="spotify-card__art-wrap">
+                <div class="spotify-card__art spotify-card__art--round">
+                  <span class="spotify-card__placeholder" style="--story-color:#f97316" aria-hidden="true">AG</span>
+              </div>
+                <button type="button" class="spotify-card__follow" aria-label="Follow Ariana Grande">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+              <span class="spotify-card__title-row">
+                <span class="spotify-card__title">Ariana Grande</span>
+                <span class="spotify-card__verified" aria-label="Verified">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+                </span>
+              </span>
+              <span class="spotify-card__meta">@arianagrande · 89.4M</span>
+            </article>
+            <article class="spotify-card">
+              <div class="spotify-card__art-wrap">
+                <div class="spotify-card__art spotify-card__art--round">
+                  <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200&q=80&auto=format&fit=crop" alt="" />
+              </div>
+                <button type="button" class="spotify-card__follow" aria-label="Follow Dua Lipa">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+              <span class="spotify-card__title-row">
+                <span class="spotify-card__title">Dua Lipa</span>
+                <span class="spotify-card__verified" aria-label="Verified">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+                </span>
+              </span>
+              <span class="spotify-card__meta">@dualipa · 88.1M</span>
+            </article>
+            <article class="spotify-card">
+              <div class="spotify-card__art-wrap">
+                <div class="spotify-card__art spotify-card__art--round">
+                  <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&q=80&auto=format&fit=crop" alt="" />
+              </div>
+                <button type="button" class="spotify-card__follow" aria-label="Follow Billie Eilish">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+              <span class="spotify-card__title-row">
+                <span class="spotify-card__title">Billie Eilish</span>
+                <span class="spotify-card__verified" aria-label="Verified">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+                </span>
+              </span>
+              <span class="spotify-card__meta">@billieeilish · 72.6M</span>
+            </article>
+          </div>
+        </section>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#c026d3" aria-hidden="true">DL</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Dua Lipa</strong>
+                <time class="post-head__time">2h</time>
+            </div>
+          </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+          </div>
+          </div>
+          <div class="post__body">
+            <p>Behind the scenes from the Houdini shoot. Cannot believe this team.</p>
+            <div class="post-media">
+              <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=500&q=80&auto=format&fit=crop" alt="Dua Lipa behind the scenes" />
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>6.8M</span>
+                </button>
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>142K</span>
+              </button>
+              <button type="button" class="post-action post-action--save" aria-label="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span>Save</span>
+                </button>
+              </div>
+            </div>
         </article>
 
-        <section class="rail card">
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#0f766e" aria-hidden="true">BE</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Billie Eilish</strong>
+                <time class="post-head__time">8h</time>
+          </div>
+            </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+            </div>
+          <div class="post__body">
+            <p>Dropped a little acoustic session for you all. Just me and a guitar.</p>
+            <div class="song">
+              <div class="song__art">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&q=80&auto=format&fit=crop" alt="" />
+            </div>
+              <div class="song__info">Birds of a Feather — Acoustic · 3:42</div>
+              <button type="button" class="song__play" aria-label="Play">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>18.2M</span>
+              </button>
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>204K</span>
+              </button>
+              <button type="button" class="post-action post-action--save" aria-label="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span>Save</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#ef4444" aria-hidden="true">MC</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Miley Cyrus</strong>
+                <time class="post-head__time">4h</time>
+            </div>
+          </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>The best thing I did for my career was stop trying to be what everyone expected. Build an audience by being unapologetically yourself — not by being safe. The stage was built for risk-takers.</p>
+            <div class="post-tags">
+              <span class="tag">#Authentic</span>
+              <span class="tag">#Creator</span>
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>4.2M</span>
+              </button>
+              <button type="button" class="post-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>88K</span>
+              </button>
+              <button type="button" class="post-action post-action--save" aria-label="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span>Save</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <section class="rail snaps-rail" aria-label="Snaps">
           <div class="rail-title">
             <h3>Snaps · because you watched Dua Lipa</h3>
-            <a href="#">See all →</a>
+            <a class="rail-title__link" href="./snaps.html">See all →</a>
           </div>
           <div class="snap-grid">
-            <div>4.1M views · 0:41 · @streetbeats · viral</div>
-            <div>2.8M views · 0:36 · @nomadlens · viral</div>
-            <div>1.9M views · 0:48 · @daydream · rising</div>
-            <div>3.4M views · 0:29 · @loudmind · viral</div>
-            <div>890K views · 0:52 · @soulfood · new</div>
+            <a class="snap-tile" href="./snaps.html">
+              <img src="https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=240&q=80&auto=format&fit=crop" alt="" />
+              <span class="snap-tile__duration">0:41</span>
+              <div class="snap-tile__overlay">
+                <span class="snap-tile__views">4.1M views</span>
+                <span class="snap-tile__creator">
+                  <span class="snap-tile__avatar">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80&auto=format&fit=crop" alt="" />
+                  </span>
+                  <span class="snap-tile__handle">@streetbeats · <span class="snap-tile__meta">viral</span></span>
+                </span>
+              </div>
+            </a>
+            <a class="snap-tile" href="./snaps.html">
+              <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=240&q=80&auto=format&fit=crop" alt="" />
+              <span class="snap-tile__duration">0:36</span>
+              <div class="snap-tile__overlay">
+                <span class="snap-tile__views">2.8M views</span>
+                <span class="snap-tile__creator">
+                  <span class="snap-tile__avatar">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80&auto=format&fit=crop" alt="" />
+                  </span>
+                  <span class="snap-tile__handle">@nomadlens · <span class="snap-tile__meta">viral</span></span>
+                </span>
+              </div>
+            </a>
+            <a class="snap-tile" href="./snaps.html">
+              <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=240&q=80&auto=format&fit=crop" alt="" />
+              <span class="snap-tile__duration">0:48</span>
+              <div class="snap-tile__overlay">
+                <span class="snap-tile__views">1.9M views</span>
+                <span class="snap-tile__creator">
+                  <span class="snap-tile__avatar">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&q=80&auto=format&fit=crop" alt="" />
+                  </span>
+                  <span class="snap-tile__handle">@daydream · <span class="snap-tile__meta">rising</span></span>
+                </span>
+              </div>
+            </a>
+            <a class="snap-tile" href="./snaps.html">
+              <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=240&q=80&auto=format&fit=crop" alt="" />
+              <span class="snap-tile__duration">0:29</span>
+              <div class="snap-tile__overlay">
+                <span class="snap-tile__views">3.4M views</span>
+                <span class="snap-tile__creator">
+                  <span class="snap-tile__avatar">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80&auto=format&fit=crop" alt="" />
+                  </span>
+                  <span class="snap-tile__handle">@loudmind · <span class="snap-tile__meta">viral</span></span>
+                </span>
+              </div>
+            </a>
+            <a class="snap-tile" href="./snaps.html">
+              <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=240&q=80&auto=format&fit=crop" alt="" />
+              <span class="snap-tile__duration">0:52</span>
+              <div class="snap-tile__overlay">
+                <span class="snap-tile__views">890K views</span>
+                <span class="snap-tile__creator">
+                  <span class="snap-tile__avatar">
+                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80&auto=format&fit=crop" alt="" />
+                  </span>
+                  <span class="snap-tile__handle">@soulfood · <span class="snap-tile__meta">new</span></span>
+                </span>
+              </div>
+            </a>
+            <a class="snap-tile" href="./snaps.html">
+              <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=240&q=80&auto=format&fit=crop" alt="" />
+              <span class="snap-tile__duration">0:33</span>
+              <div class="snap-tile__overlay">
+                <span class="snap-tile__views">1.2M views</span>
+                <span class="snap-tile__creator">
+                  <span class="snap-tile__avatar">
+                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&q=80&auto=format&fit=crop" alt="" />
+                  </span>
+                  <span class="snap-tile__handle">@nightshift · <span class="snap-tile__meta">trending</span></span>
+                </span>
+            </div>
+            </a>
           </div>
         </section>
 
-        <article class="post card">
+        <article class="post post--simple">
           <div class="post-head">
-            <div>
-              <strong>Billie Eilish</strong>
-              <p>@billieeilish · Monetised ✦ · 8h</p>
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#f97316" aria-hidden="true">AG</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Ariana Grande</strong>
+                <time class="post-head__time">1h</time>
             </div>
-            <button class="more">···</button>
           </div>
-          <p>Dropped a little acoustic session for you all. Just me and a guitar 🎸</p>
-          <p><span class="tag">#HitMeHard</span><span class="tag">#Acoustic</span></p>
-          <p class="song">Birds of a Feather — Acoustic · Billie Eilish · 3:42 · 18.2M plays</p>
-          <div class="post-stats">18.2M · 204K · Save</div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Studio night hits different when the vocals finally lock in. Thank you for all the love on the new era.</p>
+            <div class="post-media">
+              <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80&auto=format&fit=crop" alt="Ariana Grande in studio" />
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>3.1M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>52K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
         </article>
 
-        <article class="post card">
+        <article class="post post--simple">
           <div class="post-head">
-            <div>
-              <strong>Jennifer Lopez</strong>
-              <p>@jenniferlopez · Monetised ✦ · 1h</p>
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#166534" aria-hidden="true">ES</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Ed Sheeran</strong>
+                <time class="post-head__time">3h</time>
+              </div>
             </div>
-            <button class="more">···</button>
+            <div class="post-head__tools">
+              <button type="button" class="post-head__follow">Follow</button>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
           </div>
-          <p>Rehearsal day 💃 Something BIG is coming ✨</p>
-          <p><span class="tag">#NewEra</span><span class="tag">#Dance</span></p>
-          <div class="post-stats">892K · 34K · Save</div>
+          <div class="post__body">
+            <p>Wrote this one on a tour bus somewhere between cities. Hope it finds you when you need it.</p>
+          <div class="song">
+            <div class="song__art">
+                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=200&q=80&auto=format&fit=crop" alt="" />
+            </div>
+              <div class="song__info">Eyes Closed — Live · 4:08</div>
+              <button type="button" class="song__play" aria-label="Play">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+            </button>
+          </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>9.4M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>118K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
         </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#1d4ed8" aria-hidden="true">DR</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Drake</strong>
+                <time class="post-head__time">6h</time>
+            </div>
+          </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <div class="post-tags">
+              <span class="tag">#OVO</span>
+              <span class="tag">#TourLife</span>
+            </div>
+            <p>Another city, another night. The energy in Toronto never gets old.</p>
+          <div class="post-media post-media--portrait">
+              <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80&auto=format&fit=crop" alt="Drake on stage" />
+          </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>11.2M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>96K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#7c3aed" aria-hidden="true">OR</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Olivia Rodrigo</strong>
+                <time class="post-head__time">12h</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Writing songs at 2am hits different. Grateful for every message from you all — it keeps me going.</p>
+            <div class="post-tags">
+              <span class="tag">#Songwriter</span>
+              <span class="tag">#GUTS</span>
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>5.6M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>41K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#059669" aria-hidden="true">AD</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Adele</strong>
+                <time class="post-head__time">9h</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <button type="button" class="post-head__follow">Follow</button>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Las Vegas, you were incredible last night. Still recovering my voice and my heart.</p>
+            <div class="post-media">
+              <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80&auto=format&fit=crop" alt="Adele live performance" />
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>7.8M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>67K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#dc2626" aria-hidden="true">TW</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">The Weeknd</strong>
+                <time class="post-head__time">14h</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Behind the curtain before showtime. Nothing like that silence right before the lights drop.</p>
+            <div class="post-media post-media--portrait">
+              <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80&auto=format&fit=crop" alt="The Weeknd backstage" />
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>8.3M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>73K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#0d9488" aria-hidden="true">PM</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Post Malone</strong>
+                <time class="post-head__time">18h</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Unplugged version just dropped. Same song, different feeling.</p>
+            <div class="song">
+              <div class="song__art">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&q=80&auto=format&fit=crop" alt="" />
+              </div>
+              <div class="song__info">Circles — Unplugged · 3:56</div>
+              <button type="button" class="song__play" aria-label="Play">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>12.1M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>156K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#be185d" aria-hidden="true">SZ</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">SZA</strong>
+                <time class="post-head__time">1d</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <button type="button" class="post-head__follow">Follow</button>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <div class="post-tags">
+              <span class="tag">#SOS</span>
+              <span class="tag">#Visuals</span>
+            </div>
+            <p>New visuals out now. Shot this in one take — no edits, just vibes.</p>
+            <div class="post-media">
+              <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=600&q=80&auto=format&fit=crop" alt="SZA performance" />
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>4.9M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>38K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#db2777" aria-hidden="true">DC</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Doja Cat</strong>
+                <time class="post-head__time">1d</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <span class="post-head__following">Following</span>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Music video shoot day one. The looks. The lights. The chaos. Perfect.</p>
+            <div class="post-media post-media--collage post-media--collage-3">
+              <div class="post-media__cell post-media__cell--main">
+                <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80&auto=format&fit=crop" alt="Doja Cat on set" />
+              </div>
+              <div class="post-media__cell">
+                <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80&auto=format&fit=crop" alt="Studio lights" />
+              </div>
+              <div class="post-media__cell">
+                <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&q=80&auto=format&fit=crop" alt="Behind the scenes" />
+              </div>
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>6.2M</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>84K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="post post--simple">
+          <div class="post-head">
+            <div class="post-head__author">
+              <div class="post-head__avatar" style="--story-color:#8b5cf6" aria-hidden="true">JL</div>
+              <div class="post-head__identity">
+                <strong class="post-head__name">Jennifer Lopez</strong>
+                <time class="post-head__time">2d</time>
+              </div>
+            </div>
+            <div class="post-head__tools">
+              <button type="button" class="post-head__follow">Follow</button>
+              <button type="button" class="more" aria-label="More options">···</button>
+            </div>
+          </div>
+          <div class="post__body">
+            <p>Rehearsal day. Something big is coming.</p>
+            <div class="post-tags">
+              <span class="tag">#NewEra</span>
+              <span class="tag">#Dance</span>
+            </div>
+            <div class="post-media post-media--portrait">
+              <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=80&auto=format&fit=crop" alt="Jennifer Lopez rehearsal" />
+            </div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions" role="group" aria-label="Post actions">
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>892K</span></button>
+              <button type="button" class="post-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>34K</span></button>
+              <button type="button" class="post-action post-action--save" aria-label="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>
+            </div>
+          </div>
+        </article>
+
           </main>
 
           <aside class="right-rail">
-        <section class="card">
-          <div class="rail-title">
-            <h3>Creators to follow · grow your circle</h3>
-            <a href="#">See all →</a>
+        <section class="rail-widget">
+          <div class="rail-widget__head">
+            <h3>Suggested</h3>
+            <a class="rail-widget__link" href="#">See all</a>
           </div>
-          <div class="follow-item"><span>Bruno Mars · 89.4M followers · ✦ Monetised</span><button>Follow</button></div>
-          <div class="follow-item"><span>Jennifer Lopez · 48.2M followers · ✦ Monetised</span><button>Follow</button></div>
-          <div class="follow-item"><span>Ed Sheeran · 64.1M followers · ✦ Monetised</span><button>Follow</button></div>
-          <div class="follow-item"><span>Mike Osei · 2.4K followers · Creator</span><button>Follow</button></div>
-          <div class="follow-item"><span>Ariana Grande · 89.4M followers · ✦ Monetised</span><button class="following">Following</button></div>
+          <ul class="suggest-list">
+            <li class="suggest-item">
+              <div class="suggest-item__av" style="--story-color:#8b5cf6" aria-hidden="true">JL</div>
+              <div class="suggest-item__body">
+                <span class="suggest-item__name">Jennifer Lopez</span>
+                <span class="suggest-item__meta">48.2M followers</span>
+              </div>
+              <button type="button" class="suggest-item__btn">Follow</button>
+            </li>
+            <li class="suggest-item">
+              <div class="suggest-item__av" style="--story-color:#166534" aria-hidden="true">ED</div>
+              <div class="suggest-item__body">
+                <span class="suggest-item__name">Ed Sheeran</span>
+                <span class="suggest-item__meta">64.1M followers</span>
+              </div>
+              <button type="button" class="suggest-item__btn">Follow</button>
+            </li>
+            <li class="suggest-item">
+              <div class="suggest-item__av" style="--story-color:#f97316" aria-hidden="true">AG</div>
+              <div class="suggest-item__body">
+                <span class="suggest-item__name">Ariana Grande</span>
+                <span class="suggest-item__meta">89.4M followers</span>
+              </div>
+              <button type="button" class="suggest-item__btn is-following">Following</button>
+            </li>
+          </ul>
         </section>
 
-        <section class="card">
-          <h3>Trending 🔥</h3>
-          <p>#ErasTour · 2.4M posts</p>
-          <p>#Snaps · 1.8M posts</p>
-          <p>#NewMusic · 982K posts</p>
-          <p>#INRCLIQ · 3.1M posts</p>
-        </section>
-
-        <section class="card premium">
-          <h3>Upgrade to Premium ⭐</h3>
-          <p>Unlock exclusive content. Ad-free. Early access.</p>
-          <button>Get Premium →</button>
+        <section class="rail-widget" id="trending-topics">
+          <div class="rail-widget__head">
+            <h3>Trending <span class="suggest-sub">· hot now</span></h3>
+          </div>
+          <ul class="trend-list">
+            <li class="trend-item">
+              <span class="trend-item__rank" aria-hidden="true">1</span>
+              <div class="trend-item__body">
+                <span class="trend-item__tag">#ErasTour</span>
+                <span class="trend-item__meta">2.4M posts</span>
+              </div>
+            </li>
+            <li class="trend-item">
+              <span class="trend-item__rank" aria-hidden="true">2</span>
+              <div class="trend-item__body">
+                <span class="trend-item__tag">#Snaps</span>
+                <span class="trend-item__meta">1.8M posts</span>
+              </div>
+            </li>
+            <li class="trend-item">
+              <span class="trend-item__rank" aria-hidden="true">3</span>
+              <div class="trend-item__body">
+                <span class="trend-item__tag">#NewMusic</span>
+                <span class="trend-item__meta">982K posts</span>
+              </div>
+            </li>
+            <li class="trend-item">
+              <span class="trend-item__rank" aria-hidden="true">4</span>
+              <div class="trend-item__body">
+                <span class="trend-item__tag">#INRCLIQ</span>
+                <span class="trend-item__meta">3.1M posts</span>
+              </div>
+            </li>
+          </ul>
         </section>
           </aside>
         </div>
@@ -394,20 +1231,151 @@
       </div>
     </div>
 
+    <script src="./feed-filters.js"></script>
+    <script src="./stories-carousel.js"></script>
     <script>
-      const track = document.getElementById("stories-track");
-      const prevBtn = document.querySelector(".story-nav--prev");
-      const nextBtn = document.querySelector(".story-nav--next");
-      const scrollAmount = 320;
-
-      if (track && prevBtn && nextBtn) {
-        prevBtn.addEventListener("click", () => track.scrollBy({ left: -scrollAmount, behavior: "smooth" }));
-        nextBtn.addEventListener("click", () => track.scrollBy({ left: scrollAmount, behavior: "smooth" }));
+      const storiesBar = document.querySelector(".stories-bar");
+      if (storiesBar && window.StoriesCarousel) {
+        StoriesCarousel.bind(storiesBar);
       }
+
+      (function initStoriesBarScrollHide() {
+        const header = document.querySelector(".page-home .feed-header");
+        const storiesBar = document.querySelector(".page-home .stories-bar");
+        if (!header || !storiesBar) return;
+
+        let lastScrollY = window.scrollY;
+        let isCollapsed = false;
+        let ticking = false;
+        let lockUntil = 0;
+
+        const TOP_THRESHOLD = 24;
+        const SCROLL_DOWN_MIN = 14;
+        const HIDE_AFTER_Y = 56;
+        const COOLDOWN_MS = 320;
+
+        function setCollapsed(next) {
+          if (next === isCollapsed) return;
+          isCollapsed = next;
+          header.classList.toggle("is-stories-collapsed", next);
+          storiesBar.setAttribute("aria-hidden", next ? "true" : "false");
+          lockUntil = performance.now() + COOLDOWN_MS;
+        }
+
+        function onScrollFrame() {
+          const now = performance.now();
+          if (now < lockUntil) {
+            ticking = false;
+            return;
+          }
+
+          const currentY = window.scrollY;
+          const delta = currentY - lastScrollY;
+
+          if (currentY <= TOP_THRESHOLD) {
+            setCollapsed(false);
+          } else if (!isCollapsed && delta > SCROLL_DOWN_MIN && currentY > HIDE_AFTER_Y) {
+            setCollapsed(true);
+          }
+
+          lastScrollY = currentY;
+          ticking = false;
+        }
+
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (!ticking) {
+              requestAnimationFrame(onScrollFrame);
+              ticking = true;
+            }
+          },
+          { passive: true }
+        );
+      })();
+
+      function initHorizontalScroll(nav) {
+        const scrollTrack = document.getElementById(nav.dataset.scrollTarget);
+        const prev = nav.querySelector(".scroll-nav__btn--prev");
+        const next = nav.querySelector(".scroll-nav__btn--next");
+        if (!scrollTrack || !prev || !next) return;
+
+        const updateButtons = () => {
+          const maxScroll = scrollTrack.scrollWidth - scrollTrack.clientWidth;
+          prev.disabled = scrollTrack.scrollLeft <= 2;
+          next.disabled = maxScroll <= 2 || scrollTrack.scrollLeft >= maxScroll - 2;
+        };
+
+        const step = () => {
+          const tile = scrollTrack.querySelector(".creator-tile, .spotify-card, .snap-tile");
+          const tileWidth = tile ? tile.getBoundingClientRect().width : 0;
+          const gap = parseFloat(getComputedStyle(scrollTrack).gap) || 16;
+          const feedSurface = scrollTrack.closest(".feed-surface--simple");
+          const visible = feedSurface
+            ? parseInt(getComputedStyle(feedSurface).getPropertyValue("--creator-tile-visible"), 10) || 5
+            : 3;
+          return Math.max(tileWidth * visible + gap * (visible - 1), scrollTrack.clientWidth * 0.85, 240);
+        };
+
+        prev.addEventListener("click", () => scrollTrack.scrollBy({ left: -step(), behavior: "smooth" }));
+        next.addEventListener("click", () => scrollTrack.scrollBy({ left: step(), behavior: "smooth" }));
+        scrollTrack.addEventListener("scroll", updateButtons, { passive: true });
+        scrollTrack.addEventListener("creators-resize", updateButtons);
+        window.addEventListener("resize", updateButtons);
+        if (typeof ResizeObserver !== "undefined") {
+          new ResizeObserver(updateButtons).observe(scrollTrack);
+        }
+        updateButtons();
+        requestAnimationFrame(updateButtons);
+      }
+
+      document.querySelectorAll(".scroll-nav[data-scroll-target]").forEach(initHorizontalScroll);
+
+      const greetingEl = document.querySelector(".spotify-landing__greeting");
+      if (greetingEl) {
+        const hour = new Date().getHours();
+        const timeGreeting =
+          hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+        greetingEl.textContent = `${timeGreeting}, Hiran`;
+      }
+
+      const FEED_FILTERS = [
+        "All",
+        "Pop culture",
+        "Live music",
+        "Comedy",
+        "Behind the scenes",
+        "Snaps",
+        "Audio",
+        "Merchandise",
+        "Songwriting",
+        "Art tutorials",
+        "Educational",
+        "Indie creators",
+      ];
+
+      FeedFilters.init(document.querySelectorAll("#home-feed-filters .feed-filters__track--audio"), FEED_FILTERS, "All");
+
+      document.querySelectorAll(".page-home .suggest-item__btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const following = btn.classList.toggle("is-following");
+          btn.textContent = following ? "Following" : "Follow";
+        });
+      });
+
+      document.querySelectorAll(".creator-tile__follow").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const following = btn.classList.toggle("is-following");
+          const name = btn.getAttribute("aria-label")?.replace(/^Follow /, "") || "creator";
+          btn.setAttribute("aria-label", following ? `Unfollow ${name}` : `Follow ${name}`);
+        });
+      });
     </script>
+    <script src="./feed-post-cards.js"></script>
 
     <nav class="mobile-nav">
-      <a href="#" class="active">
+      <a href="./index.html" class="active">
         <span class="nav-icon nav-icon--home" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
@@ -415,7 +1383,7 @@
         </span>
         Home
       </a>
-      <a href="#">
+      <a href="./snaps.html">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="4" />
@@ -427,6 +1395,24 @@
       <a href="#">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        </span>
+        Photos
+      </a>
+      <a href="#">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" />
+          </svg>
+        </span>
+        Videos
+      </a>
+      <a href="./audio.html">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 18V5l12-2v13" />
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
@@ -434,23 +1420,15 @@
         </span>
         Audio
       </a>
-      <a href="#">
+      <a href="#" aria-label="More">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="18" x2="20" y2="18" />
           </svg>
         </span>
-        Messages
-      </a>
-      <a href="#">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-          </svg>
-        </span>
-        Profile
+        More
       </a>
     </nav>
   </body>

@@ -1,0 +1,452 @@
+.content-layout--snaps {
+  padding-top: 0;
+  padding-bottom: 0;
+  max-width: calc(var(--feed-width) + var(--space-6) * 2);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.feed-main--snaps {
+  max-width: var(--feed-width);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.main-content:has(.content-layout--snaps) {
+  height: 100dvh;
+  min-height: 100dvh;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.snaps-player {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.snaps-track {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  background: var(--color-bg-page);
+}
+
+.snaps-track::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-slide {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+  background: var(--color-bg-page);
+  box-sizing: border-box;
+}
+
+.snap-slide__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.snap-slide__frame {
+  position: relative;
+  height: 100%;
+  width: auto;
+  max-height: 100%;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  background: var(--color-neutral-100);
+  border-radius: var(--radius-md);
+}
+
+.snap-slide__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.snap-slide__grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.05) 55%, rgba(0, 0, 0, 0.3) 100%);
+  pointer-events: none;
+}
+
+.snap-slide__dur {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.85rem;
+  z-index: 10;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.snap-slide__playpause {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.snap-slide__pp-ico {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.snap-slide__pp-ico svg {
+  width: 28px;
+  height: 28px;
+}
+
+@media (hover: hover) {
+  .snap-slide__frame:hover .snap-slide__pp-ico {
+    opacity: 1;
+  }
+}
+
+.snap-slide__rail {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 4.75rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.snap-rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+@media (hover: hover) {
+  .snap-rail-btn:hover {
+    transform: scale(1.08);
+  }
+}
+
+.snap-rail-btn__ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.snap-rail-btn__ico svg {
+  width: 30px;
+  height: 30px;
+}
+
+.snap-rail-btn.is-liked .snap-rail-btn__ico svg {
+  fill: #ff4d6d;
+  stroke: #ff4d6d;
+}
+
+.snap-rail-btn__count {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.snap-disc {
+  position: relative;
+  margin-bottom: 0.15rem;
+}
+
+.snap-disc__av {
+  --story-color: #5b6cd8;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--story-color);
+  color: var(--color-on-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.snap-disc__av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.snap-disc__plus {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--color-brand-primary);
+  color: var(--color-on-brand);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.snap-slide__info {
+  position: absolute;
+  left: 0;
+  right: 3.5rem;
+  bottom: 0;
+  z-index: 10;
+  padding: 0.85rem 0.85rem 1.35rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.snap-slide__creator {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.snap-slide__handle {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.snap-slide__since {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.snap-follow-btn {
+  padding: 0.18rem 0.72rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.snap-follow-btn:hover {
+  background: #fff;
+  color: var(--color-bg-page);
+}
+
+.snap-follow-btn.is-following {
+  border-color: var(--color-online);
+  color: var(--color-online);
+}
+
+.snap-follow-btn.is-following:hover {
+  background: transparent;
+  color: var(--color-online);
+}
+
+.snap-slide__caption {
+  margin: 0 0 0.55rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.snap-slide__audio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.32rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snap-vinyl {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: conic-gradient(#333 0%, #555 40%, #333 80%, #666 100%);
+  animation: snap-vinyl-spin 5s linear infinite;
+}
+
+@keyframes snap-vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.snap-slide__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.snap-slide__progress span {
+  display: block;
+  height: 100%;
+  background: var(--color-brand-primary);
+}
+
+.snaps-arrows {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.snaps-arrow {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 50%;
+  background: var(--color-neutral-0);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  pointer-events: auto;
+  box-shadow: var(--shadow-xs);
+}
+
+.snaps-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.snaps-arrow:hover {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+@media (max-width: 900px) {
+  .main-content:has(.content-layout--snaps) {
+    padding-bottom: 3.5rem;
+  }
+
+  .content-layout--snaps {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+  }
+
+  .feed-main--snaps {
+    max-width: 100%;
+  }
+
+  .snap-slide__frame {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  .snaps-arrows {
+    display: none;
+  }
+
+  .snap-slide__rail {
+    bottom: 4.25rem;
+  }
+
+  .snap-slide__info {
+    padding-bottom: 1.1rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .snap-slide__dur {
+    top: 0.65rem;
+  }
+}

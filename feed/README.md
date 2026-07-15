@@ -18,3 +18,4 @@ Then visit `http://localhost:8787`.
 - Content mirrors the reference prototype feed copy and labels.
 - Visual system follows the existing InrCliq web style language (tokens, spacing, radius, shadows, brand blues).
 - Fully separate from `web/` and does not affect existing app routes.
+- **Audio page:** open `audio.html` or use the Audio link in the left nav from `index.html`.

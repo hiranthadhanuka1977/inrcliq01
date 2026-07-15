@@ -1,0 +1,754 @@
+/* Simple homepage feed — calm, minimal, readable */
+
+.page-home .feed-surface--simple {
+  --feed-divider-gap: var(--space-8);
+  --creator-tile-gap: var(--space-3);
+  max-width: var(--feed-width);
+  width: 100%;
+  margin-inline: auto;
+  padding-top: var(--space-2);
+}
+
+.feed-surface--simple > * + *::before {
+  content: none;
+  display: none;
+  height: 0;
+  margin: 0;
+}
+
+.page-home .feed-surface--simple ~ .right-rail {
+  display: none;
+}
+
+.page-home .content-row:has(.feed-surface--simple) {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.page-home .content-row:has(.feed-surface--simple) .right-rail {
+  display: none;
+}
+
+/* Spotify greeting block atop simple feed */
+
+.feed-surface--simple > .spotify-landing {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.feed-surface--simple > .feed-filters--in-feed + .post--simple {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.feed-surface--simple > .spotify-landing + .post--simple {
+  margin-top: 0;
+  padding-top: var(--space-6);
+}
+
+/* Posts — flat, airy, no card chrome */
+
+.feed-surface--simple > .post--simple {
+  padding: 0;
+  margin-top: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.feed-surface--simple > .post--simple::before {
+  content: none;
+  display: none;
+}
+
+.feed-surface--simple > .post--simple:hover {
+  background: transparent;
+}
+
+.feed-surface--simple .post-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-3);
+}
+
+.feed-surface--simple .post-head__author {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.feed-surface--simple .post-head__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+}
+
+.feed-surface--simple .post-head__identity {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  min-width: 0;
+}
+
+.feed-surface--simple .post-head__name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.feed-surface--simple .post-head__profile-link {
+  color: inherit;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.feed-surface--simple .post-head__profile-link--name {
+  min-width: 0;
+}
+
+.feed-surface--simple .post-head__profile-link:hover .post-head__name,
+.feed-surface--simple .post-head__profile-link:focus-visible .post-head__name {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.feed-surface--simple .post-head__meta,
+.feed-surface--simple .post-head__kind,
+.feed-surface--simple .post-head__dot {
+  display: none;
+}
+
+.feed-surface--simple .post-head__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-brand-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.feed-surface--simple .post-head__badge-icon {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+}
+
+.feed-surface--simple .post-head__time {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-neutral-500);
+}
+
+.feed-surface--simple .post-head__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.feed-surface--simple .post-head__follow {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.feed-surface--simple .post-head__follow:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.feed-surface--simple .post-head__follow.is-following {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-neutral-500);
+  font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+}
+
+.feed-surface--simple .post-head__following {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-neutral-500);
+  white-space: nowrap;
+}
+
+.feed-surface--simple .more {
+  opacity: 0;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.feed-surface--simple .post--simple:hover .more,
+.feed-surface--simple .post--simple:focus-within .more {
+  opacity: 0.6;
+}
+
+.feed-surface--simple .post__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-4);
+}
+
+.feed-surface--simple .post__body > p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.feed-surface--simple .post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+}
+
+.feed-surface--simple .tag {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-brand-primary);
+}
+
+.feed-surface--simple .post-media {
+  margin: 0;
+  border-radius: var(--radius-md);
+  aspect-ratio: 16 / 10;
+  max-height: 560px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.feed-surface--simple .post-media--portrait {
+  aspect-ratio: 4 / 5;
+  max-height: 560px;
+}
+
+.feed-surface--simple .post-media--collage {
+  aspect-ratio: 4 / 3;
+  min-height: 0;
+  max-height: 560px;
+}
+
+.feed-surface--simple .post-media--collage .post-media__cell {
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-surface--simple .post-media--collage .post-media__cell img {
+  display: block;
+}
+
+.feed-surface--simple .post-media {
+  position: relative;
+}
+
+.feed-surface--simple .post-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feed-surface--simple .post-media__play,
+.feed-surface--simple .post-media__badge {
+  display: none;
+}
+
+.feed-surface--simple .song {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+}
+
+.feed-surface--simple .song__art {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.feed-surface--simple .song__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feed-surface--simple .song__info {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feed-surface--simple .song__play {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: var(--color-on-brand);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.feed-surface--simple .poll {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.feed-surface--simple .poll h4 {
+  margin: 0 0 var(--space-3);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.feed-surface--simple .poll div {
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.feed-surface--simple .poll div:last-of-type {
+  margin-bottom: 0;
+}
+
+.feed-surface--simple .poll small {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: 0.72rem;
+  color: var(--color-neutral-500);
+}
+
+.feed-surface--simple .post-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 var(--space-4);
+  border-top: none;
+}
+
+.feed-surface--simple .post-footer .muted-link {
+  display: none;
+}
+
+.feed-surface--simple .post-comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-1);
+}
+
+.feed-surface--simple .post-comments__view-all {
+  color: var(--color-neutral-500);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.feed-surface--simple .post-comments__view-all:hover {
+  color: var(--color-text-primary);
+}
+
+.feed-surface--simple .post-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.feed-surface--simple .post-comment__avatar {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--story-color, var(--color-neutral-300));
+}
+
+.feed-surface--simple .post-comment__avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feed-surface--simple .post-comment__text {
+  margin: 0.1rem 0 0;
+  min-width: 0;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+.feed-surface--simple .post-comment__author {
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+.feed-surface--simple .post-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.feed-surface--simple .post-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-neutral-500);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.feed-surface--simple .post-action:hover {
+  color: var(--color-text-primary);
+  background: none;
+}
+
+.feed-surface--simple .post-action svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  opacity: 0.7;
+}
+
+.feed-surface--simple .post-action--save {
+  margin-left: auto;
+}
+
+.feed-surface--simple .post-action--save span {
+  display: none;
+}
+
+/* Softer dividers between posts */
+
+.feed-surface--simple > .post--simple + .post--simple::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-bottom: var(--feed-divider-gap);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.feed-surface--simple > .post--simple + .post--simple {
+  margin-top: var(--feed-divider-gap);
+}
+
+/* Creators to follow — Spotify-style artist row */
+
+.feed-surface--simple > .creator-rail {
+  margin: 0;
+  padding: calc(var(--feed-divider-gap) + var(--space-4)) 0;
+  border: none;
+}
+
+.feed-surface--simple > .post--simple + .creator-rail {
+  margin-top: 0;
+}
+
+.feed-surface--simple > .creator-rail + .post--simple {
+  margin-top: calc(var(--feed-divider-gap) + var(--space-4));
+  padding-top: 0;
+  border-top: none;
+}
+
+.feed-surface--simple > .creator-rail + .post--simple::before {
+  content: none;
+  display: none;
+}
+
+.page-home .creator-rail {
+  width: 100%;
+}
+
+.page-home .creator-rail .rail-title {
+  margin-bottom: var(--space-3);
+}
+
+.page-home .creator-rail .rail-title h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.page-home .creator-rail .spotify-card-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.page-home .creator-rail .spotify-card {
+  flex: unset;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-3);
+  text-align: left;
+  overflow: visible;
+}
+
+.page-home .creator-rail .spotify-card__art-wrap {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--space-3);
+}
+
+.page-home .creator-rail .spotify-card__art {
+  margin-bottom: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.page-home .creator-rail .spotify-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--story-color, var(--color-neutral-300));
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.page-home .creator-rail .spotify-card__follow {
+  position: absolute;
+  right: -0.15rem;
+  bottom: -0.15rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: var(--color-on-brand);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(0.25rem);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    background 0.18s ease;
+}
+
+.page-home .creator-rail .spotify-card:hover .spotify-card__follow,
+.page-home .creator-rail .spotify-card:focus-within .spotify-card__follow,
+.page-home .creator-rail .spotify-card__follow:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-home .creator-rail .spotify-card__follow:hover {
+  background: var(--color-brand-primary-hover);
+  transform: scale(1.06);
+}
+
+.page-home .creator-rail .spotify-card__follow svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.page-home .creator-rail .spotify-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page-home .creator-rail .spotify-card__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.page-home .creator-rail .spotify-card__verified {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-brand-primary);
+}
+
+.page-home .creator-rail .spotify-card__verified svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.page-home .creator-rail .spotify-card__meta {
+  font-size: 0.76rem;
+  color: var(--color-neutral-500);
+}
+
+/* Snaps — 3×2 compact grid after Miley Cyrus post */
+
+.feed-surface--simple > .snaps-rail {
+  margin: var(--feed-divider-gap) 0 0;
+  padding: var(--feed-divider-gap) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feed-surface--simple > .post--simple + .snaps-rail {
+  margin-top: var(--feed-divider-gap);
+}
+
+.feed-surface--simple > .snaps-rail + .post--simple {
+  margin-top: var(--feed-divider-gap);
+  padding-top: var(--feed-divider-gap);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-home .snaps-rail .rail-title {
+  margin-bottom: var(--space-5);
+}
+
+.page-home .snaps-rail .rail-title h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--color-text-primary);
+}
+
+.page-home .snaps-rail .rail-title__link {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+}
+
+.page-home .snaps-rail .rail-title__link:hover {
+  text-decoration: underline;
+}
+
+.feed-surface--simple .snaps-rail .snap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: 0;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile {
+  aspect-ratio: 9 / 14;
+  border-radius: var(--radius-md);
+  transition: transform 0.22s ease;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile:hover {
+  transform: scale(1.03);
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__overlay {
+  padding: var(--space-2) var(--space-2) 0.6rem;
+  gap: 0.28rem;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__views {
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__creator {
+  gap: 0.55rem;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__avatar {
+  width: 1.85rem;
+  height: 1.85rem;
+  border-width: 1.5px;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__handle {
+  font-size: 0.92rem;
+  line-height: 1.15;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__meta {
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.feed-surface--simple .snaps-rail .snap-tile__duration {
+  top: 0.45rem;
+  right: 0.45rem;
+  padding: 0.14rem 0.45rem;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 768px) {
+  .page-home .feed-surface--simple {
+    max-width: 100%;
+  }
+
+  .page-home .creator-rail .spotify-card-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .feed-surface--simple .snaps-rail .snap-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
