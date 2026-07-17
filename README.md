@@ -95,10 +95,9 @@ Emails are sent for:
 
 1. Add Vercel Postgres or Neon
 2. Set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, `EMAIL_PROVIDER`, `EMAIL_FROM`, and `SENDGRID_API_KEY`
-3. **HTTP Basic Auth (demo gate)** — set these in Vercel → Project → Settings → Environment Variables:
-   - `BASIC_AUTH_ENABLED` = `true`
-   - `BASIC_AUTH_USER` = `inrcliqdemo`
-   - `BASIC_AUTH_PASSWORD` = `inrcliqdemo@100%`
+3. **HTTP Basic Auth (demo gate)** — enabled automatically on Vercel. Optional overrides:
+   - `BASIC_AUTH_ENABLED` = `true` / `false`
+   - `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` (defaults: `inrcliqdemo` / `inrcliqdemo@100%`)
 4. Build command: `prisma generate && prisma migrate deploy && next build`
 
-Visitors will see the browser login prompt before any page or API route loads. Leave Basic Auth unset (or set `BASIC_AUTH_ENABLED=false`) for local development without the prompt.
+Visitors see the browser login prompt before any page or API route loads. Locally it stays off unless you set `BASIC_AUTH_ENABLED=true`.

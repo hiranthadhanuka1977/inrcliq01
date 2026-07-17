@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+/** Demo gate credentials — override with BASIC_AUTH_USER / BASIC_AUTH_PASSWORD on Vercel. */
+const DEFAULT_USER = "inrcliqdemo";
+const DEFAULT_PASSWORD = "inrcliqdemo@100%";
+
 function unauthorized() {
   return new NextResponse("Authentication required", {
     status: 401,
@@ -10,19 +14,30 @@ function unauthorized() {
   });
 }
 
-function isBasicAuthValid(request: NextRequest) {
-  const user = process.env.BASIC_AUTH_USER?.trim();
-  const password = process.env.BASIC_AUTH_PASSWORD;
-  // Explicit flag preferred; otherwise enable whenever both credentials are set.
+function isBasicAuthEnabled() {
   const flag = process.env.BASIC_AUTH_ENABLED?.trim().toLowerCase();
-  const enabled =
-    flag === "true" ||
-    (flag !== "false" && Boolean(user) && password !== undefined && password !== "");
+  if (flag === "true") return true;
+  if (flag === "false") return false;
+  // Auto-enable on Vercel so the demo is gated even if env vars were not added yet.
+  return process.env.VERCEL === "1";
+}
 
-  if (!enabled || !user || password === undefined || password === "") {
+function getCredentials() {
+  return {
+    user: process.env.BASIC_AUTH_USER?.trim() || DEFAULT_USER,
+    password:
+      process.env.BASIC_AUTH_PASSWORD !== undefined && process.env.BASIC_AUTH_PASSWORD !== ""
+        ? process.env.BASIC_AUTH_PASSWORD
+        : DEFAULT_PASSWORD,
+  };
+}
+
+function isBasicAuthValid(request: NextRequest) {
+  if (!isBasicAuthEnabled()) {
     return true;
   }
 
+  const { user, password } = getCredentials();
   const header = request.headers.get("authorization");
   if (!header?.startsWith("Basic ")) {
     return false;
