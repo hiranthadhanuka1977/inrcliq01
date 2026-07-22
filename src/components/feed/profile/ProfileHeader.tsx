@@ -537,18 +537,19 @@ export default function ProfileHeader({ profile }: { profile: ProfileData }) {
           notifyLevel: level ?? notifyLevel,
         }),
       });
+      const data = (await response.json().catch(() => null)) as {
+        error?: string;
+        subscribed?: boolean;
+        notifyLevel?: string;
+      } | null;
       if (response.status === 401) {
         throw new Error("Sign in to manage your subscription.");
       }
       if (!response.ok) {
-        throw new Error("Could not update subscription.");
+        throw new Error(data?.error || "Could not update subscription.");
       }
-      const data = (await response.json()) as {
-        subscribed: boolean;
-        notifyLevel?: string;
-      };
-      setSubscribed(Boolean(data.subscribed));
-      if (data.notifyLevel === "all" || data.notifyLevel === "personalized" || data.notifyLevel === "none") {
+      setSubscribed(Boolean(data?.subscribed));
+      if (data?.notifyLevel === "all" || data?.notifyLevel === "personalized" || data?.notifyLevel === "none") {
         setNotifyLevel(data.notifyLevel);
       }
     } catch (error) {
