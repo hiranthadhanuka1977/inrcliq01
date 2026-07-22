@@ -7,7 +7,8 @@ const globalForPrisma = globalThis as unknown as {
   prismaSchemaVersion: string | undefined;
 };
 
-const PRISMA_SCHEMA_VERSION = "20260626041333_guardian_approval_flow";
+/** Bump whenever Prisma models change so the Next.js global singleton is discarded. */
+const PRISMA_SCHEMA_VERSION = "20260721124500_chat_thread_seed_key";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -21,12 +22,47 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma =
-  globalForPrisma.prismaSchemaVersion === PRISMA_SCHEMA_VERSION
-    ? (globalForPrisma.prisma ?? createPrismaClient())
-    : createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-  globalForPrisma.prismaSchemaVersion = PRISMA_SCHEMA_VERSION;
+function hasRequiredModels(client: PrismaClient | undefined): client is PrismaClient {
+  return Boolean(
+    client &&
+      typeof client.feedPost?.findMany === "function" &&
+      typeof client.creatorCollection?.findUnique === "function" &&
+      typeof client.collectionProduct?.findMany === "function" &&
+      typeof client.chatThread?.findMany === "function" &&
+      typeof client.chatMessage?.findMany === "function" &&
+      typeof client.creatorSubscription?.findUnique === "function",
+  );
 }
+
+export function getPrisma(): PrismaClient {
+  const cached = globalForPrisma.prisma;
+  const versionOk = globalForPrisma.prismaSchemaVersion === PRISMA_SCHEMA_VERSION;
+
+  if (versionOk && hasRequiredModels(cached)) {
+    return cached;
+  }
+
+  const client = createPrismaClient();
+
+  if (!hasRequiredModels(client)) {
+    throw new Error(
+      "Prisma client is missing subscription models. Run `npx prisma generate` and restart the Next.js dev server.",
+    );
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+    globalForPrisma.prismaSchemaVersion = PRISMA_SCHEMA_VERSION;
+  }
+
+  return client;
+}
+
+/** Lazy proxy so HMR never keeps a stale client without new model delegates. */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const client = getPrisma();
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});

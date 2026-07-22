@@ -1,0 +1,74 @@
+.follow-btn {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.post-head .follow-btn,
+.suggest-item > .follow-btn,
+.profile-header__actions > .follow-btn,
+.audio-top-creator-card > .follow-btn {
+  align-self: center;
+}
+
+.follow-btn__popover {
+  position: fixed;
+  z-index: 1200;
+  min-width: 10.5rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-0);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.follow-btn__popover-copy {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+}
+
+.follow-btn__popover-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.follow-btn__popover-btn {
+  flex: 1;
+  min-height: 1.9rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.follow-btn__popover-btn:hover,
+.follow-btn__popover-btn:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+.follow-btn__popover-btn--yes {
+  border-color: rgba(231, 76, 60, 0.45);
+  background: rgba(231, 76, 60, 0.14);
+  color: #e74c3c;
+}
+
+.follow-btn__popover-btn--yes:hover,
+.follow-btn__popover-btn--yes:focus-visible {
+  background: rgba(231, 76, 60, 0.22);
+  border-color: rgba(231, 76, 60, 0.6);
+  color: #e74c3c;
+}

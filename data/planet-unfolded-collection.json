@@ -1,0 +1,201 @@
+{
+  "slug": "planet-unfolded",
+  "title": "Planet Unfolded Collection",
+  "subtitle": "Field gear, print drops, and documentary editions from expeditions around the planet.",
+  "products": [
+    {
+      "id": "pu-poster",
+      "kind": "physical",
+      "name": "Deep Ocean Poster Set",
+      "price": "$28",
+      "compareAtPrice": "$36",
+      "description": "Three museum-quality prints from hydrothermal vent expeditions — matte finish, 18×24\".",
+      "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=640&h=640&fit=crop",
+      "image_alt": "Deep Ocean Poster Set",
+      "rating": 5,
+      "soldLabel": "1.2K+ sold",
+      "offer": {
+        "badge": "Best Seller",
+        "detail": "Member exclusive print pack",
+        "discountLabel": "-22%"
+      },
+      "ctaLabel": "Add to bag",
+      "detail": {
+        "headline": "Deep Ocean Poster Set — three archival prints from Planet Unfolded’s hydrothermal vent shoots.",
+        "gallery": [
+          {
+            "src": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=800&fit=crop",
+            "alt": "Deep ocean poster hero"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&h=800&fit=crop",
+            "alt": "Underwater light rays detail"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=800&fit=crop",
+            "alt": "Ocean surface from above"
+          }
+        ],
+        "colors": [
+          {
+            "id": "matte",
+            "label": "Matte",
+            "swatch": "#1e3a5f",
+            "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=800&fit=crop"
+          },
+          {
+            "id": "gloss",
+            "label": "Gloss",
+            "swatch": "#0ea5e9",
+            "image": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&h=800&fit=crop"
+          }
+        ],
+        "sizes": [
+          { "id": "18x24", "label": "18×24\"", "hint": "Standard" },
+          { "id": "24x36", "label": "24×36\"", "hint": "Large" }
+        ],
+        "defaultColorId": "matte",
+        "defaultSizeId": "18x24",
+        "longDescription": "A set of three archival inkjet prints from Planet Unfolded’s deep-ocean series. Printed on heavyweight matte stock with color-managed proofs from the original 4K field masters.\n\nShips flat in a protective sleeve. Perfect for offices, labs, and member lounges.",
+        "reviewAverage": 4.9,
+        "reviewCount": 86,
+        "reviewAttributes": [
+          { "label": "Print quality", "score": 5.0 },
+          { "label": "Packaging", "score": 4.8 },
+          { "label": "Value for Money", "score": 4.7 }
+        ],
+        "reviews": [
+          {
+            "id": "pu-r1",
+            "name": "Nadia Okoro",
+            "avatar_initials": "NO",
+            "rating": 5,
+            "ago": "3 days ago",
+            "variant": "Finish: Matte · Size: 18×24\"",
+            "text": "Colors are incredible — looks like a still from the documentary."
+          },
+          {
+            "id": "pu-r2",
+            "name": "James Whit",
+            "avatar_initials": "JW",
+            "rating": 5,
+            "ago": "1 week ago",
+            "variant": "Finish: Gloss · Size: 24×36\"",
+            "text": "Large size fills the wall. Packaging arrived mint."
+          }
+        ],
+        "reviewsTotal": 86,
+        "delivery": {
+          "location": "Worldwide",
+          "standardFee": "$6.50",
+          "cod": false,
+          "returns": "30-day returns on unused prints",
+          "warranty": "Print replacement if damaged in transit"
+        }
+      }
+    },
+    {
+      "id": "pu-journal",
+      "kind": "physical",
+      "name": "Cosmos Field Journal",
+      "price": "$34",
+      "description": "Hardcover expedition notebook with star charts, eclipse logs, and blank field pages.",
+      "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=640&h=640&fit=crop",
+      "image_alt": "Cosmos Field Journal",
+      "rating": 4,
+      "soldLabel": "840+ sold",
+      "offer": {
+        "badge": "New",
+        "detail": "Includes fold-out sky map"
+      },
+      "ctaLabel": "Add to bag"
+    },
+    {
+      "id": "pu-cap",
+      "kind": "physical",
+      "name": "Expedition Crew Cap",
+      "price": "$26",
+      "compareAtPrice": "$30",
+      "description": "Structured cotton cap with embroidered Planet Unfolded crest — crew issue from field shoots.",
+      "image": "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=640&h=640&fit=crop",
+      "image_alt": "Expedition Crew Cap",
+      "rating": 5,
+      "soldLabel": "2.4K+ sold",
+      "offer": {
+        "badge": "Best Seller",
+        "detail": "Same cap worn by camera crews",
+        "discountLabel": "-13%"
+      },
+      "ctaLabel": "Add to bag"
+    },
+    {
+      "id": "pu-bluray",
+      "kind": "physical",
+      "name": "Documentary Blu-ray Box",
+      "price": "$59",
+      "description": "Four-disc set: Deep Ocean, Aurora Skies, Glacier Lines, and First Light — plus director commentary.",
+      "image": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=640&h=640&fit=crop",
+      "image_alt": "Documentary Blu-ray Box",
+      "rating": 5,
+      "soldLabel": "610+ sold",
+      "offer": {
+        "badge": "Limited Edition",
+        "detail": "Includes booklet + digital codes"
+      },
+      "ctaLabel": "Add to bag",
+      "detail": {
+        "headline": "Documentary Blu-ray Box — four Planet Unfolded features with director commentary and digital unlock codes.",
+        "gallery": [
+          {
+            "src": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&h=800&fit=crop",
+            "alt": "Blu-ray box set"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&h=800&fit=crop",
+            "alt": "Film production still"
+          }
+        ],
+        "colors": [
+          {
+            "id": "standard",
+            "label": "Standard",
+            "swatch": "#0f172a",
+            "image": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&h=800&fit=crop"
+          }
+        ],
+        "sizes": [
+          { "id": "box", "label": "Box set", "hint": "4 discs" }
+        ],
+        "defaultColorId": "standard",
+        "defaultSizeId": "box",
+        "longDescription": "Region-free Blu-ray collection covering Planet Unfolded’s most requested seasons. Each disc includes alternate audio commentary and a digital redemption code for members.\n\nSlipcase printed with foil crest. Ships worldwide.",
+        "reviewAverage": 4.8,
+        "reviewCount": 41,
+        "reviewAttributes": [
+          { "label": "Picture quality", "score": 4.9 },
+          { "label": "Extras", "score": 4.7 },
+          { "label": "Value for Money", "score": 4.6 }
+        ],
+        "reviews": [
+          {
+            "id": "pu-r3",
+            "name": "Elena Ruiz",
+            "avatar_initials": "ER",
+            "rating": 5,
+            "ago": "4 days ago",
+            "variant": "Edition: Standard",
+            "text": "The glacier disc alone is worth it. Commentary tracks are gold."
+          }
+        ],
+        "reviewsTotal": 41,
+        "delivery": {
+          "location": "Worldwide",
+          "standardFee": "$8.00",
+          "cod": false,
+          "returns": "14-day returns if unopened",
+          "warranty": "Replacement disc if defective"
+        }
+      }
+    }
+  ]
+}

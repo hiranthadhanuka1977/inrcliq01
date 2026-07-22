@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { sendProfileCompleteEmail } from "@/lib/email/notifications";
+import { seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -27,9 +28,11 @@ export async function POST(request: Request) {
       data: { onboardingStep: "complete" },
     });
 
+    await seedDefaultChatThreadsForUser(user.id, { firstName: user.firstName });
+
     await sendProfileCompleteEmail(user.email, user.firstName ?? "there");
 
-    return NextResponse.json({ ok: true, redirectTo: "/home" });
+    return NextResponse.json({ ok: true, redirectTo: "/feed" });
   } catch (error) {
     console.error("onboarding/interests error", error);
     return NextResponse.json({ error: "Unable to save interests." }, { status: 500 });

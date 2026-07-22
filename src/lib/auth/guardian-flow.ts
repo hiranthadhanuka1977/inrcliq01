@@ -5,6 +5,7 @@ import { getCountryLabel } from "@/lib/constants/locations";
 import { getDefaultAdultDob } from "@/lib/form-validation";
 import { simulateExtractedIdNumber } from "@/lib/guardian/constants";
 import type { IdDocType, ProtectionTier } from "@/lib/guardian/constants";
+import { seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
 import { calculateAge } from "@/lib/utils/age";
 import { formatLongDate } from "@/lib/utils/format-dates";
@@ -334,6 +335,12 @@ export async function completeGuardianApproval(
       data: { onboardingStep: "approved" },
     }),
   ]);
+
+  const guardian = await prisma.user.findUnique({
+    where: { id: guardianUserId },
+    select: { firstName: true },
+  });
+  await seedDefaultChatThreadsForUser(guardianUserId, { firstName: guardian?.firstName });
 
   await sendParentApprovedChildEmail(
     request.childUser.email,

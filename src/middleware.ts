@@ -64,7 +64,7 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get("inrcliq_session");
   const { pathname } = request.nextUrl;
 
-  if ((pathname.startsWith("/home") || pathname.startsWith("/onboarding")) && !session) {
+  if ((pathname.startsWith("/home") || pathname.startsWith("/feed") || pathname.startsWith("/onboarding")) && !session) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

@@ -65,7 +65,15 @@ Production app converted from the static prototype in `../prototype/`.
 ### Post-verify onboarding
 - `/onboarding/password` — create password or skip (ONB-06)
 - `/onboarding/handle` — choose @handle or skip (ONB-07)
-- `/home` — placeholder after onboarding complete
+- `/onboarding/interests` — topic selection (ONB-08)
+- `/feed` — home feed after onboarding complete
+
+### Live feed
+- `/feed` — home feed (creators + posts from Postgres)
+- `/feed/messages` — per-user chat threads
+- `/feed/audio` — audio landing
+- `/feed/profile/[slug]` — creator profile, collection shop, requests
+- Subscriptions and chat inboxes are bound to the logged-in user
 
 ### Minor parent approval
 - `/onboarding/parent` — parent email invite (ONB-03)
@@ -88,8 +96,17 @@ Emails are sent for:
 ## Next migration slices
 
 1. OAuth (Google / Apple)
-2. Topic selection (ONB-08)
-3. Guardian ID verification screens
+2. Guardian ID verification screens
+
+## Seed scripts (optional, local / one-off)
+
+```bash
+npm run db:migrate-feed
+npm run db:migrate-collection
+npm run db:seed-good-guy
+npm run db:seed-bns
+npm run db:seed-chat
+```
 
 ## Deploying to Vercel
 

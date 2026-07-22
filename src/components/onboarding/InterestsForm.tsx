@@ -54,7 +54,7 @@ export function InterestsForm() {
         return;
       }
 
-      router.push(data.redirectTo ?? "/home");
+      router.push(data.redirectTo ?? "/feed");
       router.refresh();
     } catch {
       setError("Unable to save interests.");

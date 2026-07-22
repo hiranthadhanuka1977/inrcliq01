@@ -1,0 +1,295 @@
+{
+  "slug": "planet-unfolded",
+  "name": "Planet Unfolded",
+  "handle": "@planetunfolded",
+  "avatar_initials": "PU",
+  "avatar_color": "#0369a1",
+  "avatar_url": null,
+  "verified": true,
+  "cover_url": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1400&h=400&fit=crop",
+  "bio": "Award-winning science and nature documentaries. From deep-ocean vents to distant galaxies — we film what most people never get to see. Members get early episodes, director commentary, and behind-the-scenes field logs.",
+  "stats": {
+    "followers": "2.8M",
+    "following": 124,
+    "subscribers": 48200,
+    "posts": 312
+  },
+  "subscription": {
+    "price_label": "Subscribe · $6.99/mo"
+  },
+  "relationship": {
+    "following": true,
+    "subscribed": true
+  },
+  "collection": [
+    {
+      "id": "pu-poster",
+      "name": "Deep Ocean Poster Set",
+      "price": "$28",
+      "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=336&h=336&fit=crop",
+      "image_alt": "Deep Ocean Poster Set"
+    },
+    {
+      "id": "pu-journal",
+      "name": "Cosmos Field Journal",
+      "price": "$34",
+      "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=336&h=336&fit=crop",
+      "image_alt": "Cosmos Field Journal"
+    },
+    {
+      "id": "pu-cap",
+      "name": "Expedition Crew Cap",
+      "price": "$26",
+      "image": "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=336&h=336&fit=crop",
+      "image_alt": "Expedition Crew Cap"
+    },
+    {
+      "id": "pu-bluray",
+      "name": "Documentary Blu-ray Box",
+      "price": "$59",
+      "image": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=336&h=336&fit=crop",
+      "image_alt": "Documentary Blu-ray Box"
+    }
+  ],
+  "popular_posts": [
+    {
+      "title": "Life without sunlight · deep-sea vents",
+      "posted_ago": "2 days ago",
+      "likes": "67.8K",
+      "comments": "2.9K",
+      "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": true
+    },
+    {
+      "title": "Inside the James Webb first-light archive",
+      "posted_ago": "2 weeks ago",
+      "likes": "41.2K",
+      "comments": "1.8K",
+      "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": false
+    },
+    {
+      "title": "How we filmed a glacier calving at 4K",
+      "posted_ago": "1 month ago",
+      "likes": "28.6K",
+      "comments": "942",
+      "image": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": true
+    }
+  ],
+  "feed_posts": [
+    {
+      "id": "pu-001",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "Deep-sea vents host ecosystems that don't need sunlight at all. New episode drops tonight — we filmed hydrothermal chimneys 2,400 m below the Pacific.",
+      "tags": ["#DeepSea", "#Documentary", "#Ocean"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80&auto=format&fit=crop",
+            "alt": "Underwater scene with light rays and marine life"
+          }
+        ]
+      },
+      "engagement": { "likes": 67800, "comments": 2901, "shares": 9400 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-05T05:00:00Z",
+      "posted_ago": "2h",
+      "members_only": true
+    },
+    {
+      "id": "pu-002",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "Members — full director's cut of last week's aurora episode is live. Includes 18 minutes of uncut timelapse from Tromsø.",
+      "tags": ["#Aurora", "#MembersOnly"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=800&q=80&auto=format&fit=crop",
+            "alt": "Northern lights over a snowy landscape"
+          }
+        ]
+      },
+      "engagement": { "likes": 22400, "comments": 812, "shares": 3200 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-03T18:00:00Z",
+      "posted_ago": "2d",
+      "members_only": true
+    },
+    {
+      "id": "pu-003",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "We lost three drones to katabatic winds filming in Antarctica. Here's what the footage taught us about shooting in −40°C.",
+      "tags": ["#Antarctica", "#Filmmaking", "#BehindTheScenes"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80&auto=format&fit=crop",
+            "alt": "Snow-covered mountains under dramatic clouds"
+          }
+        ]
+      },
+      "engagement": { "likes": 18900, "comments": 654, "shares": 2100 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-28T10:30:00Z",
+      "posted_ago": "1w"
+    },
+    {
+      "id": "pu-004",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "New series announcement: Horizon Lines — six episodes on how rivers shape civilisations. First trailer drops Friday.",
+      "tags": ["#NewSeries", "#Nature", "#History"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80&auto=format&fit=crop",
+            "alt": "Aerial view of a winding river through mountains"
+          }
+        ]
+      },
+      "engagement": { "likes": 31200, "comments": 1204, "shares": 4800 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-22T14:00:00Z",
+      "posted_ago": "2w"
+    },
+    {
+      "id": "pu-005",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "The rainforest canopy is a separate world 40 metres above the forest floor. Our rope-access team spent six weeks up there.",
+      "tags": ["#Rainforest", "#Wildlife", "#Expedition"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1511497584788-876760111969?w=800&q=80&auto=format&fit=crop",
+            "alt": "Lush green rainforest canopy from above"
+          }
+        ]
+      },
+      "engagement": { "likes": 15600, "comments": 489, "shares": 1800 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-15T08:45:00Z",
+      "posted_ago": "3w"
+    },
+    {
+      "id": "pu-006",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "Poll: which topic should we cover next — volcanic lightning, bioluminescent bays, or cave ecosystems? Vote in comments.",
+      "tags": ["#Community", "#Science"],
+      "media": null,
+      "engagement": { "likes": 9800, "comments": 2840, "shares": 620 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-08T16:20:00Z",
+      "posted_ago": "4w"
+    },
+    {
+      "id": "pu-007",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "James Webb's latest deep-field image contains galaxies from 13 billion years ago. We broke down what you're actually looking at.",
+      "tags": ["#Space", "#JamesWebb", "#Astronomy"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80&auto=format&fit=crop",
+            "alt": "Starry night sky with the Milky Way visible"
+          }
+        ]
+      },
+      "engagement": { "likes": 41200, "comments": 1780, "shares": 9100 },
+      "relationship": { "following": true },
+      "posted_at": "2026-05-30T12:00:00Z",
+      "posted_ago": "5w"
+    },
+    {
+      "id": "pu-008",
+      "category": "discovery",
+      "author": {
+        "name": "Planet Unfolded",
+        "handle": "@planetunfolded",
+        "avatar_initials": "PU",
+        "avatar_color": "#0369a1",
+        "avatar_url": null,
+        "verified": true
+      },
+      "text": "Field log from the Atacama — 14 days at 5,000 m altitude filming salt flats under a full moon. No filter on this one.",
+      "tags": ["#Atacama", "#Desert", "#FieldLog"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80&auto=format&fit=crop",
+            "alt": "Vast salt flat landscape under a dramatic sky"
+          }
+        ]
+      },
+      "engagement": { "likes": 26700, "comments": 903, "shares": 3400 },
+      "relationship": { "following": true },
+      "posted_at": "2026-05-22T20:15:00Z",
+      "posted_ago": "6w"
+    }
+  ]
+}

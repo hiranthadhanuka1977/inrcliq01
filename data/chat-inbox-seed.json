@@ -1,0 +1,107 @@
+[
+  {
+    "id": "mia-chen",
+    "participant": {
+      "id": "mia-chen",
+      "slug": "mia-chen",
+      "name": "Mia Chen",
+      "handle": "@miachenruns",
+      "initials": "MC",
+      "avatarColor": "#2563eb",
+      "avatarUrl": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+      "online": true
+    },
+    "preview": "Your birthday shout-out is ready to review!",
+    "previewTime": "2m",
+    "unread": 2,
+    "messages": [
+      { "id": "m1", "sender": "me", "body": "Hey Mia! Can you do a birthday shout-out for my sister Anya?", "time": "Yesterday · 4:12 PM" },
+      { "id": "m2", "sender": "them", "body": "Absolutely — send me her name, a few inside jokes, and whether you want it upbeat or sentimental.", "time": "Yesterday · 4:18 PM" },
+      { "id": "m3", "sender": "me", "body": "Upbeat please! She just finished her first half marathon. Name is Anya, loves chai and early morning runs.", "time": "Yesterday · 4:22 PM" },
+      { "id": "m4", "sender": "them", "body": "Love it. I'll record tonight and send a preview tomorrow morning.", "time": "Yesterday · 4:25 PM" },
+      { "id": "m5", "sender": "them", "body": "Your birthday shout-out is ready to review! Let me know if you want any tweaks before I finalize.", "time": "2m ago" }
+    ]
+  },
+  {
+    "id": "dev-weekly",
+    "participant": {
+      "id": "dev-weekly",
+      "slug": "dev-weekly",
+      "name": "Dev Weekly",
+      "handle": "@devweekly",
+      "initials": "DW",
+      "avatarColor": "#7c3aed",
+      "avatarUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+      "online": false
+    },
+    "preview": "Episode 142 drops Friday — want early access?",
+    "previewTime": "1h",
+    "unread": 1,
+    "messages": [
+      { "id": "d1", "sender": "them", "body": "Thanks for subscribing! You'll get member-only threads like this one.", "time": "Mon · 9:00 AM" },
+      { "id": "d2", "sender": "me", "body": "Loved last week's episode on edge runtimes. Any plans to cover local-first apps?", "time": "Mon · 9:14 AM" },
+      { "id": "d3", "sender": "them", "body": "Episode 142 drops Friday — want early access? I can send the private link here.", "time": "1h ago" }
+    ]
+  },
+  {
+    "id": "planet-unfolded",
+    "participant": {
+      "id": "planet-unfolded",
+      "slug": "planet-unfolded",
+      "name": "Planet Unfolded",
+      "handle": "@planetunfolded",
+      "initials": "PU",
+      "avatarColor": "#0369a1",
+      "avatarUrl": null,
+      "online": false
+    },
+    "preview": "Behind-the-scenes from the Arctic shoot is live for members.",
+    "previewTime": "Yesterday",
+    "unread": 0,
+    "messages": [
+      { "id": "p1", "sender": "them", "body": "Welcome to the member channel — we post field updates here before anywhere else.", "time": "Last week" },
+      { "id": "p2", "sender": "them", "body": "Behind-the-scenes from the Arctic shoot is live for members. The drone footage is wild.", "time": "Yesterday" }
+    ]
+  },
+  {
+    "id": "support",
+    "participant": {
+      "id": "support",
+      "name": "INRCLIQ Support",
+      "handle": "@inrcliq",
+      "initials": "IC",
+      "avatarColor": "#6b9fff",
+      "avatarUrl": null,
+      "online": true
+    },
+    "preview": "Your payout settings were updated successfully.",
+    "previewTime": "Tue",
+    "unread": 0,
+    "messages": [
+      { "id": "s1", "sender": "them", "body": "Hi Dhanuka — thanks for reaching out. How can we help today?", "time": "Tue · 11:02 AM" },
+      { "id": "s2", "sender": "me", "body": "I updated my bank details for creator payouts. Can you confirm everything looks good?", "time": "Tue · 11:05 AM" },
+      { "id": "s3", "sender": "them", "body": "Your payout settings were updated successfully. The next transfer will use the new account.", "time": "Tue · 11:08 AM" }
+    ]
+  },
+  {
+    "id": "hiran",
+    "participant": {
+      "id": "hiran",
+      "slug": "hiran",
+      "name": "Hiran",
+      "handle": "@hiran",
+      "initials": "H",
+      "avatarColor": "#0d9488",
+      "avatarUrl": null,
+      "online": false
+    },
+    "preview": "Sounds good — see you at the demo.",
+    "previewTime": "Mar 8",
+    "unread": 0,
+    "messages": [
+      { "id": "h1", "sender": "them", "body": "Are we still on for the livefeed demo Thursday?", "time": "Mar 8 · 3:40 PM" },
+      { "id": "h2", "sender": "me", "body": "Yes! I'll share the staging link in the morning.", "time": "Mar 8 · 3:52 PM" },
+      { "id": "h3", "sender": "them", "body": "Sounds good — see you at the demo.", "time": "Mar 8 · 3:53 PM" }
+    ]
+  }
+]

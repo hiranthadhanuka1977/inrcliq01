@@ -1247,7 +1247,8 @@ a.btn--ghost:hover {
   position: fixed;
   top: var(--space-4);
   right: var(--layout-content-padding-sm);
-  z-index: var(--z-header);
+  /* Portaled to document.body so this beats auth-split__topbar (z-index 10). */
+  z-index: var(--z-toast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1263,6 +1264,13 @@ a.btn--ghost:hover {
     color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out);
+}
+
+@media (min-width: 768px) {
+  .verify-email__inbox-btn {
+    top: var(--space-6);
+    right: clamp(var(--space-6), 4vw, var(--space-10));
+  }
 }
 
 .verify-email__inbox-btn:hover,

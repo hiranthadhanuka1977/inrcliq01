@@ -1,0 +1,256 @@
+{
+  "slug": "good-guy-podcast",
+  "title": "Good Guy Podcast Collection",
+  "subtitle": "Studio merch, member drops, and listening gear from the Good Guy booth.",
+  "products": [
+    {
+      "id": "ggp-hoodie",
+      "kind": "physical",
+      "name": "Studio Session Hoodie",
+      "price": "$58",
+      "compareAtPrice": "$68",
+      "description": "Heavyweight fleece with embroidered mic crest — the same cut the hosts wear between takes.",
+      "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=640&h=640&fit=crop",
+      "image_alt": "Studio Session Hoodie",
+      "rating": 5,
+      "soldLabel": "890+ sold",
+      "offer": {
+        "badge": "Best Seller",
+        "detail": "Member early access colorway",
+        "discountLabel": "-15%"
+      },
+      "ctaLabel": "Add to bag",
+      "detail": {
+        "headline": "Studio Session Hoodie — heavyweight fleece with the Good Guy mic crest.",
+        "gallery": [
+          {
+            "src": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&h=800&fit=crop",
+            "alt": "Hoodie front"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1578587018452-892bacefd3b2?w=800&h=800&fit=crop",
+            "alt": "Hoodie detail"
+          }
+        ],
+        "colors": [
+          {
+            "id": "forest",
+            "label": "Forest",
+            "swatch": "#2a4534",
+            "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&h=800&fit=crop"
+          },
+          {
+            "id": "charcoal",
+            "label": "Charcoal",
+            "swatch": "#2b2b2b",
+            "image": "https://images.unsplash.com/photo-1578587018452-892bacefd3b2?w=800&h=800&fit=crop"
+          }
+        ],
+        "sizes": [
+          { "id": "s", "label": "S", "hint": "Slim" },
+          { "id": "m", "label": "M", "hint": "Regular" },
+          { "id": "l", "label": "L", "hint": "Relaxed" },
+          { "id": "xl", "label": "XL", "hint": "Roomy" }
+        ],
+        "defaultColorId": "forest",
+        "defaultSizeId": "m",
+        "longDescription": "Midweight-to-heavy fleece built for long edit sessions and cold studios. Embroidered crest on the chest, tonal drawcords, and a kangaroo pocket deep enough for a phone and episode notes.\n\nMembers get the forest colorway one week early.",
+        "reviewAverage": 4.8,
+        "reviewCount": 64,
+        "reviewAttributes": [
+          { "label": "Fit", "score": 4.7 },
+          { "label": "Quality", "score": 4.9 },
+          { "label": "Value for Money", "score": 4.6 }
+        ],
+        "reviews": [
+          {
+            "id": "ggp-r1",
+            "name": "Chris Nolan",
+            "avatar_initials": "CN",
+            "rating": 5,
+            "ago": "2 days ago",
+            "variant": "Color: Forest · Size: L",
+            "text": "Soft, heavy, and the crest looks sharp. Wore it on the commute to the studio."
+          }
+        ],
+        "reviewsTotal": 64,
+        "delivery": {
+          "location": "Worldwide",
+          "standardFee": "$7.00",
+          "cod": false,
+          "returns": "30-day returns",
+          "warranty": "Defect replacement within 60 days"
+        }
+      }
+    },
+    {
+      "id": "ggp-mug",
+      "kind": "physical",
+      "name": "Stay a Good Guy Mug",
+      "price": "$22",
+      "description": "Matte ceramic mug with the show line on one side and episode timestamps on the other.",
+      "image": "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=640&h=640&fit=crop",
+      "image_alt": "Stay a Good Guy Mug",
+      "rating": 5,
+      "soldLabel": "1.6K+ sold",
+      "offer": {
+        "badge": "Best Seller",
+        "detail": "Dishwasher safe"
+      },
+      "ctaLabel": "Add to bag"
+    },
+    {
+      "id": "ggp-pin",
+      "kind": "physical",
+      "name": "Mic Enamel Pin",
+      "price": "$14",
+      "compareAtPrice": "$18",
+      "description": "Hard enamel mic pin with rubber clutch — fits jackets, tote bags, and episode launch merch boards.",
+      "image": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=640&h=640&fit=crop",
+      "image_alt": "Mic Enamel Pin",
+      "rating": 4,
+      "soldLabel": "2.1K+ sold",
+      "offer": {
+        "badge": "Limited Edition",
+        "detail": "Season 4 drop",
+        "discountLabel": "-22%"
+      },
+      "ctaLabel": "Add to bag"
+    },
+    {
+      "id": "ggp-transcripts",
+      "kind": "digital",
+      "name": "Season Transcript Pack",
+      "price": "$19",
+      "description": "Searchable PDF transcripts for the latest season, with timestamps and guest name index.",
+      "image": "https://images.unsplash.com/photo-1456513080880-7d93aaa172bb?w=640&h=640&fit=crop",
+      "image_alt": "Season Transcript Pack",
+      "rating": 5,
+      "soldLabel": "420+ sold",
+      "offer": {
+        "badge": "Digital",
+        "detail": "Instant download for members"
+      },
+      "ctaLabel": "Buy digital"
+    },
+    {
+      "id": "ggp-vinyl",
+      "kind": "physical",
+      "name": "Best Of Vol. 1 Vinyl",
+      "price": "$36",
+      "description": "Curated highlights pressed to 12\" vinyl — cold opens, guest clips, and the theme sting.",
+      "image": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=640&h=640&fit=crop",
+      "image_alt": "Best Of Vol. 1 Vinyl",
+      "rating": 5,
+      "soldLabel": "310+ sold",
+      "offer": {
+        "badge": "Limited Edition",
+        "detail": "Numbered sleeve insert"
+      },
+      "ctaLabel": "Add to bag",
+      "detail": {
+        "headline": "Best Of Vol. 1 Vinyl — numbered sleeve with liner notes from both hosts.",
+        "gallery": [
+          {
+            "src": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=800&h=800&fit=crop",
+            "alt": "Vinyl record on a turntable"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=800&fit=crop",
+            "alt": "Listening setup with headphones"
+          }
+        ],
+        "colors": [
+          {
+            "id": "black",
+            "label": "Black",
+            "swatch": "#111111",
+            "image": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=800&h=800&fit=crop"
+          }
+        ],
+        "sizes": [
+          { "id": "12in", "label": "12\"", "hint": "LP" }
+        ],
+        "defaultColorId": "black",
+        "defaultSizeId": "12in",
+        "longDescription": "A listening object for the show’s first three seasons. Side A is cold opens and guest hits; Side B is theme variations and a locked-groove sting.\n\nIncludes a numbered insert with host liner notes.",
+        "reviewAverage": 4.9,
+        "reviewCount": 28,
+        "reviewAttributes": [
+          { "label": "Pressing", "score": 4.8 },
+          { "label": "Packaging", "score": 5.0 },
+          { "label": "Value for Money", "score": 4.7 }
+        ],
+        "reviews": [
+          {
+            "id": "ggp-r2",
+            "name": "Sam Rivera",
+            "avatar_initials": "SR",
+            "rating": 5,
+            "ago": "5 days ago",
+            "variant": "Edition: Black",
+            "text": "Sounds warm. The liner notes alone made it worth it."
+          }
+        ],
+        "reviewsTotal": 28,
+        "delivery": {
+          "location": "Worldwide",
+          "standardFee": "$9.00",
+          "cod": false,
+          "returns": "14-day returns if unopened",
+          "warranty": "Replacement if warped on arrival"
+        }
+      }
+    },
+    {
+      "id": "ggp-poster",
+      "kind": "physical",
+      "name": "Cold Open Poster",
+      "price": "$28",
+      "compareAtPrice": "$34",
+      "description": "18×24\" studio portrait print — the cold-open frame from Episode 14.",
+      "image": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=640&h=640&fit=crop",
+      "image_alt": "Cold Open Poster",
+      "rating": 4,
+      "soldLabel": "540+ sold",
+      "offer": {
+        "badge": "New",
+        "detail": "Matte archival print",
+        "discountLabel": "-18%"
+      },
+      "ctaLabel": "Add to bag"
+    },
+    {
+      "id": "ggp-patch",
+      "kind": "physical",
+      "name": "Members Field Patch Set",
+      "price": "$16",
+      "description": "Three iron-on patches: mic crest, cold-open mark, and year-three badge. Members exclusive.",
+      "image": "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=640&h=640&fit=crop",
+      "image_alt": "Members Field Patch Set",
+      "rating": 5,
+      "soldLabel": "680+ sold",
+      "offer": {
+        "badge": "Members Only",
+        "detail": "Ships with member packing slip"
+      },
+      "ctaLabel": "Add to bag"
+    },
+    {
+      "id": "ggp-notes",
+      "kind": "digital",
+      "name": "Producer Notes Bundle",
+      "price": "$12",
+      "description": "Editable episode rundown templates + cold-open checklist used in the Good Guy booth.",
+      "image": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=640&h=640&fit=crop",
+      "image_alt": "Producer Notes Bundle",
+      "rating": 4,
+      "soldLabel": "250+ sold",
+      "offer": {
+        "badge": "Digital",
+        "detail": "Notion + PDF"
+      },
+      "ctaLabel": "Buy digital"
+    }
+  ]
+}

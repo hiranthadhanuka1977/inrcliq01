@@ -1,0 +1,177 @@
+{
+  "slug": "hiran",
+  "name": "Hiran",
+  "handle": "@hiran",
+  "avatar_initials": "HI",
+  "avatar_color": "#0d9488",
+  "avatar_url": null,
+  "verified": false,
+  "cover_url": null,
+  "bio": "Filmmaker and tinkerer. Sharing rough cuts, creative experiments, and the messy middle between an idea and something worth showing.",
+  "stats": {
+    "followers": "1.2K",
+    "following": 186,
+    "subscribers": 0,
+    "posts": 28
+  },
+  "subscription": null,
+  "collection": [],
+  "popular_posts": [
+    {
+      "title": "My first short film premiere",
+      "posted_ago": "2 days ago",
+      "likes": "214",
+      "comments": "47",
+      "image": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": true
+    },
+    {
+      "title": "Storyboard to final frame",
+      "posted_ago": "2 weeks ago",
+      "likes": "128",
+      "comments": "31",
+      "image": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": false
+    },
+    {
+      "title": "Late-night edit session notes",
+      "posted_ago": "1 month ago",
+      "likes": "96",
+      "comments": "22",
+      "image": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": false
+    }
+  ],
+  "feed_posts": [
+    {
+      "id": "hir-001",
+      "category": "personal",
+      "author": {
+        "name": "Hiran",
+        "handle": "@hiran",
+        "avatar_initials": "HI",
+        "avatar_color": "#0d9488",
+        "avatar_url": null,
+        "verified": false
+      },
+      "text": "Three years ago I was afraid to post anything online. Today I shared my first short film with 200 people I actually know. Small wins.",
+      "tags": [],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&q=80&auto=format&fit=crop",
+            "alt": "Vintage film camera and reels on a table"
+          }
+        ]
+      },
+      "engagement": { "likes": 214, "comments": 47, "shares": 6 },
+      "relationship": { "following": false },
+      "posted_at": "2026-07-03T09:15:00Z",
+      "posted_ago": "2d"
+    },
+    {
+      "id": "hir-002",
+      "category": "personal",
+      "author": {
+        "name": "Hiran",
+        "handle": "@hiran",
+        "avatar_initials": "HI",
+        "avatar_color": "#0d9488",
+        "avatar_url": null,
+        "verified": false
+      },
+      "text": "Posted the color grade before and after. Still learning, still iterating. Feedback welcome.",
+      "tags": ["#Filmmaking", "#ColorGrade"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&q=80&auto=format&fit=crop",
+            "alt": "Video editing timeline on a monitor"
+          }
+        ]
+      },
+      "engagement": { "likes": 142, "comments": 28, "shares": 4 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-28T20:00:00Z",
+      "posted_ago": "1w"
+    },
+    {
+      "id": "hir-003",
+      "category": "personal",
+      "author": {
+        "name": "Hiran",
+        "handle": "@hiran",
+        "avatar_initials": "HI",
+        "avatar_color": "#0d9488",
+        "avatar_url": null,
+        "verified": false
+      },
+      "text": "Question for other indie filmmakers: how do you know when a cut is actually done?",
+      "tags": ["#IndieFilm"],
+      "media": null,
+      "engagement": { "likes": 89, "comments": 64, "shares": 2 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-22T11:00:00Z",
+      "posted_ago": "2w"
+    },
+    {
+      "id": "hir-004",
+      "category": "personal",
+      "author": {
+        "name": "Hiran",
+        "handle": "@hiran",
+        "avatar_initials": "HI",
+        "avatar_color": "#0d9488",
+        "avatar_url": null,
+        "verified": false
+      },
+      "text": "Location scout day — found a stairwell with the perfect echo for the opening scene.",
+      "tags": ["#LocationScout", "#ShortFilm"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80&auto=format&fit=crop",
+            "alt": "Empty cinema seats in warm light"
+          }
+        ]
+      },
+      "engagement": { "likes": 176, "comments": 19, "shares": 5 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-15T07:30:00Z",
+      "posted_ago": "3w"
+    },
+    {
+      "id": "hir-005",
+      "category": "personal",
+      "author": {
+        "name": "Hiran",
+        "handle": "@hiran",
+        "avatar_initials": "HI",
+        "avatar_color": "#0d9488",
+        "avatar_url": null,
+        "verified": false
+      },
+      "text": "Submitted to two local festivals today. Either way, proud this one exists outside my hard drive.",
+      "tags": ["#FilmFestival"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80&auto=format&fit=crop",
+            "alt": "Projector light in a dark theater"
+          }
+        ]
+      },
+      "engagement": { "likes": 203, "comments": 41, "shares": 8 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-08T16:45:00Z",
+      "posted_ago": "4w"
+    }
+  ]
+}

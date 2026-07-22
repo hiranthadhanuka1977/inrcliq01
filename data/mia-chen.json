@@ -1,0 +1,341 @@
+{
+  "slug": "mia-chen",
+  "name": "Mia Chen",
+  "handle": "@miachenruns",
+  "avatar_initials": "MC",
+  "avatar_color": "#2563eb",
+  "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+  "verified": true,
+  "special_requests": true,
+  "cover_url": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1400&h=400&fit=crop",
+  "bio": "Ultramarathon runner based in Mumbai. Sharing training logs, race-day stories, and honest recovery notes from the road. Members get weekly plans and early race vlogs.",
+  "stats": {
+    "followers": "12.4K",
+    "following": 842,
+    "subscribers": 186,
+    "posts": 69
+  },
+  "subscription": {
+    "price_label": "Subscribe · $4.99/mo"
+  },
+  "collection": [
+    {
+      "id": "mc-tee",
+      "name": "Mumbai Marathon Tee",
+      "price": "$32",
+      "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=336&h=336&fit=crop",
+      "image_alt": "Mumbai Marathon Tee"
+    },
+    {
+      "id": "mc-cap",
+      "name": "Night Run Reflective Cap",
+      "price": "$24",
+      "image": "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=336&h=336&fit=crop",
+      "image_alt": "Night Run Reflective Cap"
+    },
+    {
+      "id": "mc-roller",
+      "name": "Recovery Foam Roller",
+      "price": "$38",
+      "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=336&h=336&fit=crop",
+      "image_alt": "Recovery Foam Roller"
+    },
+    {
+      "id": "mc-vest",
+      "name": "Hydration Vest Pro",
+      "price": "$89",
+      "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=336&h=336&fit=crop",
+      "image_alt": "Hydration Vest Pro"
+    },
+    {
+      "id": "mc-shoes",
+      "name": "Ultra-Light Running Shoes",
+      "price": "$129",
+      "image": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=336&h=336&fit=crop",
+      "image_alt": "Ultra-Light Running Shoes"
+    },
+    {
+      "id": "mc-strap",
+      "name": "Race-Day GPS Watch Strap",
+      "price": "$45",
+      "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=336&h=336&fit=crop",
+      "image_alt": "Race-Day GPS Watch Strap"
+    }
+  ],
+  "popular_posts": [
+    {
+      "title": "42 km before sunrise",
+      "posted_ago": "3 days ago",
+      "likes": "4.8K",
+      "comments": "312",
+      "image": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": false
+    },
+    {
+      "title": "Monsoon hill repeats · 12×400 m",
+      "posted_ago": "2 weeks ago",
+      "likes": "2.1K",
+      "comments": "148",
+      "image": "https://images.unsplash.com/photo-1502904550040-7534597429ae?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": false
+    },
+    {
+      "title": "What I eat on long-run Sundays",
+      "posted_ago": "1 month ago",
+      "likes": "3.6K",
+      "comments": "421",
+      "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": true
+    }
+  ],
+  "feed_posts": [
+    {
+      "id": "mia-001",
+      "category": "sports",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Marathon morning in Mumbai — 42 km done before the city woke up. Legs are jelly, heart is full.",
+      "tags": ["#Marathon", "#Running", "#Mumbai"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80&auto=format&fit=crop",
+            "alt": "Runner crossing a city bridge at sunrise"
+          }
+        ]
+      },
+      "engagement": { "likes": 4820, "comments": 312, "shares": 89 },
+      "relationship": { "following": false },
+      "posted_at": "2026-07-05T04:30:00Z",
+      "posted_ago": "3h",
+      "members_only": true
+    },
+    {
+      "id": "mia-002",
+      "category": "sports",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Taper week checklist: sleep, carbs, and absolutely no new shoes. Trust the training.",
+      "tags": ["#TaperWeek", "#MarathonPrep"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80&auto=format&fit=crop",
+            "alt": "Running shoes and race bib laid out"
+          }
+        ]
+      },
+      "engagement": { "likes": 2180, "comments": 94, "shares": 31 },
+      "relationship": { "following": false },
+      "posted_at": "2026-07-02T08:00:00Z",
+      "posted_ago": "3d"
+    },
+    {
+      "id": "mia-audio-001",
+      "category": "sports",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "New audio log — taper week nerves, race-morning rituals, and why I stopped chasing every split on easy days.",
+      "tags": ["#Audio", "#Running", "#MarathonPrep"],
+      "media": null,
+      "audio": {
+        "title": "Miles & Mindset · Taper week nerves",
+        "thumbnail": {
+          "url": "https://images.unsplash.com/photo-1502904550040-7534597429ae?w=400&q=80&auto=format&fit=crop",
+          "alt": "Runner on a misty forest trail"
+        },
+        "current_time": "0:00",
+        "duration": "5:00",
+        "progress": 0,
+        "audio_url": null,
+        "theme": {
+          "accent_a": "120, 180, 255",
+          "accent_b": "70, 120, 210",
+          "base": ["#1e2f4a", "#1a2840", "#141f33"],
+          "border": "110, 170, 230"
+        }
+      },
+      "engagement": { "likes": 1640, "comments": 124, "shares": 38 },
+      "relationship": { "following": false },
+      "posted_at": "2026-07-01T07:00:00Z",
+      "posted_ago": "4d"
+    },
+    {
+      "id": "mia-003",
+      "category": "personal",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Members — drop your race goal for August. I'll pick three training plans to build together this weekend.",
+      "tags": ["#RunningCommunity"],
+      "media": null,
+      "engagement": { "likes": 890, "comments": 203, "shares": 12 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-28T12:00:00Z",
+      "posted_ago": "1w"
+    },
+    {
+      "id": "mia-004",
+      "category": "sports",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Western Ghats long run yesterday — 28 km of mist, mud, and zero regrets. Legs learned things flats never teach.",
+      "tags": ["#TrailRunning", "#WesternGhats", "#UltraTraining"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1502904550040-7534597429ae?w=800&q=80&auto=format&fit=crop",
+            "alt": "Runner on a misty forest trail"
+          }
+        ]
+      },
+      "engagement": { "likes": 1640, "comments": 87, "shares": 24 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-21T06:15:00Z",
+      "posted_ago": "2w"
+    },
+    {
+      "id": "mia-005",
+      "category": "sports",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Gym day for runners: single-leg RDLs, calf raises, and core. Strong legs survive marathon month.",
+      "tags": ["#StrengthTraining", "#RunnerLife"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80&auto=format&fit=crop",
+            "alt": "Athlete training with weights in a gym"
+          }
+        ]
+      },
+      "engagement": { "likes": 1120, "comments": 56, "shares": 18 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-18T09:30:00Z",
+      "posted_ago": "2w"
+    },
+    {
+      "id": "mia-006",
+      "category": "personal",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Foam roll, ice bath, early lights-out. Recovery isn't lazy — it's where the adaptation happens.",
+      "tags": ["#Recovery", "#RestDay"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80&auto=format&fit=crop",
+            "alt": "Foam roller and recovery gear on a mat"
+          }
+        ]
+      },
+      "engagement": { "likes": 980, "comments": 71, "shares": 14 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-14T19:00:00Z",
+      "posted_ago": "3w"
+    },
+    {
+      "id": "mia-007",
+      "category": "food",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Pre-long-run breakfast: rice, banana, peanut butter, and way too much coffee. Fuel the miles, not the guilt.",
+      "tags": ["#RunnerNutrition", "#LongRun"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80&auto=format&fit=crop",
+            "alt": "Healthy breakfast spread with fruit and grains"
+          }
+        ]
+      },
+      "engagement": { "likes": 2410, "comments": 132, "shares": 41 },
+      "relationship": { "following": false },
+      "posted_at": "2026-06-05T04:00:00Z",
+      "posted_ago": "1mo"
+    },
+    {
+      "id": "mia-008",
+      "category": "sports",
+      "author": {
+        "name": "Mia Chen",
+        "handle": "@miachenruns",
+        "avatar_initials": "MC",
+        "avatar_color": "#2563eb",
+        "avatar_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "5 AM headlamp crew — six of us, twelve silent kilometres along Marine Drive before the humidity hit.",
+      "tags": ["#EarlyMorning", "#Mumbai", "#RunningCrew"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1594882645126-14020914d58d?w=800&q=80&auto=format&fit=crop",
+            "alt": "Runners with headlamps on a dark coastal road at dawn"
+          }
+        ]
+      },
+      "engagement": { "likes": 1870, "comments": 98, "shares": 27 },
+      "relationship": { "following": false },
+      "posted_at": "2026-05-28T23:30:00Z",
+      "posted_ago": "5w"
+    }
+  ]
+}

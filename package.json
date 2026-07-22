@@ -1,14 +1,19 @@
 {
-  "name": "web",
+  "name": "inrcliq",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "prisma generate && next dev",
+    "dev": "prisma generate && next dev -p 3002",
     "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
+    "db:migrate-feed": "node scripts/migrate-feed-to-db.mjs",
+    "db:migrate-collection": "node scripts/migrate-collection-to-db.mjs",
+    "db:seed-good-guy": "node scripts/seed-good-guy-podcast.mjs",
+    "db:seed-bns": "node scripts/seed-bathiya-santhush.mjs",
+    "db:seed-chat": "node scripts/seed-chat-inboxes.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -17,7 +22,7 @@
     "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
-    "next": "16.2.9",
+    "next": "16.2.10",
     "pg": "^8.22.0",
     "prisma": "^7.8.0",
     "react": "19.2.4",
@@ -31,7 +36,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.2.10",
     "typescript": "^5"
   }
 }

@@ -7,6 +7,7 @@ import { LOGIN_CODE_COOLDOWN_SECONDS } from "@/lib/auth/login-code.constants";
 import { getEmailValidationError } from "@/lib/form-validation";
 import { FieldError } from "@/components/ui/FieldError";
 import { LoginCodeInbox } from "@/components/auth/LoginCodeInbox";
+import { VerifyEmailInboxButton } from "@/components/auth/VerifyEmailInboxButton";
 
 const LOGIN_CODE_KEY = "inrcliq_login_code";
 const LOGIN_CODE_EMAIL_KEY = "inrcliq_login_code_email";
@@ -246,7 +247,7 @@ export function LoginForm() {
         sessionStorage.removeItem(LOGIN_CODE_KEY);
         sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
 
-        router.push(data.redirectTo ?? "/home");
+        router.push(data.redirectTo ?? "/feed");
         router.refresh();
       } catch {
         setOtpError("Unable to log in.");
@@ -321,7 +322,7 @@ export function LoginForm() {
       sessionStorage.removeItem(LOGIN_CODE_KEY);
       sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
 
-      router.push(data.redirectTo ?? "/home");
+      router.push(data.redirectTo ?? "/feed");
       router.refresh();
     } catch {
       setPasswordError("Unable to log in.");
@@ -375,29 +376,12 @@ export function LoginForm() {
   return (
     <>
       {step === "otp" && loginMethod === "code" && loginCode ? (
-        <button
-          type="button"
-          className="verify-email__inbox-btn"
+        <VerifyEmailInboxButton
           id="btn-open-login-code-inbox"
-          aria-label="Open login code email"
-          aria-expanded={inboxOpen}
+          label="Open login code email"
+          expanded={inboxOpen}
           onClick={() => setInboxOpen(true)}
-        >
-          <svg
-            className="verify-email__inbox-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-            <polyline points="22,6 12,13 2,6" />
-          </svg>
-          <span className="verify-email__inbox-badge" aria-hidden="true" />
-        </button>
+        />
       ) : null}
 
       <LoginCodeInbox

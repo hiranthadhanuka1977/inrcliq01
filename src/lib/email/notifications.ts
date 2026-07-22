@@ -31,7 +31,7 @@ export async function sendParentInviteEmail(
 export async function sendProfileCompleteEmail(email: string, firstName: string) {
   const message = buildProfileCompleteEmail({
     firstName,
-    homeUrl: `${getAppUrl()}/home`,
+    homeUrl: `${getAppUrl()}/feed`,
   });
   await sendEmailSafely({ to: email, ...message }, "profile-complete");
 }

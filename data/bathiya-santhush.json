@@ -1,0 +1,135 @@
+{
+  "slug": "bathiya-santhush",
+  "name": "Bathiya and Santhush",
+  "handle": "@bnsofficial",
+  "avatar_initials": "BS",
+  "avatar_color": "#b45309",
+  "avatar_url": "/assets/creators/bathiya-santhush/avatar.jpg",
+  "verified": true,
+  "cover_url": "/assets/creators/bathiya-santhush/cover.jpg",
+  "bio": "Sri Lanka’s iconic pop duo. Two decades of anthems, live nights, and songs that still fill every wedding playlist from Colombo to Kandy.",
+  "stats": {
+    "followers": "1.2M",
+    "following": 86,
+    "subscribers": 0,
+    "posts": 3
+  },
+  "subscription": null,
+  "relationship": {
+    "following": true,
+    "subscribed": false
+  },
+  "collection": [],
+  "popular_posts": [
+    {
+      "title": "Soundcheck in Colombo — new stage, same roar",
+      "posted_ago": "2h",
+      "likes": "18.4K",
+      "comments": "1.2K",
+      "image": "/assets/creators/bathiya-santhush/feed.jpg",
+      "members_only": false,
+      "has_video": false
+    },
+    {
+      "title": "Vasanthaye still hits different in 2026",
+      "posted_ago": "1d",
+      "likes": "9.6K",
+      "comments": "640",
+      "image": "/assets/creators/bathiya-santhush/feed-wedding.jpg",
+      "members_only": false,
+      "has_video": false
+    },
+    {
+      "title": "Backstage before Kandy — two voices, one mic check",
+      "posted_ago": "4d",
+      "likes": "7.1K",
+      "comments": "418",
+      "image": "/assets/creators/bathiya-santhush/feed-stage.jpg",
+      "members_only": false,
+      "has_video": false
+    }
+  ],
+  "feed_posts": [
+    {
+      "id": "bns-001",
+      "category": "personal",
+      "author": {
+        "name": "Bathiya and Santhush",
+        "handle": "@bnsofficial",
+        "avatar_initials": "BS",
+        "avatar_color": "#b45309",
+        "avatar_url": "/assets/creators/bathiya-santhush/avatar.jpg",
+        "verified": true
+      },
+      "text": "Soundcheck in Colombo tonight — new lights, same roar. Grateful for every voice that’s sung with us for twenty years. See you under the lights.",
+      "tags": ["#BnS", "#Colombo", "#SriLanka", "#Live"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "/assets/creators/bathiya-santhush/feed.jpg",
+            "alt": "Bathiya and Santhush"
+          }
+        ]
+      },
+      "engagement": { "likes": 18420, "comments": 1204, "shares": 890 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-21T08:00:00Z",
+      "posted_ago": "2h"
+    },
+    {
+      "id": "bns-002",
+      "category": "personal",
+      "author": {
+        "name": "Bathiya and Santhush",
+        "handle": "@bnsofficial",
+        "avatar_initials": "BS",
+        "avatar_color": "#b45309",
+        "avatar_url": "/assets/creators/bathiya-santhush/avatar.jpg",
+        "verified": true
+      },
+      "text": "Someone played Vasanthaye at a wedding in Negombo last night and the whole room sang every word. Twenty-five years later, that still gets us. Thank you for keeping our songs alive.",
+      "tags": ["#Vasanthaye", "#BnS", "#SriLanka"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "/assets/creators/bathiya-santhush/feed-wedding.jpg",
+            "alt": "Wedding celebration with guests celebrating"
+          }
+        ]
+      },
+      "engagement": { "likes": 9620, "comments": 640, "shares": 510 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-20T11:30:00Z",
+      "posted_ago": "1d"
+    },
+    {
+      "id": "bns-003",
+      "category": "personal",
+      "author": {
+        "name": "Bathiya and Santhush",
+        "handle": "@bnsofficial",
+        "avatar_initials": "BS",
+        "avatar_color": "#b45309",
+        "avatar_url": "/assets/creators/bathiya-santhush/avatar.jpg",
+        "verified": true
+      },
+      "text": "Kandy this weekend. Two mics, one stage, and a city that always sings louder than the PA. Who’s coming through?",
+      "tags": ["#Kandy", "#Live", "#BnS", "#Tour"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "/assets/creators/bathiya-santhush/feed-stage.jpg",
+            "alt": "Live concert stage under bright lights"
+          }
+        ]
+      },
+      "engagement": { "likes": 7140, "comments": 418, "shares": 276 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-17T16:00:00Z",
+      "posted_ago": "4d"
+    }
+  ]
+}

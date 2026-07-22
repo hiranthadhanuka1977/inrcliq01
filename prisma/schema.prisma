@@ -20,6 +20,11 @@ enum ApprovalStatus {
   EXPIRED
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+}
+
 model User {
   id            String      @id @default(cuid())
   email         String      @unique
@@ -41,6 +46,8 @@ model User {
   accounts               Account[]
   parentApprovalRequests ParentApprovalRequest[] @relation("ChildUser")
   guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
+  chatThreads            ChatThread[]
+  subscriptions          CreatorSubscription[]
 }
 
 model Account {
@@ -120,4 +127,166 @@ model ParentApprovalRequest {
   @@index([parentEmail])
   @@index([childUserId])
   @@index([guardianUserId])
+}
+
+/// Creators imported from feed JSON (separate from auth `User` accounts).
+model CreatorUser {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  name           String
+  handle         String   @unique
+  slug           String?  @unique
+  firstName      String?
+  lastName       String?
+  avatarInitials String
+  avatarColor    String
+  avatarUrl      String?
+  verified       Boolean  @default(false)
+  bio            String?
+  coverUrl       String?
+  source         String   @default("feed-json")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  posts         FeedPost[]
+  collections   CreatorCollection[]
+  chatThreads   ChatThread[]
+  subscriptions CreatorSubscription[]
+
+  @@index([name])
+}
+
+/// Feed posts imported from `data/my_feed.json`, linked to `CreatorUser`.
+model FeedPost {
+  id          String   @id
+  category    String
+  text        String
+  tags        String[]
+  mediaJson   Json?
+  audioJson   Json?
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  following   Boolean  @default(false)
+  membersOnly Boolean  @default(false)
+  postedAt    DateTime
+  postedAgo   String?
+  sortOrder   Int      @default(0)
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([creatorId])
+  @@index([postedAt])
+  @@index([sortOrder])
+}
+
+/// Creator shop/collection storefront, linked to `CreatorUser`.
+model CreatorCollection {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  subtitle  String
+  source    String   @default("collection-json")
+  creatorId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator  CreatorUser         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  products CollectionProduct[]
+
+  @@index([creatorId])
+}
+
+/// Products inside a creator collection (detail/offer nested JSON preserved).
+model CollectionProduct {
+  id             String   @id @default(cuid())
+  productKey     String
+  kind           String
+  name           String
+  price          String
+  compareAtPrice String?
+  description    String
+  image          String
+  imageAlt       String
+  rating         Float    @default(0)
+  soldLabel      String
+  offerJson      Json?
+  ctaLabel       String?
+  detailJson     Json?
+  sortOrder      Int      @default(0)
+  collectionId   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  collection CreatorCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, productKey])
+  @@index([collectionId])
+  @@index([kind])
+  @@index([sortOrder])
+}
+
+/// 1:1 chat thread between a logged-in `User` and a peer (creator or support).
+model ChatThread {
+  id              String    @id @default(cuid())
+  userId          String
+  seedKey         String?
+  peerCreatorId   String?
+  peerName        String
+  peerHandle      String
+  peerInitials    String
+  peerAvatarColor String
+  peerAvatarUrl   String?
+  peerSlug        String?
+  peerOnline      Boolean   @default(false)
+  preview         String?
+  lastMessageAt   DateTime?
+  unreadCount     Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  peerCreator CreatorUser? @relation(fields: [peerCreatorId], references: [id], onDelete: SetNull)
+  messages    ChatMessage[]
+
+  @@unique([userId, peerCreatorId])
+  @@unique([userId, seedKey])
+  @@index([userId, lastMessageAt])
+  @@index([peerCreatorId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  body      String
+  fromMe    Boolean
+  createdAt DateTime @default(now())
+
+  thread ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
+/// Per-user subscription to a creator (`User` → `CreatorUser`).
+model CreatorSubscription {
+  id           String             @id @default(cuid())
+  userId       String
+  creatorId    String
+  status       SubscriptionStatus @default(ACTIVE)
+  notifyLevel  String             @default("personalized")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  cancelledAt  DateTime?
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, creatorId])
+  @@index([creatorId, status])
+  @@index([userId, status])
 }

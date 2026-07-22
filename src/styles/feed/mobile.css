@@ -1,0 +1,74 @@
+/* Mobile layout polish + safe areas */
+
+.page-profile {
+  --feed-width: min(980px, calc(100vw - var(--space-6) * 2));
+}
+
+@media (max-width: 900px) {
+  .page-profile {
+    --feed-width: 100%;
+  }
+
+  :is(.page-home, .page-audio) .content-layout {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+
+  .feed-surface--simple .more,
+  .feed-surface--simple .post--simple .more {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  body.page-home,
+  body.page-profile,
+  body.page-audio,
+  body.page-messages {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .main-content {
+    padding-bottom: calc(var(--space-8) + 3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-nav a {
+    min-height: 3.25rem;
+  }
+
+  .mobile-nav .nav-icon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .profile-posts {
+    flex-direction: column;
+  }
+
+  .profile-post-card {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .profile-collection__list {
+    scroll-padding-inline: var(--space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .audio-feed__controls {
+    gap: 0.35rem;
+  }
+
+  .feed-surface--simple .post--simple .post__body {
+    padding-inline: var(--space-4);
+  }
+
+  .feed-surface--simple .post-head {
+    padding-inline: var(--space-4);
+  }
+}

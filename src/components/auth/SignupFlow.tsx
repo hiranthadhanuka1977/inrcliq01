@@ -16,6 +16,7 @@ import { Disclosure } from "@/components/auth/Disclosure";
 import { FieldError } from "@/components/ui/FieldError";
 import { SignupProgressBar } from "@/components/auth/SignupProgressBar";
 import { VerificationEmailInbox } from "@/components/auth/VerificationEmailInbox";
+import { VerifyEmailInboxButton } from "@/components/auth/VerifyEmailInboxButton";
 
 type Step = 1 | 2 | 3;
 type SignupMethod = "email" | "google" | "apple" | null;
@@ -341,29 +342,12 @@ export function SignupFlow() {
   return (
     <>
     {step === 3 && verifyUrl ? (
-      <button
-        type="button"
-        className="verify-email__inbox-btn"
+      <VerifyEmailInboxButton
         id="btn-open-verify-email-inbox"
-        aria-label="Open verification email"
-        aria-expanded={inboxOpen}
+        label="Open verification email"
+        expanded={inboxOpen}
         onClick={() => setInboxOpen(true)}
-      >
-        <svg
-          className="verify-email__inbox-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-          <polyline points="22,6 12,13 2,6" />
-        </svg>
-        <span className="verify-email__inbox-badge" aria-hidden="true" />
-      </button>
+      />
     ) : null}
 
     <VerificationEmailInbox

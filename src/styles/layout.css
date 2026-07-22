@@ -169,7 +169,9 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: var(--space-4) var(--layout-content-padding-sm);
+  /* Leave room for the fixed OTP / verify-email inbox button (40px) + gap on the right. */
+  padding: var(--space-4) calc(var(--layout-content-padding-sm) + 40px + var(--space-4))
+    var(--space-4) var(--layout-content-padding-sm);
   pointer-events: none;
 }
 
@@ -188,7 +190,9 @@
 
 @media (min-width: 768px) {
   .auth-split__topbar {
-    padding: var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
+    padding: var(--space-6)
+      calc(clamp(var(--space-6), 4vw, var(--space-10)) + 40px + var(--space-4))
+      var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
   }
 
   .auth-split__signup-prompt-text {

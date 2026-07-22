@@ -1,0 +1,252 @@
+{
+  "slug": "dev-weekly",
+  "name": "Dev Weekly",
+  "handle": "@devweekly",
+  "avatar_initials": "DW",
+  "avatar_color": "#7c3aed",
+  "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+  "verified": true,
+  "cover_url": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&h=400&fit=crop",
+  "bio": "Weekly deep dives on AI, mobile, and the tools reshaping how we build. Breaking down launches, benchmarks, and architecture decisions without the hype.",
+  "stats": {
+    "followers": "48.2K",
+    "following": 312,
+    "subscribers": 2840,
+    "posts": 142
+  },
+  "subscription": {
+    "price_label": "Subscribe · $4.99/mo"
+  },
+  "collection": [],
+  "popular_posts": [
+    {
+      "title": "On-device AI translation under 200 ms",
+      "posted_ago": "1 day ago",
+      "likes": "12.8K",
+      "comments": "967",
+      "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": false
+    },
+    {
+      "title": "Why local-first sync won our hackathon",
+      "posted_ago": "2 weeks ago",
+      "likes": "6.4K",
+      "comments": "412",
+      "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": true
+    },
+    {
+      "title": "Rust in production — 6 months later",
+      "posted_ago": "1 month ago",
+      "likes": "9.1K",
+      "comments": "638",
+      "image": "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": false
+    }
+  ],
+  "feed_posts": [
+    {
+      "id": "dw-001",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "On-device AI is finally fast enough for real-time translation on mid-range phones. Tested Hindi ↔ Tamil on a ₹25K device — latency under 200 ms.",
+      "tags": ["#AI", "#Mobile", "#EdgeComputing"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80&auto=format&fit=crop",
+            "alt": "Circuit board and microchip close-up"
+          }
+        ]
+      },
+      "engagement": { "likes": 12840, "comments": 967, "shares": 1540 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-04T18:00:00Z",
+      "posted_ago": "14h"
+    },
+    {
+      "id": "dw-002",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Shipped our first CRDT-backed notes app. Conflict resolution feels invisible when you get the data model right from day one.",
+      "tags": ["#LocalFirst", "#CRDT", "#WebDev"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80&auto=format&fit=crop",
+            "alt": "Developer writing code on a laptop"
+          }
+        ]
+      },
+      "engagement": { "likes": 6420, "comments": 412, "shares": 890 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-28T10:00:00Z",
+      "posted_ago": "1w"
+    },
+    {
+      "id": "dw-003",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Members — drop your stack for a side project. I'll review three architectures live this Friday and suggest where I'd cut scope.",
+      "tags": ["#BuildInPublic", "#Architecture"],
+      "media": null,
+      "engagement": { "likes": 2180, "comments": 524, "shares": 67 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-24T14:00:00Z",
+      "posted_ago": "11d"
+    },
+    {
+      "id": "dw-004",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Six months of Rust in production: fewer segfaults, happier on-call, and one team still grumbling about borrow checker onboarding.",
+      "tags": ["#Rust", "#Backend", "#Production"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&q=80&auto=format&fit=crop",
+            "alt": "Rust programming language logo on a screen"
+          }
+        ]
+      },
+      "engagement": { "likes": 9140, "comments": 638, "shares": 1120 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-18T08:30:00Z",
+      "posted_ago": "2w"
+    },
+    {
+      "id": "dw-005",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Quick benchmark: quantised Llama 3.2 on M-series vs Snapdragon X Elite. Surprising winner for batch size 1 inference.",
+      "tags": ["#LLM", "#Benchmarks", "#AppleSilicon"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80&auto=format&fit=crop",
+            "alt": "Earth at night from space representing global networks"
+          }
+        ]
+      },
+      "engagement": { "likes": 11200, "comments": 891, "shares": 2100 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-10T16:00:00Z",
+      "posted_ago": "3w"
+    },
+    {
+      "id": "dw-006",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Security audit checklist we use before every launch: dependency scan, secrets grep, CSP review, and one afternoon of threat modelling.",
+      "tags": ["#Security", "#DevOps"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80&auto=format&fit=crop",
+            "alt": "Cybersecurity lock icon on a digital interface"
+          }
+        ]
+      },
+      "engagement": { "likes": 4870, "comments": 302, "shares": 640 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-03T09:00:00Z",
+      "posted_ago": "1mo"
+    },
+    {
+      "id": "dw-007",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "TypeScript 5.8 strict mode caught three latent null bugs in our API layer. Worth the migration pain.",
+      "tags": ["#TypeScript", "#DX"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800&q=80&auto=format&fit=crop",
+            "alt": "Code on a monitor in a dark room"
+          }
+        ]
+      },
+      "engagement": { "likes": 3560, "comments": 214, "shares": 380 },
+      "relationship": { "following": true },
+      "posted_at": "2026-05-27T11:30:00Z",
+      "posted_ago": "5w"
+    },
+    {
+      "id": "dw-008",
+      "category": "technology",
+      "author": {
+        "name": "Dev Weekly",
+        "handle": "@devweekly",
+        "avatar_initials": "DW",
+        "avatar_color": "#7c3aed",
+        "avatar_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Hot take: most teams don't need Kubernetes yet. A well-tuned PaaS plus good observability beats premature orchestration every time.",
+      "tags": ["#Cloud", "#Infrastructure"],
+      "media": null,
+      "engagement": { "likes": 7890, "comments": 1240, "shares": 980 },
+      "relationship": { "following": true },
+      "posted_at": "2026-05-20T07:00:00Z",
+      "posted_ago": "6w"
+    }
+  ]
+}

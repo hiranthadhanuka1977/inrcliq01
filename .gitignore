@@ -44,3 +44,9 @@ next-env.d.ts
 /src/generated/prisma
 
 .vercel
+
+# local workspace copies (app lives at repo root for Vercel)
+/inrcliq/
+/livefeed/
+/web/
+/.sync-backup/

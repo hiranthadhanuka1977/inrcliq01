@@ -1,0 +1,319 @@
+{
+  "slug": "good-guy-podcast",
+  "name": "Good Guy Podcast",
+  "handle": "@goodguypod",
+  "avatar_initials": "GG",
+  "avatar_color": "#6b5b4f",
+  "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+  "verified": true,
+  "cover_url": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=1400&h=400&fit=crop",
+  "bio": "Long-form conversations on creativity, discipline, and building in public. Two hosts, one mic, zero fluff. Members get uncut episodes, early drops, and studio notes.",
+  "stats": {
+    "followers": "186K",
+    "following": 214,
+    "subscribers": 12400,
+    "posts": 96
+  },
+  "subscription": {
+    "price_label": "Subscribe · $5.99/mo"
+  },
+  "relationship": {
+    "following": true,
+    "subscribed": false
+  },
+  "collection": [
+    {
+      "id": "ggp-hoodie",
+      "name": "Studio Session Hoodie",
+      "price": "$58",
+      "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=336&h=336&fit=crop",
+      "image_alt": "Studio Session Hoodie"
+    },
+    {
+      "id": "ggp-mug",
+      "name": "Stay a Good Guy Mug",
+      "price": "$22",
+      "image": "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=336&h=336&fit=crop",
+      "image_alt": "Stay a Good Guy Mug"
+    },
+    {
+      "id": "ggp-pin",
+      "name": "Mic Enamel Pin",
+      "price": "$14",
+      "image": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=336&h=336&fit=crop",
+      "image_alt": "Mic Enamel Pin"
+    },
+    {
+      "id": "ggp-transcripts",
+      "name": "Season Transcript Pack",
+      "price": "$19",
+      "image": "https://images.unsplash.com/photo-1456513080880-7d93aaa172bb?w=336&h=336&fit=crop",
+      "image_alt": "Season Transcript Pack"
+    },
+    {
+      "id": "ggp-vinyl",
+      "name": "Best Of Vol. 1 Vinyl",
+      "price": "$36",
+      "image": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=336&h=336&fit=crop",
+      "image_alt": "Best Of Vol. 1 Vinyl"
+    },
+    {
+      "id": "ggp-poster",
+      "name": "Cold Open Poster",
+      "price": "$28",
+      "image": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=336&h=336&fit=crop",
+      "image_alt": "Cold Open Poster"
+    }
+  ],
+  "popular_posts": [
+    {
+      "title": "Episode 14 — creativity, discipline, building in public",
+      "posted_ago": "1 day ago",
+      "likes": "2.8K",
+      "comments": "186",
+      "image": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=520&h=325&fit=crop",
+      "members_only": false,
+      "has_video": false
+    },
+    {
+      "title": "Uncut: the 40 minutes we left on the floor",
+      "posted_ago": "3 days ago",
+      "likes": "1.1K",
+      "comments": "94",
+      "image": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": false
+    },
+    {
+      "title": "Studio notes — how we cut four hours to forty",
+      "posted_ago": "1 week ago",
+      "likes": "940",
+      "comments": "71",
+      "image": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=520&h=325&fit=crop",
+      "members_only": true,
+      "has_video": false
+    }
+  ],
+  "feed_posts": [
+    {
+      "id": "ggp-001",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Episode 14 is live — a long-form conversation on creativity, discipline, and building in public.",
+      "tags": ["#Podcast", "#Audio", "#Episode14"],
+      "media": null,
+      "audio": {
+        "title": "Good Guy Podcast: Episode 14 — Building in public",
+        "thumbnail": {
+          "url": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&q=80&auto=format&fit=crop",
+          "alt": "Black and white portrait of two podcast hosts"
+        },
+        "current_time": "0:00",
+        "duration": "48:12",
+        "progress": 0,
+        "audio_url": null,
+        "theme": {
+          "accent_a": "120, 220, 160",
+          "accent_b": "72, 168, 118",
+          "base": ["#2a4534", "#223a2b", "#1a2e22"],
+          "border": "120, 200, 150"
+        }
+      },
+      "engagement": { "likes": 2840, "comments": 186, "shares": 92 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-06T08:00:00Z",
+      "posted_ago": "1d"
+    },
+    {
+      "id": "ggp-002",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Members only — the uncut take we left on the floor. Same guest, zero edits, 40 extra minutes including the part about quitting too early.",
+      "tags": ["#MembersOnly", "#Uncut", "#Podcast"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80&auto=format&fit=crop",
+            "alt": "Podcast microphone in a dim studio"
+          }
+        ]
+      },
+      "audio": {
+        "title": "Members: Uncut — Episode 14 floor tape",
+        "thumbnail": {
+          "url": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=400&q=80&auto=format&fit=crop",
+          "alt": "Studio microphone close-up"
+        },
+        "current_time": "0:00",
+        "duration": "40:08",
+        "progress": 0,
+        "audio_url": null,
+        "theme": {
+          "accent_a": "210, 180, 120",
+          "accent_b": "160, 120, 70",
+          "base": ["#3a3228", "#2e2820", "#221c16"],
+          "border": "200, 170, 110"
+        }
+      },
+      "engagement": { "likes": 1120, "comments": 94, "shares": 41 },
+      "relationship": { "following": true },
+      "posted_at": "2026-07-04T16:30:00Z",
+      "posted_ago": "3d",
+      "members_only": true
+    },
+    {
+      "id": "ggp-003",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Studio notes for members: how we edit four hours into forty minutes — markers, cold opens, and the one joke we always cut.",
+      "tags": ["#MembersOnly", "#StudioNotes", "#Editing"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&q=80&auto=format&fit=crop",
+            "alt": "Vintage radio microphone in a recording studio"
+          }
+        ]
+      },
+      "engagement": { "likes": 940, "comments": 71, "shares": 28 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-30T11:00:00Z",
+      "posted_ago": "1w",
+      "members_only": true
+    },
+    {
+      "id": "ggp-004",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Early drop for members — Episode 15 lands Friday for everyone. You're getting it tonight with director commentary baked into the track markers.",
+      "tags": ["#MembersOnly", "#EarlyAccess", "#Episode15"],
+      "media": null,
+      "audio": {
+        "title": "Members early: Episode 15 + commentary",
+        "thumbnail": {
+          "url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80&auto=format&fit=crop",
+          "alt": "Headphones resting on a desk"
+        },
+        "current_time": "0:00",
+        "duration": "52:40",
+        "progress": 0,
+        "audio_url": null,
+        "theme": {
+          "accent_a": "120, 220, 160",
+          "accent_b": "72, 168, 118",
+          "base": ["#2a4534", "#223a2b", "#1a2e22"],
+          "border": "120, 200, 150"
+        }
+      },
+      "engagement": { "likes": 1580, "comments": 203, "shares": 67 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-27T20:00:00Z",
+      "posted_ago": "10d",
+      "members_only": true
+    },
+    {
+      "id": "ggp-005",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Lessons from year three: shorter intros, longer silences, and never scheduling a guest the morning after a red-eye.",
+      "tags": ["#Podcast", "#BehindTheScenes"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=80&auto=format&fit=crop",
+            "alt": "Two people talking near a microphone"
+          }
+        ]
+      },
+      "engagement": { "likes": 3210, "comments": 248, "shares": 119 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-20T14:15:00Z",
+      "posted_ago": "2w"
+    },
+    {
+      "id": "ggp-006",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "Members AMA thread — drop questions for next month's guest. Top three get asked on mic.",
+      "tags": ["#MembersOnly", "#AMA", "#Community"],
+      "media": null,
+      "engagement": { "likes": 760, "comments": 412, "shares": 33 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-14T09:40:00Z",
+      "posted_ago": "3w",
+      "members_only": true
+    },
+    {
+      "id": "ggp-007",
+      "category": "discovery",
+      "author": {
+        "name": "Good Guy Podcast",
+        "handle": "@goodguypod",
+        "avatar_initials": "GG",
+        "avatar_color": "#6b5b4f",
+        "avatar_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&q=80&auto=format&fit=crop",
+        "verified": true
+      },
+      "text": "The art of the cold open — why we stopped saying the show name for the first ninety seconds.",
+      "tags": ["#Craft", "#Podcast"],
+      "media": {
+        "type": "image",
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&q=80&auto=format&fit=crop",
+            "alt": "Audio mixing console with faders"
+          }
+        ]
+      },
+      "engagement": { "likes": 1890, "comments": 156, "shares": 88 },
+      "relationship": { "following": true },
+      "posted_at": "2026-06-08T18:00:00Z",
+      "posted_ago": "4w"
+    }
+  ]
+}

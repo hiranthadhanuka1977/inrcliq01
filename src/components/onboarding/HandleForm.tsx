@@ -51,7 +51,7 @@ export function HandleForm({
         return;
       }
 
-      router.push(data.redirectTo ?? "/home");
+      router.push(data.redirectTo ?? "/feed");
       router.refresh();
     } catch {
       setApiError("Unable to save handle.");

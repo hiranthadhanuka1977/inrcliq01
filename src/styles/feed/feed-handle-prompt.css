@@ -1,0 +1,204 @@
+/* Handle onboarding prompt — compact identity card */
+
+.page-home .handle-prompt {
+  position: relative;
+  margin-top: 0;
+  border-radius: 1rem;
+  background: var(--post-card-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--post-card-border, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.page-home .handle-prompt.is-hidden {
+  display: none;
+}
+
+.page-home .handle-prompt__shell {
+  position: relative;
+  padding: 1.1rem 1.25rem 1.2rem;
+}
+
+.page-home .handle-prompt__head {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  z-index: 1;
+}
+
+.page-home .handle-prompt__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin: -0.2rem -0.15rem 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.page-home .handle-prompt__dismiss svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.page-home .handle-prompt__dismiss:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-primary);
+}
+
+.page-home .handle-prompt__title {
+  margin: 0 2rem 0.35rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.page-home .handle-prompt__text {
+  margin: 0;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.page-home .handle-prompt__form {
+  margin-top: 1rem;
+}
+
+.page-home .handle-prompt__composer {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.page-home .handle-prompt__field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0 0.9rem 0 0.8rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.page-home .handle-prompt__field:focus-within {
+  border-color: rgba(107, 159, 255, 0.5);
+  background: rgba(107, 159, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(107, 159, 255, 0.14);
+}
+
+.page-home .handle-prompt__prefix {
+  flex-shrink: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  line-height: 1;
+}
+
+.page-home .handle-prompt__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 0 0 0.2rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  outline: none;
+}
+
+.page-home .handle-prompt__input::placeholder {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.page-home .handle-prompt__cta {
+  width: auto;
+  min-width: 7.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.page-home .handle-prompt__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.55rem;
+}
+
+.page-home .handle-prompt__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+}
+
+.page-home .handle-prompt__later {
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.page-home .handle-prompt__later:hover {
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+  .page-home .handle-prompt__shell {
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .page-home .handle-prompt__composer {
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .page-home .handle-prompt__cta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page-home .handle-prompt__meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-home .handle-prompt__later {
+    margin-left: 0;
+  }
+}
