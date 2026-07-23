@@ -5,10 +5,12 @@ import { sendParentApprovedChildEmail } from "@/lib/email/notifications";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/api-helpers";
 import {
+  CHILD_CONTINUE_EXPIRY_HOURS,
   PARENT_INVITE_COOLDOWN_SECONDS,
   PARENT_INVITE_EXPIRY_HOURS,
 } from "@/lib/auth/parent-invite.constants";
 import { sendParentInviteEmail as deliverParentInviteEmail } from "@/lib/email/notifications";
+import { createSession } from "@/lib/session";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
@@ -86,11 +88,97 @@ export async function verifyParentApprovalToken(rawToken: string) {
   return { ok: false as const, reason: "invalid" as const };
 }
 
+/** Issues a one-time continue link bound to this approved request / child. */
+export async function issueChildContinueUrl(requestId: string) {
+  const rawToken = generateToken();
+  const continueTokenHash = await bcrypt.hash(rawToken, 10);
+  const continueTokenExpiresAt = new Date(
+    Date.now() + CHILD_CONTINUE_EXPIRY_HOURS * 60 * 60 * 1000,
+  );
+
+  await prisma.parentApprovalRequest.update({
+    where: { id: requestId },
+    data: {
+      continueTokenHash,
+      continueTokenExpiresAt,
+      continueTokenUsedAt: null,
+    },
+  });
+
+  return `${getAppUrl()}/api/onboarding/continue-approval?token=${rawToken}`;
+}
+
+/**
+ * Validates the child's emailed continue token, starts their session,
+ * and returns where onboarding should resume.
+ * Tokens remain usable until expiry so email prefetch / re-clicks still work.
+ */
+export async function consumeChildContinueToken(rawToken: string) {
+  const candidates = await prisma.parentApprovalRequest.findMany({
+    where: {
+      status: ApprovalStatus.APPROVED,
+      continueTokenHash: { not: null },
+      continueTokenExpiresAt: { gt: new Date() },
+    },
+    include: { childUser: true },
+    orderBy: { resolvedAt: "desc" },
+    take: 50,
+  });
+
+  for (const record of candidates) {
+    if (!record.continueTokenHash) continue;
+
+    const matches = await bcrypt.compare(rawToken, record.continueTokenHash);
+    if (!matches) continue;
+
+    if (!record.continueTokenUsedAt) {
+      await prisma.parentApprovalRequest.update({
+        where: { id: record.id },
+        data: { continueTokenUsedAt: new Date() },
+      });
+    }
+
+    const step = record.childUser.onboardingStep;
+    if (step === "waiting" || step === "parent" || !step) {
+      await prisma.user.update({
+        where: { id: record.childUserId },
+        data: { onboardingStep: "approved" },
+      });
+    }
+
+    await createSession(record.childUserId);
+
+    return {
+      ok: true as const,
+      childUserId: record.childUserId,
+      redirectTo: "/onboarding/approved" as const,
+    };
+  }
+
+  return { ok: false as const, reason: "invalid" as const };
+}
+
 export async function unlockChildAfterParentApproval(childUserId: string) {
   await prisma.user.update({
     where: { id: childUserId },
     data: { onboardingStep: "approved" },
   });
+}
+
+export async function notifyChildOfParentApproval(requestId: string) {
+  const request = await prisma.parentApprovalRequest.findUniqueOrThrow({
+    where: { id: requestId },
+    include: { childUser: true },
+  });
+
+  const continueUrl = await issueChildContinueUrl(requestId);
+  await sendParentApprovedChildEmail(
+    request.childUser.email,
+    request.childUser.firstName ?? "there",
+    continueUrl,
+  );
+
+  return { continueUrl };
 }
 
 export async function approveParentRequest(requestId: string) {
@@ -113,10 +201,7 @@ export async function approveParentRequest(requestId: string) {
     }),
   ]);
 
-  await sendParentApprovedChildEmail(
-    request.childUser.email,
-    request.childUser.firstName ?? "there",
-  );
+  await notifyChildOfParentApproval(requestId);
 
   return request;
 }

@@ -1,6 +1,9 @@
 import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { hashPassword } from "@/lib/auth/credentials";
-import { verifyParentApprovalToken } from "@/lib/auth/parent-invite";
+import {
+  notifyChildOfParentApproval,
+  verifyParentApprovalToken,
+} from "@/lib/auth/parent-invite";
 import { getCountryLabel } from "@/lib/constants/locations";
 import { getDefaultAdultDob } from "@/lib/form-validation";
 import { simulateExtractedIdNumber } from "@/lib/guardian/constants";
@@ -9,10 +12,7 @@ import { seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
 import { calculateAge } from "@/lib/utils/age";
 import { formatLongDate } from "@/lib/utils/format-dates";
-import {
-  sendParentApprovedChildEmail,
-  sendParentDeclinedChildEmail,
-} from "@/lib/email/notifications";
+import { sendParentDeclinedChildEmail } from "@/lib/email/notifications";
 
 export type GuardianChildContext = {
   firstName: string;
@@ -265,10 +265,7 @@ export async function quickApproveReturningGuardian(requestId: string) {
     }),
   ]);
 
-  await sendParentApprovedChildEmail(
-    request.childUser.email,
-    request.childUser.firstName ?? "there",
-  );
+  await notifyChildOfParentApproval(requestId);
 
   return {
     ok: true as const,
@@ -342,10 +339,7 @@ export async function completeGuardianApproval(
   });
   await seedDefaultChatThreadsForUser(guardianUserId, { firstName: guardian?.firstName });
 
-  await sendParentApprovedChildEmail(
-    request.childUser.email,
-    request.childUser.firstName ?? "there",
-  );
+  await notifyChildOfParentApproval(requestId);
 
   return {
     ok: true as const,

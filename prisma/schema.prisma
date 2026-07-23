@@ -111,6 +111,10 @@ model ParentApprovalRequest {
   expiresAt             DateTime
   sentAt                DateTime       @default(now())
   resolvedAt            DateTime?
+  /// One-time token emailed to the child so "Continue signup" binds to this approval.
+  continueTokenHash     String?        @unique
+  continueTokenExpiresAt DateTime?
+  continueTokenUsedAt   DateTime?
   protectionLevel       String?
   idDocType             String?
   guardianCountry       String?

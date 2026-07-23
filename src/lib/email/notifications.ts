@@ -36,10 +36,14 @@ export async function sendProfileCompleteEmail(email: string, firstName: string)
   await sendEmailSafely({ to: email, ...message }, "profile-complete");
 }
 
-export async function sendParentApprovedChildEmail(email: string, firstName: string) {
+export async function sendParentApprovedChildEmail(
+  email: string,
+  firstName: string,
+  continueUrl: string,
+) {
   const message = buildParentApprovedChildEmail({
     firstName,
-    continueUrl: `${getAppUrl()}/onboarding/approved`,
+    continueUrl,
   });
   await sendEmailSafely({ to: email, ...message }, "parent-approved-child");
 }
