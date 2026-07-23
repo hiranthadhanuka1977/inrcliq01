@@ -1,5 +1,6 @@
-import sgMail from "@sendgrid/mail";
-import { assertSendGridConfigured, getEmailConfig } from "@/lib/email/config";
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
+import { assertSmtpConfigured, getEmailConfig } from "@/lib/email/config";
 
 export type OutboundEmail = {
   to: string;
@@ -8,23 +9,40 @@ export type OutboundEmail = {
   html: string;
 };
 
+let transporter: Transporter | null = null;
+
+function getTransporter() {
+  if (transporter) {
+    return transporter;
+  }
+
+  const { smtpHost, smtpPort, smtpUser, smtpPass, smtpSecure } = getEmailConfig();
+  assertSmtpConfigured();
+
+  transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+  });
+
+  return transporter;
+}
+
 function logConsoleEmail(message: OutboundEmail) {
   const to = message.to.trim().toLowerCase();
   console.info(`[email] To: ${to}\nSubject: ${message.subject}\n${message.text}`);
 }
 
-function logSendGridError(error: unknown) {
-  if (error && typeof error === "object" && "response" in error) {
-    const response = (error as { response?: { body?: unknown; statusCode?: number } }).response;
-    console.error("SendGrid error", response?.statusCode, response?.body ?? error);
-    return;
-  }
-
-  console.error("SendGrid error", error);
+function logSmtpError(error: unknown) {
+  console.error("SMTP email error", error);
 }
 
 export async function sendEmail(message: OutboundEmail) {
-  const { provider, from, sendgridApiKey } = getEmailConfig();
+  const { provider, from, fromName } = getEmailConfig();
   const to = message.to.trim().toLowerCase();
 
   if (provider === "console") {
@@ -32,25 +50,24 @@ export async function sendEmail(message: OutboundEmail) {
     return;
   }
 
-  assertSendGridConfigured();
-  sgMail.setApiKey(sendgridApiKey);
+  const mailer = getTransporter();
 
-  await sgMail.send({
+  await mailer.sendMail({
+    from: `"${fromName}" <${from}>`,
     to,
-    from: { email: from, name: "InrCliq" },
     subject: message.subject,
     text: message.text,
     html: message.html,
   });
 }
 
-/** Sends email without throwing. Falls back to console logging if SendGrid fails. */
+/** Sends email without throwing. Falls back to console logging if SMTP fails. */
 export async function sendEmailSafely(message: OutboundEmail, context: string) {
   try {
     await sendEmail(message);
     return true;
   } catch (error) {
-    logSendGridError(error);
+    logSmtpError(error);
     logConsoleEmail(message);
     console.warn(`[email] ${context}: delivery failed; logged to console instead.`);
     return false;

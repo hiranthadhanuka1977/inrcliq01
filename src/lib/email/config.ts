@@ -1,25 +1,49 @@
-export type EmailProvider = "sendgrid" | "console";
+export type EmailProvider = "smtp" | "console";
 
 export function getEmailConfig() {
   const provider = (process.env.EMAIL_PROVIDER ?? "console") as EmailProvider;
   const from = process.env.EMAIL_FROM?.trim() ?? "";
-  const sendgridApiKey = process.env.SENDGRID_API_KEY?.trim() ?? "";
+  const fromName = process.env.EMAIL_FROM_NAME?.trim() || "InrCliq";
+  const smtpHost = process.env.SMTP_HOST?.trim() ?? "";
+  const smtpPort = Number(process.env.SMTP_PORT ?? "587");
+  const smtpUser = process.env.SMTP_USER?.trim() ?? "";
+  const smtpPass = process.env.SMTP_PASS?.trim() ?? "";
+  // Port 465 uses implicit TLS; 587 uses STARTTLS (secure: false).
+  const smtpSecure =
+    process.env.SMTP_SECURE?.trim().toLowerCase() === "true" || smtpPort === 465;
 
-  return { provider, from, sendgridApiKey };
+  return {
+    provider,
+    from,
+    fromName,
+    smtpHost,
+    smtpPort,
+    smtpUser,
+    smtpPass,
+    smtpSecure,
+  };
 }
 
-export function assertSendGridConfigured() {
-  const { provider, from, sendgridApiKey } = getEmailConfig();
+export function assertSmtpConfigured() {
+  const { provider, from, smtpHost, smtpUser, smtpPass } = getEmailConfig();
 
-  if (provider !== "sendgrid") {
+  if (provider !== "smtp") {
     return;
   }
 
   if (!from) {
-    throw new Error("EMAIL_FROM is required when EMAIL_PROVIDER=sendgrid.");
+    throw new Error("EMAIL_FROM is required when EMAIL_PROVIDER=smtp.");
   }
 
-  if (!sendgridApiKey) {
-    throw new Error("SENDGRID_API_KEY is required when EMAIL_PROVIDER=sendgrid.");
+  if (!smtpHost) {
+    throw new Error("SMTP_HOST is required when EMAIL_PROVIDER=smtp.");
+  }
+
+  if (!smtpUser) {
+    throw new Error("SMTP_USER is required when EMAIL_PROVIDER=smtp.");
+  }
+
+  if (!smtpPass) {
+    throw new Error("SMTP_PASS is required when EMAIL_PROVIDER=smtp.");
   }
 }
