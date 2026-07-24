@@ -9,6 +9,10 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Prefer Neon unpooled / non-pooling URLs for migrate advisory locks on Vercel.
+    url:
+      process.env["DATABASE_URL_UNPOOLED"] ||
+      process.env["POSTGRES_URL_NON_POOLING"] ||
+      process.env["DATABASE_URL"],
   },
 });
