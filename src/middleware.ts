@@ -70,18 +70,23 @@ function isSettingsPath(pathname: string) {
 }
 
 export function middleware(request: NextRequest) {
-  if (!isBasicAuthValid(request)) {
+  const { pathname } = request.nextUrl;
+  const isSettings = isSettingsPath(pathname);
+
+  // HTTP Basic Auth gates the prototype experience only.
+  // Settings uses its own admin password unlock and must not re-prompt Basic Auth
+  // (especially when opened after Controls → Settings).
+  if (!isSettings && !isBasicAuthValid(request)) {
     return unauthorized();
   }
 
   const session = request.cookies.get("inrcliq_session");
-  const { pathname } = request.nextUrl;
 
   if ((pathname.startsWith("/home") || pathname.startsWith("/feed") || pathname.startsWith("/onboarding")) && !session) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (isSettingsPath(pathname) && !isSettingsUnlockPath(pathname) && !hasSettingsAccess(request)) {
+  if (isSettings && !isSettingsUnlockPath(pathname) && !hasSettingsAccess(request)) {
     if (pathname.startsWith("/api/settings")) {
       return NextResponse.json({ error: "Settings access required." }, { status: 401 });
     }

@@ -118,7 +118,8 @@ export function PrototypeControls() {
 
       setSettingsPromptOpen(false);
       setPassword("");
-      window.open("/settings", "_blank", "noopener,noreferrer");
+      setUnlocking(false);
+      window.location.assign("/settings");
     } catch {
       setPasswordError("Unable to unlock settings.");
       setUnlocking(false);

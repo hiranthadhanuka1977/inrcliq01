@@ -117,4 +117,4 @@ npm run db:seed-chat
    - `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` (defaults: `demo@inrcliq.com` / `demo@inrcliq.com`)
 4. Build command: `npm run build` (runs migrate with retries, then `next build`)
 
-Visitors see the browser login prompt before any page or API route loads. Locally it stays off unless you set `BASIC_AUTH_ENABLED=true`.
+Visitors see the browser login prompt when entering the prototype. Settings is excluded from Basic Auth and uses a separate admin password instead. Locally Basic Auth stays off unless you set `BASIC_AUTH_ENABLED=true`.
