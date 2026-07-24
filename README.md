@@ -114,7 +114,7 @@ npm run db:seed-chat
 2. Set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, `EMAIL_PROVIDER`, `EMAIL_FROM`, and `SENDGRID_API_KEY`
 3. **HTTP Basic Auth (demo gate)** — enabled automatically on Vercel. Optional overrides:
    - `BASIC_AUTH_ENABLED` = `true` / `false`
-   - `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` (defaults: `inrcliqdemo` / `inrcliqdemo@100%`)
+   - `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` (defaults: `demo@inrcliq.com` / `demo@inrcliq.com`)
 4. Build command: `prisma generate && prisma migrate deploy && next build`
 
 Visitors see the browser login prompt before any page or API route loads. Locally it stays off unless you set `BASIC_AUTH_ENABLED=true`.

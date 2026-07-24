@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /** Demo gate credentials — override with BASIC_AUTH_USER / BASIC_AUTH_PASSWORD on Vercel. */
-const DEFAULT_USER = "inrcliqdemo";
-const DEFAULT_PASSWORD = "inrcliqdemo@100%";
+const DEFAULT_USER = "demo@inrcliq.com";
+const DEFAULT_PASSWORD = "demo@inrcliq.com";
 
 function unauthorized() {
   return new NextResponse("Authentication required", {
