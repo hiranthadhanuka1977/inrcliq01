@@ -185,15 +185,15 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
       </div>
 
       <div className="nav-profile" ref={profileMenuRef}>
-        <a href="#" className="nav-profile__link">
+        <Link href="/feed/me?tab=subscriptions" className="nav-profile__link">
           <span className="nav-profile__avatar" style={{ "--story-color": "#0d9488" } as React.CSSProperties} aria-hidden="true">
             {avatarInitial}
           </span>
           <span className="nav-profile__info">
             <span className="nav-profile__name">{displayName}</span>
-            <span className="nav-profile__meta">Your memberships</span>
+            <span className="nav-profile__meta">View network</span>
           </span>
-        </a>
+        </Link>
         <div className="nav-profile__menu-wrap">
           <button
             type="button"
@@ -211,6 +211,14 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
           </button>
           {profileMenuOpen ? (
             <div className="nav-profile__dropdown" role="menu" aria-label="Account menu">
+              <Link
+                href="/feed/me"
+                className="nav-profile__dropdown-item"
+                role="menuitem"
+                onClick={() => setProfileMenuOpen(false)}
+              >
+                Profile
+              </Link>
               <button
                 type="button"
                 className="nav-profile__dropdown-item"

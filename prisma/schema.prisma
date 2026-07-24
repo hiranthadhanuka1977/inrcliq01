@@ -48,6 +48,7 @@ model User {
   guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
+  follows                CreatorFollow[]
 }
 
 model Account {
@@ -157,6 +158,7 @@ model CreatorUser {
   collections   CreatorCollection[]
   chatThreads   ChatThread[]
   subscriptions CreatorSubscription[]
+  followers     CreatorFollow[]
 
   @@index([name])
 }
@@ -293,4 +295,19 @@ model CreatorSubscription {
   @@unique([userId, creatorId])
   @@index([creatorId, status])
   @@index([userId, status])
+}
+
+/// Per-user follow of a creator (`User` → `CreatorUser`).
+model CreatorFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  creatorId String
+  createdAt DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, creatorId])
+  @@index([userId, createdAt])
+  @@index([creatorId])
 }

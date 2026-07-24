@@ -37,6 +37,7 @@ export default function AudioCreatorCard({
   href,
 }: AudioCreatorCardProps) {
   const [following, setFollowing] = useState(false);
+  const creatorSlug = getProfileSlugFromHandle(handle);
   const profileHref = href ?? profileHrefFromHandle(handle);
 
   return (
@@ -76,6 +77,7 @@ export default function AudioCreatorCard({
       <FollowButton
         following={following}
         onFollowingChange={setFollowing}
+        creatorSlug={creatorSlug}
         className="audio-top-creator-card__follow"
         name={name}
         stopPropagation

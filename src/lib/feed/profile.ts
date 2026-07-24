@@ -4,6 +4,7 @@ import { getCreatorCollection } from "@/lib/feed/collection";
 import {
   getSubscriptionForUser,
 } from "@/lib/feed/subscription-service";
+import { isFollowingCreator } from "@/lib/feed/follow-service";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import type { FeedAudio, FeedAuthor, FeedItem, FeedMedia } from "@/types/feed/feed";
@@ -141,6 +142,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
   let collection = profile.collection;
   let feedPosts = profile.feed_posts;
   let subscribed = Boolean(profile.relationship?.subscribed);
+  let following = Boolean(profile.relationship?.following);
 
   try {
     const preferredIds = profile.feed_posts.map((post) => post.id);
@@ -161,10 +163,15 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     }
 
     if (sessionUser && creator) {
-      const subscription = await getSubscriptionForUser(sessionUser.id, creator.id);
+      const [subscription, isFollowing] = await Promise.all([
+        getSubscriptionForUser(sessionUser.id, creator.id),
+        isFollowingCreator(sessionUser.id, creator.id),
+      ]);
       subscribed = subscription?.status === "ACTIVE";
+      following = isFollowing;
     } else if (!sessionUser) {
       subscribed = false;
+      following = false;
     }
   } catch (error) {
     console.error("getProfileData: DB overlay failed", error);
@@ -177,6 +184,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     relationship: {
       ...profile.relationship,
       subscribed,
+      following,
     },
   };
 }

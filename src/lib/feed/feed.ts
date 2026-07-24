@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { getFollowedCreatorIdsForUser } from "@/lib/feed/follow-service";
+import { getProfileSlugFromHandle } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/session";
 import type { FeedAuthor, FeedAudio, FeedData, FeedItem, FeedMedia } from "@/types/feed/feed";
 
 function mapCreatorToAuthor(creator: {
@@ -21,29 +24,33 @@ function mapCreatorToAuthor(creator: {
   };
 }
 
-function mapPostToFeedItem(post: {
-  id: string;
-  category: string;
-  text: string;
-  tags: string[];
-  mediaJson: unknown;
-  audioJson: unknown;
-  likes: number;
-  comments: number;
-  shares: number;
-  following: boolean;
-  membersOnly: boolean;
-  postedAt: Date;
-  postedAgo: string | null;
-  creator: {
-    name: string;
-    handle: string;
-    avatarInitials: string;
-    avatarColor: string;
-    avatarUrl: string | null;
-    verified: boolean;
-  };
-}): FeedItem {
+function mapPostToFeedItem(
+  post: {
+    id: string;
+    category: string;
+    text: string;
+    tags: string[];
+    mediaJson: unknown;
+    audioJson: unknown;
+    likes: number;
+    comments: number;
+    shares: number;
+    following: boolean;
+    membersOnly: boolean;
+    postedAt: Date;
+    postedAgo: string | null;
+    creator: {
+      id?: string;
+      name: string;
+      handle: string;
+      avatarInitials: string;
+      avatarColor: string;
+      avatarUrl: string | null;
+      verified: boolean;
+    };
+  },
+  followingOverride?: boolean,
+): FeedItem {
   return {
     id: post.id,
     category: post.category,
@@ -58,7 +65,7 @@ function mapPostToFeedItem(post: {
       shares: post.shares,
     },
     relationship: {
-      following: post.following,
+      following: followingOverride ?? post.following,
     },
     posted_at: post.postedAt.toISOString(),
     posted_ago: post.postedAgo ?? "",
@@ -72,6 +79,45 @@ function getFeedDataFromJson(): FeedData {
   return JSON.parse(raw) as FeedData;
 }
 
+async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) {
+    return items.map((item) => ({
+      ...item,
+      relationship: { ...item.relationship, following: false },
+    }));
+  }
+
+  const followedIds = await getFollowedCreatorIdsForUser(sessionUser.id);
+  if (followedIds.size === 0) {
+    return items.map((item) => ({
+      ...item,
+      relationship: { ...item.relationship, following: false },
+    }));
+  }
+
+  const creators = await prisma.creatorUser.findMany({
+    where: { id: { in: Array.from(followedIds) } },
+    select: { id: true, handle: true, slug: true },
+  });
+
+  const followedSlugs = new Set<string>();
+  for (const creator of creators) {
+    if (creator.slug) followedSlugs.add(creator.slug);
+    const fromHandle = getProfileSlugFromHandle(creator.handle);
+    if (fromHandle) followedSlugs.add(fromHandle);
+  }
+
+  return items.map((item) => {
+    const slug = getProfileSlugFromHandle(item.author.handle);
+    const following = Boolean(slug && followedSlugs.has(slug));
+    return {
+      ...item,
+      relationship: { ...item.relationship, following },
+    };
+  });
+}
+
 export async function getFeedData(): Promise<FeedData> {
   try {
     const [posts, postCount] = await Promise.all([
@@ -83,11 +129,16 @@ export async function getFeedData(): Promise<FeedData> {
     ]);
 
     if (postCount === 0) {
-      return getFeedDataFromJson();
+      const json = getFeedDataFromJson();
+      return {
+        ...json,
+        items: await applyFollowState(json.items),
+      };
     }
 
     const categories = Array.from(new Set(posts.map((post) => post.category)));
     const jsonMeta = getFeedDataFromJson();
+    const items = await applyFollowState(posts.map((post) => mapPostToFeedItem(post)));
 
     return {
       version: jsonMeta.version ?? "1.0",
@@ -95,10 +146,18 @@ export async function getFeedData(): Promise<FeedData> {
       generated_at: new Date().toISOString(),
       total_items: posts.length,
       categories: jsonMeta.categories?.length ? jsonMeta.categories : categories,
-      items: posts.map(mapPostToFeedItem),
+      items,
     };
   } catch (error) {
     console.error("getFeedData: falling back to JSON", error);
-    return getFeedDataFromJson();
+    const json = getFeedDataFromJson();
+    try {
+      return {
+        ...json,
+        items: await applyFollowState(json.items),
+      };
+    } catch {
+      return json;
+    }
   }
 }

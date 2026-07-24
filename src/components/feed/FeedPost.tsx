@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
 import FollowButton from "@/components/feed/FollowButton";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
@@ -102,6 +102,10 @@ export default function FeedPost({ item }: { item: FeedItem }) {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
+  useEffect(() => {
+    setFollowing(item.relationship.following);
+  }, [item.id, item.relationship.following]);
+
   if (hidden) return null;
 
   const handle = author.handle.startsWith("@") ? author.handle : `@${author.handle}`;
@@ -155,6 +159,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
               <FollowButton
                 following={following}
                 onFollowingChange={setFollowing}
+                creatorSlug={profileSlug}
                 className="post-head__follow"
                 name={author.name}
               />

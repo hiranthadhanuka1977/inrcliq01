@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump whenever Prisma models change so the Next.js global singleton is discarded. */
-const PRISMA_SCHEMA_VERSION = "20260721124500_chat_thread_seed_key";
+const PRISMA_SCHEMA_VERSION = "20260724140000_creator_follows";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -30,7 +30,8 @@ function hasRequiredModels(client: PrismaClient | undefined): client is PrismaCl
       typeof client.collectionProduct?.findMany === "function" &&
       typeof client.chatThread?.findMany === "function" &&
       typeof client.chatMessage?.findMany === "function" &&
-      typeof client.creatorSubscription?.findUnique === "function",
+      typeof client.creatorSubscription?.findUnique === "function" &&
+      typeof client.creatorFollow?.findMany === "function",
   );
 }
 
@@ -46,7 +47,7 @@ export function getPrisma(): PrismaClient {
 
   if (!hasRequiredModels(client)) {
     throw new Error(
-      "Prisma client is missing subscription models. Run `npx prisma generate` and restart the Next.js dev server.",
+      "Prisma client is missing follow models. Run `npx prisma generate` and restart the Next.js dev server.",
     );
   }
 

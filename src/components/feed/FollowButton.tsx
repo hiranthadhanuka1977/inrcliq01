@@ -8,6 +8,8 @@ type FollowButtonProps = {
   onFollowingChange: (next: boolean) => void;
   className?: string;
   name?: string;
+  /** When set, follow/unfollow is persisted for the logged-in user. */
+  creatorSlug?: string | null;
   followLabel?: string;
   followingLabel?: string;
   followContent?: ReactNode;
@@ -53,6 +55,7 @@ export default function FollowButton({
   onFollowingChange,
   className = "",
   name,
+  creatorSlug = null,
   followLabel = "Follow",
   followingLabel = "Following",
   followContent,
@@ -62,6 +65,7 @@ export default function FollowButton({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [coords, setCoords] = useState<PopoverCoords | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [busy, setBusy] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -93,7 +97,6 @@ export default function FollowButton({
     }
 
     updatePosition();
-    // Re-measure after paint so we use the real popover size.
     const frame = window.requestAnimationFrame(updatePosition);
 
     window.addEventListener("resize", updatePosition);
@@ -150,6 +153,47 @@ export default function FollowButton({
     setConfirmOpen(true);
   }
 
+  async function persistFollowing(next: boolean) {
+    if (!creatorSlug) {
+      onFollowingChange(next);
+      return;
+    }
+
+    if (busy) return;
+    setBusy(true);
+    const previous = following;
+    onFollowingChange(next);
+
+    try {
+      const response = await fetch(`/api/feed/follows/${encodeURIComponent(creatorSlug)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: next ? "follow" : "unfollow" }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        following?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        onFollowingChange(previous);
+        if (response.status === 401) {
+          window.alert("Sign in to follow creators.");
+        } else {
+          window.alert(data.error || "Could not update follow.");
+        }
+        return;
+      }
+
+      onFollowingChange(Boolean(data.following));
+    } catch {
+      onFollowingChange(previous);
+      window.alert("Could not update follow.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className={`follow-btn${confirmOpen ? " is-open" : ""}${following ? " is-following" : ""}`} ref={wrapRef}>
       <button
@@ -159,6 +203,7 @@ export default function FollowButton({
         aria-pressed={following}
         aria-expanded={following ? confirmOpen : undefined}
         aria-haspopup={following ? "dialog" : undefined}
+        disabled={busy}
         aria-label={
           hasCustomContent
             ? following
@@ -176,7 +221,7 @@ export default function FollowButton({
             event.stopPropagation();
           }
           if (!following) {
-            onFollowingChange(true);
+            void persistFollowing(true);
             return;
           }
           toggleConfirm();
@@ -215,12 +260,13 @@ export default function FollowButton({
                 <button
                   type="button"
                   className="follow-btn__popover-btn follow-btn__popover-btn--yes"
+                  disabled={busy}
                   onClick={(event) => {
                     if (stopPropagation) {
                       event.preventDefault();
                       event.stopPropagation();
                     }
-                    onFollowingChange(false);
+                    void persistFollowing(false);
                     setConfirmOpen(false);
                   }}
                 >

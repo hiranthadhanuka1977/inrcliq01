@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FollowButton from "@/components/feed/FollowButton";
 import { creatorsToFollow } from "@/data/feed/creators";
+import { getProfileSlugFromHandle } from "@/lib/feed/profile-slugs";
 
 function PlusIcon() {
   return (
@@ -41,6 +42,7 @@ export default function CreatorsRail() {
       <div className="spotify-card-row creator-rail__track" id="creators-rail-row">
         {creatorsToFollow.map((creator) => {
           const isFollowing = Boolean(following[creator.id]);
+          const creatorSlug = getProfileSlugFromHandle(creator.handle);
 
           return (
             <article key={creator.id} className="spotify-card">
@@ -66,6 +68,7 @@ export default function CreatorsRail() {
                       [creator.id]: next,
                     }))
                   }
+                  creatorSlug={creatorSlug}
                   className="spotify-card__follow"
                   name={creator.name}
                   followContent={<PlusIcon />}

@@ -123,6 +123,33 @@ export async function resolveCreatorIdBySlug(slug: string) {
   }
 }
 
+export async function listActiveSubscriptionsForUser(userId: string) {
+  return prisma.creatorSubscription.findMany({
+    where: { userId, status: "ACTIVE" },
+    include: {
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          handle: true,
+          slug: true,
+          avatarInitials: true,
+          avatarColor: true,
+          avatarUrl: true,
+          verified: true,
+        },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
+export async function countActiveSubscriptionsForUser(userId: string) {
+  return prisma.creatorSubscription.count({
+    where: { userId, status: "ACTIVE" },
+  });
+}
+
 export async function getSubscriptionForUser(userId: string, creatorId: string) {
   return prisma.creatorSubscription.findUnique({
     where: {

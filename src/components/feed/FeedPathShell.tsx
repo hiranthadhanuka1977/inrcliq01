@@ -15,7 +15,7 @@ const FEED_BODY_CLASSES: FeedPageClass[] = [
 export function feedPageClassForPath(pathname: string): FeedPageClass {
   if (pathname.startsWith("/feed/audio")) return "page-audio";
   if (pathname.startsWith("/feed/messages")) return "page-messages";
-  if (pathname.startsWith("/feed/profile")) return "page-profile";
+  if (pathname.startsWith("/feed/profile") || pathname.startsWith("/feed/me")) return "page-profile";
   return "page-home";
 }
 

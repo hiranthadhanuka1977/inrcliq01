@@ -490,6 +490,10 @@ export default function ProfileHeader({ profile }: { profile: ProfileData }) {
   }, [hasCollection, profile.slug]);
 
   useEffect(() => {
+    setFollowing(profile.relationship?.following ?? false);
+  }, [profile.relationship?.following, profile.slug]);
+
+  useEffect(() => {
     setSubscribed(profile.relationship?.subscribed ?? false);
   }, [profile.relationship?.subscribed, profile.slug]);
 
@@ -677,6 +681,7 @@ export default function ProfileHeader({ profile }: { profile: ProfileData }) {
               <FollowButton
                 following={following}
                 onFollowingChange={setFollowing}
+                creatorSlug={profile.slug}
                 className={`btn btn--sm profile-header__follow${following ? " btn--outline-brand is-active" : " btn--secondary"}`}
                 name={profile.name}
               />
