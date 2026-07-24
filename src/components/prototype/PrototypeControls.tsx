@@ -218,7 +218,7 @@ export function PrototypeControls() {
                   className="btn btn--primary"
                   disabled={unlocking || !password.trim()}
                 >
-                  {unlocking ? "Checking…" : "Open settings"}
+                  {unlocking ? "Checking…" : "Settings"}
                 </button>
               </div>
             </form>
