@@ -169,7 +169,17 @@
   margin-top: 0.85rem;
 }
 
-.requests-intro__cta {
+/* Beat `.feed-path-shell a { color: inherit }` so yellow CTAs keep dark labels. */
+.feed-path-shell a.requests-intro__cta,
+.feed-path-shell a.requests-intro__cta:link,
+.feed-path-shell a.requests-intro__cta:visited,
+.feed-path-shell a.requests-intro__cta:hover,
+.feed-path-shell a.requests-intro__cta:focus-visible,
+a.requests-intro__cta,
+a.requests-intro__cta:link,
+a.requests-intro__cta:visited,
+a.requests-intro__cta:hover,
+a.requests-intro__cta:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -179,17 +189,19 @@
   border: 1px solid #f5c518;
   border-radius: var(--radius-sm);
   background: #f5c518;
-  color: #111827;
+  color: #111827 !important;
   font-size: 0.92rem;
   font-weight: 750;
   text-decoration: none;
 }
 
-.requests-intro__cta:hover,
-.requests-intro__cta:focus-visible {
+.feed-path-shell a.requests-intro__cta:hover,
+.feed-path-shell a.requests-intro__cta:focus-visible,
+a.requests-intro__cta:hover,
+a.requests-intro__cta:focus-visible {
   border-color: #ffcf1f;
   background: #ffcf1f;
-  color: #111827;
+  color: #111827 !important;
 }
 
 .requests-intro__proof {
@@ -390,7 +402,16 @@
   color: var(--color-text-secondary);
 }
 
-.requests-gallery__book {
+.feed-path-shell a.requests-gallery__book,
+.feed-path-shell a.requests-gallery__book:link,
+.feed-path-shell a.requests-gallery__book:visited,
+.feed-path-shell a.requests-gallery__book:hover,
+.feed-path-shell a.requests-gallery__book:focus-visible,
+a.requests-gallery__book,
+a.requests-gallery__book:link,
+a.requests-gallery__book:visited,
+a.requests-gallery__book:hover,
+a.requests-gallery__book:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -401,18 +422,20 @@
   border: 1px solid #f5c518;
   border-radius: var(--radius-sm);
   background: #f5c518;
-  color: #111827;
+  color: #111827 !important;
   font-size: 0.86rem;
   font-weight: 750;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.requests-gallery__book:hover,
-.requests-gallery__book:focus-visible {
+.feed-path-shell a.requests-gallery__book:hover,
+.feed-path-shell a.requests-gallery__book:focus-visible,
+a.requests-gallery__book:hover,
+a.requests-gallery__book:focus-visible {
   border-color: #ffcf1f;
   background: #ffcf1f;
-  color: #111827;
+  color: #111827 !important;
 }
 
 .requests-gallery__proof {
@@ -538,7 +561,7 @@
     padding: 0.95rem 1rem 1rem;
   }
 
-  .requests-gallery__book {
+  a.requests-gallery__book {
     width: 100%;
   }
 
@@ -2599,7 +2622,16 @@ select.requests-pz__input {
   font-weight: 800;
 }
 
-.requests-start-cta__btn {
+.feed-path-shell a.requests-start-cta__btn,
+.feed-path-shell a.requests-start-cta__btn:link,
+.feed-path-shell a.requests-start-cta__btn:visited,
+.feed-path-shell a.requests-start-cta__btn:hover,
+.feed-path-shell a.requests-start-cta__btn:focus-visible,
+a.requests-start-cta__btn,
+a.requests-start-cta__btn:link,
+a.requests-start-cta__btn:visited,
+a.requests-start-cta__btn:hover,
+a.requests-start-cta__btn:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2612,18 +2644,20 @@ select.requests-pz__input {
   border: 1px solid #f5c518;
   border-radius: var(--radius-sm);
   background: #f5c518;
-  color: #111827;
+  color: #111827 !important;
   font-size: 0.95rem;
   font-weight: 750;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.requests-start-cta__btn:hover,
-.requests-start-cta__btn:focus-visible {
+.feed-path-shell a.requests-start-cta__btn:hover,
+.feed-path-shell a.requests-start-cta__btn:focus-visible,
+a.requests-start-cta__btn:hover,
+a.requests-start-cta__btn:focus-visible {
   border-color: #ffcf1f;
   background: #ffcf1f;
-  color: #111827;
+  color: #111827 !important;
 }
 
 .requests-start-cta__facts {
@@ -3438,7 +3472,16 @@ select.requests-pz__input {
     color: var(--color-text-secondary);
   }
 
-  .requests-sticky-cta__btn {
+  .feed-path-shell a.requests-sticky-cta__btn,
+  .feed-path-shell a.requests-sticky-cta__btn:link,
+  .feed-path-shell a.requests-sticky-cta__btn:visited,
+  .feed-path-shell a.requests-sticky-cta__btn:hover,
+  .feed-path-shell a.requests-sticky-cta__btn:focus-visible,
+  a.requests-sticky-cta__btn,
+  a.requests-sticky-cta__btn:link,
+  a.requests-sticky-cta__btn:visited,
+  a.requests-sticky-cta__btn:hover,
+  a.requests-sticky-cta__btn:focus-visible {
     flex: 0 0 auto;
     width: auto;
     min-height: 2.35rem;
@@ -3447,7 +3490,7 @@ select.requests-pz__input {
     border: 1px solid #f5c518;
     border-radius: var(--radius-sm);
     background: #f5c518;
-    color: #111827;
+    color: #111827 !important;
     font-size: 0.82rem;
     font-weight: 800;
     text-decoration: none;
@@ -3563,7 +3606,7 @@ select.requests-pz__input {
     gap: 0.7rem;
   }
 
-  .requests-intro__cta {
+  a.requests-intro__cta {
     width: 100%;
   }
 
@@ -3659,7 +3702,7 @@ select.requests-pz__input {
     font-size: 0.84rem;
   }
 
-  .page-requests--start .requests-start-cta__btn {
+  .page-requests--start a.requests-start-cta__btn {
     width: 100%;
     min-width: 0;
     min-height: 2.85rem;
