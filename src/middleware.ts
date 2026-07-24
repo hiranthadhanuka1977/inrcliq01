@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SETTINGS_ACCESS_COOKIE } from "@/lib/settings/access";
 
 /** Demo gate credentials — override with BASIC_AUTH_USER / BASIC_AUTH_PASSWORD on Vercel. */
 const DEFAULT_USER = "demo@inrcliq.com";
@@ -56,6 +57,18 @@ function isBasicAuthValid(request: NextRequest) {
   }
 }
 
+function hasSettingsAccess(request: NextRequest) {
+  return request.cookies.get(SETTINGS_ACCESS_COOKIE)?.value === "1";
+}
+
+function isSettingsUnlockPath(pathname: string) {
+  return pathname === "/settings/unlock" || pathname === "/api/settings/unlock";
+}
+
+function isSettingsPath(pathname: string) {
+  return pathname.startsWith("/settings") || pathname.startsWith("/api/settings");
+}
+
 export function middleware(request: NextRequest) {
   if (!isBasicAuthValid(request)) {
     return unauthorized();
@@ -66,6 +79,16 @@ export function middleware(request: NextRequest) {
 
   if ((pathname.startsWith("/home") || pathname.startsWith("/feed") || pathname.startsWith("/onboarding")) && !session) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (isSettingsPath(pathname) && !isSettingsUnlockPath(pathname) && !hasSettingsAccess(request)) {
+    if (pathname.startsWith("/api/settings")) {
+      return NextResponse.json({ error: "Settings access required." }, { status: 401 });
+    }
+
+    const unlockUrl = new URL("/settings/unlock", request.url);
+    unlockUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(unlockUrl);
   }
 
   return NextResponse.next();

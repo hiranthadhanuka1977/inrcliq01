@@ -1982,6 +1982,35 @@ a.parent-waiting__action-btn.btn--secondary:focus-visible {
   color: inherit;
 }
 
+.prototype-settings-backdrop {
+  z-index: 1200;
+}
+
+.prototype-settings-modal {
+  max-width: 24rem;
+  text-align: left;
+}
+
+.prototype-settings-modal__title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
+.prototype-settings-modal__subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.prototype-settings-modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+}
+
 .prototype-consent-backdrop {
   z-index: 1200;
 }

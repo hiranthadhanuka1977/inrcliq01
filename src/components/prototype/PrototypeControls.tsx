@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { resetPrototype } from "@/lib/prototype/reset-prototype";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 const ControlsIcon = () => (
   <svg
@@ -28,8 +29,18 @@ const ControlsIcon = () => (
 
 export function PrototypeControls() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [settingsPromptOpen, setSettingsPromptOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
+  const { dialogRef } = useDialogA11y(settingsPromptOpen, () => {
+    setSettingsPromptOpen(false);
+    setPassword("");
+    setPasswordError("");
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -55,6 +66,11 @@ export function PrototypeControls() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!settingsPromptOpen) return;
+    window.setTimeout(() => passwordInputRef.current?.focus(), 0);
+  }, [settingsPromptOpen]);
+
   async function handleResetPrototype() {
     const confirmed = window.confirm(
       "Reset the prototype? This clears your session cookie and saved signup state in this browser, then returns you to the landing page. User accounts in the database are not deleted.",
@@ -68,6 +84,44 @@ export function PrototypeControls() {
     if (!result.ok) {
       window.alert(result.error);
       setResetting(false);
+    }
+  }
+
+  function openSettingsPrompt() {
+    setOpen(false);
+    setPassword("");
+    setPasswordError("");
+    setSettingsPromptOpen(true);
+  }
+
+  async function handleSettingsUnlock(event: FormEvent) {
+    event.preventDefault();
+    if (unlocking) return;
+
+    setUnlocking(true);
+    setPasswordError("");
+
+    try {
+      const response = await fetch("/api/settings/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setPasswordError(data.error ?? "Incorrect password.");
+        setUnlocking(false);
+        passwordInputRef.current?.focus();
+        return;
+      }
+
+      setSettingsPromptOpen(false);
+      setPassword("");
+      window.open("/settings", "_blank", "noopener,noreferrer");
+    } catch {
+      setPasswordError("Unable to unlock settings.");
+      setUnlocking(false);
     }
   }
 
@@ -96,16 +150,79 @@ export function PrototypeControls() {
           >
             {resetting ? "Resetting…" : "Reset Prototype"}
           </button>
-          <a
-            href="/settings"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="prototype-controls__item prototype-controls__link"
+          <button
+            type="button"
+            className="prototype-controls__item"
             role="menuitem"
-            onClick={() => setOpen(false)}
+            onClick={openSettingsPrompt}
           >
             Settings
-          </a>
+          </button>
+        </div>
+      ) : null}
+
+      {settingsPromptOpen ? (
+        <div
+          className="modal-backdrop is-open prototype-settings-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="prototype-settings-title"
+        >
+          <div className="modal prototype-settings-modal" ref={dialogRef} tabIndex={-1}>
+            <h2 id="prototype-settings-title" className="prototype-settings-modal__title">
+              Settings password
+            </h2>
+            <p className="prototype-settings-modal__subtitle">
+              Enter the admin password to open settings.
+            </p>
+            <form className="gap-3 mt-6" onSubmit={handleSettingsUnlock}>
+              <div className="field">
+                <label className="field-label" htmlFor="prototype-settings-password">
+                  Password
+                </label>
+                <input
+                  ref={passwordInputRef}
+                  className={`input${passwordError ? " input--error" : ""}`}
+                  type="password"
+                  id="prototype-settings-password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  aria-invalid={Boolean(passwordError)}
+                  aria-describedby="prototype-settings-password-error"
+                />
+                {passwordError ? (
+                  <p className="field-error" id="prototype-settings-password-error" role="alert">
+                    {passwordError}
+                  </p>
+                ) : null}
+              </div>
+              <div className="prototype-settings-modal__actions">
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  onClick={() => {
+                    setSettingsPromptOpen(false);
+                    setPassword("");
+                    setPasswordError("");
+                  }}
+                  disabled={unlocking}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={unlocking || !password.trim()}
+                >
+                  {unlocking ? "Checking…" : "Open settings"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       ) : null}
     </div>
