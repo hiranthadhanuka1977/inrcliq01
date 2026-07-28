@@ -7,7 +7,7 @@ import { Pool } from "pg";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SYNC_TOKEN = process.env.FULL_SYNC_SECRET || "inrcliq-full-sync-20260728";
+const SYNC_TOKEN = process.env.FULL_SYNC_SECRET?.trim() || "";
 
 const TABLE_ORDER = [
   "User",
