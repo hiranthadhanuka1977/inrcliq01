@@ -27,6 +27,7 @@ function mapCreatorToAuthor(creator: {
 function mapPostToFeedItem(
   post: {
     id: string;
+    creatorId: string;
     category: string;
     text: string;
     tags: string[];
@@ -49,7 +50,10 @@ function mapPostToFeedItem(
       verified: boolean;
     };
   },
-  followingOverride?: boolean,
+  options?: {
+    followingOverride?: boolean;
+    subscribed?: boolean;
+  },
 ): FeedItem {
   return {
     id: post.id,
@@ -65,7 +69,8 @@ function mapPostToFeedItem(
       shares: post.shares,
     },
     relationship: {
-      following: followingOverride ?? post.following,
+      following: options?.followingOverride ?? post.following,
+      subscribed: options?.subscribed || undefined,
     },
     posted_at: post.postedAt.toISOString(),
     posted_ago: post.postedAgo ?? "",
@@ -118,6 +123,26 @@ async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
   });
 }
 
+async function getSubscribedCreatorIds(creatorIds: string[]): Promise<Set<string>> {
+  const subscribedCreatorIds = new Set<string>();
+  if (creatorIds.length === 0) return subscribedCreatorIds;
+
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) return subscribedCreatorIds;
+
+  const rows = await prisma.creatorSubscription.findMany({
+    where: {
+      userId: sessionUser.id,
+      status: "ACTIVE",
+      creatorId: { in: creatorIds },
+    },
+    select: { creatorId: true },
+  });
+
+  for (const row of rows) subscribedCreatorIds.add(row.creatorId);
+  return subscribedCreatorIds;
+}
+
 export async function getFeedData(): Promise<FeedData> {
   try {
     const [posts, postCount] = await Promise.all([
@@ -136,9 +161,18 @@ export async function getFeedData(): Promise<FeedData> {
       };
     }
 
+    const creatorIds = Array.from(new Set(posts.map((post) => post.creatorId)));
+    const subscribedCreatorIds = await getSubscribedCreatorIds(creatorIds).catch(() => new Set<string>());
+
     const categories = Array.from(new Set(posts.map((post) => post.category)));
     const jsonMeta = getFeedDataFromJson();
-    const items = await applyFollowState(posts.map((post) => mapPostToFeedItem(post)));
+    const items = await applyFollowState(
+      posts.map((post) =>
+        mapPostToFeedItem(post, {
+          subscribed: subscribedCreatorIds.has(post.creatorId),
+        }),
+      ),
+    );
 
     return {
       version: jsonMeta.version ?? "1.0",

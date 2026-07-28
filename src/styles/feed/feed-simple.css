@@ -238,6 +238,18 @@
   flex-shrink: 0;
 }
 
+.feed-surface--simple .post-head__badge--subscribed {
+  color: #facc15;
+}
+
+.feed-surface--simple .post-head__badge--subscribed .post-head__badge-icon {
+  color: #facc15;
+}
+
+.feed-surface--simple .post-head__badge--icon-only {
+  gap: 0;
+}
+
 .feed-surface--simple .post-head__time {
   font-size: 0.78rem;
   font-weight: 500;

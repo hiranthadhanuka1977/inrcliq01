@@ -296,13 +296,6 @@ function ProfileSubscribedPill({
     setMenuOpen(true);
   }
 
-  const bellLabel =
-    notificationLevel === "all"
-      ? "All notifications on"
-      : notificationLevel === "personalized"
-        ? "Personalized notifications on"
-        : "Notifications off";
-
   const menuStyle: CSSProperties = {
     top: coords?.top ?? 0,
     left: coords?.left ?? 0,
@@ -314,9 +307,9 @@ function ProfileSubscribedPill({
     <div ref={rootRef} className="profile-subscribed-pill">
       <button
         type="button"
-        className="profile-subscribed-pill__bell"
-        aria-label={bellLabel}
-        title={bellLabel}
+        className={`profile-subscribed-pill__bell${notificationLevel === "none" ? " profile-subscribed-pill__bell--muted" : ""}`}
+        aria-label="Subscribed"
+        title="Subscribed"
         onClick={() => {
           const next =
             notificationLevel === "all"
@@ -328,19 +321,9 @@ function ProfileSubscribedPill({
         }}
         disabled={busy}
       >
-        {notificationLevel === "none" ? (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
-            <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
-            <path d="M18 8a6 6 0 0 0-9.33-5" />
-            <line x1="2" y1="2" x2="22" y2="22" />
-          </svg>
-        ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2zm6-6V9c0-3.07-1.63-5.64-4.5-6.32V2h-3v.68C7.64 3.36 6 5.92 6 9v7l-2 2v1h16v-1l-2-2z" />
-          </svg>
-        )}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M3 7.5a1 1 0 0 1 1.64-.77L9.5 11l2.06-6.19a1 1 0 0 1 1.88 0L15.5 11l4.86-4.27A1 1 0 0 1 22 7.5l-2.2 10.2a2 2 0 0 1-1.96 1.58H6.16A2 2 0 0 1 4.2 17.7L3 7.5Zm4.25 13.75a1 1 0 1 0 0 2h9.5a1 1 0 1 0 0-2h-9.5Z" />
+        </svg>
       </button>
 
       <span className="profile-subscribed-pill__divider" aria-hidden="true" />
@@ -470,8 +453,14 @@ function ProfileToolbar({
   );
 }
 
-export default function ProfileHeader({ profile }: { profile: ProfileData }) {
-  const [following, setFollowing] = useState(profile.relationship?.following ?? false);
+type ProfileHeaderProps = {
+  profile: ProfileData;
+  following?: boolean;
+  onFollowingChange?: (next: boolean) => void;
+};
+
+export default function ProfileHeader({ profile, following, onFollowingChange }: ProfileHeaderProps) {
+  const [localFollowing, setLocalFollowing] = useState(profile.relationship?.following ?? false);
   const [subscribed, setSubscribed] = useState(profile.relationship?.subscribed ?? false);
   const [notifyLevel, setNotifyLevel] = useState<NotificationLevel>("personalized");
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
@@ -490,12 +479,15 @@ export default function ProfileHeader({ profile }: { profile: ProfileData }) {
   }, [hasCollection, profile.slug]);
 
   useEffect(() => {
-    setFollowing(profile.relationship?.following ?? false);
-  }, [profile.relationship?.following, profile.slug]);
+    if (typeof following === "boolean") return;
+    setLocalFollowing(profile.relationship?.following ?? false);
+  }, [following, profile.relationship?.following, profile.slug]);
 
   useEffect(() => {
     setSubscribed(profile.relationship?.subscribed ?? false);
   }, [profile.relationship?.subscribed, profile.slug]);
+
+  const isFollowing = following ?? localFollowing;
 
   useEffect(() => {
     if (!hasSubscription) return;
@@ -679,10 +671,16 @@ export default function ProfileHeader({ profile }: { profile: ProfileData }) {
                 )
               ) : null}
               <FollowButton
-                following={following}
-                onFollowingChange={setFollowing}
+                following={isFollowing}
+                onFollowingChange={(next) => {
+                  if (onFollowingChange) {
+                    onFollowingChange(next);
+                    return;
+                  }
+                  setLocalFollowing(next);
+                }}
                 creatorSlug={profile.slug}
-                className={`btn btn--sm profile-header__follow${following ? " btn--outline-brand is-active" : " btn--secondary"}`}
+                className={`btn btn--sm profile-header__follow${isFollowing ? " btn--outline-brand is-active" : " btn--secondary"}`}
                 name={profile.name}
               />
               {hasCollection ? (

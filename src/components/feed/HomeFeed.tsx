@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import AudioMiniPlayer from "@/components/feed/AudioMiniPlayer";
 import FeedAudioFullscreenPlayer from "@/components/feed/FeedAudioFullscreenPlayer";
 import MobileNav from "@/components/feed/MobileNav";
@@ -29,8 +29,20 @@ interface HomeFeedProps {
   categories: string[];
 }
 
+function creatorKeyFromHandle(handle: string): string {
+  return handle.replace(/^@/, "").trim().toLowerCase();
+}
+
 function HomeFeedContent({ items, categories }: HomeFeedProps) {
   const headerRef = useRef<HTMLDivElement>(null);
+  const [creatorFollowing, setCreatorFollowing] = useState<Record<string, boolean>>(() => {
+    const state: Record<string, boolean> = {};
+    for (const item of items) {
+      const key = creatorKeyFromHandle(item.author.handle);
+      if (!(key in state)) state[key] = item.relationship.following;
+    }
+    return state;
+  });
   const { activeCategory, setActiveCategory, filteredItems, isLoading } = useFeedFilter(items);
   const { visibleItems, hasMore, isLoadingMore, sentinelRef } = useFeedPagination(filteredItems);
   const { showMiniPlayer } = useAudioPlayback();
@@ -57,7 +69,21 @@ function HomeFeedContent({ items, categories }: HomeFeedProps) {
                 ) : (
                   <>
                     {visibleItems.flatMap((item, index) => {
-                      const nodes = [<FeedPost key={item.id} item={item} />];
+                      const creatorKey = creatorKeyFromHandle(item.author.handle);
+                      const isFollowing = creatorFollowing[creatorKey] ?? item.relationship.following;
+                      const nodes = [
+                        <FeedPost
+                          key={item.id}
+                          item={item}
+                          following={isFollowing}
+                          onFollowingChange={(next) => {
+                            setCreatorFollowing((prev) => ({
+                              ...prev,
+                              [creatorKey]: next,
+                            }));
+                          }}
+                        />,
+                      ];
                       if (index === 0) {
                         nodes.push(<AudioTopCreators key="audio-top-creators" />);
                       }

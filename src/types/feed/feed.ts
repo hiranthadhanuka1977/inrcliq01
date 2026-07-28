@@ -42,6 +42,7 @@ export interface FeedEngagement {
 
 export interface FeedRelationship {
   following: boolean;
+  subscribed?: boolean;
 }
 
 export interface FeedItem {

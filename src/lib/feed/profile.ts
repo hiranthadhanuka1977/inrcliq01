@@ -1,10 +1,8 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { getCreatorCollection } from "@/lib/feed/collection";
-import {
-  getSubscriptionForUser,
-} from "@/lib/feed/subscription-service";
 import { isFollowingCreator } from "@/lib/feed/follow-service";
+import { getSubscriptionForUser } from "@/lib/feed/subscription-service";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import type { FeedAudio, FeedAuthor, FeedItem, FeedMedia } from "@/types/feed/feed";
@@ -64,29 +62,32 @@ function mapCreatorToAuthor(creator: {
   };
 }
 
-function mapDbPostToFeedItem(post: {
-  id: string;
-  category: string;
-  text: string;
-  tags: string[];
-  mediaJson: unknown;
-  audioJson: unknown;
-  likes: number;
-  comments: number;
-  shares: number;
-  following: boolean;
-  membersOnly: boolean;
-  postedAt: Date;
-  postedAgo: string | null;
-  creator: {
-    name: string;
-    handle: string;
-    avatarInitials: string;
-    avatarColor: string;
-    avatarUrl: string | null;
-    verified: boolean;
-  };
-}): FeedItem {
+function mapDbPostToFeedItem(
+  post: {
+    id: string;
+    category: string;
+    text: string;
+    tags: string[];
+    mediaJson: unknown;
+    audioJson: unknown;
+    likes: number;
+    comments: number;
+    shares: number;
+    following: boolean;
+    membersOnly: boolean;
+    postedAt: Date;
+    postedAgo: string | null;
+    creator: {
+      name: string;
+      handle: string;
+      avatarInitials: string;
+      avatarColor: string;
+      avatarUrl: string | null;
+      verified: boolean;
+    };
+  },
+  options?: { following?: boolean; subscribed?: boolean },
+): FeedItem {
   return {
     id: post.id,
     category: post.category,
@@ -101,7 +102,8 @@ function mapDbPostToFeedItem(post: {
       shares: post.shares,
     },
     relationship: {
-      following: post.following,
+      following: options?.following ?? post.following,
+      subscribed: options?.subscribed || undefined,
     },
     posted_at: post.postedAt.toISOString(),
     posted_ago: post.postedAgo ?? "",
@@ -112,6 +114,7 @@ function mapDbPostToFeedItem(post: {
 async function getCreatorFeedPosts(
   slug: string,
   preferredIds: string[],
+  options?: { following?: boolean; subscribed?: boolean },
 ): Promise<FeedItem[] | null> {
   if (preferredIds.length === 0) return null;
 
@@ -129,7 +132,7 @@ async function getCreatorFeedPosts(
   return preferredIds
     .map((id) => {
       const post = byId.get(id);
-      return post ? mapDbPostToFeedItem(post) : null;
+      return post ? mapDbPostToFeedItem(post, options) : null;
     })
     .filter((post): post is FeedItem => post !== null);
 }
@@ -146,20 +149,14 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
 
   try {
     const preferredIds = profile.feed_posts.map((post) => post.id);
-    const [dbCollection, dbFeed, sessionUser, creator] = await Promise.all([
+    const [dbCollection, sessionUser, creator] = await Promise.all([
       getCreatorCollection(slug),
-      getCreatorFeedPosts(slug, preferredIds),
       getSessionUser(),
       prisma.creatorUser.findFirst({ where: { slug }, select: { id: true } }),
     ]);
 
     if (dbCollection?.products?.length) {
       collection = mapCollectionPreview(dbCollection.products);
-    }
-    if (dbFeed?.length) {
-      const fromDbIds = new Set(dbFeed.map((post) => post.id));
-      const leftovers = profile.feed_posts.filter((post) => !fromDbIds.has(post.id));
-      feedPosts = [...dbFeed, ...leftovers];
     }
 
     if (sessionUser && creator) {
@@ -172,6 +169,31 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     } else if (!sessionUser) {
       subscribed = false;
       following = false;
+    }
+
+    const dbFeed = await getCreatorFeedPosts(slug, preferredIds, { following, subscribed });
+    if (dbFeed?.length) {
+      const fromDbIds = new Set(dbFeed.map((post) => post.id));
+      const leftovers = profile.feed_posts
+        .filter((post) => !fromDbIds.has(post.id))
+        .map((post) => ({
+          ...post,
+          relationship: {
+            ...post.relationship,
+            following,
+            subscribed: subscribed || undefined,
+          },
+        }));
+      feedPosts = [...dbFeed, ...leftovers];
+    } else {
+      feedPosts = profile.feed_posts.map((post) => ({
+        ...post,
+        relationship: {
+          ...post.relationship,
+          following,
+          subscribed: subscribed || undefined,
+        },
+      }));
     }
   } catch (error) {
     console.error("getProfileData: DB overlay failed", error);

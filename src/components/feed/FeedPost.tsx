@@ -16,6 +16,12 @@ const globeSvg = (
   </svg>
 );
 
+const crownSvg = (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M3 7.5a1 1 0 0 1 1.64-.77L9.5 11l2.06-6.19a1 1 0 0 1 1.88 0L15.5 11l4.86-4.27A1 1 0 0 1 22 7.5l-2.2 10.2a2 2 0 0 1-1.96 1.58H6.16A2 2 0 0 1 4.2 17.7L3 7.5Zm4.25 13.75a1 1 0 1 0 0 2h9.5a1 1 0 1 0 0-2h-9.5Z" />
+  </svg>
+);
+
 const lockSvg = (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
@@ -95,21 +101,28 @@ function formatCommentCount(value: number): string {
   return value.toLocaleString();
 }
 
-export default function FeedPost({ item }: { item: FeedItem }) {
+type FeedPostProps = {
+  item: FeedItem;
+  following?: boolean;
+  onFollowingChange?: (next: boolean) => void;
+};
+
+export default function FeedPost({ item, following, onFollowingChange }: FeedPostProps) {
   const { author } = item;
   const [hidden, setHidden] = useState(false);
-  const [following, setFollowing] = useState(item.relationship.following);
+  const [localFollowing, setLocalFollowing] = useState(item.relationship.following);
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
-    setFollowing(item.relationship.following);
+    setLocalFollowing(item.relationship.following);
   }, [item.id, item.relationship.following]);
 
   if (hidden) return null;
 
   const handle = author.handle.startsWith("@") ? author.handle : `@${author.handle}`;
   const profileSlug = getProfileSlugFromHandle(author.handle);
+  const isFollowing = following ?? localFollowing;
 
   const avatar = (
     <div
@@ -148,6 +161,15 @@ export default function FeedPost({ item }: { item: FeedItem }) {
               ) : (
                 name
               )}
+              {item.relationship.subscribed ? (
+                <span
+                  className="post-head__badge post-head__badge--subscribed post-head__badge--icon-only"
+                  title="Subscribed"
+                  aria-label="Subscribed"
+                >
+                  <span className="post-head__badge-icon">{crownSvg}</span>
+                </span>
+              ) : null}
               {author.verified ? (
                 <span className="post-head__badge">
                   <svg className="post-head__badge-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -157,8 +179,14 @@ export default function FeedPost({ item }: { item: FeedItem }) {
                 </span>
               ) : null}
               <FollowButton
-                following={following}
-                onFollowingChange={setFollowing}
+                following={isFollowing}
+                onFollowingChange={(next) => {
+                  if (onFollowingChange) {
+                    onFollowingChange(next);
+                    return;
+                  }
+                  setLocalFollowing(next);
+                }}
                 creatorSlug={profileSlug}
                 className="post-head__follow"
                 name={author.name}
