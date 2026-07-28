@@ -11,12 +11,13 @@ import ProfileCollection from "@/components/feed/profile/ProfileCollection";
 import ProfileHeader from "@/components/feed/profile/ProfileHeader";
 import ProfilePopularPosts from "@/components/feed/profile/ProfilePopularPosts";
 import { AudioPlaybackProvider, useAudioPlayback } from "@/context/feed/AudioPlaybackContext";
+import { useFeedFollowState } from "@/context/feed/FollowStateContext";
 import type { ProfileData } from "@/types/feed/profile";
-import { useState } from "react";
 
 function ProfileViewContent({ profile }: { profile: ProfileData }) {
   const { showMiniPlayer } = useAudioPlayback();
-  const [following, setFollowing] = useState(profile.relationship?.following ?? false);
+  const { getFollowing, setFollowing } = useFeedFollowState();
+  const following = getFollowing(profile.handle, profile.relationship?.following ?? false);
 
   return (
     <>
@@ -24,7 +25,11 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
       <div className={`app-shell page-profile${showMiniPlayer ? " app-shell--audio-dock" : ""}`}>
         <LeftNav />
         <main className="main-content profile-page">
-          <ProfileHeader profile={profile} following={following} onFollowingChange={setFollowing} />
+          <ProfileHeader
+            profile={profile}
+            following={following}
+            onFollowingChange={(next) => setFollowing(profile.handle, next)}
+          />
 
           <div className="profile-page__inner">
             {profile.collection.length > 0 ? (
@@ -42,7 +47,7 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                     key={item.id}
                     item={item}
                     following={following}
-                    onFollowingChange={setFollowing}
+                    onFollowingChange={(next) => setFollowing(profile.handle, next)}
                   />
                 ))}
               </div>

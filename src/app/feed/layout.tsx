@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import FeedPathShell from "@/components/feed/FeedPathShell";
+import { FeedFollowStateProvider } from "@/context/feed/FollowStateContext";
 import { FeedSessionProvider } from "@/context/feed/FeedSessionContext";
 import { getSessionUser } from "@/lib/session";
 import "@/styles/feed/feed-app.css";
@@ -15,9 +16,11 @@ export default async function FeedLayout({ children }: { children: React.ReactNo
 
   return (
     <FeedSessionProvider firstName={firstName}>
-      <FeedPathShell>
-        <div className="feed-app-root">{children}</div>
-      </FeedPathShell>
+      <FeedFollowStateProvider>
+        <FeedPathShell>
+          <div className="feed-app-root">{children}</div>
+        </FeedPathShell>
+      </FeedFollowStateProvider>
     </FeedSessionProvider>
   );
 }

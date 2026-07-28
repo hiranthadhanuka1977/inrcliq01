@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import AudioMiniPlayer from "@/components/feed/AudioMiniPlayer";
 import FeedAudioFullscreenPlayer from "@/components/feed/FeedAudioFullscreenPlayer";
 import MobileNav from "@/components/feed/MobileNav";
@@ -21,6 +21,7 @@ import { useFeedFilter } from "@/hooks/feed/useFeedFilter";
 import { useFeedPagination } from "@/hooks/feed/useFeedPagination";
 import { useStoriesScrollHide } from "@/hooks/feed/useStoriesScrollHide";
 import { AudioPlaybackProvider, useAudioPlayback } from "@/context/feed/AudioPlaybackContext";
+import { useFeedFollowState } from "@/context/feed/FollowStateContext";
 
 const SHOW_CREATORS_RAIL = false;
 
@@ -29,20 +30,9 @@ interface HomeFeedProps {
   categories: string[];
 }
 
-function creatorKeyFromHandle(handle: string): string {
-  return handle.replace(/^@/, "").trim().toLowerCase();
-}
-
 function HomeFeedContent({ items, categories }: HomeFeedProps) {
   const headerRef = useRef<HTMLDivElement>(null);
-  const [creatorFollowing, setCreatorFollowing] = useState<Record<string, boolean>>(() => {
-    const state: Record<string, boolean> = {};
-    for (const item of items) {
-      const key = creatorKeyFromHandle(item.author.handle);
-      if (!(key in state)) state[key] = item.relationship.following;
-    }
-    return state;
-  });
+  const { getFollowing, setFollowing } = useFeedFollowState();
   const { activeCategory, setActiveCategory, filteredItems, isLoading } = useFeedFilter(items);
   const { visibleItems, hasMore, isLoadingMore, sentinelRef } = useFeedPagination(filteredItems);
   const { showMiniPlayer } = useAudioPlayback();
@@ -69,18 +59,14 @@ function HomeFeedContent({ items, categories }: HomeFeedProps) {
                 ) : (
                   <>
                     {visibleItems.flatMap((item, index) => {
-                      const creatorKey = creatorKeyFromHandle(item.author.handle);
-                      const isFollowing = creatorFollowing[creatorKey] ?? item.relationship.following;
+                      const isFollowing = getFollowing(item.author.handle, item.relationship.following);
                       const nodes = [
                         <FeedPost
                           key={item.id}
                           item={item}
                           following={isFollowing}
                           onFollowingChange={(next) => {
-                            setCreatorFollowing((prev) => ({
-                              ...prev,
-                              [creatorKey]: next,
-                            }));
+                            setFollowing(item.author.handle, next);
                           }}
                         />,
                       ];

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import FollowButton from "@/components/feed/FollowButton";
+import { useFeedFollowState } from "@/context/feed/FollowStateContext";
 import { getProfileSlugFromHandle } from "@/lib/feed/profile-slugs";
 
 export interface AudioCreatorCardProps {
@@ -36,7 +36,8 @@ export default function AudioCreatorCard({
   color,
   href,
 }: AudioCreatorCardProps) {
-  const [following, setFollowing] = useState(false);
+  const { getFollowing, setFollowing } = useFeedFollowState();
+  const following = getFollowing(handle, false);
   const creatorSlug = getProfileSlugFromHandle(handle);
   const profileHref = href ?? profileHrefFromHandle(handle);
 
@@ -76,7 +77,7 @@ export default function AudioCreatorCard({
       </Link>
       <FollowButton
         following={following}
-        onFollowingChange={setFollowing}
+        onFollowingChange={(next) => setFollowing(handle, next)}
         creatorSlug={creatorSlug}
         className="audio-top-creator-card__follow"
         name={name}
