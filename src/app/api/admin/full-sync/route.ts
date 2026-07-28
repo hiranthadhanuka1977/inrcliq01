@@ -62,6 +62,21 @@ function migrationDirs(): string[] {
     .sort();
 }
 
+async function ensurePrismaMigrationsTable(client: { query: (sql: string) => Promise<unknown> }) {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS public."_prisma_migrations" (
+      "id" VARCHAR(36) PRIMARY KEY,
+      "checksum" VARCHAR(64) NOT NULL,
+      "finished_at" TIMESTAMPTZ,
+      "migration_name" VARCHAR(255) NOT NULL,
+      "logs" TEXT,
+      "rolled_back_at" TIMESTAMPTZ,
+      "started_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "applied_steps_count" INTEGER NOT NULL DEFAULT 0
+    )
+  `);
+}
+
 async function resetSchema(pool: Pool) {
   const client = await pool.connect();
   try {
@@ -74,6 +89,8 @@ async function resetSchema(pool: Pool) {
       const sql = readFileSync(file, "utf8");
       await client.query(sql);
     }
+
+    await ensurePrismaMigrationsTable(client);
   } finally {
     client.release();
   }
@@ -89,6 +106,10 @@ async function loadTable(pool: Pool, table: string, rows: Record<string, unknown
 
   const client = await pool.connect();
   try {
+    if (table === "_prisma_migrations") {
+      await ensurePrismaMigrationsTable(client);
+    }
+
     const columns = Object.keys(rows[0]);
     const colSql = columns.map((column) => `"${column}"`).join(", ");
 
