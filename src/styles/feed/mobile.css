@@ -26,12 +26,17 @@
   body.page-home,
   body.page-profile,
   body.page-audio,
-  body.page-messages {
+  body.page-bookings {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   }
 
   .main-content {
     padding-bottom: calc(var(--space-8) + 3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.page-messages .main-content.messages-page,
+  .page-messages .main-content.messages-page {
+    padding-bottom: 0;
   }
 
   .mobile-nav a {

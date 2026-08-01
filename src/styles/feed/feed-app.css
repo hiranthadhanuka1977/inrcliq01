@@ -13,7 +13,9 @@
 @import "./collection-cart-drawer.css";
 @import "./collection-checkout.css";
 @import "./profile-requests.css";
+@import "./request-checkout.css";
 @import "./messages.css";
+@import "./bookings.css";
 @import "./account-profile.css";
 @import "./mobile.css";
 @import "./feed-audio-landing.css";
@@ -30,9 +32,26 @@ body.page-messages .messages-layout,
   width: 100%;
   max-width: none;
   margin: 0;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
   border: 0;
   border-radius: 0;
+}
+
+body.page-messages .app-shell.page-messages,
+.page-messages.app-shell {
+  min-height: 0;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  body.page-messages {
+    padding-bottom: 0;
+  }
 }
 
 .feed-load-sentinel {

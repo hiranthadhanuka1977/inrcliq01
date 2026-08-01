@@ -1,4 +1,8 @@
 import seedConversations from "../../../data/chat-inbox-seed.json";
+import type {
+  BookingConfirmationPayload,
+  BookingNotePayload,
+} from "@/lib/feed/booking-confirmation";
 
 export type MessageSender = "me" | "them";
 
@@ -7,6 +11,8 @@ export type ChatMessage = {
   sender: MessageSender;
   body: string;
   time: string;
+  booking?: BookingConfirmationPayload;
+  bookingNote?: BookingNotePayload;
 };
 
 export type ConversationParticipant = {

@@ -2,6 +2,7 @@ body.page-home,
 body.page-profile,
 body.page-audio,
 body.page-messages,
+body.page-bookings,
 .feed-path-shell {
   --color-brand-primary: #6b9fff;
   --color-brand-primary-hover: #8ab4ff;
@@ -58,7 +59,8 @@ body.page-messages,
 body.page-home,
 body.page-profile,
 body.page-audio,
-body.page-messages {
+body.page-messages,
+body.page-bookings {
   overflow-x: clip;
   color-scheme: dark;
   background: var(--color-bg-page);
@@ -66,8 +68,13 @@ body.page-messages {
 }
 
 .feed-path-shell a {
-  color: inherit;
   text-decoration: none;
+}
+
+/* Keep plain links inheriting text color, but do not force it onto .btn CTAs
+   (yellow book buttons need dark labels on a light fill). */
+.feed-path-shell a:not(.btn) {
+  color: inherit;
 }
 
 .app-shell {
@@ -2779,6 +2786,11 @@ a.nav-profile__dropdown-item {
     padding-bottom: calc(var(--space-8) + 3.5rem);
   }
 
+  body.page-messages .main-content.messages-page,
+  .page-messages .main-content.messages-page {
+    padding-bottom: 0;
+  }
+
   .feed-header .stories-bar {
     padding: var(--space-4) var(--space-4) var(--space-4);
   }
@@ -2837,7 +2849,7 @@ a.nav-profile__dropdown-item {
   body.page-home,
   body.page-profile,
   body.page-audio,
-  body.page-messages {
+  body.page-bookings {
     padding-bottom: 4rem;
   }
 }

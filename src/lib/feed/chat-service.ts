@@ -189,3 +189,99 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
     message,
   }));
 }
+
+export async function ensureChatThreadForCreatorSlug(userId: string, slug: string) {
+  await seedDefaultChatThreadsForUser(userId);
+
+  const normalized = slug.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const existing = await prisma.chatThread.findFirst({
+    where: {
+      userId,
+      OR: [
+        { peerSlug: { equals: normalized, mode: "insensitive" } },
+        { seedKey: normalized },
+      ],
+    },
+    include: {
+      messages: { orderBy: { createdAt: "asc" } },
+    },
+  });
+  if (existing) return existing;
+
+  const creator = await prisma.creatorUser.findFirst({
+    where: {
+      OR: [
+        { slug: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: `@${normalized}`, mode: "insensitive" } },
+        { handle: { equals: normalized, mode: "insensitive" } },
+      ],
+    },
+  });
+  if (!creator) return null;
+
+  if (creator.id) {
+    const byCreator = await prisma.chatThread.findFirst({
+      where: { userId, peerCreatorId: creator.id },
+      include: {
+        messages: { orderBy: { createdAt: "asc" } },
+      },
+    });
+    if (byCreator) return byCreator;
+  }
+
+  return prisma.chatThread.create({
+    data: {
+      userId,
+      peerCreatorId: creator.id,
+      peerName: creator.name,
+      peerHandle: creator.handle,
+      peerInitials: creator.avatarInitials,
+      peerAvatarColor: creator.avatarColor,
+      peerAvatarUrl: creator.avatarUrl,
+      peerSlug: creator.slug ?? normalized,
+      peerOnline: false,
+      preview: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+    },
+    include: {
+      messages: { orderBy: { createdAt: "asc" } },
+    },
+  });
+}
+
+export async function sendBookingConfirmationMessage(
+  userId: string,
+  threadId: string,
+  encodedBody: string,
+  preview: string,
+  specialRequestId?: string | null,
+) {
+  const thread = await prisma.chatThread.findFirst({
+    where: { id: threadId, userId },
+  });
+  if (!thread) return null;
+
+  await prisma.$transaction([
+    prisma.chatMessage.create({
+      data: {
+        threadId,
+        body: encodedBody,
+        fromMe: false,
+        specialRequestId: specialRequestId ?? null,
+      },
+    }),
+    prisma.chatThread.update({
+      where: { id: threadId },
+      data: {
+        preview,
+        lastMessageAt: new Date(),
+        unreadCount: 0,
+      },
+    }),
+  ]);
+
+  return getChatThreadForUser(userId, threadId);
+}

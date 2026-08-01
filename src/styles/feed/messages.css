@@ -1,9 +1,17 @@
+body.page-messages {
+  overflow: hidden;
+}
+
 body.page-messages .main-content.messages-page {
   flex: 1;
   max-width: none;
   min-width: 0;
   padding: 0;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  min-height: 0;
   overflow: hidden;
   align-items: stretch;
   align-self: stretch;
@@ -15,7 +23,9 @@ body.page-messages .messages-layout {
   width: 100%;
   max-width: none;
   flex: 1;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -27,6 +37,9 @@ body.page-messages .messages-layout {
 body.page-messages .messages-chat {
   width: 100%;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .messages-sidebar {
@@ -34,6 +47,8 @@ body.page-messages .messages-chat {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
   border-right: 1px solid var(--color-neutral-200);
   background: color-mix(in srgb, var(--color-neutral-50) 72%, var(--color-bg-page));
 }
@@ -44,6 +59,7 @@ body.page-messages .messages-chat {
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-5) var(--space-4) var(--space-3);
+  flex-shrink: 0;
 }
 
 .messages-sidebar__head h1 {
@@ -83,6 +99,7 @@ body.page-messages .messages-chat {
   border-radius: var(--radius-md);
   background: var(--color-bg-page);
   color: var(--color-text-secondary);
+  flex-shrink: 0;
 }
 
 .messages-search input {
@@ -111,7 +128,9 @@ body.page-messages .messages-chat {
   margin: 0;
   padding: 0 0.45rem var(--space-3);
   list-style: none;
+  overflow-x: hidden;
   overflow-y: auto;
+  flex: 1 1 auto;
   min-height: 0;
 }
 
@@ -228,6 +247,8 @@ body.page-messages .messages-chat {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
   background: var(--color-bg-page);
 }
 
@@ -239,6 +260,7 @@ body.page-messages .messages-chat {
   padding: var(--space-4);
   border-bottom: 1px solid var(--color-neutral-200);
   background: color-mix(in srgb, var(--color-neutral-0) 88%, transparent);
+  flex-shrink: 0;
 }
 
 .messages-chat__back {
@@ -305,7 +327,22 @@ body.page-messages .messages-chat {
   gap: 0.75rem;
   min-height: 0;
   padding: var(--space-5) var(--space-4);
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.messages-chat__booking-wrap {
+  align-self: flex-start;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  transition: box-shadow 0.35s ease, outline-color 0.35s ease;
+  outline: 2px solid transparent;
+}
+
+.messages-chat__booking-wrap.is-booking-focused {
+  outline-color: color-mix(in srgb, #5b7cfa 55%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, #5b7cfa 18%, transparent);
 }
 
 .messages-bubble {
@@ -357,6 +394,7 @@ body.page-messages .messages-chat {
   padding: var(--space-4);
   border-top: 1px solid var(--color-neutral-200);
   background: color-mix(in srgb, var(--color-neutral-0) 88%, transparent);
+  flex-shrink: 0;
 }
 
 .messages-composer__input {
@@ -408,12 +446,17 @@ body.page-messages .messages-chat {
 
 @media (max-width: 900px) {
   body.page-messages .messages-page {
-    padding-bottom: calc(var(--space-8) + 3.5rem);
+    height: calc(100vh - 3.5rem - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100vh - 3.5rem - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
   }
 
   body.page-messages .messages-layout {
     max-width: none;
-    min-height: calc(100vh - 3.5rem);
+    height: 100%;
+    min-height: 0;
     margin: 0;
     border: 0;
     border-radius: 0;
@@ -424,6 +467,8 @@ body.page-messages .messages-chat {
   .messages-chat {
     grid-column: 1;
     grid-row: 1;
+    height: 100%;
+    min-height: 0;
   }
 
   .messages-chat {
@@ -436,7 +481,8 @@ body.page-messages .messages-chat {
 
   .messages-layout--chat-open .messages-chat {
     display: flex;
-    min-height: calc(100vh - 3.5rem);
+    height: 100%;
+    min-height: 0;
   }
 
   .messages-chat__back {
@@ -459,3 +505,323 @@ body.page-messages .messages-chat {
     max-width: 88%;
   }
 }
+
+/* Booking confirmation card — matches dark messages design */
+.booking-confirm-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: min(100%, 26.5rem);
+  max-width: min(34rem, 92%);
+  align-self: flex-start;
+}
+
+.booking-confirm-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  border-bottom-left-radius: 0.35rem;
+  background: var(--color-neutral-100);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.booking-confirm-card__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-brand-primary);
+}
+
+.booking-confirm-card__head h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+}
+
+.booking-confirm-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.booking-confirm-card__meta > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+}
+
+.booking-confirm-card__meta dt {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--color-text-secondary);
+}
+
+.booking-confirm-card__meta dt::after {
+  content: " :";
+}
+
+.booking-confirm-card__meta dd {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--color-text-primary);
+}
+
+.booking-confirm-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.5rem 0.12rem 0.55rem;
+  border: 1px solid color-mix(in srgb, #f5c518 35%, var(--color-neutral-200));
+  border-radius: 999px;
+  background: color-mix(in srgb, #f5c518 14%, transparent);
+  color: #f5c518;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.booking-confirm-card__status-icon {
+  display: inline-flex;
+  color: #f5c518;
+}
+
+.booking-confirm-card__summary {
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-neutral-0) 72%, transparent);
+}
+
+.booking-confirm-card__summary h4 {
+  margin: 0 0 0.7rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.booking-confirm-card__summary dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.booking-confirm-card__summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.95fr) minmax(0, 1.15fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.booking-confirm-card__summary dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.booking-confirm-card__summary dd {
+  margin: 0;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.booking-confirm-card__pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid color-mix(in srgb, #f5c518 28%, var(--color-neutral-200));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #f5c518 10%, var(--color-neutral-0));
+}
+
+.booking-confirm-card__pending-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: #f5c518;
+}
+
+.booking-confirm-card__pending strong {
+  display: block;
+  margin: 0 0 0.25rem;
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: var(--color-text-primary);
+}
+
+.booking-confirm-card__pending p {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.booking-confirm-msg__time {
+  align-self: flex-start;
+  padding-left: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.booking-status-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-self: stretch;
+  max-width: min(100%, 26rem);
+}
+
+.booking-status-note__card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.9rem 1rem 1.05rem;
+  border: 1px solid color-mix(in srgb, #22c55e 30%, var(--color-neutral-200));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #22c55e 10%, var(--color-neutral-0));
+}
+
+.booking-status-note__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.booking-status-note__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: #22c55e;
+}
+
+.booking-status-note__copy strong {
+  display: block;
+  margin: 0 0 0.25rem;
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: var(--color-text-primary);
+}
+
+.booking-status-note__copy p {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.booking-status-note__ref {
+  margin-top: 0.35rem !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem !important;
+}
+
+.booking-countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-top: 0.15rem;
+}
+
+.booking-status-note .booking-countdown {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.booking-countdown__label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 550;
+  color: var(--color-text-primary);
+}
+
+.booking-countdown__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 4.6rem));
+  gap: 0.65rem;
+}
+
+.booking-countdown__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.booking-countdown__box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 0.55rem;
+  background: var(--color-neutral-0);
+  box-shadow: var(--shadow-xs);
+}
+
+.booking-countdown__value {
+  font-size: 1.35rem;
+  font-weight: 750;
+  line-height: 1;
+  color: #5b7cfa;
+  font-variant-numeric: tabular-nums;
+}
+
+.booking-countdown__unit-label {
+  font-size: 0.72rem;
+  font-weight: 550;
+  color: var(--color-text-secondary);
+}
+
+.booking-status-note__time {
+  align-self: flex-start;
+  padding-left: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 640px) {
+  .booking-confirm-msg {
+    width: min(100%, 22rem);
+    max-width: 92%;
+  }
+
+  .booking-confirm-card {
+    padding: 0.9rem 0.9rem 1rem;
+  }
+
+  .booking-confirm-card__summary dl > div {
+    grid-template-columns: 1fr;
+    gap: 0.12rem;
+  }
+
+  .booking-confirm-card__summary dd {
+    text-align: left;
+  }
+}
+

@@ -1,0 +1,268 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useId, useState, type CSSProperties } from "react";
+import type { MyBookingItem } from "@/lib/feed/user-bookings";
+import BookingDeliveryCountdown from "@/components/feed/bookings/BookingDeliveryCountdown";
+import LeftNav from "@/components/feed/LeftNav";
+import MobileNav from "@/components/feed/MobileNav";
+
+function showsCountdown(booking: MyBookingItem) {
+  if (!booking.deliverBy) return false;
+  return !["DELIVERED", "DECLINED", "CANCELLED"].includes(booking.status);
+}
+
+function CreatorBlock({
+  booking,
+  compact = false,
+}: {
+  booking: MyBookingItem;
+  compact?: boolean;
+}) {
+  const profileHref = booking.creator.slug
+    ? `/feed/profile/${booking.creator.slug}`
+    : null;
+
+  const avatar = (
+    <span
+      className={`my-bookings__avatar${compact ? " my-bookings__avatar--sm" : ""}`}
+      style={{ "--bookings-avatar-color": booking.creator.avatarColor } as CSSProperties}
+      aria-hidden="true"
+    >
+      {booking.creator.avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={booking.creator.avatarUrl} alt="" width={compact ? 36 : 44} height={compact ? 36 : 44} />
+      ) : (
+        booking.creator.avatarInitials
+      )}
+    </span>
+  );
+
+  const copy = (
+    <span className="my-bookings__creator-copy">
+      <strong>{booking.creator.name}</strong>
+      <span>{booking.creator.handle}</span>
+    </span>
+  );
+
+  if (profileHref) {
+    return (
+      <Link
+        href={profileHref}
+        className="my-bookings__creator"
+        aria-label={`Open ${booking.creator.name}'s profile`}
+      >
+        {avatar}
+        {copy}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="my-bookings__creator">
+      {avatar}
+      {copy}
+    </div>
+  );
+}
+
+export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[] }) {
+  const panelTitleId = useId();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = bookings.find((booking) => booking.id === selectedId) ?? null;
+  const open = Boolean(selected);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setSelectedId(null);
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="app-shell page-bookings">
+      <LeftNav />
+      <main className="main-content bookings-page" id="main">
+        <header className="my-bookings__head">
+          <h1 className="my-bookings__title">Bookings</h1>
+          <p className="my-bookings__subtitle">
+            Special requests you&apos;ve placed with creators.
+          </p>
+        </header>
+
+        {bookings.length === 0 ? (
+          <p className="my-bookings__empty">
+            No bookings yet. When you pay for a special request, it will show up here.
+          </p>
+        ) : (
+          <ul className="my-bookings__list">
+            {bookings.map((booking) => (
+              <li key={booking.id} className="my-bookings__card">
+                <div className="my-bookings__card-top">
+                  <CreatorBlock booking={booking} />
+                  <span
+                    className={`my-bookings__status my-bookings__status--${booking.status.toLowerCase()}`}
+                  >
+                    {booking.statusLabel}
+                  </span>
+                </div>
+
+                <div className="my-bookings__basics">
+                  <h2>{booking.requestLabel}</h2>
+                  <p>
+                    Ref <code>{booking.reference}</code>
+                    <span aria-hidden="true"> · </span>
+                    {booking.totalLabel}
+                    <span aria-hidden="true"> · </span>
+                    {booking.createdLabel}
+                  </p>
+                  {booking.contentType ? (
+                    <p className="my-bookings__formats">{booking.contentType}</p>
+                  ) : null}
+                </div>
+
+                {showsCountdown(booking) && booking.deliverBy ? (
+                  <BookingDeliveryCountdown deliverBy={booking.deliverBy} compact />
+                ) : null}
+
+                <div className="my-bookings__actions">
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => setSelectedId(booking.id)}
+                  >
+                    Details
+                  </button>
+                  {booking.messagesHref ? (
+                    <Link href={booking.messagesHref} className="btn btn--secondary btn--sm">
+                      Messages
+                    </Link>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+      <MobileNav />
+
+      <div
+        className={`my-bookings-drawer${open ? " is-open" : ""}`}
+        aria-hidden={!open}
+      >
+        <button
+          type="button"
+          className="my-bookings-drawer__backdrop"
+          aria-label="Close booking details"
+          tabIndex={open ? 0 : -1}
+          onClick={() => setSelectedId(null)}
+        />
+        <aside
+          className="my-bookings-drawer__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={panelTitleId}
+        >
+          {selected ? (
+            <>
+              <header className="my-bookings-drawer__head">
+                <div>
+                  <p className="my-bookings-drawer__eyebrow">Booking details</p>
+                  <h2 id={panelTitleId}>{selected.requestLabel}</h2>
+                  <p className="my-bookings-drawer__ref">
+                    Ref <code>{selected.reference}</code>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="my-bookings-drawer__close"
+                  aria-label="Close"
+                  onClick={() => setSelectedId(null)}
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                    <path
+                      d="M6 6l12 12M18 6 6 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </header>
+
+              <div className="my-bookings-drawer__body">
+                <div className="my-bookings-drawer__creator-row">
+                  <CreatorBlock booking={selected} compact />
+                  <span
+                    className={`my-bookings__status my-bookings__status--${selected.status.toLowerCase()}`}
+                  >
+                    {selected.statusLabel}
+                  </span>
+                </div>
+
+                {showsCountdown(selected) && selected.deliverBy ? (
+                  <BookingDeliveryCountdown deliverBy={selected.deliverBy} />
+                ) : null}
+
+                {selected.summary.length > 0 ? (
+                  <section className="my-bookings__summary" aria-label="Service summary">
+                    <h3>Service summary</h3>
+                    <dl>
+                      {selected.summary.map((row) => (
+                        <div key={`${selected.id}-${row.label}`}>
+                          <dt>{row.label}</dt>
+                          <dd>{row.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                ) : null}
+
+                <dl className="my-bookings__meta">
+                  <div>
+                    <dt>Created</dt>
+                    <dd>{selected.createdLabel}</dd>
+                  </div>
+                  {selected.deliverByLabel ? (
+                    <div>
+                      <dt>Deliver by</dt>
+                      <dd>{selected.deliverByLabel}</dd>
+                    </div>
+                  ) : null}
+                  {selected.acceptedAtLabel ? (
+                    <div>
+                      <dt>Accepted</dt>
+                      <dd>{selected.acceptedAtLabel}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </div>
+
+              {selected.messagesHref ? (
+                <footer className="my-bookings-drawer__foot">
+                  <Link
+                    href={selected.messagesHref}
+                    className="btn btn--primary btn--sm"
+                    onClick={() => setSelectedId(null)}
+                  >
+                    Open messages
+                  </Link>
+                </footer>
+              ) : null}
+            </>
+          ) : null}
+        </aside>
+      </div>
+    </div>
+  );
+}

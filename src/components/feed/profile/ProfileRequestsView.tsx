@@ -24,6 +24,10 @@ const REVIEW_PAGE_SIZE = 18;
 const FEED_SURCHARGE = 15;
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const DURATION_OPTIONS = ["15 seconds", "30 seconds", "60 seconds", "90 seconds", "2 minutes"] as const;
+const TONE_OPTIONS = ["Heartfelt", "Funny", "Motivational", "Casual"] as const;
+const TEXT_LENGTH_OPTIONS = ["Short note", "Medium message", "Long message"] as const;
+const VIDEO_STYLE_OPTIONS = ["Talking head", "On the move / outdoor", "Lifestyle setting"] as const;
+const VIDEO_CAPTION_OPTIONS = ["No captions", "Burned-in captions", "Captions optional"] as const;
 const TIME_OPTIONS = ["9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"] as const;
 const APPEARANCE_DURATION_HOURS = Array.from({ length: 13 }, (_, index) => String(index));
 const APPEARANCE_DURATION_MINUTES = ["0", "15", "30", "45"] as const;
@@ -57,8 +61,48 @@ function formatAppearanceDuration(hours: string, minutes: string) {
 }
 
 type DeliveryMethod = "dm" | "feed";
+type DeliverySelection = Record<DeliveryMethod, boolean>;
 type ContentKind = "text" | "audio" | "video";
+type FormatSelection = Record<ContentKind, boolean>;
 type RecipientTarget = "self" | "other";
+
+function formatDeliverySelection(
+  methods: DeliverySelection,
+  labels: { dm: string; feed: string },
+) {
+  const parts: string[] = [];
+  if (methods.dm) parts.push(labels.dm);
+  if (methods.feed) parts.push(labels.feed);
+  return parts.join(" · ");
+}
+
+function formatContentSelection(
+  formats: FormatSelection,
+  details: {
+    tone: string;
+    textLength: string;
+    audioDuration: string;
+    videoDuration: string;
+    videoStyle: string;
+    videoCaptions: string;
+  },
+) {
+  const parts: string[] = [];
+  if (details.tone) parts.push(details.tone);
+  if (formats.text) {
+    const bits = ["Text", details.textLength].filter(Boolean);
+    parts.push(bits.join(" · "));
+  }
+  if (formats.audio) {
+    const bits = ["Audio", details.audioDuration].filter(Boolean);
+    parts.push(bits.join(" · "));
+  }
+  if (formats.video) {
+    const bits = ["Video", details.videoDuration, details.videoStyle, details.videoCaptions].filter(Boolean);
+    parts.push(bits.join(" · "));
+  }
+  return parts.join(" + ");
+}
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -514,15 +558,28 @@ export default function ProfileRequestsView({
   const [pickerStep, setPickerStep] = useState<1 | 2 | 3 | 4>(
     resolvedInitialCategoryId ? 2 : 1,
   );
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("dm");
-  const [contentKind, setContentKind] = useState<ContentKind>("video");
-  const [duration, setDuration] = useState("");
+  const [deliveryMethods, setDeliveryMethods] = useState<DeliverySelection>({
+    dm: true,
+    feed: false,
+  });
+  const [formats, setFormats] = useState<FormatSelection>({
+    text: false,
+    audio: false,
+    video: true,
+  });
+  const [tone, setTone] = useState("");
+  const [textLength, setTextLength] = useState("");
+  const [audioDuration, setAudioDuration] = useState("");
+  const [videoDuration, setVideoDuration] = useState("");
+  const [videoStyle, setVideoStyle] = useState("");
+  const [videoCaptions, setVideoCaptions] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
-  const [recipientTarget, setRecipientTarget] = useState<RecipientTarget>("other");
+  const [recipientTarget, setRecipientTarget] = useState<RecipientTarget>("self");
   const [recipientName, setRecipientName] = useState("");
   const [recipientUsername, setRecipientUsername] = useState("");
   const [shoutoutMessage, setShoutoutMessage] = useState("");
+  const [specialInstructions, setSpecialInstructions] = useState("");
   const [appearanceOccasion, setAppearanceOccasion] = useState("");
   const [appearanceLocation, setAppearanceLocation] = useState<SelectedPlace | null>(null);
   const [appearanceDurationHours, setAppearanceDurationHours] = useState("");
@@ -535,7 +592,13 @@ export default function ProfileRequestsView({
     return { year: now.getFullYear(), month: now.getMonth() };
   });
   const contentTypeRefs = useRef<Partial<Record<ContentKind, HTMLButtonElement | null>>>({});
-  const durationRef = useRef<HTMLSelectElement>(null);
+  const toneRef = useRef<HTMLSelectElement>(null);
+  const textLengthRef = useRef<HTMLSelectElement>(null);
+  const audioDurationRef = useRef<HTMLSelectElement>(null);
+  const videoDurationRef = useRef<HTMLSelectElement>(null);
+  const videoStyleRef = useRef<HTMLSelectElement>(null);
+  const videoCaptionsRef = useRef<HTMLSelectElement>(null);
+  const deliveryDmRef = useRef<HTMLButtonElement>(null);
   const firstDateRef = useRef<HTMLButtonElement>(null);
   const deliveryTimeRef = useRef<HTMLSelectElement>(null);
   const recipientSelfRef = useRef<HTMLButtonElement>(null);
@@ -543,6 +606,7 @@ export default function ProfileRequestsView({
   const recipientNameRef = useRef<HTMLInputElement>(null);
   const recipientUsernameRef = useRef<HTMLInputElement>(null);
   const shoutoutMessageRef = useRef<HTMLTextAreaElement>(null);
+  const specialInstructionsRef = useRef<HTMLTextAreaElement>(null);
   const appearanceOccasionRef = useRef<HTMLInputElement>(null);
   const appearanceLocationRef = useRef<HTMLInputElement>(null);
   const appearanceDurationHoursRef = useRef<HTMLSelectElement>(null);
@@ -701,8 +765,38 @@ export default function ProfileRequestsView({
     : content.startingRange;
   const dayRate = selected?.priceMin ?? 80;
   const feedFee =
-    !isAppearanceCategory && deliveryMethod === "feed" ? FEED_SURCHARGE : 0;
+    !isAppearanceCategory && deliveryMethods.feed ? FEED_SURCHARGE : 0;
   const totalFee = dayRate + feedFee;
+  const deliveryLabel = formatDeliverySelection(deliveryMethods, {
+    dm: "Direct message",
+    feed: `Tagged feed (+$${FEED_SURCHARGE})`,
+  });
+  const deliveryReviewLabel = formatDeliverySelection(deliveryMethods, {
+    dm: "Direct message",
+    feed: `Tagged feed post (+$${FEED_SURCHARGE})`,
+  });
+  const deliverySummaryLabel = formatDeliverySelection(deliveryMethods, {
+    dm: "Direct message",
+    feed: `Feed post (+$${FEED_SURCHARGE})`,
+  });
+  const hasDeliveryMethod = deliveryMethods.dm || deliveryMethods.feed;
+  const hasFormat = formats.text || formats.audio || formats.video;
+  const textDetailsReady = Boolean(textLength);
+  const audioDetailsReady = Boolean(audioDuration);
+  const videoDetailsReady = Boolean(videoDuration && videoStyle && videoCaptions);
+  const formatDetailsReady =
+    Boolean(tone) &&
+    (!formats.text || textDetailsReady) &&
+    (!formats.audio || audioDetailsReady) &&
+    (!formats.video || videoDetailsReady);
+  const contentLabel = formatContentSelection(formats, {
+    tone,
+    textLength,
+    audioDuration,
+    videoDuration,
+    videoStyle,
+    videoCaptions,
+  });
   const appearanceDurationLabel = formatAppearanceDuration(
     appearanceDurationHours,
     appearanceDurationMins,
@@ -719,9 +813,9 @@ export default function ProfileRequestsView({
   const personalizedReady = isAppearanceCategory
     ? Boolean(deliveryDate && appearanceReady)
     : Boolean(
-        deliveryMethod &&
-          contentKind &&
-          duration &&
+        hasDeliveryMethod &&
+          hasFormat &&
+          formatDetailsReady &&
           deliveryDate &&
           deliveryTime &&
           shoutoutMessage.trim() &&
@@ -749,13 +843,61 @@ export default function ProfileRequestsView({
       nextCategory.services.find((service) => service.popular) ?? nextCategory.services[0];
     if (preferred) setSelectedId(preferred.id);
     if (nextCategoryId === "appearances") {
-      setDeliveryMethod("dm");
+      setDeliveryMethods({ dm: true, feed: false });
     }
     setPickerStep(2);
   }
 
   function chooseService(serviceId: string) {
     setSelectedId(serviceId);
+  }
+
+  function toggleDeliveryMethod(method: DeliveryMethod) {
+    setDeliveryMethods((prev) => {
+      const next = { ...prev, [method]: !prev[method] };
+      // Keep at least one delivery option selected.
+      if (!next.dm && !next.feed) return prev;
+      return next;
+    });
+  }
+
+  function toggleFormat(kind: ContentKind) {
+    setFormats((prev) => {
+      const next = { ...prev, [kind]: !prev[kind] };
+      // Keep at least one format selected.
+      if (!next.text && !next.audio && !next.video) return prev;
+      return next;
+    });
+  }
+
+  function focusFirstMissingFormatDetail() {
+    if (!hasFormat) {
+      focusPersonalizeControl(contentTypeRefs.current.video ?? contentTypeRefs.current.text ?? null);
+      return;
+    }
+    if (!tone) {
+      focusPersonalizeControl(toneRef.current);
+      return;
+    }
+    if (formats.text && !textLength) {
+      focusPersonalizeControl(textLengthRef.current);
+      return;
+    }
+    if (formats.audio && !audioDuration) {
+      focusPersonalizeControl(audioDurationRef.current);
+      return;
+    }
+    if (formats.video && !videoDuration) {
+      focusPersonalizeControl(videoDurationRef.current);
+      return;
+    }
+    if (formats.video && !videoStyle) {
+      focusPersonalizeControl(videoStyleRef.current);
+      return;
+    }
+    if (formats.video && !videoCaptions) {
+      focusPersonalizeControl(videoCaptionsRef.current);
+    }
   }
 
   function tryContinueFromPersonalize() {
@@ -795,8 +937,12 @@ export default function ProfileRequestsView({
         return false;
       }
     } else {
-      if (!duration) {
-        focusPersonalizeControl(durationRef.current);
+      if (!hasDeliveryMethod) {
+        focusPersonalizeControl(deliveryDmRef.current);
+        return false;
+      }
+      if (!hasFormat || !formatDetailsReady) {
+        focusFirstMissingFormatDetail();
         return false;
       }
       if (!deliveryDate) {
@@ -825,7 +971,13 @@ export default function ProfileRequestsView({
     return true;
   }
 
-  const durationInvalid = personalizeTried && !isAppearanceCategory && !duration;
+  const formatInvalid = personalizeTried && !isAppearanceCategory && (!hasFormat || !formatDetailsReady);
+  const toneInvalid = personalizeTried && hasFormat && !tone;
+  const textLengthInvalid = personalizeTried && formats.text && !textLength;
+  const audioDurationInvalid = personalizeTried && formats.audio && !audioDuration;
+  const videoDurationInvalid = personalizeTried && formats.video && !videoDuration;
+  const videoStyleInvalid = personalizeTried && formats.video && !videoStyle;
+  const videoCaptionsInvalid = personalizeTried && formats.video && !videoCaptions;
   const dateInvalid = personalizeTried && !deliveryDate;
   const timeInvalid = personalizeTried && !deliveryTime;
   const recipientNameInvalid =
@@ -855,6 +1007,41 @@ export default function ProfileRequestsView({
   const durationMinsInvalid = appearanceDurationEmpty || appearanceDurationZero;
   const expectationInvalid =
     personalizeTried && isAppearanceCategory && !appearanceExpectation.trim();
+  const checkoutHref = (() => {
+    const params = new URLSearchParams();
+    params.set("request", selected?.label ?? "");
+    params.set("category", activeCategory?.title ?? "");
+    params.set("delivery", isAppearanceCategory ? "Appearance event" : deliverySummaryLabel || "Select delivery");
+    params.set("content", isAppearanceCategory ? "Live appearance" : contentLabel || "Select format");
+    params.set(
+      "recipient",
+      isAppearanceCategory ? "Event audience" : recipientTarget === "self" ? "For me" : recipientName.trim() || "Someone else",
+    );
+    params.set("when", `${formatDisplayDate(deliveryDate)}${deliveryTime ? ` · ${deliveryTime}` : ""}`);
+    params.set("dayRate", String(dayRate));
+    params.set("feedFee", String(feedFee));
+    params.set("totalFee", String(totalFee));
+    params.set("isAppearance", isAppearanceCategory ? "1" : "0");
+    if (isAppearanceCategory) {
+      params.set("occasion", appearanceOccasion.trim() || "—");
+      params.set("location", appearanceLocation?.label || "—");
+      params.set("duration", appearanceDurationLabel || "—");
+      params.set("expectation", appearanceExpectation.trim() || "—");
+      params.set("reference", appearanceReference?.name || "None attached");
+    } else {
+      params.set("message", shoutoutMessage.trim() || "—");
+      params.set("instructions", specialInstructions.trim() || "—");
+      params.set(
+        "username",
+        recipientTarget === "other"
+          ? recipientUsername.trim()
+            ? `@${recipientUsername.trim().replace(/^@/, "")}`
+            : "—"
+          : "—",
+      );
+    }
+    return `/feed/profile/${profile.slug}/requests/checkout?${params.toString()}`;
+  })();
 
   return (
     <>
@@ -1637,38 +1824,37 @@ export default function ProfileRequestsView({
                                   <SectionInfoTip
                                     tipId="requests-pz-delivery-tip"
                                     title="Delivery"
-                                    copy="Choose how the shoutout reaches you — privately by direct message, or as a tagged post on the creator’s feed for an extra fee."
+                                    copy="Select one or both delivery options — privately by direct message, and/or as a tagged post on the creator’s feed for an extra fee."
                                   />
                                 </div>
-                                <div className="requests-pz__delivery" role="radiogroup" aria-label="Delivery method">
-                                  <label
-                                    className={`requests-pz__delivery-tile${deliveryMethod === "dm" ? " is-selected" : ""}`}
+                                <div
+                                  className={`requests-pz__delivery${personalizeTried && !hasDeliveryMethod ? " is-invalid" : ""}`}
+                                  role="group"
+                                  aria-label="Delivery options"
+                                >
+                                  <button
+                                    type="button"
+                                    role="checkbox"
+                                    ref={deliveryDmRef}
+                                    aria-checked={deliveryMethods.dm}
+                                    className={`requests-pz__delivery-tile${deliveryMethods.dm ? " is-selected" : ""}`}
+                                    onClick={() => toggleDeliveryMethod("dm")}
                                   >
-                                    <input
-                                      type="radio"
-                                      name="request-delivery-method"
-                                      value="dm"
-                                      checked={deliveryMethod === "dm"}
-                                      onChange={() => setDeliveryMethod("dm")}
-                                    />
                                     <span className="requests-pz__delivery-mark" aria-hidden="true" />
                                     <strong>Audio/Video clip delivered to me</strong>
                                     <span>You’ll receive the shoutout via direct message</span>
-                                  </label>
-                                  <label
-                                    className={`requests-pz__delivery-tile${deliveryMethod === "feed" ? " is-selected" : ""}`}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="checkbox"
+                                    aria-checked={deliveryMethods.feed}
+                                    className={`requests-pz__delivery-tile${deliveryMethods.feed ? " is-selected" : ""}`}
+                                    onClick={() => toggleDeliveryMethod("feed")}
                                   >
-                                    <input
-                                      type="radio"
-                                      name="request-delivery-method"
-                                      value="feed"
-                                      checked={deliveryMethod === "feed"}
-                                      onChange={() => setDeliveryMethod("feed")}
-                                    />
                                     <span className="requests-pz__delivery-mark" aria-hidden="true" />
                                     <strong>Tagged post on {profile.name}&apos;s feeds</strong>
                                     <span>Shoutout is visible to all your followers (+${FEED_SURCHARGE})</span>
-                                  </label>
+                                  </button>
                                 </div>
                               </div>
 
@@ -1678,10 +1864,14 @@ export default function ProfileRequestsView({
                                   <SectionInfoTip
                                     tipId="requests-pz-format-tip"
                                     title="Format"
-                                    copy="Pick whether you want a text, audio, or video shoutout, then choose how long it should be."
+                                    copy="Select one or more formats — text, audio, and/or video. Tone applies to all selected formats; extra options appear for each one."
                                   />
                                 </div>
-                                <div className="requests-pz__format" role="list" aria-label="Content format">
+                                <div
+                                  className={`requests-pz__format${formatInvalid && !hasFormat ? " is-invalid" : ""}`}
+                                  role="group"
+                                  aria-label="Content formats"
+                                >
                                   {(
                                     [
                                       {
@@ -1719,16 +1909,13 @@ export default function ProfileRequestsView({
                                     <button
                                       key={option.id}
                                       type="button"
-                                      role="listitem"
+                                      role="checkbox"
                                       ref={(node) => {
                                         contentTypeRefs.current[option.id] = node;
                                       }}
-                                      className={`requests-pz__format-tile${contentKind === option.id ? " is-selected" : ""}`}
-                                      aria-pressed={contentKind === option.id}
-                                      onClick={() => {
-                                        setContentKind(option.id);
-                                        focusPersonalizeControl(durationRef.current);
-                                      }}
+                                      className={`requests-pz__format-tile${formats[option.id] ? " is-selected" : ""}`}
+                                      aria-checked={formats[option.id]}
+                                      onClick={() => toggleFormat(option.id)}
                                     >
                                       <span className="requests-pz__format-mark" aria-hidden="true" />
                                       <span className="requests-pz__format-icon">{option.icon}</span>
@@ -1736,23 +1923,133 @@ export default function ProfileRequestsView({
                                     </button>
                                   ))}
                                 </div>
-                                <label className={`requests-pz__field${durationInvalid ? " is-invalid" : ""}`}>
-                                  <span className="requests-pz__label">Length</span>
-                                  <select
-                                    ref={durationRef}
-                                    className={`requests-pz__input${durationInvalid ? " is-invalid" : ""}`}
-                                    value={duration}
-                                    aria-invalid={durationInvalid || undefined}
-                                    onChange={(event) => setDuration(event.target.value)}
-                                  >
-                                    <option value="">Select</option>
-                                    {DURATION_OPTIONS.map((option) => (
-                                      <option key={option} value={option}>
-                                        {option}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
+
+                                {formats.text || formats.audio || formats.video ? (
+                                  <div className="requests-pz__format-details">
+                                    <label className={`requests-pz__field${toneInvalid ? " is-invalid" : ""}`}>
+                                      <span className="requests-pz__label">Tone</span>
+                                      <select
+                                        ref={toneRef}
+                                        className={`requests-pz__input${toneInvalid ? " is-invalid" : ""}`}
+                                        value={tone}
+                                        aria-invalid={toneInvalid || undefined}
+                                        onChange={(event) => setTone(event.target.value)}
+                                      >
+                                        <option value="">Select</option>
+                                        {TONE_OPTIONS.map((option) => (
+                                          <option key={option} value={option}>
+                                            {option}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+
+                                    {formats.text ? (
+                                      <div className="requests-pz__format-panel">
+                                        <p className="requests-pz__format-panel-title">Text details</p>
+                                        <label className={`requests-pz__field${textLengthInvalid ? " is-invalid" : ""}`}>
+                                          <span className="requests-pz__label">Length</span>
+                                          <select
+                                            ref={textLengthRef}
+                                            className={`requests-pz__input${textLengthInvalid ? " is-invalid" : ""}`}
+                                            value={textLength}
+                                            aria-invalid={textLengthInvalid || undefined}
+                                            onChange={(event) => setTextLength(event.target.value)}
+                                          >
+                                            <option value="">Select</option>
+                                            {TEXT_LENGTH_OPTIONS.map((option) => (
+                                              <option key={option} value={option}>
+                                                {option}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null}
+
+                                    {formats.audio ? (
+                                      <div className="requests-pz__format-panel">
+                                        <p className="requests-pz__format-panel-title">Audio details</p>
+                                        <label className={`requests-pz__field${audioDurationInvalid ? " is-invalid" : ""}`}>
+                                          <span className="requests-pz__label">Length</span>
+                                          <select
+                                            ref={audioDurationRef}
+                                            className={`requests-pz__input${audioDurationInvalid ? " is-invalid" : ""}`}
+                                            value={audioDuration}
+                                            aria-invalid={audioDurationInvalid || undefined}
+                                            onChange={(event) => setAudioDuration(event.target.value)}
+                                          >
+                                            <option value="">Select</option>
+                                            {DURATION_OPTIONS.map((option) => (
+                                              <option key={option} value={option}>
+                                                {option}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null}
+
+                                    {formats.video ? (
+                                      <div className="requests-pz__format-panel">
+                                        <p className="requests-pz__format-panel-title">Video details</p>
+                                        <div className="requests-pz__pair">
+                                          <label className={`requests-pz__field${videoDurationInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Length</span>
+                                            <select
+                                              ref={videoDurationRef}
+                                              className={`requests-pz__input${videoDurationInvalid ? " is-invalid" : ""}`}
+                                              value={videoDuration}
+                                              aria-invalid={videoDurationInvalid || undefined}
+                                              onChange={(event) => setVideoDuration(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {DURATION_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                          <label className={`requests-pz__field${videoStyleInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Framing</span>
+                                            <select
+                                              ref={videoStyleRef}
+                                              className={`requests-pz__input${videoStyleInvalid ? " is-invalid" : ""}`}
+                                              value={videoStyle}
+                                              aria-invalid={videoStyleInvalid || undefined}
+                                              onChange={(event) => setVideoStyle(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {VIDEO_STYLE_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        </div>
+                                        <label className={`requests-pz__field${videoCaptionsInvalid ? " is-invalid" : ""}`}>
+                                          <span className="requests-pz__label">Captions</span>
+                                          <select
+                                            ref={videoCaptionsRef}
+                                            className={`requests-pz__input${videoCaptionsInvalid ? " is-invalid" : ""}`}
+                                            value={videoCaptions}
+                                            aria-invalid={videoCaptionsInvalid || undefined}
+                                            onChange={(event) => setVideoCaptions(event.target.value)}
+                                          >
+                                            <option value="">Select</option>
+                                            {VIDEO_CAPTION_OPTIONS.map((option) => (
+                                              <option key={option} value={option}>
+                                                {option}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
                           </section>
@@ -1835,7 +2132,7 @@ export default function ProfileRequestsView({
                                   const selectedDay = deliveryDate === key;
                                   const shownPrice =
                                     dayRate +
-                                    (!isAppearanceCategory && deliveryMethod === "feed"
+                                    (!isAppearanceCategory && deliveryMethods.feed
                                       ? FEED_SURCHARGE
                                       : 0);
                                   const isFirstAvailable = !disabled && !firstAvailableAssigned;
@@ -2108,6 +2405,17 @@ export default function ProfileRequestsView({
                                 onChange={(event) => setShoutoutMessage(event.target.value)}
                               />
                             </label>
+                            <label className="requests-pz__field">
+                              <span className="requests-pz__label">Special instructions</span>
+                              <textarea
+                                ref={specialInstructionsRef}
+                                className="requests-pz__input requests-pz__input--area"
+                                value={specialInstructions}
+                                placeholder="Anything else the creator should know…"
+                                rows={4}
+                                onChange={(event) => setSpecialInstructions(event.target.value)}
+                              />
+                            </label>
                           </section>
                         )}
                       </form>
@@ -2131,18 +2439,11 @@ export default function ProfileRequestsView({
                               <>
                                 <div className="requests-summary__fact">
                                   <dt>Delivery</dt>
-                                  <dd>
-                                    {deliveryMethod === "feed"
-                                      ? `Tagged feed (+$${FEED_SURCHARGE})`
-                                      : "Direct message"}
-                                  </dd>
+                                  <dd>{deliveryLabel || "Select delivery"}</dd>
                                 </div>
                                 <div className="requests-summary__fact">
                                   <dt>Format</dt>
-                                  <dd>
-                                    {contentKind.charAt(0).toUpperCase() + contentKind.slice(1)}
-                                    {duration ? ` · ${duration}` : ""}
-                                  </dd>
+                                  <dd>{contentLabel || "Select format"}</dd>
                                 </div>
                                 <div className="requests-summary__fact">
                                   <dt>Recipient</dt>
@@ -2262,52 +2563,41 @@ export default function ProfileRequestsView({
                             </dl>
                           </div>
 
-                          {!isAppearanceCategory ? (
-                            <>
-                              <hr className="requests-review__rule" />
-                              <div className="requests-review__section" aria-labelledby="requests-review-delivery-heading">
-                                <header className="requests-review__head">
-                                  <div>
-                                    <p className="requests-review__eyebrow">Personalize</p>
-                                    <h2 id="requests-review-delivery-heading">Delivery &amp; content</h2>
-                                  </div>
-                                  <button type="button" className="requests-review__edit" onClick={() => setPickerStep(3)}>
-                                    Edit
-                                  </button>
-                                </header>
-                                <dl className="requests-review__facts">
-                                  <div className="requests-review__fact">
-                                    <dt>Delivery</dt>
-                                    <dd>
-                                      {deliveryMethod === "feed"
-                                        ? `Tagged feed post (+$${FEED_SURCHARGE})`
-                                        : "Direct message"}
-                                    </dd>
-                                  </div>
-                                  <div className="requests-review__fact">
-                                    <dt>Content</dt>
-                                    <dd>
-                                      {contentKind.charAt(0).toUpperCase() + contentKind.slice(1)}
-                                      {duration ? ` · ${duration}` : ""}
-                                    </dd>
-                                  </div>
-                                </dl>
-                              </div>
-                            </>
-                          ) : null}
-
                           <hr className="requests-review__rule" />
-                          <div className="requests-review__section" aria-labelledby="requests-review-schedule-heading">
+                          <div
+                            className="requests-review__section"
+                            aria-labelledby={
+                              isAppearanceCategory
+                                ? "requests-review-schedule-heading"
+                                : "requests-review-delivery-heading"
+                            }
+                          >
                             <header className="requests-review__head">
                               <div>
                                 <p className="requests-review__eyebrow">Personalize</p>
-                                <h2 id="requests-review-schedule-heading">Schedule</h2>
+                                {isAppearanceCategory ? (
+                                  <h2 id="requests-review-schedule-heading">Schedule</h2>
+                                ) : (
+                                  <h2 id="requests-review-delivery-heading">Delivery, format &amp; schedule</h2>
+                                )}
                               </div>
                               <button type="button" className="requests-review__edit" onClick={() => setPickerStep(3)}>
                                 Edit
                               </button>
                             </header>
                             <dl className="requests-review__facts">
+                              {!isAppearanceCategory ? (
+                                <>
+                                  <div className="requests-review__fact requests-review__fact--wide">
+                                    <dt>Delivery</dt>
+                                    <dd>{deliveryReviewLabel || "Select delivery"}</dd>
+                                  </div>
+                                  <div className="requests-review__fact requests-review__fact--wide">
+                                    <dt>Content</dt>
+                                    <dd>{contentLabel || "Select format"}</dd>
+                                  </div>
+                                </>
+                              ) : null}
                               <div className="requests-review__fact">
                                 <dt>Date</dt>
                                 <dd>{formatDisplayDate(deliveryDate)}</dd>
@@ -2400,6 +2690,12 @@ export default function ProfileRequestsView({
                                       {shoutoutMessage.trim() || "—"}
                                     </dd>
                                   </div>
+                                  <div className="requests-review__fact requests-review__fact--wide">
+                                    <dt>Special instructions</dt>
+                                    <dd className="requests-review__message">
+                                      {specialInstructions.trim() || "—"}
+                                    </dd>
+                                  </div>
                                 </dl>
                               </div>
                             </>
@@ -2426,18 +2722,11 @@ export default function ProfileRequestsView({
                               <>
                                 <div className="requests-summary__fact">
                                   <dt>Delivery</dt>
-                                  <dd>
-                                    {deliveryMethod === "feed"
-                                      ? `Feed post (+$${FEED_SURCHARGE})`
-                                      : "Direct message"}
-                                  </dd>
+                                  <dd>{deliverySummaryLabel || "Select delivery"}</dd>
                                 </div>
                                 <div className="requests-summary__fact">
                                   <dt>Content</dt>
-                                  <dd>
-                                    {contentKind.charAt(0).toUpperCase() + contentKind.slice(1)}
-                                    {duration ? ` · ${duration}` : ""}
-                                  </dd>
+                                  <dd>{contentLabel || "Select format"}</dd>
                                 </div>
                                 <div className="requests-summary__fact">
                                   <dt>Recipient</dt>
@@ -2505,21 +2794,27 @@ export default function ProfileRequestsView({
                           </div>
 
                           <div className="requests-summary__cta-row">
-                            <button
-                              type="button"
-                              className="btn btn--primary requests-summary__cta"
-                              disabled={!personalizedReady}
-                              onClick={() => {
-                                // Payment integration comes next; keep the review flow complete for now.
-                              }}
-                            >
-                              Pay ${totalFee}
-                            </button>
-                            <SummaryInfoTip
-                              tipId="requests-pay-info-tip"
-                              title="Before you pay"
-                              copy={`You can still change any detail using Edit or the step tracker. Payment locks in your request with ${profile.name}.`}
-                            />
+                            <div className="requests-summary__cta-shell">
+                              <Link
+                                href={checkoutHref}
+                                className={`btn btn--primary requests-summary__cta${!personalizedReady ? " is-disabled" : ""}`}
+                                aria-disabled={!personalizedReady}
+                                onClick={(event) => {
+                                  if (!personalizedReady) {
+                                    event.preventDefault();
+                                  }
+                                }}
+                              >
+                                Pay ${totalFee}
+                              </Link>
+                              <span className="requests-summary__cta-tip">
+                                <SummaryInfoTip
+                                  tipId="requests-pay-info-tip"
+                                  title="Before you pay"
+                                  copy={`You can still change any detail using Edit or the step tracker. Payment locks in your request with ${profile.name}.`}
+                                />
+                              </span>
+                            </div>
                           </div>
                         </section>
                       </aside>

@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import LeftNav from "@/components/feed/LeftNav";
 import MobileNav from "@/components/feed/MobileNav";
 import PageBodyClass from "@/components/feed/PageBodyClass";
+import BookingConfirmationCard from "@/components/feed/messages/BookingConfirmationCard";
+import BookingStatusNote from "@/components/feed/messages/BookingStatusNote";
 import type { Conversation } from "@/lib/feed/messages";
 
 function ConversationAvatar({
@@ -29,19 +39,59 @@ function ConversationAvatar({
   );
 }
 
+function messageBookingId(message: Conversation["messages"][number]) {
+  return (
+    message.booking?.specialRequestId?.trim() ||
+    message.bookingNote?.specialRequestId?.trim() ||
+    message.booking?.reference?.trim() ||
+    message.bookingNote?.reference?.trim() ||
+    ""
+  );
+}
+
 export default function MessagesView({
   initialConversations = [],
 }: {
   initialConversations?: Conversation[];
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const focusSlug = searchParams.get("slug")?.trim().toLowerCase() || "";
+  const focusThread = searchParams.get("thread")?.trim() || "";
+  const focusBooking = searchParams.get("booking")?.trim() || "";
+  const focusLatest = searchParams.get("focus")?.trim().toLowerCase() === "latest";
+
+  const streamRef = useRef<HTMLDivElement>(null);
   const [conversations, setConversations] = useState(initialConversations);
-  const [activeId, setActiveId] = useState(initialConversations[0]?.id ?? "");
+  const [activeId, setActiveId] = useState(() => {
+    if (focusThread && initialConversations.some((item) => item.id === focusThread)) {
+      return focusThread;
+    }
+    if (focusSlug) {
+      const match = initialConversations.find(
+        (item) => item.participant.slug?.toLowerCase() === focusSlug,
+      );
+      if (match) return match.id;
+    }
+    return initialConversations[0]?.id ?? "";
+  });
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState("");
-  const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [mobileChatOpen, setMobileChatOpen] = useState(
+    Boolean(focusSlug || focusThread || focusBooking || focusLatest),
+  );
   const [loading, setLoading] = useState(initialConversations.length === 0);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deepLinkApplied, setDeepLinkApplied] = useState(false);
+  const [pendingScroll, setPendingScroll] = useState<{
+    bookingId: string;
+    latest: boolean;
+  } | null>(() =>
+    focusBooking || focusLatest || focusThread || focusSlug
+      ? { bookingId: focusBooking, latest: focusLatest || Boolean(focusBooking) }
+      : null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -57,10 +107,45 @@ export default function MessagesView({
         const data = (await response.json()) as { conversations: Conversation[] };
         if (cancelled) return;
         setConversations(data.conversations);
+
+        const slugMatch = focusSlug
+          ? data.conversations.find((item) => item.participant.slug?.toLowerCase() === focusSlug)
+          : null;
+        const threadMatch = focusThread
+          ? data.conversations.find((item) => item.id === focusThread)
+          : null;
+        const target = threadMatch ?? slugMatch ?? null;
+
         setActiveId((current) => {
+          if (target) return target.id;
           if (current && data.conversations.some((item) => item.id === current)) return current;
           return data.conversations[0]?.id || "";
         });
+
+        if (target) {
+          setMobileChatOpen(true);
+          if (!deepLinkApplied) {
+            setDeepLinkApplied(true);
+            if (focusBooking || focusLatest) {
+              setPendingScroll({
+                bookingId: focusBooking,
+                latest: focusLatest || Boolean(focusBooking),
+              });
+            }
+            void fetch(`/api/feed/messages/${target.id}`, { cache: "no-store" })
+              .then(async (res) => {
+                if (!res.ok || cancelled) return;
+                const payload = (await res.json()) as { conversation: Conversation };
+                setConversations((current) =>
+                  current.map((conversation) =>
+                    conversation.id === payload.conversation.id ? payload.conversation : conversation,
+                  ),
+                );
+              })
+              .catch(() => undefined);
+            router.replace("/feed/messages", { scroll: false });
+          }
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Failed to load messages.");
@@ -74,12 +159,55 @@ export default function MessagesView({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [
+    deepLinkApplied,
+    focusBooking,
+    focusLatest,
+    focusSlug,
+    focusThread,
+    initialConversations.length,
+    router,
+  ]);
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
     [activeId, conversations],
   );
+
+  useEffect(() => {
+    if (!pendingScroll || !activeConversation || loading) return;
+    const stream = streamRef.current;
+    if (!stream) return;
+
+    let cancelled = false;
+    const frame = window.requestAnimationFrame(() => {
+      if (cancelled) return;
+
+      const bookingId = pendingScroll.bookingId;
+      if (bookingId) {
+        const matches = stream.querySelectorAll<HTMLElement>(`[data-booking-id="${bookingId}"]`);
+        const target = matches[matches.length - 1];
+        if (target) {
+          target.scrollIntoView({ block: "end", behavior: "smooth" });
+          target.classList.add("is-booking-focused");
+          window.setTimeout(() => target.classList.remove("is-booking-focused"), 1600);
+          setPendingScroll(null);
+          return;
+        }
+        if (activeConversation.messages.length === 0) return;
+      }
+
+      if (pendingScroll.latest || bookingId) {
+        stream.scrollTop = stream.scrollHeight;
+        setPendingScroll(null);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+    };
+  }, [pendingScroll, activeConversation, activeConversation?.messages.length, loading]);
 
   const filteredConversations = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -150,6 +278,7 @@ export default function MessagesView({
           return 0;
         });
       });
+      setPendingScroll({ bookingId: "", latest: true });
     } catch (err) {
       setDraft(trimmed);
       setError(err instanceof Error ? err.message : "Could not send message.");
@@ -277,16 +406,51 @@ export default function MessagesView({
                     </div>
                   </header>
 
-                  <div className="messages-chat__stream" role="log" aria-live="polite" aria-relevant="additions">
-                    {activeConversation.messages.map((message) => (
-                      <article
-                        key={message.id}
-                        className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}`}
-                      >
-                        <p>{message.body}</p>
-                        <time>{message.time}</time>
-                      </article>
-                    ))}
+                  <div
+                    ref={streamRef}
+                    className="messages-chat__stream"
+                    role="log"
+                    aria-live="polite"
+                    aria-relevant="additions"
+                  >
+                    {activeConversation.messages.map((message) => {
+                      const bookingId = messageBookingId(message);
+                      if (message.booking) {
+                        return (
+                          <div
+                            key={message.id}
+                            className="messages-chat__booking-wrap"
+                            data-booking-id={bookingId || undefined}
+                          >
+                            <BookingConfirmationCard
+                              booking={message.booking}
+                              time={message.time}
+                              creatorName={activeConversation.participant.name}
+                            />
+                          </div>
+                        );
+                      }
+                      if (message.bookingNote) {
+                        return (
+                          <div
+                            key={message.id}
+                            className="messages-chat__booking-wrap"
+                            data-booking-id={bookingId || undefined}
+                          >
+                            <BookingStatusNote note={message.bookingNote} time={message.time} />
+                          </div>
+                        );
+                      }
+                      return (
+                        <article
+                          key={message.id}
+                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}`}
+                        >
+                          <p>{message.body}</p>
+                          <time>{message.time}</time>
+                        </article>
+                      );
+                    })}
                   </div>
 
                   <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>

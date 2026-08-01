@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import MessagesView from "@/components/feed/messages/MessagesView";
 import { getMessagesPageData } from "@/lib/feed/messages-server";
 
@@ -10,7 +11,9 @@ export default async function MessagesPage() {
 
   return (
     <div className="page-messages">
-      <MessagesView initialConversations={conversations} />
+      <Suspense fallback={<MessagesView initialConversations={conversations} />}>
+        <MessagesView initialConversations={conversations} />
+      </Suspense>
     </div>
   );
 }

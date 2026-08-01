@@ -20,6 +20,7 @@ const navItems: {
   { label: "Audio", href: "/feed/audio", icon: "audio" },
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
+  { label: "Bookings", href: "/feed/bookings", icon: "bookings" },
   { label: "More", href: "#", icon: "more" },
 ];
 

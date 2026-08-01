@@ -25,6 +25,15 @@ enum SubscriptionStatus {
   CANCELLED
 }
 
+enum SpecialRequestStatus {
+  RECEIVED
+  ACCEPTED
+  IN_PROGRESS
+  DELIVERED
+  DECLINED
+  CANCELLED
+}
+
 model User {
   id            String      @id @default(cuid())
   email         String      @unique
@@ -48,7 +57,7 @@ model User {
   guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
-  follows                CreatorFollow[]
+  specialRequests        SpecialRequest[]
 }
 
 model Account {
@@ -112,10 +121,6 @@ model ParentApprovalRequest {
   expiresAt             DateTime
   sentAt                DateTime       @default(now())
   resolvedAt            DateTime?
-  /// One-time token emailed to the child so "Continue signup" binds to this approval.
-  continueTokenHash     String?        @unique
-  continueTokenExpiresAt DateTime?
-  continueTokenUsedAt   DateTime?
   protectionLevel       String?
   idDocType             String?
   guardianCountry       String?
@@ -154,11 +159,11 @@ model CreatorUser {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  posts         FeedPost[]
-  collections   CreatorCollection[]
-  chatThreads   ChatThread[]
-  subscriptions CreatorSubscription[]
-  followers     CreatorFollow[]
+  posts           FeedPost[]
+  collections     CreatorCollection[]
+  chatThreads     ChatThread[]
+  subscriptions   CreatorSubscription[]
+  specialRequests SpecialRequest[]
 
   @@index([name])
 }
@@ -256,9 +261,10 @@ model ChatThread {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  peerCreator CreatorUser? @relation(fields: [peerCreatorId], references: [id], onDelete: SetNull)
-  messages    ChatMessage[]
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  peerCreator     CreatorUser?  @relation(fields: [peerCreatorId], references: [id], onDelete: SetNull)
+  messages        ChatMessage[]
+  specialRequests SpecialRequest[]
 
   @@unique([userId, peerCreatorId])
   @@unique([userId, seedKey])
@@ -267,15 +273,65 @@ model ChatThread {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
-  threadId  String
-  body      String
-  fromMe    Boolean
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  threadId         String
+  body             String
+  fromMe           Boolean
+  specialRequestId String?
+  createdAt        DateTime @default(now())
 
-  thread ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  thread         ChatThread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  specialRequest SpecialRequest? @relation(fields: [specialRequestId], references: [id], onDelete: SetNull)
 
   @@index([threadId, createdAt])
+  @@index([specialRequestId])
+}
+
+/// Fan special request / booking linked to both requester (`User`) and creator (`CreatorUser`).
+model SpecialRequest {
+  id                 String               @id @default(cuid())
+  reference          String               @unique
+  status             SpecialRequestStatus @default(RECEIVED)
+  userId             String
+  creatorId          String
+  threadId           String?
+  requestLabel       String
+  category           String?
+  occasion           String?
+  contentType        String?
+  duration           String?
+  publishingMethod   String?
+  recipientLabel     String?
+  recipientUsername  String?
+  shoutoutMessage    String?
+  specialInstructions String?
+  isAppearance       Boolean              @default(false)
+  appearanceLocation String?
+  appearanceExpectation String?
+  appearanceReference String?
+  dayRate            Int                  @default(0)
+  feedFee            Int                  @default(0)
+  totalFee           Int                  @default(0)
+  currency           String               @default("USD")
+  requestedForAt     DateTime?
+  deliverBy          DateTime?
+  acceptedAt         DateTime?
+  declinedAt         DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  detailsJson        Json?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator  CreatorUser  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  thread   ChatThread?  @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([userId, createdAt])
+  @@index([creatorId, status, createdAt])
+  @@index([status, createdAt])
+  @@index([threadId])
 }
 
 /// Per-user subscription to a creator (`User` → `CreatorUser`).
@@ -295,19 +351,4 @@ model CreatorSubscription {
   @@unique([userId, creatorId])
   @@index([creatorId, status])
   @@index([userId, status])
-}
-
-/// Per-user follow of a creator (`User` → `CreatorUser`).
-model CreatorFollow {
-  id        String   @id @default(cuid())
-  userId    String
-  creatorId String
-  createdAt DateTime @default(now())
-
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, creatorId])
-  @@index([userId, createdAt])
-  @@index([creatorId])
 }

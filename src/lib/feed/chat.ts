@@ -1,4 +1,11 @@
 import type { Conversation, ChatMessage, ConversationParticipant } from "@/lib/feed/messages";
+import {
+  bookingMessagePreview,
+  bookingNotePreview,
+  parseBookingMessage,
+  parseBookingNote,
+  withCreatorName,
+} from "@/lib/feed/booking-confirmation";
 
 type DbMessage = {
   id: string;
@@ -36,6 +43,14 @@ export function formatChatTime(date: Date, now = new Date()): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+export function formatChatClock(date: Date): string {
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export function mapThreadToConversation(thread: DbThread): Conversation {
   const participant: ConversationParticipant = {
     id: thread.peerCreatorId ?? thread.id,
@@ -48,17 +63,72 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
     online: thread.peerOnline,
   };
 
-  const messages: ChatMessage[] = thread.messages.map((message) => ({
-    id: message.id,
-    sender: message.fromMe ? "me" : "them",
-    body: message.body,
-    time: formatChatTime(message.createdAt),
-  }));
+  const messages: ChatMessage[] = thread.messages.map((message) => {
+    const bookingRaw = parseBookingMessage(message.body);
+    const booking = bookingRaw
+      ? withCreatorName(bookingRaw, thread.peerName)
+      : undefined;
+    const bookingNoteRaw = booking ? null : parseBookingNote(message.body);
+    const bookingNote = bookingNoteRaw
+      ? {
+          ...bookingNoteRaw,
+          creatorName: bookingNoteRaw.creatorName?.trim() || thread.peerName,
+        }
+      : undefined;
+
+    const isStructured = Boolean(booking || bookingNote);
+    return {
+      id: message.id,
+      sender: message.fromMe ? "me" : "them",
+      body: booking
+        ? bookingMessagePreview(booking)
+        : bookingNote
+          ? bookingNotePreview(bookingNote)
+          : message.body,
+      time: isStructured ? formatChatClock(message.createdAt) : formatChatTime(message.createdAt),
+      booking,
+      bookingNote,
+    };
+  });
+
+  const deliverByByReference = new Map<string, string>();
+  for (const message of messages) {
+    if (message.booking?.reference && message.booking.deliverBy) {
+      deliverByByReference.set(message.booking.reference, message.booking.deliverBy);
+    }
+  }
+  for (const message of messages) {
+    if (message.bookingNote && !message.bookingNote.deliverBy) {
+      const fromBooking = deliverByByReference.get(message.bookingNote.reference);
+      if (fromBooking) {
+        message.bookingNote = { ...message.bookingNote, deliverBy: fromBooking };
+      }
+    }
+  }
+
+  const last = messages[messages.length - 1];
+  const previewSource = thread.preview ?? last?.body ?? "";
+  const previewBookingRaw = parseBookingMessage(previewSource);
+  const previewBooking = previewBookingRaw
+    ? withCreatorName(previewBookingRaw, thread.peerName)
+    : null;
+  const previewNote = previewBooking ? null : parseBookingNote(previewSource);
 
   return {
     id: thread.id,
     participant,
-    preview: thread.preview ?? messages[messages.length - 1]?.body ?? "",
+    preview: previewBooking
+      ? bookingMessagePreview(previewBooking)
+      : previewNote
+        ? bookingNotePreview({
+            ...previewNote,
+            creatorName: previewNote.creatorName?.trim() || thread.peerName,
+          })
+        : last?.booking
+          ? bookingMessagePreview(last.booking)
+          : last?.bookingNote
+            ? bookingNotePreview(last.bookingNote)
+            : previewSource,
     previewTime: thread.lastMessageAt ? formatChatTime(thread.lastMessageAt) : "",
     unread: thread.unreadCount,
     messages,
