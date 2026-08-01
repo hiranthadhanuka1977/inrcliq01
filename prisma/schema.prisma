@@ -57,6 +57,7 @@ model User {
   guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
+  follows                CreatorFollow[]
   specialRequests        SpecialRequest[]
 }
 
@@ -128,6 +129,9 @@ model ParentApprovalRequest {
   childLivesWithGuardian Boolean?
   childLocationCountry  String?
   childLocationRegion   String?
+  continueTokenHash     String?        @unique
+  continueTokenExpiresAt DateTime?
+  continueTokenUsedAt   DateTime?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
@@ -163,6 +167,7 @@ model CreatorUser {
   collections     CreatorCollection[]
   chatThreads     ChatThread[]
   subscriptions   CreatorSubscription[]
+  follows         CreatorFollow[]
   specialRequests SpecialRequest[]
 
   @@index([name])
@@ -351,4 +356,19 @@ model CreatorSubscription {
   @@unique([userId, creatorId])
   @@index([creatorId, status])
   @@index([userId, status])
+}
+
+/// Free follow relationship (`User` → `CreatorUser`), distinct from paid subscription.
+model CreatorFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  creatorId String
+  createdAt DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, creatorId])
+  @@index([userId, createdAt])
+  @@index([creatorId])
 }

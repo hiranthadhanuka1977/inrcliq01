@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import type { BookingConfirmationPayload } from "@/lib/feed/booking-confirmation";
 
 export type CreateSpecialRequestInput = {
@@ -26,7 +27,7 @@ export type CreateSpecialRequestInput = {
   currency?: string;
   requestedForAt?: Date | null;
   deliverBy?: Date | null;
-  detailsJson?: Record<string, unknown> | null;
+  detailsJson?: Prisma.InputJsonValue | null;
 };
 
 function asInt(value: number | undefined, fallback = 0) {
