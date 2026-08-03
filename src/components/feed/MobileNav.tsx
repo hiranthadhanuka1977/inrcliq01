@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useFeedTheme } from "@/context/feed/FeedThemeContext";
 import { MOBILE_MORE_ITEMS, MOBILE_NAV_ITEMS, NavIcon } from "@/lib/feed/nav-icons";
 
 function isActive(pathname: string, href: string): boolean {
@@ -19,6 +20,7 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useFeedTheme();
   const [moreOpen, setMoreOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const sheetId = useId();
@@ -100,7 +102,9 @@ export default function MobileNav() {
             <ul className="mobile-more__list">
               {MOBILE_MORE_ITEMS.map((item) => {
                 const active = isActive(pathname, item.href);
-                const isLogout = "action" in item && item.action === "logout";
+                const action = "action" in item ? item.action : undefined;
+                const isLogout = action === "logout";
+                const isTheme = action === "theme";
 
                 return (
                   <li key={item.label}>
@@ -116,6 +120,21 @@ export default function MobileNav() {
                           <NavIcon name={item.icon} />
                         </span>
                         <span>{logoutLoading ? "Logging out…" : item.label}</span>
+                      </button>
+                    ) : isTheme ? (
+                      <button
+                        type="button"
+                        className="mobile-more__item"
+                        role="menuitem"
+                        onClick={() => {
+                          toggleTheme();
+                          setMoreOpen(false);
+                        }}
+                      >
+                        <span className="nav-icon" aria-hidden="true">
+                          <NavIcon name={item.icon} />
+                        </span>
+                        <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
                       </button>
                     ) : (
                       <Link
