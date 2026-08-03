@@ -85,42 +85,48 @@ function getFeedDataFromJson(): FeedData {
 }
 
 async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
-  const sessionUser = await getSessionUser();
-  if (!sessionUser) {
-    return items.map((item) => ({
+  const clearFollowing = () =>
+    items.map((item) => ({
       ...item,
       relationship: { ...item.relationship, following: false },
     }));
+
+  try {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) return clearFollowing();
+
+    const followedIds = await getFollowedCreatorIdsForUser(sessionUser.id);
+    if (followedIds.size === 0) return clearFollowing();
+
+    const creators = await prisma.creatorUser.findMany({
+      where: { id: { in: Array.from(followedIds) } },
+      select: { id: true, handle: true, slug: true },
+    });
+
+    const followedSlugs = new Set<string>();
+    const followedHandles = new Set<string>();
+    for (const creator of creators) {
+      if (creator.slug) followedSlugs.add(creator.slug);
+      followedHandles.add(creator.handle.toLowerCase());
+      const fromHandle = getProfileSlugFromHandle(creator.handle);
+      if (fromHandle) followedSlugs.add(fromHandle);
+    }
+
+    return items.map((item) => {
+      const handle = item.author.handle.startsWith("@") ? item.author.handle : `@${item.author.handle}`;
+      const slug = getProfileSlugFromHandle(item.author.handle);
+      const following =
+        followedHandles.has(handle.toLowerCase()) ||
+        Boolean(slug && followedSlugs.has(slug));
+      return {
+        ...item,
+        relationship: { ...item.relationship, following },
+      };
+    });
+  } catch (error) {
+    console.error("applyFollowState: defaulting to no follows", error);
+    return clearFollowing();
   }
-
-  const followedIds = await getFollowedCreatorIdsForUser(sessionUser.id);
-  if (followedIds.size === 0) {
-    return items.map((item) => ({
-      ...item,
-      relationship: { ...item.relationship, following: false },
-    }));
-  }
-
-  const creators = await prisma.creatorUser.findMany({
-    where: { id: { in: Array.from(followedIds) } },
-    select: { id: true, handle: true, slug: true },
-  });
-
-  const followedSlugs = new Set<string>();
-  for (const creator of creators) {
-    if (creator.slug) followedSlugs.add(creator.slug);
-    const fromHandle = getProfileSlugFromHandle(creator.handle);
-    if (fromHandle) followedSlugs.add(fromHandle);
-  }
-
-  return items.map((item) => {
-    const slug = getProfileSlugFromHandle(item.author.handle);
-    const following = Boolean(slug && followedSlugs.has(slug));
-    return {
-      ...item,
-      relationship: { ...item.relationship, following },
-    };
-  });
 }
 
 async function getSubscribedCreatorIds(creatorIds: string[]): Promise<Set<string>> {
@@ -185,13 +191,9 @@ export async function getFeedData(): Promise<FeedData> {
   } catch (error) {
     console.error("getFeedData: falling back to JSON", error);
     const json = getFeedDataFromJson();
-    try {
-      return {
-        ...json,
-        items: await applyFollowState(json.items),
-      };
-    } catch {
-      return json;
-    }
+    return {
+      ...json,
+      items: await applyFollowState(json.items),
+    };
   }
 }

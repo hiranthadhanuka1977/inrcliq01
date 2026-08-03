@@ -122,6 +122,7 @@ export default function FeedPost({ item, following, onFollowingChange }: FeedPos
 
   const handle = author.handle.startsWith("@") ? author.handle : `@${author.handle}`;
   const profileSlug = getProfileSlugFromHandle(author.handle);
+  const creatorSlug = profileSlug ?? handle.replace(/^@/, "");
   const isFollowing = following ?? localFollowing;
 
   const avatar = (
@@ -187,7 +188,7 @@ export default function FeedPost({ item, following, onFollowingChange }: FeedPos
                   }
                   setLocalFollowing(next);
                 }}
-                creatorSlug={profileSlug}
+                creatorSlug={creatorSlug}
                 className="post-head__follow"
                 name={author.name}
               />

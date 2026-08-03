@@ -25,7 +25,7 @@ type FeedThemeContextValue = {
 const FeedThemeContext = createContext<FeedThemeContextValue | null>(null);
 
 export function FeedThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<FeedTheme>("dark");
+  const [theme, setThemeState] = useState<FeedTheme>("light");
 
   useEffect(() => {
     const initial = readStoredFeedTheme();

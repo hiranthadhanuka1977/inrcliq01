@@ -1540,6 +1540,39 @@
   display: block;
 }
 
+/* Match main-feed media hover on card art */
+.page-audio .audio-for-you-card__art img,
+.page-audio .audio-challenge-card__art img {
+  transform: scale(1);
+  transform-origin: center center;
+  transition:
+    transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1),
+    filter 0.35s ease;
+}
+
+.page-audio .audio-for-you-card:hover .audio-for-you-card__art img,
+.page-audio .audio-for-you-card:focus-within .audio-for-you-card__art img,
+.page-audio .audio-challenge-card:hover .audio-challenge-card__art img,
+.page-audio .audio-challenge-card:focus-within .audio-challenge-card__art img {
+  transform: scale(1.04);
+  filter: brightness(0.93);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-audio .audio-for-you-card__art img,
+  .page-audio .audio-challenge-card__art img {
+    transition: none;
+  }
+
+  .page-audio .audio-for-you-card:hover .audio-for-you-card__art img,
+  .page-audio .audio-for-you-card:focus-within .audio-for-you-card__art img,
+  .page-audio .audio-challenge-card:hover .audio-challenge-card__art img,
+  .page-audio .audio-challenge-card:focus-within .audio-challenge-card__art img {
+    transform: none;
+    filter: none;
+  }
+}
+
 .page-audio .audio-challenge-card__body {
   display: flex;
   flex-direction: column;

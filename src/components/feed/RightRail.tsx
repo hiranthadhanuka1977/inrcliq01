@@ -33,7 +33,6 @@ const SUGGESTIONS: SuggestPerson[] = [
     meta: "89.4M followers",
     initials: "AG",
     color: "#f97316",
-    initiallyFollowing: true,
   },
 ];
 

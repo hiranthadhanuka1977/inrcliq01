@@ -38,7 +38,7 @@ export default function AudioCreatorCard({
 }: AudioCreatorCardProps) {
   const { getFollowing, setFollowing } = useFeedFollowState();
   const following = getFollowing(handle, false);
-  const creatorSlug = getProfileSlugFromHandle(handle);
+  const creatorSlug = getProfileSlugFromHandle(handle) ?? handle.replace(/^@/, "");
   const profileHref = href ?? profileHrefFromHandle(handle);
 
   return (

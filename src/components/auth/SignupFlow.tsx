@@ -12,11 +12,13 @@ import {
   getNameValidationState,
 } from "@/lib/form-validation";
 import { formatVerifyEmailDisplay } from "@/lib/utils/email-display";
+import { AuthPathShell } from "@/components/auth/AuthPathShell";
 import { Disclosure } from "@/components/auth/Disclosure";
 import { FieldError } from "@/components/ui/FieldError";
 import { SignupProgressBar } from "@/components/auth/SignupProgressBar";
 import { VerificationEmailInbox } from "@/components/auth/VerificationEmailInbox";
 import { VerifyEmailInboxButton } from "@/components/auth/VerifyEmailInboxButton";
+import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 
 type Step = 1 | 2 | 3;
 type SignupMethod = "email" | "google" | "apple" | null;
@@ -340,7 +342,9 @@ export function SignupFlow() {
       : 0;
 
   return (
+    <AuthPathShell>
     <>
+    <ThemeSwitcher className="theme-switcher--auth-fixed" />
     {step === 3 && verifyUrl ? (
       <VerifyEmailInboxButton
         id="btn-open-verify-email-inbox"
@@ -773,5 +777,6 @@ export function SignupFlow() {
     </section>
     <SignupProgressBar step={step} />
     </>
+    </AuthPathShell>
   );
 }

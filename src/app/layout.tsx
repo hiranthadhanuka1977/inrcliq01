@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
 import { PrototypeControls } from "@/components/prototype/PrototypeControls";
+import { FeedThemeProvider } from "@/context/feed/FeedThemeContext";
+import { FEED_THEME_BOOTSTRAP } from "@/lib/feed/theme";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -23,6 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: FEED_THEME_BOOTSTRAP }} />
+      </head>
       <body className={plusJakarta.className} suppressHydrationWarning>
         <a href="#main-content" className="skip-link">
           Skip to main content
@@ -30,9 +35,11 @@ export default function RootLayout({
         <GoogleAnalytics />
         <MicrosoftClarity />
         <PrototypeControls />
-        <div id="main-content" tabIndex={-1}>
-          {children}
-        </div>
+        <FeedThemeProvider>
+          <div id="main-content" tabIndex={-1}>
+            {children}
+          </div>
+        </FeedThemeProvider>
       </body>
     </html>
   );

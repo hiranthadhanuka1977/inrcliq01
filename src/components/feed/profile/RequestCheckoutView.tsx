@@ -1,36 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { ProfileData } from "@/types/feed/profile";
-import {
-  extractContentType,
-  extractDuration,
-  extractTone,
-  generateBookingReference,
-  parseDeliveryDeadline,
-} from "@/lib/feed/booking-confirmation";
 
 type RequestCheckoutData = {
   request?: string;
   category?: string;
-  delivery?: string;
-  content?: string;
-  when?: string;
-  duration?: string;
-  occasion?: string;
-  recipient?: string;
-  username?: string;
-  message?: string;
-  instructions?: string;
-  location?: string;
-  expectation?: string;
-  reference?: string;
   dayRate?: number;
   feedFee?: number;
   totalFee: number;
-  isAppearance?: boolean;
 };
 
 type CardSource = "saved" | "new";
@@ -55,8 +34,6 @@ const COUNTRIES = [
   "France",
 ];
 
-const REDIRECT_MS = 2000;
-
 function formatCardNumber(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 16);
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
@@ -68,42 +45,6 @@ function formatExpiry(value: string) {
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
-function buildBookingPayload(
-  data: RequestCheckoutData,
-  creatorName: string,
-) {
-  const reference = generateBookingReference();
-  const contentSummary = data.content?.trim() || "";
-  return {
-    reference,
-    requestLabel: data.request?.trim() || "Special request",
-    category: data.category?.trim() || "",
-    occasion: data.occasion?.trim() || data.category?.trim() || data.request?.trim() || "—",
-    contentType: data.isAppearance ? "Live appearance" : extractContentType(contentSummary),
-    duration: data.isAppearance
-      ? data.duration?.trim() || "—"
-      : extractDuration(contentSummary, data.duration),
-    tone: data.isAppearance ? null : extractTone(contentSummary),
-    contentSummary: data.isAppearance ? null : contentSummary || null,
-    publishingMethod: data.delivery?.trim() || "Direct message",
-    recipientLabel: data.recipient?.trim() || "",
-    recipientUsername: data.username?.trim() || "",
-    shoutoutMessage: data.message?.trim() || "",
-    specialInstructions: data.instructions?.trim() || "",
-    isAppearance: Boolean(data.isAppearance),
-    appearanceLocation: data.location?.trim() || "",
-    appearanceExpectation: data.expectation?.trim() || "",
-    appearanceReference: data.reference?.trim() || "",
-    dayRate: data.dayRate ?? data.totalFee,
-    feedFee: data.feedFee ?? 0,
-    totalFee: data.totalFee,
-    currency: "USD",
-    when: data.when?.trim() || "",
-    deliverBy: parseDeliveryDeadline(data.when),
-    creatorName,
-  };
-}
-
 export default function RequestCheckoutView({
   profile,
   data,
@@ -111,8 +52,6 @@ export default function RequestCheckoutView({
   profile: ProfileData;
   data: RequestCheckoutData;
 }) {
-  const router = useRouter();
-  const redirectTimerRef = useRef<number | null>(null);
   const [cardSource, setCardSource] = useState<CardSource>("saved");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
@@ -120,90 +59,45 @@ export default function RequestCheckoutView({
   const [country, setCountry] = useState("Sri Lanka");
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [progressing, setProgressing] = useState(false);
-  const [paying, setPaying] = useState(false);
 
   const backHref = `/feed/profile/${profile.slug}/requests/choose`;
   const requestLabel = data.request?.trim() || "Special request";
   const dayRate = data.dayRate ?? data.totalFee;
   const feedFee = data.feedFee ?? 0;
 
-  useEffect(() => {
-    return () => {
-      if (redirectTimerRef.current != null) {
-        window.clearTimeout(redirectTimerRef.current);
-      }
-    };
-  }, []);
-
   function selectCardSource(next: CardSource) {
-    if (submitted || paying) return;
     setCardSource(next);
     setError(null);
-  }
-
-  async function finishPayment() {
-    setPaying(true);
-    setError(null);
-
-    try {
-      const booking = buildBookingPayload(data, profile.name);
-      const response = await fetch("/api/feed/messages/booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: profile.slug,
-          booking,
-        }),
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error || "Could not confirm booking message.");
-      }
-
-      const result = (await response.json()) as { threadId?: string };
-      setSubmitted(true);
-      setProgressing(true);
-
-      redirectTimerRef.current = window.setTimeout(() => {
-        const params = new URLSearchParams();
-        if (result.threadId) params.set("thread", result.threadId);
-        params.set("slug", profile.slug);
-        router.push(`/feed/messages?${params.toString()}`);
-      }, REDIRECT_MS);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment succeeded, but messaging failed.");
-      setSubmitted(true);
-    } finally {
-      setPaying(false);
-    }
+    setSubmitted(false);
   }
 
   function submitPayment() {
-    if (submitted || paying || progressing) return;
-
     if (!country.trim()) {
       setError("Select a country of origin to continue.");
       return;
     }
 
-    if (cardSource === "new") {
-      const numberDigits = cardNumber.replace(/\D/g, "");
-      const expiryDigits = cardExpiry.replace(/\D/g, "");
-      const cvvDigits = cardCvv.replace(/\D/g, "");
-      const valid =
-        numberDigits.length >= 12 &&
-        expiryDigits.length === 4 &&
-        cvvDigits.length >= 3;
-
-      if (!valid) {
-        setError("Enter valid card details to continue.");
-        return;
-      }
+    if (cardSource === "saved") {
+      setError(null);
+      setSubmitted(true);
+      return;
     }
 
-    void finishPayment();
+    const numberDigits = cardNumber.replace(/\D/g, "");
+    const expiryDigits = cardExpiry.replace(/\D/g, "");
+    const cvvDigits = cardCvv.replace(/\D/g, "");
+    const valid =
+      numberDigits.length >= 12 &&
+      expiryDigits.length === 4 &&
+      cvvDigits.length >= 3;
+
+    if (!valid) {
+      setError("Enter valid card details to continue.");
+      return;
+    }
+
+    setError(null);
+    setSubmitted(true);
   }
 
   return (
@@ -277,7 +171,6 @@ export default function RequestCheckoutView({
                   value="saved"
                   checked={cardSource === "saved"}
                   onChange={() => selectCardSource("saved")}
-                  disabled={submitted || paying}
                 />
                 <span className="stripe-checkout__method-copy">
                   <strong>
@@ -297,7 +190,6 @@ export default function RequestCheckoutView({
                   value="new"
                   checked={cardSource === "new"}
                   onChange={() => selectCardSource("new")}
-                  disabled={submitted || paying}
                 />
                 <span className="stripe-checkout__method-copy">
                   <strong>New card</strong>
@@ -317,7 +209,6 @@ export default function RequestCheckoutView({
                     inputMode="numeric"
                     autoComplete="cc-number"
                     value={cardNumber}
-                    disabled={submitted || paying}
                     onChange={(event) => {
                       setCardNumber(formatCardNumber(event.target.value));
                       setError(null);
@@ -332,7 +223,6 @@ export default function RequestCheckoutView({
                       inputMode="numeric"
                       autoComplete="cc-exp"
                       value={cardExpiry}
-                      disabled={submitted || paying}
                       onChange={(event) => {
                         setCardExpiry(formatExpiry(event.target.value));
                         setError(null);
@@ -346,7 +236,6 @@ export default function RequestCheckoutView({
                       inputMode="numeric"
                       autoComplete="cc-csc"
                       value={cardCvv}
-                      disabled={submitted || paying}
                       onChange={(event) => {
                         setCardCvv(event.target.value.replace(/\D/g, "").slice(0, 4));
                         setError(null);
@@ -366,7 +255,6 @@ export default function RequestCheckoutView({
               <select
                 autoComplete="country-name"
                 value={country}
-                disabled={submitted || paying}
                 onChange={(event) => {
                   setCountry(event.target.value);
                   setError(null);
@@ -387,28 +275,13 @@ export default function RequestCheckoutView({
             </p>
           ) : null}
           {submitted ? (
-            <div className="stripe-checkout__success-block" role="status">
-              <p className="stripe-checkout__success">
-                Payment confirmed. Your request has been submitted.
-              </p>
-              {progressing ? (
-                <div className="stripe-checkout__progress" aria-label="Redirecting to messages">
-                  <div className="stripe-checkout__progress-track">
-                    <span className="stripe-checkout__progress-fill" />
-                  </div>
-                  <p className="stripe-checkout__progress-label">Taking you to messages…</p>
-                </div>
-              ) : null}
-            </div>
+            <p className="stripe-checkout__success" role="status">
+              Payment confirmed. Your request has been submitted.
+            </p>
           ) : null}
 
-          <button
-            type="button"
-            className="stripe-checkout__pay"
-            onClick={submitPayment}
-            disabled={submitted || paying || progressing}
-          >
-            {paying ? "Processing…" : `Pay $${data.totalFee}`}
+          <button type="button" className="stripe-checkout__pay" onClick={submitPayment}>
+            Pay ${data.totalFee}
           </button>
 
           <p className="stripe-checkout__secure">

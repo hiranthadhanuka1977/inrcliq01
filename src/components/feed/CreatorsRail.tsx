@@ -42,7 +42,8 @@ export default function CreatorsRail() {
       <div className="spotify-card-row creator-rail__track" id="creators-rail-row">
         {creatorsToFollow.map((creator) => {
           const isFollowing = Boolean(following[creator.id]);
-          const creatorSlug = getProfileSlugFromHandle(creator.handle);
+          const creatorSlug =
+            getProfileSlugFromHandle(creator.handle) ?? creator.handle.replace(/^@/, "");
 
           return (
             <article key={creator.id} className="spotify-card">

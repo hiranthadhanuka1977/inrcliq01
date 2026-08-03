@@ -1,0 +1,293 @@
+/**
+ * Shared app theme tokens — dark/light for feed + auth shells.
+ * data-feed-theme on <html>; gated by .feed-path-shell / .auth-path-shell.
+ */
+
+/* ——— Dark ——— */
+html:has(.feed-path-shell):not([data-feed-theme="light"]),
+html:has(.auth-path-shell):not([data-feed-theme="light"]) {
+  --color-brand-primary: #6b9fff;
+  --color-brand-primary-hover: #8ab4ff;
+  --color-brand-primary-subtle: rgba(107, 159, 255, 0.14);
+  --color-on-brand: #ffffff;
+  --color-neutral-0: #1a1d26;
+  --color-neutral-50: #141720;
+  --color-neutral-100: #222633;
+  --color-neutral-200: #2e3340;
+  --color-neutral-300: #3d4354;
+  --color-neutral-400: #6b7280;
+  --color-neutral-500: #9aa3b5;
+  --color-neutral-700: #e8ecf4;
+  --color-neutral-800: #2a3142;
+  --color-neutral-900: #f5f7fb;
+  --color-text-primary: var(--color-neutral-700);
+  --color-text-secondary: var(--color-neutral-500);
+  --color-text-inverse: var(--color-neutral-50);
+  --color-bg-page: #0c0e14;
+  --color-bg-subtle: var(--color-neutral-50);
+  --color-bg-muted: var(--color-neutral-100);
+  --color-border-default: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+  --color-icon-badge-bg: #e8ecf4;
+  --color-icon-badge-fg: #141720;
+  --color-warning: #f5c518;
+  --color-warning-hover: #ffd84d;
+  --color-warning-bg: rgba(245, 197, 24, 0.16);
+  --color-on-warning: #141720;
+  --color-story-ring: #3d4354;
+  --color-story-snap-bg: #222633;
+  --color-story-snap-icon: #6b9fff;
+  --color-online: #39b785;
+  --booking-accent: #5b7cfa;
+  --booking-status-received: #f0d36a;
+  --booking-status-received-border: #f5c518;
+  --booking-status-active: #9bb0ff;
+  --booking-status-active-border: #5b7cfa;
+  --booking-status-delivered: #6ee7a0;
+  --booking-status-delivered-border: #22c55e;
+  --booking-status-declined: #fca5a5;
+  --booking-status-declined-border: #dc2626;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --shimmer-base: rgba(255, 255, 255, 0.06);
+  --shimmer-mid: rgba(255, 255, 255, 0.16);
+  --post-card-border: rgba(255, 255, 255, 0.06);
+  --feed-card-bg: transparent;
+  --feed-card-border: transparent;
+  --feed-card-radius: 12px;
+  --feed-card-gap: 1rem;
+  --feed-divider: rgba(255, 255, 255, 0.08);
+  --chart-header: #1a1f2e;
+  --chart-header-deep: #141720;
+  --chart-divider: rgba(255, 255, 255, 0.08);
+  --chart-row-divider: rgba(255, 255, 255, 0.05);
+  --chart-on-header: #e8ecf4;
+  --chart-on-header-muted: #9aa3b5;
+  --chart-move-up: #4ade80;
+  --chart-move-down: #f87171;
+  --premium-title: #f5f7fb;
+  --premium-body: rgba(255, 255, 255, 0.82);
+  --premium-chip-bg: rgba(255, 255, 255, 0.06);
+  --premium-chip-border: rgba(255, 255, 255, 0.1);
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-weight-semibold: 600;
+  --duration-fast: 150ms;
+  --button-height: 48px;
+  --button-height-sm: 40px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --nav-width: 245px;
+  --feed-width: 720px;
+  --right-rail-width: 280px;
+  color-scheme: dark;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+/* ——— Light ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell),
+html[data-feed-theme="light"]:has(.auth-path-shell) {
+  --color-brand-primary: #1241a6;
+  --color-brand-primary-hover: #0f3690;
+  --color-brand-primary-subtle: #e8eef9;
+  --color-on-brand: #ffffff;
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f5f6f8;
+  --color-neutral-100: #eef0f4;
+  --color-neutral-200: #e2e5eb;
+  --color-neutral-300: #cfd4dc;
+  --color-neutral-400: #98a2b3;
+  --color-neutral-500: #667085;
+  --color-neutral-700: #1f2937;
+  --color-neutral-800: #374151;
+  --color-neutral-900: #111827;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #667085;
+  --color-text-inverse: #ffffff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-subtle: #f5f6f8;
+  --color-bg-muted: #e4e6eb;
+  --color-border-default: #ced0d4;
+  --color-border-strong: #bec3c9;
+  --color-icon-badge-bg: #1f2937;
+  --color-icon-badge-fg: #ffffff;
+  --hairline: #ced0d4;
+  --hairline-strong: #bec3c9;
+  --surface-hover: #e4e6eb;
+  --post-card-border: #ced0d4;
+  --feed-card-bg: #ffffff;
+  --feed-card-border: #ced0d4;
+  --feed-card-radius: var(--radius-md);
+  --feed-card-gap: 1rem;
+  --feed-divider: #ced0d4;
+  --color-warning: #f5c518;
+  --color-warning-hover: #ffd84d;
+  --color-warning-bg: #fff8e6;
+  --color-on-warning: #141720;
+  --color-story-ring: #bec3c9;
+  --color-story-snap-bg: #ffffff;
+  --color-story-snap-icon: #1241a6;
+  --color-online: #008a05;
+  --booking-accent: #3d6fd4;
+  --booking-status-received: #9a7b00;
+  --booking-status-received-border: #f5c518;
+  --booking-status-active: #1241a6;
+  --booking-status-active-border: #3d6fd4;
+  --booking-status-delivered: #15803d;
+  --booking-status-delivered-border: #16a34a;
+  --booking-status-declined: #b91c1c;
+  --booking-status-declined-border: #dc2626;
+  --shimmer-base: var(--color-neutral-100);
+  --shimmer-mid: var(--color-neutral-300);
+  --chart-header: #1e3a5f;
+  --chart-header-deep: #162a45;
+  --chart-divider: rgba(255, 255, 255, 0.14);
+  --chart-row-divider: var(--color-neutral-200);
+  --chart-on-header: #f8fafc;
+  --chart-on-header-muted: rgba(248, 250, 252, 0.78);
+  --chart-move-up: #15803d;
+  --chart-move-down: #b91c1c;
+  --premium-title: #f8fafc;
+  --premium-body: rgba(255, 255, 255, 0.88);
+  --premium-chip-bg: rgba(255, 255, 255, 0.1);
+  --premium-chip-border: rgba(255, 255, 255, 0.16);
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-weight-semibold: 600;
+  --duration-fast: 150ms;
+  --button-height: 48px;
+  --button-height-sm: 40px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.1);
+  --nav-width: 245px;
+  --feed-width: 720px;
+  --right-rail-width: 280px;
+  color-scheme: light;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+/* Auth light: white cards / page surfaces (match original onboarding) */
+html[data-feed-theme="light"]:has(.auth-path-shell) {
+  --color-bg-page: #ffffff;
+  --color-bg-subtle: #f7f7f7;
+  --color-bg-muted: #f0f0f0;
+}
+
+html:has(.feed-path-shell) body,
+html:has(.feed-path-shell) #main-content,
+html:has(.auth-path-shell) body,
+html:has(.auth-path-shell) #main-content,
+.feed-path-shell,
+.auth-path-shell {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.auth-path-shell {
+  min-height: 100dvh;
+}
+
+/* Dark auth: elevated cards above page */
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-center__card,
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-split.auth-split--focused .auth-split__auth-inner {
+  background: var(--color-neutral-0);
+}
+
+/* Dark auth: invert brand mark on dark surfaces (marketing panel already uses --inverse) */
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-center .logo__img:not(.logo__img--inverse),
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-split__auth .logo__img:not(.logo__img--inverse),
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__topbar .logo__img:not(.logo__img--inverse),
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .page-centered .logo__img:not(.logo__img--inverse) {
+  filter: brightness(0) invert(1);
+}
+
+.theme-switcher {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.theme-switcher:hover,
+.theme-switcher:focus-visible {
+  background: var(--color-neutral-100);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.theme-switcher svg {
+  width: 22px;
+  height: 22px;
+}
+
+.theme-switcher--auth-fixed {
+  position: fixed;
+  top: var(--space-4);
+  /* Leave room for portaled verify-email / login-code inbox button (40px). */
+  right: calc(var(--layout-content-padding-sm) + 40px + var(--space-3));
+  z-index: 20;
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .theme-switcher--auth-fixed {
+    top: var(--space-6);
+    right: calc(clamp(var(--space-6), 4vw, var(--space-10)) + 40px + var(--space-3));
+  }
+}
+
+.auth-split__topbar .theme-switcher,
+.parent-signup__topbar-actions .theme-switcher {
+  pointer-events: auto;
+}
+
+.auth-split__topbar {
+  gap: var(--space-3);
+}
+
+.auth-split__topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.parent-signup__topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}

@@ -42,6 +42,36 @@ export async function listSettingsUsers(): Promise<SettingsUserRow[]> {
   }));
 }
 
+async function deleteUserRelatedRows(
+  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+  userId: string,
+  email: string,
+) {
+  await tx.parentApprovalRequest.deleteMany({
+    where: {
+      OR: [{ childUserId: userId }, { guardianUserId: userId }, { parentEmail: email }],
+    },
+  });
+  await tx.loginCode.deleteMany({ where: { email } });
+  await tx.emailVerificationToken.deleteMany({ where: { email } });
+
+  // Chat + bookings / special requests (explicit wipe; also covered by User cascade).
+  await tx.specialRequest.deleteMany({ where: { userId } });
+  await tx.chatMessage.deleteMany({ where: { thread: { userId } } });
+  await tx.chatThread.deleteMany({ where: { userId } });
+
+  // Follows / subscriptions — ignore if the model is not migrated yet.
+  try {
+    await tx.creatorFollow.deleteMany({ where: { userId } });
+  } catch {
+    // CreatorFollow table may be absent on older DBs.
+  }
+  await tx.creatorSubscription.deleteMany({ where: { userId } });
+
+  await tx.session.deleteMany({ where: { userId } });
+  await tx.account.deleteMany({ where: { userId } });
+}
+
 export async function deleteSettingsUser(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -52,29 +82,32 @@ export async function deleteSettingsUser(userId: string) {
     return { ok: false as const, error: "User not found." };
   }
 
-  await prisma.$transaction([
-    prisma.parentApprovalRequest.deleteMany({
-      where: {
-        OR: [{ childUserId: userId }, { guardianUserId: userId }],
-      },
-    }),
-    prisma.loginCode.deleteMany({ where: { email: user.email } }),
-    prisma.emailVerificationToken.deleteMany({ where: { email: user.email } }),
-    prisma.user.delete({ where: { id: userId } }),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await deleteUserRelatedRows(tx, user.id, user.email);
+    await tx.user.delete({ where: { id: userId } });
+  });
 
   return { ok: true as const };
 }
 
 export async function resetAllSettingsUsers() {
-  await prisma.$transaction([
-    prisma.loginCode.deleteMany(),
-    prisma.emailVerificationToken.deleteMany(),
-    prisma.parentApprovalRequest.deleteMany(),
-    prisma.session.deleteMany(),
-    prisma.account.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await tx.loginCode.deleteMany();
+    await tx.emailVerificationToken.deleteMany();
+    await tx.parentApprovalRequest.deleteMany();
+    await tx.specialRequest.deleteMany();
+    await tx.chatMessage.deleteMany();
+    await tx.chatThread.deleteMany();
+    try {
+      await tx.creatorFollow.deleteMany();
+    } catch {
+      // CreatorFollow table may be absent on older DBs.
+    }
+    await tx.creatorSubscription.deleteMany();
+    await tx.session.deleteMany();
+    await tx.account.deleteMany();
+    await tx.user.deleteMany();
+  });
 
   return { ok: true as const };
 }

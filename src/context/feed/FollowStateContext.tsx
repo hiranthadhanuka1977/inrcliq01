@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -29,6 +30,15 @@ function normalizeHandle(handle: string): string {
  */
 export function FeedFollowStateProvider({ children }: { children: ReactNode }) {
   const [followState, setFollowState] = useState<FollowState>({});
+
+  // Drop legacy prototype persistence so new accounts never inherit old Following flags.
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem("inrcliq-feed-follow-state");
+    } catch {
+      // Ignore storage failures.
+    }
+  }, []);
 
   const setFollowing = useCallback((handle: string, next: boolean) => {
     const key = normalizeHandle(handle);

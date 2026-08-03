@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { AuthPathShell } from "@/components/auth/AuthPathShell";
+import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import type { GuardianChildContext } from "@/lib/auth/guardian-flow";
 
 export function ParentConsentStep({
@@ -17,6 +19,8 @@ export function ParentConsentStep({
   const firstName = child.firstName;
 
   return (
+    <AuthPathShell>
+      <ThemeSwitcher className="theme-switcher--auth-fixed" />
     <section className="screen page-centered">
       <div className="page-centered__inner parent-consent">
         <header className="parent-consent__header">
@@ -140,6 +144,7 @@ export function ParentConsentStep({
         </div>
       </div>
     </section>
+    </AuthPathShell>
   );
 }
 
@@ -151,19 +156,22 @@ export function ParentDeclinedStep({
   onDone: () => void;
 }) {
   return (
-    <section className="screen page-centered">
-      <div className="page-centered__inner text-center">
-        <div className="toast-card__icon toast-card__icon--error" style={{ margin: "0 auto var(--space-6)" }}>
-          ✕
+    <AuthPathShell>
+      <ThemeSwitcher className="theme-switcher--auth-fixed" />
+      <section className="screen page-centered">
+        <div className="page-centered__inner text-center">
+          <div className="toast-card__icon toast-card__icon--error" style={{ margin: "0 auto var(--space-6)" }}>
+            ✕
+          </div>
+          <h1>Request declined</h1>
+          <p className="subtitle mt-4">
+            {childFirstName} has been notified. Their signup details have been removed for security.
+          </p>
+          <button type="button" className="btn btn--primary mt-8" onClick={onDone}>
+            Done
+          </button>
         </div>
-        <h1>Request declined</h1>
-        <p className="subtitle mt-4">
-          {childFirstName} has been notified. Their signup details have been removed for security.
-        </p>
-        <button type="button" className="btn btn--primary mt-8" onClick={onDone}>
-          Done
-        </button>
-      </div>
-    </section>
+      </section>
+    </AuthPathShell>
   );
 }

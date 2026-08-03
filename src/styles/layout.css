@@ -131,7 +131,7 @@
 .web-header__btn--primary {
   background: var(--color-brand-primary);
   border-color: var(--color-brand-primary);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .web-header__btn:disabled {
@@ -212,7 +212,8 @@
   padding: var(--space-10) var(--layout-content-padding-sm);
   padding-bottom: var(--space-10);
   background: var(--auth-marketing-gradient-overlay);
-  color: var(--color-text-inverse);
+  /* Always white on the branded gradient — both light and dark app themes. */
+  color: #ffffff;
   overflow: hidden;
   transform: translate3d(0, 0, 0);
   opacity: 1;
@@ -288,7 +289,7 @@
 }
 
 .logo--inverse {
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .logo-dot--inverse {
@@ -301,6 +302,7 @@
   letter-spacing: var(--letter-spacing-tight);
   line-height: var(--line-height-tight);
   max-width: 520px;
+  color: #ffffff;
 }
 
 .auth-split__tagline {
@@ -308,6 +310,7 @@
   line-height: var(--line-height-relaxed);
   opacity: 0.92;
   max-width: 480px;
+  color: #ffffff;
 }
 
 @media (min-width: 768px) {
@@ -1008,7 +1011,7 @@
   height: 32px;
   border-radius: var(--radius-full);
   background: var(--color-neutral-700);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
 }
@@ -1266,7 +1269,7 @@
   height: 56px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
 }
@@ -1294,6 +1297,18 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-warning);
   background: var(--color-warning-bg);
+}
+
+html[data-feed-theme="light"] .parent-signup__status-badge {
+  color: #9a7b00;
+  background: #fff8e6;
+  border-color: #e0b400;
+}
+
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__status-badge {
+  color: #f5c518;
+  background: rgba(245, 197, 24, 0.16);
+  border-color: rgba(245, 197, 24, 0.55);
 }
 
 .parent-signup__divider {
@@ -1582,7 +1597,7 @@
   height: 24px;
   border-radius: var(--radius-full);
   background: var(--color-neutral-300);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
 }
@@ -2199,7 +2214,7 @@
   margin: 0;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .id-verify__frame-corners {
@@ -2258,7 +2273,7 @@
   background: rgba(17, 17, 17, 0.72);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
   text-align: center;
   white-space: nowrap;
   backdrop-filter: blur(4px);
@@ -2699,8 +2714,8 @@
   height: 56px;
   margin-bottom: var(--space-4);
   border-radius: var(--radius-full);
-  background: var(--color-neutral-700);
-  color: var(--color-neutral-0);
+  background: var(--color-icon-badge-bg);
+  color: var(--color-icon-badge-fg);
 }
 
 .protection-tier__icon svg {
@@ -2740,6 +2755,21 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-warning);
   background: var(--color-warning-bg);
+}
+
+/* Light: darker amber on cream so Recommended stays readable */
+html[data-feed-theme="light"] .protection-tier__badge {
+  color: #9a7b00;
+  background: #fff8e6;
+  border-color: #e0b400;
+}
+
+/* Dark: keep Recommended readable (avoid cream + yellow low contrast) */
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .protection-tier__badge,
+html:has(.feed-path-shell):not([data-feed-theme="light"]) .protection-tier__badge {
+  color: #f5c518;
+  background: rgba(245, 197, 24, 0.16);
+  border-color: rgba(245, 197, 24, 0.55);
 }
 
 .protection-tier__tagline {
@@ -2847,7 +2877,7 @@
   height: 56px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: var(--color-text-inverse);
+  color: rgba(255, 255, 255, 0.96);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
 }
@@ -3010,3 +3040,4 @@
     justify-content: flex-start;
   }
 }
+

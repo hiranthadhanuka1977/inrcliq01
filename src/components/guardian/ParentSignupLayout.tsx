@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AuthPathShell } from "@/components/auth/AuthPathShell";
+import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import { ParentStepper } from "@/components/guardian/ParentStepper";
 
 export function ParentSignupLayout({
@@ -40,41 +42,46 @@ export function ParentSignupLayout({
     .join(" ");
 
   return (
-    <div className="app-shell">
-      <div className="app-frame">
-        <section className={sectionClass} id={screenId}>
-          <header className="parent-signup__topbar">
-            <Link href="/" className="logo logo--img">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/logo-InrCliq.svg"
-                alt="InrCliq"
-                className="logo__img"
-                width={114}
-                height={27}
-              />
-            </Link>
-            <p className="parent-signup__login-prompt">
-              Already have an account?{" "}
-              <button type="button" className="link-btn" onClick={() => router.push("/")}>
-                Log in
-              </button>
-            </p>
-          </header>
+    <AuthPathShell>
+      <div className="app-shell">
+        <div className="app-frame">
+          <section className={sectionClass} id={screenId}>
+            <header className="parent-signup__topbar">
+              <Link href="/" className="logo logo--img">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/logo-InrCliq.svg"
+                  alt="InrCliq"
+                  className="logo__img"
+                  width={114}
+                  height={27}
+                />
+              </Link>
+              <div className="parent-signup__topbar-actions">
+                <p className="parent-signup__login-prompt">
+                  Already have an account?{" "}
+                  <button type="button" className="link-btn" onClick={() => router.push("/")}>
+                    Log in
+                  </button>
+                </p>
+                <ThemeSwitcher />
+              </div>
+            </header>
 
-          <div className="parent-signup__progress">
-            <ParentStepper currentStep={stepperStep} completeCurrent={completeCurrentStep} />
-            <hr className="parent-signup__progress-divider" />
-          </div>
-
-          <div className="parent-signup__shell">
-            <div className={layoutClass}>
-              <div className="parent-signup__main">{children}</div>
-              {sidebar}
+            <div className="parent-signup__progress">
+              <ParentStepper currentStep={stepperStep} completeCurrent={completeCurrentStep} />
+              <hr className="parent-signup__progress-divider" />
             </div>
-          </div>
-        </section>
+
+            <div className="parent-signup__shell">
+              <div className={layoutClass}>
+                <div className="parent-signup__main">{children}</div>
+                {sidebar}
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
+    </AuthPathShell>
   );
 }
