@@ -385,18 +385,14 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .pos
 }
 
 html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .creator-rail:hover,
-html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail:hover,
-html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .audio-top-creators:hover,
-html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .audio-top-creators:hover {
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail:hover {
   background: var(--feed-card-bg);
   border-color: var(--feed-card-border);
   box-shadow: none;
 }
 
 html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .creator-rail,
-html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail,
-html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .audio-top-creators,
-html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .audio-top-creators {
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail {
   background: var(--feed-card-bg);
   border-color: var(--feed-card-border);
   box-shadow: none;

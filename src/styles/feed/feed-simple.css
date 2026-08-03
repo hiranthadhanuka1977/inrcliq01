@@ -784,23 +784,17 @@
 /* Creators to follow — Spotify-style artist row */
 
 .feed-surface--simple > .audio-top-creators {
-  margin: var(--feed-card-gap, var(--space-4)) 0 0;
-  padding: var(--space-4);
+  margin-block: var(--space-8);
   width: 100%;
   box-sizing: border-box;
-  background: var(--feed-card-bg, transparent);
-  border: 1px solid var(--feed-card-border, transparent);
-  border-radius: var(--feed-card-radius, var(--radius-md));
-  box-shadow: none;
-  overflow: hidden;
 }
 
 .feed-surface--simple > .post--simple + .audio-top-creators {
-  margin-top: var(--feed-card-gap, var(--space-4));
+  margin-top: var(--space-8);
 }
 
 .feed-surface--simple > .audio-top-creators + .post--simple {
-  margin-top: calc(var(--feed-divider-gap) + var(--space-4));
+  margin-top: 0;
   padding-top: 0;
   border-top: none;
 }
