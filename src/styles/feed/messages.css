@@ -1,4 +1,4 @@
-body.page-messages,
+﻿body.page-messages,
 .page-messages.app-shell,
 .feed-path-shell.page-messages {
   overflow: hidden;
@@ -492,16 +492,17 @@ body.page-messages .messages-chat,
   }
 }
 
-/* Booking confirmation card — matches dark messages design */
+
+/* Special-request cards in messages */
 .booking-confirm-msg {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35rem;
-  width: min(100%, 26.5rem);
-  max-width: min(34rem, 92%);
+  width: min(100%, 36rem);
+  max-width: 92%;
   align-self: flex-start;
-  border-radius: var(--radius-md);
+  border-radius: 1rem;
   transition: box-shadow 0.35s ease, outline-color 0.35s ease;
   outline: 2px solid transparent;
 }
@@ -510,177 +511,138 @@ body.page-messages .messages-chat,
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem 1.05rem 1.1rem;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
   border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-lg);
+  border-radius: 1rem;
   border-bottom-left-radius: 0.35rem;
-  background: var(--color-neutral-100);
+  background: var(--color-neutral-0);
   color: var(--color-text-primary);
   text-decoration: none;
-  box-shadow: var(--shadow-xs);
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 a.booking-confirm-card:hover,
 a.booking-confirm-card:focus-visible {
-  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-neutral-200));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 35%, var(--color-neutral-200));
+  background: color-mix(in srgb, var(--color-neutral-100) 55%, var(--color-neutral-0));
   outline: none;
-}
-
-.booking-confirm-card__eyebrow {
-  margin: 0 0 0.35rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-brand-primary);
-}
-
-.booking-confirm-card__head h3 {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  color: var(--color-text-primary);
-}
-
-.booking-confirm-card__meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin: 0;
-}
-
-.booking-confirm-card__meta > div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 0.5rem;
-}
-
-.booking-confirm-card__meta dt {
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: var(--color-text-secondary);
-}
-
-.booking-confirm-card__meta dt::after {
-  content: " :";
-}
-
-.booking-confirm-card__meta dd {
-  margin: 0;
-  font-size: 0.82rem;
-  font-weight: 650;
-  color: var(--color-text-primary);
 }
 
 .booking-confirm-card__status {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.12rem 0.5rem 0.12rem 0.55rem;
-  border: 1px solid color-mix(in srgb, var(--booking-status-received-border) 35%, var(--color-neutral-200));
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--booking-status-received-border) 14%, transparent);
-  color: var(--booking-status-received);
+  gap: 0.4rem;
+  margin: 0 0 0.15rem;
   font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.booking-confirm-card__status-icon {
-  display: inline-flex;
-  color: inherit;
-}
-
-.booking-confirm-card__summary {
-  padding: 0.85rem 0.9rem;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-neutral-0) 72%, transparent);
-}
-
-.booking-confirm-card__summary h4 {
-  margin: 0 0 0.7rem;
-  font-size: 0.86rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--color-text-primary);
-}
-
-.booking-confirm-card__summary dl {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  margin: 0;
-}
-
-.booking-confirm-card__summary dl > div {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, 0.95fr) minmax(0, 1.15fr);
-  gap: 0.65rem;
-  align-items: start;
-}
-
-.booking-confirm-card__summary dt {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-}
-
-.booking-confirm-card__summary dd {
-  margin: 0;
-  text-align: right;
-  font-size: 0.8rem;
-  font-weight: 650;
-  line-height: 1.35;
-  color: var(--color-text-primary);
-  word-break: break-word;
-}
-
-.booking-confirm-card__pending {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  padding: 0.85rem 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--booking-status-received-border) 28%, var(--color-neutral-200));
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--booking-status-received-border) 10%, var(--color-neutral-0));
-}
-
-.booking-confirm-card__pending-icon {
-  display: inline-flex;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-  color: var(--booking-status-received-border);
-}
-
-.booking-confirm-card__pending strong {
-  display: block;
-  margin: 0 0 0.25rem;
-  font-size: 0.84rem;
   font-weight: 750;
+  letter-spacing: 0.02em;
+  color: var(--booking-status-received);
+}
+
+.booking-confirm-card__status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.booking-confirm-card--active .booking-confirm-card__status {
+  color: var(--booking-status-active);
+}
+
+.booking-confirm-card--delivered .booking-confirm-card__status {
+  color: var(--booking-status-delivered);
+}
+
+.booking-confirm-card--declined .booking-confirm-card__status {
+  color: var(--booking-status-declined);
+}
+
+.booking-confirm-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
   color: var(--color-text-primary);
 }
 
-.booking-confirm-card__pending p {
+.booking-confirm-card__ref,
+.booking-confirm-card__note {
   margin: 0;
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.8rem;
   line-height: 1.4;
   color: var(--color-text-secondary);
 }
 
+.booking-confirm-card__ref {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.booking-confirm-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.35rem 0 0;
+  padding: 0.55rem 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-neutral-200) 40%, transparent);
+  background: transparent;
+}
+
+.booking-confirm-card__detail {
+  display: grid;
+  grid-template-columns: 5.75rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  min-width: 0;
+  padding: 0.12rem 0;
+}
+
+.booking-confirm-card__details dt {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-secondary);
+}
+
+.booking-confirm-card__details dd {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  text-align: right;
+  word-break: break-word;
+}
+
+.booking-confirm-card__detail--total {
+  margin-top: 0.2rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-neutral-200) 35%, transparent);
+}
+
+.booking-confirm-card__detail--total dt,
+.booking-confirm-card__detail--total dd {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.booking-confirm-card__note {
+  margin-top: 0.2rem;
+  font-weight: 500;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .booking-confirm-msg__time {
   align-self: flex-start;
-  padding-left: 0.15rem;
-  font-size: 0.68rem;
+  padding-left: 0.2rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--color-text-secondary);
 }
@@ -689,9 +651,10 @@ a.booking-confirm-card:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  width: min(100%, 36rem);
+  max-width: 92%;
   align-self: stretch;
-  max-width: min(100%, 26rem);
-  border-radius: var(--radius-md);
+  border-radius: 1rem;
   transition: box-shadow 0.35s ease, outline-color 0.35s ease;
   outline: 2px solid transparent;
 }
@@ -699,107 +662,106 @@ a.booking-confirm-card:focus-visible {
 .booking-status-note__card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 0.9rem 1rem 1.05rem;
-  border: 1px solid color-mix(in srgb, var(--booking-status-delivered-border) 30%, var(--color-neutral-200));
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--booking-status-delivered-border) 10%, var(--color-neutral-0));
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 1rem;
+  background: var(--color-neutral-0);
   color: inherit;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 a.booking-status-note__card:hover,
 a.booking-status-note__card:focus-visible {
-  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 55%, var(--color-neutral-200));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--booking-status-delivered-border) 18%, transparent);
+  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 40%, var(--color-neutral-200));
+  background: color-mix(in srgb, var(--color-neutral-100) 55%, var(--color-neutral-0));
   outline: none;
-}
-
-.booking-status-note--declined .booking-status-note__card {
-  border-color: color-mix(in srgb, var(--booking-status-declined-border) 30%, var(--color-neutral-200));
-  background: color-mix(in srgb, var(--booking-status-declined-border) 8%, var(--color-neutral-0));
 }
 
 .booking-status-note--declined a.booking-status-note__card:hover,
 .booking-status-note--declined a.booking-status-note__card:focus-visible {
-  border-color: color-mix(in srgb, var(--booking-status-declined-border) 55%, var(--color-neutral-200));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--booking-status-declined-border) 18%, transparent);
+  border-color: color-mix(in srgb, var(--booking-status-declined-border) 42%, var(--color-neutral-200));
 }
 
-.booking-status-note__head {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-}
-
-.booking-status-note__icon {
+.booking-status-note__status {
   display: inline-flex;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-  color: var(--booking-status-delivered-border);
-}
-
-.booking-status-note--declined .booking-status-note__icon {
-  color: var(--booking-status-declined-border);
-}
-
-.booking-status-note__copy h3 {
-  margin: 0 0 0.25rem;
-  font-size: 0.84rem;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.78rem;
   font-weight: 750;
+  letter-spacing: 0.02em;
+  color: var(--booking-status-delivered);
+}
+
+.booking-status-note__status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.booking-status-note--declined .booking-status-note__status {
+  color: var(--booking-status-declined);
+}
+
+.booking-status-note__card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
   color: var(--color-text-primary);
 }
 
-.booking-status-note__copy p {
+.booking-status-note__body,
+.booking-status-note__ref {
   margin: 0;
-  font-size: 0.78rem;
-  font-weight: 500;
-  line-height: 1.4;
+  font-size: 0.84rem;
+  line-height: 1.45;
   color: var(--color-text-secondary);
 }
 
 .booking-status-note__ref {
-  margin-top: 0.35rem !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.72rem !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .booking-status-note .booking-countdown {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  margin-top: 0.35rem;
 }
 
 .booking-status-note__time {
   align-self: flex-start;
-  padding-left: 0.15rem;
-  font-size: 0.68rem;
+  padding-left: 0.2rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--color-text-secondary);
 }
 
 @media (max-width: 640px) {
-  .booking-confirm-msg {
-    width: min(100%, 22rem);
-    max-width: 92%;
+  .booking-confirm-msg,
+  .booking-status-note {
+    width: 100%;
+    max-width: 100%;
   }
 
-  .booking-confirm-card {
-    padding: 0.9rem 0.9rem 1rem;
+  .booking-confirm-card,
+  .booking-status-note__card {
+    padding: 0.9rem 1rem;
   }
 
-  .booking-confirm-card__summary dl > div {
-    grid-template-columns: 1fr;
-    gap: 0.12rem;
-  }
-
-  .booking-confirm-card__summary dd {
-    text-align: left;
+  .booking-confirm-card__detail {
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+    gap: 0.55rem;
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  a.booking-confirm-card,
+  a.booking-status-note__card {
+    transition: none;
+  }
+}

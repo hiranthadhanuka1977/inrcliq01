@@ -3,6 +3,14 @@
 import Link from "next/link";
 import { resolveCreatorName, type BookingConfirmationPayload } from "@/lib/feed/booking-confirmation";
 
+function statusTone(status: string) {
+  const key = status.trim().toLowerCase();
+  if (key === "declined" || key === "cancelled") return "declined";
+  if (key === "delivered") return "delivered";
+  if (key === "accepted" || key === "in_progress") return "active";
+  return "received";
+}
+
 export default function BookingConfirmationCard({
   booking,
   time,
@@ -13,14 +21,17 @@ export default function BookingConfirmationCard({
   creatorName?: string;
 }) {
   const creator = resolveCreatorName(booking, creatorName);
-  const summary = [
-    { label: "Booking Type", value: booking.bookingType },
+  const firstName = creator.split(" ")[0] || creator;
+  const tone = statusTone(booking.status);
+  const rows = [
+    { label: "Type", value: booking.bookingType },
     { label: "Occasion", value: booking.occasion },
-    { label: "Content type", value: booking.contentType },
+    { label: "Format", value: booking.contentType },
     { label: "Duration", value: booking.duration },
-    { label: "Publishing method", value: booking.publishingMethod },
-    { label: "Total Charge", value: booking.totalCharge },
-  ];
+    { label: "Delivery", value: booking.publishingMethod },
+    { label: "Total", value: booking.totalCharge },
+  ].filter((row) => Boolean(row.value?.trim()));
+
   const bookingId = booking.specialRequestId?.trim();
   const detailsHref = bookingId
     ? `/feed/bookings?booking=${encodeURIComponent(bookingId)}`
@@ -33,73 +44,37 @@ export default function BookingConfirmationCard({
     >
       <Link
         href={detailsHref}
-        className="booking-confirm-card"
+        className={`booking-confirm-card booking-confirm-card--${tone}`}
         aria-label={`Open booking ${booking.reference} details`}
       >
-        <header className="booking-confirm-card__head">
-          <p className="booking-confirm-card__eyebrow">Special request</p>
-          <h3>{`Received by ${creator}`}</h3>
-          <dl className="booking-confirm-card__meta">
-            <div>
-              <dt>Booking Reference Number</dt>
-              <dd>{booking.reference}</dd>
-            </div>
-            <div>
-              <dt>Booking Status</dt>
-              <dd>
-                <span className="booking-confirm-card__status">
-                  {booking.status}
-                  <span className="booking-confirm-card__status-icon" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-                      <path
-                        d="M12 7v5l3 2"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </span>
-              </dd>
-            </div>
-          </dl>
-        </header>
+        <p className="booking-confirm-card__status">
+          <span className="booking-confirm-card__status-dot" aria-hidden="true" />
+          {booking.status}
+        </p>
+        <h3>{`Received by ${creator}`}</h3>
+        <p className="booking-confirm-card__ref">{booking.reference}</p>
 
-        <section className="booking-confirm-card__summary" aria-label="Service Summary">
-          <h4>Service Summary</h4>
-          <dl>
-            {summary.map((row) => (
-              <div key={row.label}>
+        {rows.length > 0 ? (
+          <dl className="booking-confirm-card__details">
+            {rows.map((row) => (
+              <div
+                key={row.label}
+                className={
+                  row.label === "Total"
+                    ? "booking-confirm-card__detail booking-confirm-card__detail--total"
+                    : "booking-confirm-card__detail"
+                }
+              >
                 <dt>{row.label}</dt>
                 <dd>{row.value}</dd>
               </div>
             ))}
           </dl>
-        </section>
+        ) : null}
 
-        <section className="booking-confirm-card__pending" aria-label="Acceptance status">
-          <span className="booking-confirm-card__pending-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-              <path
-                d="M12 7v5l3 2"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <div>
-            <strong>Waiting for {creator.split(" ")[0]} to accept</strong>
-            <p>
-              Your request was received. Delivery timing will appear once the creator accepts this
-              booking.
-            </p>
-          </div>
-        </section>
+        <p className="booking-confirm-card__note">
+          Waiting for {firstName} to accept. Delivery timing appears after acceptance.
+        </p>
       </Link>
       <time className="booking-confirm-msg__time">{time}</time>
     </article>

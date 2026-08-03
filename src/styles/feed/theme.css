@@ -123,8 +123,8 @@ html[data-feed-theme="light"]:has(.feed-path-shell) {
   --feed-card-radius: var(--radius-md);
   --feed-card-gap: 1rem;
   --feed-divider: #ced0d4;
-  --color-warning: #c27803;
-  --color-warning-hover: #a86602;
+  --color-warning: #f5c518;
+  --color-warning-hover: #ffd84d;
   --color-on-warning: #141720;
   --color-story-ring: #bec3c9;
   --color-story-snap-bg: #ffffff;
@@ -463,35 +463,69 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar__compose:h
   color: var(--color-text-primary);
 }
 
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card {
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note__card {
   background: var(--feed-card-bg);
   border-color: var(--feed-card-border);
   box-shadow: none;
 }
 
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__summary {
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-confirm-card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-confirm-card:focus-visible,
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-status-note__card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-status-note__card:focus-visible {
+  background: var(--color-neutral-50);
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__details {
+  border-top-color: color-mix(in srgb, var(--feed-card-border) 55%, transparent);
+  background: transparent;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__detail--total {
+  border-top-color: color-mix(in srgb, var(--feed-card-border) 50%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note--declined .booking-status-note__card {
+  border-color: color-mix(in srgb, var(--booking-status-declined-border) 30%, var(--feed-card-border));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown {
   background: var(--color-neutral-50);
   border-color: var(--feed-card-border);
 }
 
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__pending {
-  background: color-mix(in srgb, var(--booking-status-received-border) 12%, #ffffff);
-  border-color: color-mix(in srgb, var(--booking-status-received-border) 35%, var(--feed-card-border));
-}
-
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note__card {
-  background: color-mix(in srgb, var(--booking-status-delivered-border) 10%, #ffffff);
-  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 32%, var(--feed-card-border));
-}
-
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note--declined .booking-status-note__card {
-  background: color-mix(in srgb, var(--booking-status-declined-border) 8%, #ffffff);
-  border-color: color-mix(in srgb, var(--booking-status-declined-border) 32%, var(--feed-card-border));
-}
-
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown,
-html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown__box {
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown__tile {
   background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__actions {
+  background: var(--color-neutral-50);
+  border-top-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary h3,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--total {
+  background: var(--color-neutral-50);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary h3,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row + .my-bookings__summary-row,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--total {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--block dd,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-chips li {
+  background: var(--color-neutral-50);
   border-color: var(--feed-card-border);
 }
 

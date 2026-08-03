@@ -138,30 +138,59 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
           <ul className="my-bookings__list">
             {bookings.map((booking) => (
               <li key={booking.id} className="my-bookings__card">
-                <div className="my-bookings__card-top">
-                  <CreatorBlock booking={booking} />
-                  <span className={bookingStatusClass(booking.status)}>
-                    {booking.statusLabel}
+                <div className="my-bookings__card-main">
+                  <span
+                    className="my-bookings__avatar"
+                    style={{ "--avatar-accent": booking.creator.avatarColor } as CSSProperties}
+                    aria-hidden="true"
+                  >
+                    {booking.creator.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={booking.creator.avatarUrl} alt="" width={44} height={44} />
+                    ) : (
+                      booking.creator.avatarInitials
+                    )}
                   </span>
-                </div>
 
-                <div className="my-bookings__basics">
-                  <h2>{booking.requestLabel}</h2>
-                  <p>
-                    Ref <code>{booking.reference}</code>
-                    <span aria-hidden="true"> · </span>
-                    {booking.totalLabel}
-                    <span aria-hidden="true"> · </span>
-                    {booking.createdLabel}
-                  </p>
-                  {booking.contentType ? (
-                    <p className="my-bookings__formats">{booking.contentType}</p>
-                  ) : null}
-                </div>
+                  <div className="my-bookings__card-body">
+                    <div className="my-bookings__card-title-row">
+                      <h2>{booking.requestLabel}</h2>
+                      <span className={bookingStatusClass(booking.status)}>
+                        {booking.statusLabel}
+                      </span>
+                    </div>
 
-                {showsCountdown(booking) && booking.deliverBy ? (
-                  <BookingDeliveryCountdown deliverBy={booking.deliverBy} compact />
-                ) : null}
+                    {booking.creator.slug ? (
+                      <Link
+                        href={`/feed/profile/${booking.creator.slug}`}
+                        className="my-bookings__creator-line"
+                      >
+                        {booking.creator.name}
+                        <span aria-hidden="true"> · </span>
+                        {booking.creator.handle}
+                      </Link>
+                    ) : (
+                      <p className="my-bookings__creator-line">
+                        {booking.creator.name}
+                        <span aria-hidden="true"> · </span>
+                        {booking.creator.handle}
+                      </p>
+                    )}
+
+                    <ul className="my-bookings__facts">
+                      <li>{booking.totalLabel}</li>
+                      <li>{booking.createdLabel}</li>
+                      {booking.contentType ? <li>{booking.contentType}</li> : null}
+                      <li>
+                        Ref <code>{booking.reference}</code>
+                      </li>
+                    </ul>
+
+                    {showsCountdown(booking) && booking.deliverBy ? (
+                      <BookingDeliveryCountdown deliverBy={booking.deliverBy} compact />
+                    ) : null}
+                  </div>
+                </div>
 
                 <div className="my-bookings__actions">
                   <button
@@ -243,13 +272,48 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                 {selected.summary.length > 0 ? (
                   <section className="my-bookings__summary" aria-label="Service summary">
                     <h3>Service summary</h3>
-                    <dl>
-                      {selected.summary.map((row) => (
-                        <div key={`${selected.id}-${row.label}`}>
-                          <dt>{row.label}</dt>
-                          <dd>{row.value}</dd>
-                        </div>
-                      ))}
+                    <dl className="my-bookings__summary-list">
+                      {selected.summary.map((row) => {
+                        const isTotal = row.label === "Total charge";
+                        const chips =
+                          !isTotal && row.value.includes(" · ")
+                            ? row.value.split(" · ").map((part) => part.trim()).filter(Boolean)
+                            : null;
+                        const isLong =
+                          !isTotal &&
+                          !chips &&
+                          (row.value.length > 48 ||
+                            row.label === "Message" ||
+                            row.label === "Format details" ||
+                            row.label === "Special instructions" ||
+                            row.label === "Expectation");
+
+                        return (
+                          <div
+                            key={`${selected.id}-${row.label}`}
+                            className={[
+                              "my-bookings__summary-row",
+                              isTotal ? "my-bookings__summary-row--total" : "",
+                              isLong ? "my-bookings__summary-row--block" : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                          >
+                            <dt>{row.label}</dt>
+                            <dd>
+                              {chips ? (
+                                <ul className="my-bookings__summary-chips">
+                                  {chips.map((chip) => (
+                                    <li key={`${row.label}-${chip}`}>{chip}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                row.value
+                              )}
+                            </dd>
+                          </div>
+                        );
+                      })}
                     </dl>
                   </section>
                 ) : null}

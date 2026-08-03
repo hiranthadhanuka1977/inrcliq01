@@ -14,6 +14,7 @@ export default function BookingStatusNote({
   bookingId?: string;
 }) {
   const declined = note.kind === "declined";
+  const statusLabel = declined ? "Declined" : "Accepted";
   const creator = note.creatorName?.trim() || "the creator";
   const firstName = creator.split(" ")[0];
   const title =
@@ -42,37 +43,13 @@ export default function BookingStatusNote({
         className="booking-status-note__card"
         aria-label={`Open booking ${note.reference} details`}
       >
-        <header className="booking-status-note__head">
-          <span className="booking-status-note__icon" aria-hidden="true">
-            {declined ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-                <path
-                  d="M9 9l6 6M15 9l-6 6"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M5 12.5 9.5 17 19 7.5"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </span>
-          <div className="booking-status-note__copy">
-            <h3>{title}</h3>
-            <p>{body}</p>
-            <p className="booking-status-note__ref">Ref {note.reference}</p>
-          </div>
-        </header>
-
+        <p className="booking-status-note__status">
+          <span className="booking-status-note__status-dot" aria-hidden="true" />
+          {statusLabel}
+        </p>
+        <h3>{title}</h3>
+        <p className="booking-status-note__ref">{note.reference}</p>
+        <p className="booking-status-note__body">{body}</p>
         {deliverBy ? <BookingDeliveryCountdown deliverBy={deliverBy} /> : null}
       </Link>
       <time className="booking-status-note__time">{time}</time>

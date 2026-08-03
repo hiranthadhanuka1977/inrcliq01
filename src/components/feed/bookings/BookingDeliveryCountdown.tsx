@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { getCountdownParts } from "@/lib/feed/booking-confirmation";
+
+function pad(value: number) {
+  return String(Math.max(0, value)).padStart(2, "0");
+}
 
 export default function BookingDeliveryCountdown({
   deliverBy,
@@ -20,9 +24,9 @@ export default function BookingDeliveryCountdown({
   }, [deliverBy]);
 
   const units = [
-    { label: "Days", value: parts.days },
-    { label: "Hours", value: parts.hours },
-    { label: "Minutes", value: parts.minutes },
+    { label: "Days", value: pad(parts.days) },
+    { label: "Hours", value: pad(parts.hours) },
+    { label: "Minutes", value: pad(parts.minutes) },
   ];
 
   return (
@@ -32,13 +36,18 @@ export default function BookingDeliveryCountdown({
     >
       <p className="booking-countdown__label">You will receive your delivery in</p>
       <div className="booking-countdown__grid">
-        {units.map((unit) => (
-          <div key={unit.label} className="booking-countdown__unit">
-            <div className="booking-countdown__box">
+        {units.map((unit, index) => (
+          <Fragment key={unit.label}>
+            {index > 0 ? (
+              <span className="booking-countdown__sep" aria-hidden="true">
+                :
+              </span>
+            ) : null}
+            <div className="booking-countdown__tile">
               <span className="booking-countdown__value">{unit.value}</span>
+              <span className="booking-countdown__unit-label">{unit.label}</span>
             </div>
-            <span className="booking-countdown__unit-label">{unit.label}</span>
-          </div>
+          </Fragment>
         ))}
       </div>
     </section>
