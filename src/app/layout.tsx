@@ -18,6 +18,12 @@ export const metadata: Metadata = {
   description: "Discover premium content from top creators",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

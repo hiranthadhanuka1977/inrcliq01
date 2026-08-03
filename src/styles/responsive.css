@@ -1,0 +1,199 @@
+/**
+ * Cross-cutting responsive fixes for mobile, tablet, and landscape layouts.
+ */
+
+:root {
+  --bp-sm: 480px;
+  --bp-md: 640px;
+  --bp-tablet: 768px;
+  --bp-feed-nav: 900px;
+  --bp-parent: 960px;
+  --bp-desktop: 1024px;
+  --bp-feed-rail: 1360px;
+}
+
+/* ——— Mobile / tablet auth step heights ——— */
+
+@media (max-width: 767px) {
+  :root {
+    --auth-steps-min-height: min(480px, calc(100dvh - 8rem));
+    --auth-steps-min-height-join: min(760px, calc(100dvh - 5rem));
+    --layout-content-padding-sm: var(--space-4);
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) {
+  :root {
+    --auth-steps-min-height: auto;
+    --auth-steps-min-height-join: auto;
+    --auth-form-top: var(--space-4);
+  }
+
+  .auth-split__auth,
+  .auth-center,
+  .auth-center__card,
+  .auth-center--signup-step .auth-center__card,
+  .auth-center--signup-step .auth-split__steps {
+    min-height: auto;
+  }
+}
+
+/* ——— Auth topbar overflow on narrow phones ——— */
+
+@media (max-width: 520px) {
+  .auth-split__topbar {
+    padding-right: var(--layout-content-padding-sm);
+  }
+
+  .auth-split__signup-prompt {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    max-width: 100%;
+  }
+
+  .auth-split__signup-prompt-text {
+    white-space: normal;
+    text-align: right;
+    line-height: 1.35;
+  }
+}
+
+/* ——— Parent signup ——— */
+
+@media (max-width: 767px) {
+  .parent-signup {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-8);
+  }
+
+  .parent-signup__topbar {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .parent-signup__login-prompt {
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 520px) {
+  .parent-signup__topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) {
+  .parent-signup {
+    padding-block: var(--space-3);
+  }
+
+  .parent-signup__topbar {
+    margin-bottom: var(--space-4);
+  }
+}
+
+/* ——— Settings on tablet portrait ——— */
+
+@media (max-width: 900px) {
+  .settings-header__inner {
+    padding-inline: var(--space-4);
+  }
+
+  .settings-shell {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-4) var(--space-10);
+  }
+
+  .settings-nav {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--space-4));
+    padding-inline: var(--space-4);
+  }
+
+  .settings-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-nav__list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .settings-nav__link {
+    white-space: nowrap;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-xs);
+  }
+
+  .settings-panel__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .settings-booking-detail__head-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ——— Feed landscape phones ——— */
+
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  .mobile-nav {
+    padding-top: 0.15rem;
+    padding-bottom: calc(0.15rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-nav a,
+  .mobile-nav button {
+    min-height: 2.65rem;
+    padding-block: 0.2rem;
+  }
+
+  body.page-home,
+  body.page-profile,
+  body.page-audio,
+  body.page-bookings {
+    padding-bottom: calc(2.85rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .main-content {
+    padding-bottom: calc(var(--space-4) + 2.85rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.page-messages .messages-page {
+    height: calc(100dvh - 2.85rem - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 2.85rem - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ——— Tablet portrait feed padding ——— */
+
+@media (min-width: 641px) and (max-width: 900px) {
+  :is(.page-home, .page-audio, .page-profile) .content-layout {
+    padding-inline: var(--space-5);
+  }
+}
+
+/* ——— Prototype controls on small screens ——— */
+
+@media (max-width: 520px) {
+  .prototype-controls {
+    top: var(--space-2);
+    left: var(--space-2);
+  }
+
+  .prototype-controls__menu {
+    min-width: min(200px, calc(100vw - 2rem));
+  }
+}

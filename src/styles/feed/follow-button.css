@@ -72,3 +72,10 @@
   border-color: rgba(231, 76, 60, 0.6);
   color: #e74c3c;
 }
+
+@media (max-width: 480px) {
+  .follow-btn__popover {
+    min-width: 0;
+    max-width: calc(100vw - 1rem);
+  }
+}

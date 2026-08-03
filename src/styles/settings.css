@@ -28,12 +28,6 @@
   gap: var(--space-8);
 }
 
-@media (max-width: 767px) {
-  .settings-shell {
-    grid-template-columns: 1fr;
-  }
-}
-
 .settings-nav__list {
   list-style: none;
   margin: 0;
