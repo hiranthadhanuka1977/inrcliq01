@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState, type CSSProperties } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useId, useState, type CSSProperties } from "react";
 import type { MyBookingItem } from "@/lib/feed/user-bookings";
+import { bookingStatusClass } from "@/lib/feed/booking-status";
 import BookingDeliveryCountdown from "@/components/feed/bookings/BookingDeliveryCountdown";
 import LeftNav from "@/components/feed/LeftNav";
 import MobileNav from "@/components/feed/MobileNav";
@@ -26,7 +28,7 @@ function CreatorBlock({
   const avatar = (
     <span
       className={`my-bookings__avatar${compact ? " my-bookings__avatar--sm" : ""}`}
-      style={{ "--bookings-avatar-color": booking.creator.avatarColor } as CSSProperties}
+      style={{ "--avatar-accent": booking.creator.avatarColor } as CSSProperties}
       aria-hidden="true"
     >
       {booking.creator.avatarUrl ? (
@@ -68,15 +70,43 @@ function CreatorBlock({
 
 export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[] }) {
   const panelTitleId = useId();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = bookings.find((booking) => booking.id === selectedId) ?? null;
   const open = Boolean(selected);
 
   useEffect(() => {
+    const bookingParam = searchParams.get("booking")?.trim() || "";
+    const refParam = searchParams.get("ref")?.trim() || "";
+    if (!bookingParam && !refParam) return;
+
+    const match =
+      (bookingParam ? bookings.find((booking) => booking.id === bookingParam) : null) ||
+      (refParam
+        ? bookings.find(
+            (booking) => booking.reference.toLowerCase() === refParam.toLowerCase(),
+          )
+        : null);
+
+    if (match) {
+      setSelectedId(match.id);
+    }
+  }, [bookings, searchParams]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedId(null);
+    if (searchParams.get("booking") || searchParams.get("ref")) {
+      router.replace(pathname, { scroll: false });
+    }
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
     if (!open) return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setSelectedId(null);
+      if (event.key === "Escape") clearSelection();
     }
 
     const previousOverflow = document.body.style.overflow;
@@ -87,7 +117,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open]);
+  }, [open, clearSelection]);
 
   return (
     <div className="app-shell page-bookings">
@@ -110,9 +140,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
               <li key={booking.id} className="my-bookings__card">
                 <div className="my-bookings__card-top">
                   <CreatorBlock booking={booking} />
-                  <span
-                    className={`my-bookings__status my-bookings__status--${booking.status.toLowerCase()}`}
-                  >
+                  <span className={bookingStatusClass(booking.status)}>
                     {booking.statusLabel}
                   </span>
                 </div>
@@ -165,7 +193,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
           className="my-bookings-drawer__backdrop"
           aria-label="Close booking details"
           tabIndex={open ? 0 : -1}
-          onClick={() => setSelectedId(null)}
+          onClick={clearSelection}
         />
         <aside
           className="my-bookings-drawer__panel"
@@ -187,7 +215,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                   type="button"
                   className="my-bookings-drawer__close"
                   aria-label="Close"
-                  onClick={() => setSelectedId(null)}
+                  onClick={clearSelection}
                 >
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
                     <path
@@ -203,9 +231,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
               <div className="my-bookings-drawer__body">
                 <div className="my-bookings-drawer__creator-row">
                   <CreatorBlock booking={selected} compact />
-                  <span
-                    className={`my-bookings__status my-bookings__status--${selected.status.toLowerCase()}`}
-                  >
+                  <span className={bookingStatusClass(selected.status)}>
                     {selected.statusLabel}
                   </span>
                 </div>
@@ -245,6 +271,18 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                       <dd>{selected.acceptedAtLabel}</dd>
                     </div>
                   ) : null}
+                  {selected.declinedAtLabel ? (
+                    <div>
+                      <dt>Declined</dt>
+                      <dd>{selected.declinedAtLabel}</dd>
+                    </div>
+                  ) : null}
+                  {selected.declineReason ? (
+                    <div>
+                      <dt>Decline reason</dt>
+                      <dd>{selected.declineReason}</dd>
+                    </div>
+                  ) : null}
                 </dl>
               </div>
 
@@ -253,7 +291,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                   <Link
                     href={selected.messagesHref}
                     className="btn btn--primary btn--sm"
-                    onClick={() => setSelectedId(null)}
+                    onClick={clearSelection}
                   >
                     Open messages
                   </Link>

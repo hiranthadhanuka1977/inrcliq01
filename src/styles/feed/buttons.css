@@ -55,7 +55,7 @@
 
 .btn--outline-brand {
   color: var(--color-brand-primary);
-  border-color: rgba(107, 159, 255, 0.45);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
   background: transparent;
 }
 
@@ -71,7 +71,7 @@
 .btn--outline-brand.is-active:focus-visible {
   background: var(--color-brand-primary-subtle);
   color: var(--color-brand-primary);
-  border-color: rgba(107, 159, 255, 0.45);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
 }
 
 .btn--sm {
@@ -93,7 +93,7 @@
 
 .btn--warning {
   background: var(--color-warning);
-  color: #141720;
+  color: var(--color-on-warning);
   border-color: var(--color-warning);
 }
 
@@ -101,7 +101,7 @@
 .btn--warning:focus-visible {
   background: var(--color-warning-hover);
   border-color: var(--color-warning-hover);
-  color: #141720;
+  color: var(--color-on-warning);
 }
 
 .btn--block {

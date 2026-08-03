@@ -61,10 +61,10 @@
 .collection-filters__chip {
   min-height: 2.15rem;
   padding: 0.35rem 0.95rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-default);
   border-radius: 999px;
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background: var(--color-neutral-0);
+  color: var(--color-text-secondary);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 600;
@@ -77,11 +77,13 @@
 
 .collection-filters__chip:hover {
   background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
 }
 
 .collection-filters__chip.is-active {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
   color: var(--color-text-inverse);
 }
 
@@ -99,7 +101,8 @@
   overflow: hidden;
   border-radius: var(--radius-lg);
   background: var(--color-neutral-0);
-  border: 1px solid var(--color-neutral-200);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
 }
 
 .collection-product__media {
@@ -277,7 +280,7 @@
   padding: 0.32rem 0.7rem;
   border-radius: 999px;
   background: var(--color-warning);
-  color: #141720;
+  color: var(--color-on-warning);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -301,7 +304,7 @@
   line-height: 1.4;
   letter-spacing: 0;
   text-align: left;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   opacity: 0;
   visibility: hidden;
   transform: translateY(0.2rem);
@@ -342,6 +345,7 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
+  color: var(--color-text-primary);
 }
 
 .collection-product__desc {
@@ -372,13 +376,13 @@
 
 .collection-product__stars svg {
   fill: transparent;
-  stroke: rgba(255, 255, 255, 0.35);
+  stroke: var(--color-neutral-400);
   stroke-width: 1.5;
 }
 
 .collection-product__stars svg.is-filled {
-  fill: #fff;
-  stroke: #fff;
+  fill: var(--color-warning);
+  stroke: var(--color-warning);
 }
 
 .collection-product__sold {
@@ -398,7 +402,7 @@
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
 .collection-product__compare {
@@ -421,7 +425,7 @@
   gap: 0.2rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #7dffe0;
+  color: var(--chart-move-up);
 }
 
 .collection-product__offer-arrow {

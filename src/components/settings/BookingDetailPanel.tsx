@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import type { SettingsBookingDetail } from "@/lib/settings/bookings";
+import { bookingStatusClass } from "@/lib/feed/booking-status";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 function DetailRow({ label, value }: { label: string; value?: string | null }) {
   if (!value?.trim() || value.trim() === "—") return null;
@@ -15,15 +17,95 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+function DeclineReasonModal({
+  open,
+  reference,
+  requestLabel,
+  reason,
+  error,
+  submitting,
+  onReasonChange,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  reference: string;
+  requestLabel: string;
+  reason: string;
+  error: string;
+  submitting: boolean;
+  onReasonChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  const { dialogRef } = useDialogA11y(open, onClose);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="modal-backdrop is-open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="booking-decline-title"
+    >
+      <div className="modal settings-booking-decline-modal" ref={dialogRef} tabIndex={-1}>
+        <h2 id="booking-decline-title">Decline booking?</h2>
+        <p className="settings-booking-decline-modal__subtitle">
+          Declining <code>{reference}</code> ({requestLabel}) will notify the requester in Messages.
+        </p>
+        <form onSubmit={onSubmit}>
+          <label className="field" htmlFor="booking-decline-reason">
+            <span className="field__label">Reason</span>
+            <textarea
+              id="booking-decline-reason"
+              className="field__input"
+              rows={4}
+              value={reason}
+              onChange={(event) => onReasonChange(event.target.value)}
+              placeholder="Explain why this booking cannot be fulfilled"
+              disabled={submitting}
+              required
+            />
+          </label>
+          {error ? (
+            <p className="field-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="settings-booking-decline-modal__actions">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn--danger" disabled={submitting}>
+              {submitting ? "Declining…" : "Decline booking"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function BookingDetailPanel({ booking }: { booking: SettingsBookingDetail }) {
   const router = useRouter();
   const [status, setStatus] = useState(booking.status);
   const [statusLabel, setStatusLabel] = useState(booking.statusLabel);
   const [acceptedAtLabel, setAcceptedAtLabel] = useState(booking.acceptedAtLabel);
-  const [pendingAction, setPendingAction] = useState<"accept" | "delete" | null>(null);
+  const [declinedAtLabel, setDeclinedAtLabel] = useState(booking.declinedAtLabel);
+  const [declineReason, setDeclineReason] = useState(booking.declineReason);
+  const [pendingAction, setPendingAction] = useState<"accept" | "decline" | "delete" | null>(null);
   const [error, setError] = useState("");
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineDraft, setDeclineDraft] = useState("");
+  const [declineModalError, setDeclineModalError] = useState("");
 
-  const canAccept = status === "RECEIVED";
+  const canRespond = status === "RECEIVED";
   const busy = pendingAction !== null;
 
   async function handleAccept() {
@@ -58,6 +140,63 @@ export function BookingDetailPanel({ booking }: { booking: SettingsBookingDetail
       router.refresh();
     } catch {
       setError("Unable to accept booking.");
+      setPendingAction(null);
+    }
+  }
+
+  function openDeclineModal() {
+    setDeclineDraft("");
+    setDeclineModalError("");
+    setDeclineOpen(true);
+  }
+
+  function closeDeclineModal() {
+    if (pendingAction === "decline") return;
+    setDeclineOpen(false);
+    setDeclineModalError("");
+  }
+
+  async function handleDeclineSubmit(event: FormEvent) {
+    event.preventDefault();
+    const reason = declineDraft.trim();
+    if (!reason) {
+      setDeclineModalError("Please enter a reason for declining.");
+      return;
+    }
+
+    setPendingAction("decline");
+    setDeclineModalError("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/settings/bookings/${booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "decline", reason }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setDeclineModalError(data?.error ?? "Unable to decline booking.");
+        setPendingAction(null);
+        return;
+      }
+
+      setStatus(data?.status ?? "DECLINED");
+      setStatusLabel(data?.statusLabel ?? "Declined");
+      if (data?.declinedAtLabel) {
+        setDeclinedAtLabel(data.declinedAtLabel);
+      }
+      if (typeof data?.declineReason === "string") {
+        setDeclineReason(data.declineReason);
+      } else {
+        setDeclineReason(reason);
+      }
+      setPendingAction(null);
+      setDeclineOpen(false);
+      router.refresh();
+    } catch {
+      setDeclineModalError("Unable to decline booking.");
       setPendingAction(null);
     }
   }
@@ -104,20 +243,28 @@ export function BookingDetailPanel({ booking }: { booking: SettingsBookingDetail
           </p>
         </div>
         <div className="settings-booking-detail__head-actions">
-          <span
-            className={`settings-bookings__status settings-bookings__status--${status.toLowerCase()}`}
-          >
+          <span className={bookingStatusClass(status)}>
             {statusLabel}
           </span>
-          {canAccept ? (
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              onClick={handleAccept}
-              disabled={busy}
-            >
-              {pendingAction === "accept" ? "Accepting…" : "Accept"}
-            </button>
+          {canRespond ? (
+            <>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={handleAccept}
+                disabled={busy}
+              >
+                {pendingAction === "accept" ? "Accepting…" : "Accept"}
+              </button>
+              <button
+                type="button"
+                className="btn btn--danger btn--sm"
+                onClick={openDeclineModal}
+                disabled={busy}
+              >
+                Decline
+              </button>
+            </>
           ) : null}
           <button
             type="button"
@@ -142,7 +289,7 @@ export function BookingDetailPanel({ booking }: { booking: SettingsBookingDetail
           <div className="settings-bookings__creator">
             <span
               className="settings-bookings__avatar"
-              style={{ "--settings-avatar-color": booking.creator.avatarColor } as CSSProperties}
+              style={{ "--avatar-accent": booking.creator.avatarColor } as CSSProperties}
               aria-hidden="true"
             >
               {booking.creator.avatarUrl ? (
@@ -229,11 +376,25 @@ export function BookingDetailPanel({ booking }: { booking: SettingsBookingDetail
             <DetailRow label="Requested for" value={booking.requestedForLabel} />
             <DetailRow label="Deliver by" value={booking.deliverByLabel} />
             <DetailRow label="Accepted" value={acceptedAtLabel} />
+            <DetailRow label="Declined" value={declinedAtLabel} />
+            <DetailRow label="Decline reason" value={declineReason} />
             <DetailRow label="Delivered" value={booking.deliveredAtLabel} />
             <DetailRow label="Updated" value={booking.updatedLabel} />
           </dl>
         </section>
       </div>
+
+      <DeclineReasonModal
+        open={declineOpen}
+        reference={booking.reference}
+        requestLabel={booking.requestLabel}
+        reason={declineDraft}
+        error={declineModalError}
+        submitting={pendingAction === "decline"}
+        onReasonChange={setDeclineDraft}
+        onClose={closeDeclineModal}
+        onSubmit={handleDeclineSubmit}
+      />
     </div>
   );
 }

@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
+import { useFeedTheme } from "@/context/feed/FeedThemeContext";
 import { NavIcon, type NavIconName } from "@/lib/feed/nav-icons";
 
 const navItems: {
@@ -21,7 +23,6 @@ const navItems: {
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Bookings", href: "/feed/bookings", icon: "bookings" },
-  { label: "More", href: "#", icon: "more" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -39,6 +40,7 @@ function isActive(pathname: string, href: string): boolean {
 export default function LeftNav({ firstName }: { firstName?: string | null } = {}) {
   const pathname = usePathname();
   const { firstName: sessionFirstName } = useFeedSession();
+  const { theme, toggleTheme } = useFeedTheme();
   const displayName = (firstName?.trim() || sessionFirstName?.trim() || "You");
   const avatarInitial = displayName === "You" ? "Y" : displayName.charAt(0).toUpperCase();
   const [messagesUnread, setMessagesUnread] = useState(0);
@@ -117,12 +119,15 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
               INRCLIQ<span className="dot">.</span>
             </Link>
           </div>
-          <a className="nav-notify" href="#" aria-label="Notifications">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span className="nav-notify__dot" aria-hidden="true" />
-          </a>
+          <div className="left-nav__header-actions">
+            <ThemeSwitcher />
+            <a className="nav-notify" href="#" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span className="nav-notify__dot" aria-hidden="true" />
+            </a>
+          </div>
         </div>
         <nav>
           {navItems.map((item, index) => {
@@ -220,6 +225,17 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
               >
                 Profile
               </Link>
+              <button
+                type="button"
+                className="nav-profile__dropdown-item"
+                role="menuitem"
+                onClick={() => {
+                  toggleTheme();
+                  setProfileMenuOpen(false);
+                }}
+              >
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </button>
               <button
                 type="button"
                 className="nav-profile__dropdown-item"

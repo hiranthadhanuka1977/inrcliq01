@@ -3,7 +3,6 @@
 .feed-surface--simple {
   --post-card-bg: var(--color-neutral-50);
   --post-band-bg: var(--color-neutral-0);
-  --post-card-border: rgba(255, 255, 255, 0.06);
   --post-muted: var(--color-text-secondary);
   --post-surface: var(--color-neutral-200);
   --post-btn: var(--color-neutral-300);
@@ -17,7 +16,7 @@
   margin-top: var(--space-4);
   padding: 0;
   background: var(--post-card-bg);
-  border: none;
+  border: 1px solid var(--post-card-border);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-xs);
@@ -34,6 +33,7 @@
 
 .feed-surface--simple > .post--simple:hover {
   background: var(--post-card-bg);
+  border: 1px solid var(--post-card-border);
 }
 
 .feed-surface--simple > .spotify-landing + .post--simple {
@@ -161,7 +161,7 @@
   align-items: center;
   flex-shrink: 0;
   padding: 0.22rem 0.6rem;
-  border: 1px solid rgba(107, 159, 255, 0.45);
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
   border-radius: 999px;
   background: var(--color-brand-primary-subtle);
   color: var(--color-brand-primary);
@@ -178,8 +178,8 @@
 }
 
 .feed-surface--simple .post-head__follow:hover {
-  background: rgba(107, 159, 255, 0.22);
-  border-color: rgba(107, 159, 255, 0.6);
+  background: color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 60%, transparent);
 }
 
 .feed-surface--simple .post-head__follow.is-following {
@@ -192,7 +192,7 @@
 
 .feed-surface--simple .post-head__follow.is-following:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-hover);
 }
 
 .feed-surface--simple .post-head__following {
@@ -201,7 +201,7 @@
   flex-shrink: 0;
   padding: 0.22rem 0.5rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-hover);
   font-size: 0.68rem;
   font-weight: 600;
   line-height: 1.2;

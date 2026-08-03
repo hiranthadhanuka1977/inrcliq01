@@ -16,12 +16,13 @@ export type BookingConfirmationPayload = {
 };
 
 export type BookingNotePayload = {
-  kind: "accepted";
+  kind: "accepted" | "declined";
   reference: string;
   creatorName: string;
   specialRequestId?: string;
   title?: string;
   body?: string;
+  reason?: string;
   deliverBy?: string;
 };
 
@@ -54,7 +55,8 @@ export function parseBookingNote(body: string): BookingNotePayload | null {
   if (!body.startsWith(BOOKING_NOTE_PREFIX)) return null;
   try {
     const parsed = JSON.parse(body.slice(BOOKING_NOTE_PREFIX.length)) as BookingNotePayload;
-    if (!parsed?.reference || parsed.kind !== "accepted") return null;
+    if (!parsed?.reference) return null;
+    if (parsed.kind !== "accepted" && parsed.kind !== "declined") return null;
     return parsed;
   } catch {
     return null;
@@ -68,7 +70,11 @@ export function bookingMessagePreview(payload: BookingConfirmationPayload) {
 
 export function bookingNotePreview(payload: BookingNotePayload) {
   const name = payload.creatorName?.trim() || "the creator";
-  return `Accepted by ${name.split(" ")[0]} · ${payload.reference}`;
+  const first = name.split(" ")[0];
+  if (payload.kind === "declined") {
+    return `Declined by ${first} · ${payload.reference}`;
+  }
+  return `Accepted by ${first} · ${payload.reference}`;
 }
 
 export function bookingReceivedTitle(payload: BookingConfirmationPayload) {

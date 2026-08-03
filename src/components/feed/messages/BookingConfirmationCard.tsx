@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { resolveCreatorName, type BookingConfirmationPayload } from "@/lib/feed/booking-confirmation";
 
 export default function BookingConfirmationCard({
@@ -20,10 +21,21 @@ export default function BookingConfirmationCard({
     { label: "Publishing method", value: booking.publishingMethod },
     { label: "Total Charge", value: booking.totalCharge },
   ];
+  const bookingId = booking.specialRequestId?.trim();
+  const detailsHref = bookingId
+    ? `/feed/bookings?booking=${encodeURIComponent(bookingId)}`
+    : `/feed/bookings?ref=${encodeURIComponent(booking.reference)}`;
 
   return (
-    <article className="booking-confirm-msg">
-      <div className="booking-confirm-card">
+    <article
+      className="booking-confirm-msg"
+      data-booking-id={bookingId || booking.reference || undefined}
+    >
+      <Link
+        href={detailsHref}
+        className="booking-confirm-card"
+        aria-label={`Open booking ${booking.reference} details`}
+      >
         <header className="booking-confirm-card__head">
           <p className="booking-confirm-card__eyebrow">Special request</p>
           <h3>{`Received by ${creator}`}</h3>
@@ -88,7 +100,7 @@ export default function BookingConfirmationCard({
             </p>
           </div>
         </section>
-      </div>
+      </Link>
       <time className="booking-confirm-msg__time">{time}</time>
     </article>
   );

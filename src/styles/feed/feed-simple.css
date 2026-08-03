@@ -88,9 +88,9 @@
   border-radius: var(--radius-sm);
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.16) 50%,
-    rgba(255, 255, 255, 0.06) 100%
+    var(--shimmer-base) 0%,
+    var(--shimmer-mid) 50%,
+    var(--shimmer-base) 100%
   );
   background-size: 220% 100%;
   animation: feed-loading-shimmer 1.15s ease-in-out infinite;
@@ -159,7 +159,7 @@
 }
 
 .feed-surface--simple > .post--simple:hover {
-  background: transparent;
+  background: var(--post-card-bg, transparent);
 }
 
 .feed-surface--simple .post-head {
@@ -265,7 +265,7 @@
 
 .feed-surface--simple .post-head__follow {
   padding: 0.35rem 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--hairline-strong);
   border-radius: 999px;
   background: transparent;
   color: var(--color-text-primary);
@@ -282,8 +282,8 @@
 }
 
 .feed-surface--simple .post-head__follow:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.32);
+  background: var(--surface-hover);
+  border-color: var(--color-neutral-300);
 }
 
 .feed-surface--simple .post-head__follow.is-following {
@@ -296,7 +296,7 @@
 
 .feed-surface--simple .post-head__follow.is-following:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-hover);
 }
 
 .feed-surface--simple .post-head__following {
@@ -784,14 +784,19 @@
 /* Creators to follow — Spotify-style artist row */
 
 .feed-surface--simple > .audio-top-creators {
-  margin: 0;
-  padding: calc(var(--feed-divider-gap) + var(--space-4)) 0;
-  border: none;
+  margin: var(--feed-card-gap, var(--space-4)) 0 0;
+  padding: var(--space-4);
   width: 100%;
+  box-sizing: border-box;
+  background: var(--feed-card-bg, transparent);
+  border: 1px solid var(--feed-card-border, transparent);
+  border-radius: var(--feed-card-radius, var(--radius-md));
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .feed-surface--simple > .post--simple + .audio-top-creators {
-  margin-top: 0;
+  margin-top: var(--feed-card-gap, var(--space-4));
 }
 
 .feed-surface--simple > .audio-top-creators + .post--simple {
@@ -817,13 +822,18 @@
 }
 
 .feed-surface--simple > .creator-rail {
-  margin: 0;
-  padding: calc(var(--feed-divider-gap) + var(--space-4)) 0;
-  border: none;
+  margin: var(--feed-card-gap, var(--space-4)) 0 0;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  background: var(--feed-card-bg, transparent);
+  border: 1px solid var(--feed-card-border, transparent);
+  border-radius: var(--feed-card-radius, var(--radius-md));
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .feed-surface--simple > .post--simple + .creator-rail {
-  margin-top: 0;
+  margin-top: var(--feed-card-gap, var(--space-4));
 }
 
 .feed-surface--simple > .creator-rail + .post--simple {
@@ -1026,19 +1036,24 @@
 /* Snaps — 3×2 compact grid after Miley Cyrus post */
 
 .feed-surface--simple > .snaps-rail {
-  margin: var(--feed-divider-gap) 0 0;
-  padding: var(--feed-divider-gap) 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: var(--feed-card-gap, var(--space-4)) 0 0;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  background: var(--feed-card-bg, transparent);
+  border: 1px solid var(--feed-card-border, transparent);
+  border-radius: var(--feed-card-radius, var(--radius-md));
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .feed-surface--simple > .post--simple + .snaps-rail {
-  margin-top: var(--feed-divider-gap);
+  margin-top: var(--feed-card-gap, var(--space-4));
 }
 
 .feed-surface--simple > .snaps-rail + .post--simple {
-  margin-top: var(--feed-divider-gap);
-  padding-top: var(--feed-divider-gap);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: var(--feed-card-gap, var(--space-4));
+  padding-top: 0;
+  border-top: none;
 }
 
 .page-home .snaps-rail .rail-title {
@@ -1072,11 +1087,10 @@
 .feed-surface--simple .snaps-rail .snap-tile {
   aspect-ratio: 9 / 14;
   border-radius: var(--radius-md);
-  transition: transform 0.22s ease;
 }
 
 .feed-surface--simple .snaps-rail .snap-tile:hover {
-  transform: scale(1.03);
+  transform: none;
 }
 
 .page-home .snaps-rail .snap-tile__play {

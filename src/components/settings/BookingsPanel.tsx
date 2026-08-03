@@ -7,6 +7,7 @@ import type {
   SettingsBookingRow,
   SettingsCreatorBookingsGroup,
 } from "@/lib/settings/bookings";
+import { bookingStatusClass } from "@/lib/feed/booking-status";
 
 type BookingsPanelProps = {
   groups: SettingsCreatorBookingsGroup[];
@@ -156,7 +157,7 @@ export function BookingsPanel({ groups: initialGroups }: BookingsPanelProps) {
               <header className="settings-bookings__creator">
                 <span
                   className="settings-bookings__avatar"
-                  style={{ "--settings-avatar-color": group.avatarColor } as CSSProperties}
+                  style={{ "--avatar-accent": group.avatarColor } as CSSProperties}
                   aria-hidden="true"
                 >
                   {group.avatarUrl ? (
@@ -210,9 +211,7 @@ export function BookingsPanel({ groups: initialGroups }: BookingsPanelProps) {
                           </div>
                         </td>
                         <td>
-                          <span
-                            className={`settings-bookings__status settings-bookings__status--${booking.status.toLowerCase()}`}
-                          >
+                          <span className={bookingStatusClass(booking.status)}>
                             {booking.statusLabel}
                           </span>
                         </td>

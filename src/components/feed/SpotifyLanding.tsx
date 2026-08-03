@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { getGreeting } from "@/lib/feed/format";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
 
@@ -17,13 +18,14 @@ export default function SpotifyLanding({ firstName }: { firstName?: string | nul
     <section className="spotify-landing" aria-label="Quick access">
       <div className="spotify-landing__intro">
         <div className="spotify-landing__greeting-row">
-          <span
+          <Link
+            href="/feed/me"
             className="spotify-landing__avatar spotify-landing__avatar--live"
             style={{ "--story-color": "#0d9488" } as React.CSSProperties}
-            aria-hidden="true"
+            aria-label="View your profile"
           >
             {initialsFromName(name === "there" ? null : name)}
-          </span>
+          </Link>
           <h1 className="spotify-landing__greeting">
             {getGreeting()}, {name}
           </h1>

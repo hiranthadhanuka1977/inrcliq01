@@ -39,7 +39,8 @@
     padding-bottom: 0;
   }
 
-  .mobile-nav a {
+  .mobile-nav a,
+  .mobile-nav button {
     min-height: 3.25rem;
   }
 

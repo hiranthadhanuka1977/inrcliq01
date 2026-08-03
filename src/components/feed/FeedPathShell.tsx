@@ -2,31 +2,12 @@
 
 import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
+import {
+  FEED_BODY_CLASSES,
+  feedPageClassForPath,
+} from "@/lib/feed/feed-page-class";
 
-type FeedPageClass =
-  | "page-home"
-  | "page-profile"
-  | "page-audio"
-  | "page-messages"
-  | "page-bookings";
-
-const FEED_BODY_CLASSES: FeedPageClass[] = [
-  "page-home",
-  "page-profile",
-  "page-audio",
-  "page-messages",
-  "page-bookings",
-];
-
-export function feedPageClassForPath(pathname: string): FeedPageClass {
-  if (pathname.startsWith("/feed/audio")) return "page-audio";
-  if (pathname.startsWith("/feed/messages")) return "page-messages";
-  if (pathname.startsWith("/feed/bookings")) return "page-bookings";
-  if (pathname.startsWith("/feed/profile") || pathname.startsWith("/feed/me")) return "page-profile";
-  return "page-home";
-}
-
-/** Applies the feed page class on a wrapper (SSR-safe) and on body before paint. */
+/** Applies the feed page class on a wrapper (SSR-safe) and keeps body in sync. */
 export default function FeedPathShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const pageClass = feedPageClassForPath(pathname);

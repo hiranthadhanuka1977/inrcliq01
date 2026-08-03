@@ -1,0 +1,995 @@
+/**
+ * Feed theme tokens — dark is default; light via html[data-feed-theme="light"].
+ */
+
+/* ——— Dark (default) ——— */
+html:has(.feed-path-shell):not([data-feed-theme="light"]) {
+  --color-brand-primary: #6b9fff;
+  --color-brand-primary-hover: #8ab4ff;
+  --color-brand-primary-subtle: rgba(107, 159, 255, 0.14);
+  --color-on-brand: #ffffff;
+  --color-neutral-0: #1a1d26;
+  --color-neutral-50: #141720;
+  --color-neutral-100: #222633;
+  --color-neutral-200: #2e3340;
+  --color-neutral-300: #3d4354;
+  --color-neutral-400: #6b7280;
+  --color-neutral-500: #9aa3b5;
+  --color-neutral-700: #e8ecf4;
+  --color-neutral-800: #2a3142;
+  --color-neutral-900: #f5f7fb;
+  --color-text-primary: var(--color-neutral-700);
+  --color-text-secondary: var(--color-neutral-500);
+  --color-text-inverse: var(--color-neutral-50);
+  --color-bg-page: #0c0e14;
+  --color-bg-muted: var(--color-neutral-100);
+  --color-border-default: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+  --color-warning: #f5c518;
+  --color-warning-hover: #ffd84d;
+  --color-on-warning: #141720;
+  --color-story-ring: #3d4354;
+  --color-story-snap-bg: #222633;
+  --color-story-snap-icon: #6b9fff;
+  --color-online: #39b785;
+  --booking-accent: #5b7cfa;
+  --booking-status-received: #f0d36a;
+  --booking-status-received-border: #f5c518;
+  --booking-status-active: #9bb0ff;
+  --booking-status-active-border: #5b7cfa;
+  --booking-status-delivered: #6ee7a0;
+  --booking-status-delivered-border: #22c55e;
+  --booking-status-declined: #fca5a5;
+  --booking-status-declined-border: #dc2626;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --shimmer-base: rgba(255, 255, 255, 0.06);
+  --shimmer-mid: rgba(255, 255, 255, 0.16);
+  --post-card-border: rgba(255, 255, 255, 0.06);
+  --feed-card-bg: transparent;
+  --feed-card-border: transparent;
+  --feed-card-radius: 12px;
+  --feed-card-gap: 1rem;
+  --feed-divider: rgba(255, 255, 255, 0.08);
+  --chart-header: #1a1f2e;
+  --chart-header-deep: #141720;
+  --chart-divider: rgba(255, 255, 255, 0.08);
+  --chart-row-divider: rgba(255, 255, 255, 0.05);
+  --chart-on-header: #e8ecf4;
+  --chart-on-header-muted: #9aa3b5;
+  --chart-move-up: #4ade80;
+  --chart-move-down: #f87171;
+  --premium-title: #f5f7fb;
+  --premium-body: rgba(255, 255, 255, 0.82);
+  --premium-chip-bg: rgba(255, 255, 255, 0.06);
+  --premium-chip-border: rgba(255, 255, 255, 0.1);
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-weight-semibold: 600;
+  --duration-fast: 150ms;
+  --button-height: 48px;
+  --button-height-sm: 40px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --nav-width: 245px;
+  --feed-width: 720px;
+  --right-rail-width: 280px;
+  color-scheme: dark;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+/* ——— Light ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) {
+  --color-brand-primary: #1241a6;
+  --color-brand-primary-hover: #0f3690;
+  --color-brand-primary-subtle: #e8eef9;
+  --color-on-brand: #ffffff;
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f5f6f8;
+  --color-neutral-100: #eef0f4;
+  --color-neutral-200: #e2e5eb;
+  --color-neutral-300: #cfd4dc;
+  --color-neutral-400: #98a2b3;
+  --color-neutral-500: #667085;
+  --color-neutral-700: #1f2937;
+  --color-neutral-800: #374151;
+  --color-neutral-900: #111827;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #667085;
+  --color-text-inverse: #ffffff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-muted: #e4e6eb;
+  --color-border-default: #ced0d4;
+  --color-border-strong: #bec3c9;
+  --hairline: #ced0d4;
+  --hairline-strong: #bec3c9;
+  --surface-hover: #e4e6eb;
+  --post-card-border: #ced0d4;
+  --feed-card-bg: #ffffff;
+  --feed-card-border: #ced0d4;
+  --feed-card-radius: var(--radius-md);
+  --feed-card-gap: 1rem;
+  --feed-divider: #ced0d4;
+  --color-warning: #c27803;
+  --color-warning-hover: #a86602;
+  --color-on-warning: #141720;
+  --color-story-ring: #bec3c9;
+  --color-story-snap-bg: #ffffff;
+  --color-story-snap-icon: #1241a6;
+  --color-online: #008a05;
+  --booking-accent: #3d6fd4;
+  --booking-status-received: #9a7b00;
+  --booking-status-received-border: #f5c518;
+  --booking-status-active: #1241a6;
+  --booking-status-active-border: #3d6fd4;
+  --booking-status-delivered: #15803d;
+  --booking-status-delivered-border: #16a34a;
+  --booking-status-declined: #b91c1c;
+  --booking-status-declined-border: #dc2626;
+  --shimmer-base: var(--color-neutral-100);
+  --shimmer-mid: var(--color-neutral-300);
+  --chart-header: #1e3a5f;
+  --chart-header-deep: #162a45;
+  --chart-divider: rgba(255, 255, 255, 0.14);
+  --chart-row-divider: var(--color-neutral-200);
+  --chart-on-header: #f8fafc;
+  --chart-on-header-muted: rgba(248, 250, 252, 0.78);
+  --chart-move-up: #15803d;
+  --chart-move-down: #b91c1c;
+  --premium-title: #f8fafc;
+  --premium-body: rgba(255, 255, 255, 0.88);
+  --premium-chip-bg: rgba(255, 255, 255, 0.1);
+  --premium-chip-border: rgba(255, 255, 255, 0.16);
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-weight-semibold: 600;
+  --duration-fast: 150ms;
+  --button-height: 48px;
+  --button-height-sm: 40px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.1);
+  --nav-width: 245px;
+  --feed-width: 720px;
+  --right-rail-width: 280px;
+  color-scheme: light;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+html:has(.feed-path-shell) body,
+html:has(.feed-path-shell) #main-content,
+.feed-path-shell {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+body.page-home,
+body.page-profile,
+body.page-audio,
+body.page-messages,
+body.page-bookings,
+body:has(.feed-path-shell) {
+  overflow-x: clip;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.feed-path-shell {
+  min-height: 100dvh;
+}
+
+.feed-path-shell * {
+  box-sizing: border-box;
+}
+
+.feed-path-shell a {
+  text-decoration: none;
+}
+
+.feed-path-shell a:not(.btn) {
+  color: inherit;
+}
+
+.theme-switcher {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.theme-switcher:hover,
+.theme-switcher:focus-visible {
+  background: var(--color-neutral-100);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.theme-switcher svg {
+  width: 22px;
+  height: 22px;
+}
+
+.left-nav__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ——— Light-mode contrast safety net ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium-upsell__title,
+html[data-feed-theme="light"]:has(.feed-path-shell) .right-rail .premium-card__title,
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium .premium-upsell__title {
+  color: var(--premium-title);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium-upsell__desc,
+html[data-feed-theme="light"]:has(.feed-path-shell) .right-rail .premium-card__lead,
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium-upsell__perk,
+html[data-feed-theme="light"]:has(.feed-path-shell) .right-rail .premium-card__perks li {
+  color: var(--premium-body);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__banner-title,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__banner-title strong,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__top-num,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__brand-text,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__period {
+  color: var(--chart-on-header);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__banner-title span,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__period {
+  color: var(--chart-on-header-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .left-nav,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__sheet,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__backdrop {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__sheet {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.14);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__handle {
+  background: var(--color-neutral-300);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item.is-active {
+  background: var(--color-brand-primary-subtle);
+  color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item--danger {
+  color: #b42318;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .nav-item:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-thread:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-thread:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .nav-item.active {
+  background: var(--color-brand-primary-subtle);
+  color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--outline-brand {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--outline-brand:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--outline-brand.is-active {
+  background: var(--color-brand-primary-subtle);
+  border-color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-secondary);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item:not(.is-active) .feed-filter:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item:not(.is-active) .feed-filter:focus-visible {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter:hover {
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-800);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter__close {
+  background: color-mix(in srgb, var(--color-text-inverse) 18%, transparent);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active.is-clearable .feed-filter__close:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active.is-clearable .feed-filter__close:focus-visible {
+  background: color-mix(in srgb, var(--color-text-inverse) 28%, transparent);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-filters__track .feed-filter-item:not(.is-active) .feed-filter:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-filters__indicator {
+  background: var(--color-neutral-900);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-bubble--theirs {
+  background: var(--feed-card-bg);
+  border: 1px solid var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-layout {
+  border-color: var(--feed-card-border);
+}
+
+/* ——— Messages — light mode chrome ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-messages .messages-layout,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-layout {
+  background: var(--feed-card-bg);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar {
+  background: var(--feed-card-bg);
+  border-right: 1px solid var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-search {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-thread.is-active {
+  background: var(--color-brand-primary-subtle);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat {
+  background: var(--color-bg-page);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__head {
+  background: var(--feed-card-bg);
+  border-bottom: 1px solid var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer {
+  background: var(--feed-card-bg);
+  border-top: 1px solid var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer__input {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer__input:focus {
+  outline-color: color-mix(in srgb, var(--color-brand-primary) 40%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-bubble--mine {
+  background: var(--color-brand-primary);
+  color: var(--color-on-brand);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-bubble--mine time {
+  color: color-mix(in srgb, var(--color-on-brand) 78%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__empty {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__actions .btn--icon,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__back,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar__compose {
+  color: var(--color-text-secondary);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__actions .btn--icon:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__back:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar__compose:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__summary {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__pending {
+  background: color-mix(in srgb, var(--booking-status-received-border) 12%, #ffffff);
+  border-color: color-mix(in srgb, var(--booking-status-received-border) 35%, var(--feed-card-border));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note__card {
+  background: color-mix(in srgb, var(--booking-status-delivered-border) 10%, #ffffff);
+  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 32%, var(--feed-card-border));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note--declined .booking-status-note__card {
+  background: color-mix(in srgb, var(--booking-status-declined-border) 8%, #ffffff);
+  border-color: color-mix(in srgb, var(--booking-status-declined-border) 32%, var(--feed-card-border));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown__box {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .nav-promo__card {
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .story:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .story:focus-visible {
+  --story-item-bg: var(--color-bg-muted);
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .story-nav {
+  background: var(--color-neutral-0);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .story-nav:hover:not(:disabled) {
+  background: var(--color-neutral-0);
+  box-shadow: var(--shadow-md);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .profile-header__cover-fade {
+  /* Keep dark-mode layout; lighten only the lower band so overlapping title stays readable */
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.06) 42%,
+    color-mix(in srgb, var(--color-bg-page) 55%, transparent) 72%,
+    var(--color-bg-page) 100%
+  );
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .profile-header__avatar.story-avatar {
+  box-shadow: 0 0 0 4px var(--color-bg-page);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--ghost-cover {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  backdrop-filter: blur(8px);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--ghost-cover:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--ghost-cover:focus-visible {
+  background: var(--color-neutral-0);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+/* ——— Light feed cards — visual only; spacing matches dark mode ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple {
+  --post-card-bg: var(--feed-card-bg);
+  --post-band-bg: var(--feed-card-bg);
+  --post-surface: var(--color-bg-muted);
+  --post-btn: var(--color-neutral-300);
+  --post-card-border: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .post--simple {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .post--simple:hover {
+  background: var(--feed-card-bg);
+  border: 1px solid var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .creator-rail:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .audio-top-creators:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .audio-top-creators:hover {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .creator-rail,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .audio-top-creators,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .audio-top-creators {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .audio-top-creator-card {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .audio-top-creator-card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .audio-top-creator-card:focus-within {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .post-actions--engage {
+  border-top-color: var(--feed-divider);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-filters__chip {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-filters__chip:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-filters__chip.is-active {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product__stars svg {
+  stroke: var(--color-neutral-300);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product__stars svg.is-filled {
+  fill: #e5a100;
+  stroke: #e5a100;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product__offer-detail {
+  color: #0f7b4c;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__bundle,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-review__panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-payment {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format {
+  background: var(--color-bg-muted);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile + .requests-pz__delivery-tile,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile + .requests-pz__format-tile,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__bundle-section + .requests-pz__bundle-section,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary__breakdown,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-guide__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__block {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__input,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__file-btn,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-section-info__trigger,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-progress__num {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-mark,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-mark {
+  background: var(--color-neutral-0);
+  border: 2px solid var(--color-neutral-400);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-icon {
+  background: var(--feed-card-bg);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile.is-selected .requests-pz__delivery-mark,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile.is-selected .requests-pz__format-mark {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile.is-selected .requests-pz__delivery-mark::after,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile.is-selected .requests-pz__format-mark::after {
+  border-right-color: #fff;
+  border-bottom-color: #fff;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile.is-selected,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile.is-selected {
+  background: var(--color-brand-primary-subtle);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary__total {
+  background: var(--color-bg-muted);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-section-info__popover {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: var(--shadow-md);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-section-info__popover::before {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar__cell:not(.is-disabled):hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar__cell:not(.is-disabled):focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar__nav {
+  background: var(--color-bg-muted);
+  border: 1px solid var(--feed-card-border);
+}
+
+/* ——— Audio landing light mode ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-search,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-continue-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .podcast-episode-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-live-drop-card {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-pill {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-pill:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-pill.is-active {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .podcast-episode-card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-continue-card:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__controls,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__tabs,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__item {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__segment {
+  background: var(--color-bg-muted);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__item:hover {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__card {
+  background:
+    radial-gradient(ellipse 80% 70% at 10% 20%, color-mix(in srgb, var(--spotlight-a) 28%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, color-mix(in srgb, var(--spotlight-b) 22%, transparent), transparent 72%),
+    var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__glow {
+  opacity: 0.5;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__creator,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__social {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__badge {
+  background: color-mix(in srgb, var(--spotlight-a) 16%, var(--color-bg-muted));
+  border: 1px solid color-mix(in srgb, var(--spotlight-a) 28%, var(--feed-card-border));
+  color: color-mix(in srgb, var(--spotlight-a) 72%, #111827);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__media {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__avatars span {
+  border-color: var(--feed-card-bg);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__cta.btn--primary {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__cta.btn--primary:hover {
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot:hover {
+  background: rgba(15, 23, 42, 0.34);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot.is-active {
+  background: rgba(15, 23, 42, 0.14);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot-progress {
+  background: var(--color-neutral-900);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-for-you__pager-btn,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-for-you__pager-page {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .rail-title h3,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-section__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-section__subtitle {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-creator-card {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card {
+  color: var(--color-text-primary);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--challenge-a) 14%, #ffffff),
+      color-mix(in srgb, var(--challenge-b) 10%, #ffffff)
+    );
+  border: 1px solid var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card:hover {
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--challenge-a) 20%, #ffffff),
+      color-mix(in srgb, var(--challenge-b) 14%, #ffffff)
+    );
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__hashtag {
+  background: color-mix(in srgb, var(--challenge-a) 16%, var(--color-bg-muted));
+  border: 1px solid color-mix(in srgb, var(--challenge-a) 28%, var(--feed-card-border));
+  color: color-mix(in srgb, var(--challenge-a) 72%, #111827);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__copy,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__metric {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__cta {
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__cta:hover {
+  background: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-live-drop-card__countdown.is-live {
+  color: var(--chart-move-up);
+}
+
+/* Mini / dock audio player — elevated light surface (dark dock kept for dark theme) */
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--dock-a) 14%, #ffffff),
+      color-mix(in srgb, var(--dock-b) 10%, #ffffff)
+    );
+  border: 1px solid var(--feed-card-border);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock__btn--primary {
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock__btn--primary:hover {
+  background: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini--dock {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, rgba(var(--audio-accent-a), 1) 14%, #ffffff),
+      color-mix(in srgb, rgba(var(--audio-accent-b), 1) 10%, #ffffff)
+    );
+  border: 1px solid var(--feed-card-border);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__creator,
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__time,
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--close {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__scrubber {
+  background: var(--color-neutral-200);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__scrubber-fill {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--audio-accent-a), 1),
+    rgba(var(--audio-accent-b), 1)
+  );
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__track-hit:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn:hover {
+  background: var(--surface-hover);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--primary {
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--primary:hover {
+  background: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--like.is-liked {
+  color: #e11d48;
+}

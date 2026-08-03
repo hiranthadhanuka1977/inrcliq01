@@ -1,0 +1,44 @@
+/**
+ * Shared booking UI — status badges used by feed + settings.
+ */
+
+.booking-status {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-subtle);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.booking-status--received {
+  border-color: color-mix(in srgb, var(--booking-status-received-border) 40%, var(--color-border-default));
+  background: color-mix(in srgb, var(--booking-status-received-border) 14%, transparent);
+  color: var(--booking-status-received);
+}
+
+.booking-status--accepted,
+.booking-status--in_progress {
+  border-color: color-mix(in srgb, var(--booking-status-active-border) 40%, var(--color-border-default));
+  background: color-mix(in srgb, var(--booking-status-active-border) 12%, transparent);
+  color: var(--booking-status-active);
+}
+
+.booking-status--delivered {
+  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 40%, var(--color-border-default));
+  background: color-mix(in srgb, var(--booking-status-delivered-border) 12%, transparent);
+  color: var(--booking-status-delivered);
+}
+
+.booking-status--declined,
+.booking-status--cancelled {
+  border-color: color-mix(in srgb, var(--booking-status-declined-border) 35%, var(--color-border-default));
+  background: color-mix(in srgb, var(--booking-status-declined-border) 10%, transparent);
+  color: var(--booking-status-declined);
+}

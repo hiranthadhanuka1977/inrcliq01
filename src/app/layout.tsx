@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={plusJakarta.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={plusJakarta.className} suppressHydrationWarning>
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>

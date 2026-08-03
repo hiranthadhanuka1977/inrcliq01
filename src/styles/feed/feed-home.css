@@ -2,7 +2,7 @@
 
 :is(.page-home, .page-audio) .content-layout {
   max-width: calc(var(--feed-width) + var(--right-rail-width) + var(--space-6) * 3);
-  padding: var(--space-6) 0 var(--space-8);
+  padding: var(--space-6) 0 calc(var(--space-8) + 0.35rem);
   background: var(--color-bg-page);
 }
 
@@ -50,7 +50,7 @@
   height: 0;
   margin: var(--space-3) 0 0;
   border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--hairline);
   pointer-events: none;
 }
 
@@ -158,13 +158,13 @@
   top: calc(50% - 0.35rem);
   width: 16px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-hover);
   color: var(--color-text-secondary);
 }
 
 :is(.page-home, .page-audio) .feed-filters__track--audio .feed-filter-item.is-clearable .feed-filter__close:hover,
 :is(.page-home, .page-audio) .feed-filters__track--audio .feed-filter-item.is-clearable .feed-filter__close:focus-visible {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--color-neutral-200);
   color: var(--color-text-primary);
 }
 
@@ -348,9 +348,9 @@
 .page-home .feed-filters__track--audio .feed-filter {
   min-height: 2.375rem;
   padding: 0.625rem 1.2rem;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-hover);
   color: var(--color-text-primary);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -360,6 +360,8 @@
   transition:
     background 0.2s ease,
     color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
     transform 0.15s ease;
 }
 
@@ -368,9 +370,11 @@
 }
 
 .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter {
-  background: #fff;
-  color: #121212;
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
   font-weight: 700;
+  box-shadow: none;
+  border-color: var(--color-neutral-900);
 }
 
 .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter__icon {
@@ -378,7 +382,7 @@
 }
 
 .page-home .feed-filters__track--audio .feed-filter-item:not(.is-active) .feed-filter:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--color-neutral-300);
   color: var(--color-text-primary);
 }
 
@@ -401,14 +405,14 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(18, 18, 18, 0.12);
-  color: #121212;
+  background: color-mix(in srgb, var(--color-text-inverse) 14%, transparent);
+  color: var(--color-text-inverse);
 }
 
 .page-home .feed-filters__track--audio .feed-filter-item.is-clearable .feed-filter__close:hover,
 .page-home .feed-filters__track--audio .feed-filter-item.is-clearable .feed-filter__close:focus-visible {
-  background: rgba(18, 18, 18, 0.2);
-  color: #121212;
+  background: color-mix(in srgb, var(--color-text-inverse) 24%, transparent);
+  color: var(--color-text-inverse);
 }
 
 /* Collapsible filter toggle + pills */
@@ -576,14 +580,7 @@
   overflow: visible;
 }
 
-.feed-surface > .post:hover,
-.feed-surface > .rail:not(.rail--editorial):not(.rail--chart):not(.rail--continue):hover,
-.feed-surface > .suggest-block:hover {
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-  box-shadow: none;
-}
+/* Do not reset borders on hover — card chrome (feed-fb-post / light theme) must stay */
 
 /* Posts — simplified card */
 
@@ -940,11 +937,11 @@
   flex: 0 0 148px;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transition: box-shadow 0.22s ease;
 }
 
 .feed-surface .snap-grid--compact .snap-tile:hover {
-  transform: translateY(-3px) scale(1.02);
+  transform: none;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
@@ -955,11 +952,10 @@
 
 .feed-surface .snap-grid:not(.snap-grid--compact) .snap-tile {
   border-radius: var(--radius-lg);
-  transition: transform 0.22s ease;
 }
 
 .feed-surface .snap-grid:not(.snap-grid--compact) .snap-tile:hover {
-  transform: scale(1.03);
+  transform: none;
 }
 
 /* Creators block */
@@ -1519,7 +1515,7 @@
 }
 
 .feed-surface .resume-item + .resume-item {
-  border-top: 1px solid rgba(255, 255, 255, 0.035);
+  border-top: 1px solid var(--hairline);
 }
 
 .feed-surface .resume-item__art {
@@ -1673,12 +1669,8 @@
 }
 
 .feed-surface .chart-board {
-  --chart-header: #1a1f2e;
-  --chart-header-deep: #141720;
   --chart-surface: var(--color-neutral-50);
   --chart-surface-hover: var(--color-neutral-100);
-  --chart-divider: rgba(255, 255, 255, 0.05);
-  --chart-row-divider: rgba(255, 255, 255, 0.035);
   --chart-accent: var(--color-brand-primary);
   width: 100%;
   max-width: 100%;
@@ -1693,9 +1685,10 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-4) var(--space-3);
   background:
-    radial-gradient(ellipse 80% 120% at 0% 0%, rgba(107, 159, 255, 0.14) 0%, transparent 55%),
-    linear-gradient(135deg, #1e2840 0%, var(--chart-header) 100%);
+    radial-gradient(ellipse 80% 120% at 0% 0%, color-mix(in srgb, var(--color-brand-primary) 18%, transparent) 0%, transparent 55%),
+    linear-gradient(135deg, var(--chart-header-deep) 0%, var(--chart-header) 100%);
   border-bottom: 1px solid var(--chart-divider);
+  color: var(--chart-on-header);
 }
 
 .feed-surface .chart-board__banner-left {
@@ -1724,7 +1717,7 @@
   letter-spacing: -0.03em;
   line-height: 1;
   white-space: nowrap;
-  color: var(--color-text-primary);
+  color: var(--chart-on-header);
 }
 
 .feed-surface .chart-board__banner-title {
@@ -1735,7 +1728,7 @@
   letter-spacing: 0.06em;
   line-height: 1.35;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--chart-on-header-muted);
 }
 
 .feed-surface .chart-board__banner-title strong {
@@ -1743,7 +1736,7 @@
   font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0.04em;
-  color: var(--color-text-primary);
+  color: var(--chart-on-header);
 }
 
 .feed-surface .chart-board__brand {
@@ -1775,7 +1768,7 @@
   line-height: 1.2;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--chart-on-header-muted);
 }
 
 .feed-surface .chart-board__period {
@@ -1789,7 +1782,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--chart-on-header-muted);
 }
 
 .feed-surface .chart-board__period-icon {
@@ -1913,15 +1906,15 @@
 }
 
 .feed-surface .chart-board__move--up {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.22);
-  color: #4ade80;
+  background: color-mix(in srgb, var(--chart-move-up) 14%, transparent);
+  border-color: color-mix(in srgb, var(--chart-move-up) 28%, transparent);
+  color: var(--chart-move-up);
 }
 
 .feed-surface .chart-board__move--down {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.22);
-  color: #f87171;
+  background: color-mix(in srgb, var(--chart-move-down) 14%, transparent);
+  border-color: color-mix(in srgb, var(--chart-move-down) 28%, transparent);
+  color: var(--chart-move-down);
 }
 
 .feed-surface .chart-board__move-arrow {

@@ -64,6 +64,8 @@ export type SettingsBookingDetail = {
   requestedForLabel: string | null;
   deliverByLabel: string | null;
   acceptedAtLabel: string | null;
+  declinedAtLabel: string | null;
+  declineReason: string | null;
   deliveredAtLabel: string | null;
   createdLabel: string;
   updatedLabel: string;
@@ -248,6 +250,10 @@ export async function getSettingsBookingById(id: string): Promise<SettingsBookin
     typeof details?.contentSummary === "string" && details.contentSummary.trim()
       ? details.contentSummary.trim()
       : null;
+  const declineReason =
+    typeof details?.declineReason === "string" && details.declineReason.trim()
+      ? details.declineReason.trim()
+      : null;
 
   return {
     id: request.id,
@@ -280,6 +286,8 @@ export async function getSettingsBookingById(id: string): Promise<SettingsBookin
     requestedForLabel: formatDateTime(request.requestedForAt),
     deliverByLabel: formatDateTime(request.deliverBy),
     acceptedAtLabel: formatDateTime(request.acceptedAt),
+    declinedAtLabel: formatDateTime(request.declinedAt),
+    declineReason,
     deliveredAtLabel: formatDateTime(request.deliveredAt),
     createdLabel: formatDateTime(request.createdAt) ?? formatDate(request.createdAt),
     updatedLabel: formatDateTime(request.updatedAt) ?? formatDate(request.updatedAt),
@@ -418,5 +426,125 @@ export async function acceptSettingsBooking(id: string) {
     status: "ACCEPTED" as const,
     statusLabel: statusLabel("ACCEPTED"),
     acceptedAtLabel: formatDateTime(acceptedAt),
+  };
+}
+
+export async function declineSettingsBooking(id: string, reasonInput: string) {
+  const reason = reasonInput.trim();
+  if (!reason) {
+    return { ok: false as const, error: "A decline reason is required." };
+  }
+
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      threadId: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status === "DECLINED") {
+    return {
+      ok: true as const,
+      alreadyDeclined: true as const,
+      reference: booking.reference,
+      status: "DECLINED" as const,
+      statusLabel: statusLabel("DECLINED"),
+      declinedAtLabel: null as string | null,
+      declineReason: reason,
+    };
+  }
+
+  if (booking.status !== "RECEIVED") {
+    return {
+      ok: false as const,
+      error: `Only received bookings can be declined (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+
+  const declinedAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const firstName = creatorName.split(" ")[0];
+  const notePayload = {
+    kind: "declined" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Declined by ${firstName}`,
+    body: `Booking ${booking.reference} was declined. Reason: ${reason}`,
+    reason,
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const detailsJson = {
+    ...existingDetails,
+    declineReason: reason,
+  };
+
+  if (booking.threadId) {
+    const threadId = booking.threadId;
+    await prisma.$transaction([
+      prisma.specialRequest.update({
+        where: { id },
+        data: {
+          status: "DECLINED",
+          declinedAt,
+          detailsJson,
+        },
+      }),
+      prisma.chatMessage.create({
+        data: {
+          threadId,
+          body: noteBody,
+          fromMe: false,
+          specialRequestId: booking.id,
+        },
+      }),
+      prisma.chatThread.update({
+        where: { id: threadId },
+        data: {
+          preview: notePreview,
+          lastMessageAt: declinedAt,
+        },
+      }),
+    ]);
+  } else {
+    await prisma.specialRequest.update({
+      where: { id },
+      data: {
+        status: "DECLINED",
+        declinedAt,
+        detailsJson,
+      },
+    });
+  }
+
+  return {
+    ok: true as const,
+    alreadyDeclined: false as const,
+    reference: booking.reference,
+    status: "DECLINED" as const,
+    statusLabel: statusLabel("DECLINED"),
+    declinedAtLabel: formatDateTime(declinedAt),
+    declineReason: reason,
   };
 }

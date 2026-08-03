@@ -82,8 +82,8 @@ a.my-bookings__creator:focus-visible .my-bookings__creator-copy strong {
   height: 2.75rem;
   overflow: hidden;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bookings-avatar-color, #6b9fff) 22%, transparent);
-  color: var(--bookings-avatar-color, #1241a6);
+  background: color-mix(in srgb, var(--avatar-accent, #6b9fff) 22%, transparent);
+  color: var(--avatar-accent, #1241a6);
   font-size: 0.82rem;
   font-weight: 750;
   flex-shrink: 0;
@@ -117,45 +117,6 @@ a.my-bookings__creator:focus-visible .my-bookings__creator-copy strong {
 .my-bookings__creator-copy span {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
-}
-
-.my-bookings__status {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 0.28rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-neutral-200);
-  background: var(--color-neutral-100);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-}
-
-.my-bookings__status--received {
-  border-color: color-mix(in srgb, #f5c518 40%, var(--color-neutral-200));
-  background: color-mix(in srgb, #f5c518 14%, transparent);
-  color: #f0d36a;
-}
-
-.my-bookings__status--accepted,
-.my-bookings__status--in_progress {
-  border-color: color-mix(in srgb, #5b7cfa 35%, var(--color-neutral-200));
-  background: color-mix(in srgb, #5b7cfa 12%, transparent);
-  color: #9bb0ff;
-}
-
-.my-bookings__status--delivered {
-  border-color: color-mix(in srgb, #22c55e 35%, var(--color-neutral-200));
-  background: color-mix(in srgb, #22c55e 12%, transparent);
-  color: #6ee7a0;
-}
-
-.my-bookings__status--declined,
-.my-bookings__status--cancelled {
-  border-color: color-mix(in srgb, #dc2626 35%, var(--color-neutral-200));
-  background: color-mix(in srgb, #dc2626 10%, transparent);
-  color: #fca5a5;
 }
 
 .my-bookings__basics h2 {
@@ -242,7 +203,7 @@ a.my-bookings__creator:focus-visible .my-bookings__creator-copy strong {
   font-size: 1.35rem;
   font-weight: 750;
   line-height: 1;
-  color: #5b7cfa;
+  color: var(--booking-accent);
   font-variant-numeric: tabular-nums;
 }
 

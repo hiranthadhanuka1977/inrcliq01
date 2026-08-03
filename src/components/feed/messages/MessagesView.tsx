@@ -417,28 +417,22 @@ export default function MessagesView({
                       const bookingId = messageBookingId(message);
                       if (message.booking) {
                         return (
-                          <div
+                          <BookingConfirmationCard
                             key={message.id}
-                            className="messages-chat__booking-wrap"
-                            data-booking-id={bookingId || undefined}
-                          >
-                            <BookingConfirmationCard
-                              booking={message.booking}
-                              time={message.time}
-                              creatorName={activeConversation.participant.name}
-                            />
-                          </div>
+                            booking={message.booking}
+                            time={message.time}
+                            creatorName={activeConversation.participant.name}
+                          />
                         );
                       }
                       if (message.bookingNote) {
                         return (
-                          <div
+                          <BookingStatusNote
                             key={message.id}
-                            className="messages-chat__booking-wrap"
-                            data-booking-id={bookingId || undefined}
-                          >
-                            <BookingStatusNote note={message.bookingNote} time={message.time} />
-                          </div>
+                            note={message.bookingNote}
+                            time={message.time}
+                            bookingId={bookingId || undefined}
+                          />
                         );
                       }
                       return (
@@ -454,7 +448,7 @@ export default function MessagesView({
                   </div>
 
                   <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>
-                    <label className="visually-hidden" htmlFor="messages-composer-input">
+                    <label className="sr-only" htmlFor="messages-composer-input">
                       Write a message
                     </label>
                     <input

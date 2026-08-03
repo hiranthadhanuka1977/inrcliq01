@@ -19,6 +19,8 @@ export type MyBookingItem = {
   deliverBy: string | null;
   deliverByLabel: string | null;
   acceptedAtLabel: string | null;
+  declinedAtLabel: string | null;
+  declineReason: string | null;
   summary: MyBookingSummaryRow[];
   creator: {
     id: string;
@@ -175,6 +177,16 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
     params.set("focus", "latest");
     const messagesHref =
       request.threadId || slug ? `/feed/messages?${params.toString()}` : null;
+    const details =
+      request.detailsJson &&
+      typeof request.detailsJson === "object" &&
+      !Array.isArray(request.detailsJson)
+        ? (request.detailsJson as Record<string, unknown>)
+        : null;
+    const declineReason =
+      typeof details?.declineReason === "string" && details.declineReason.trim()
+        ? details.declineReason.trim()
+        : null;
 
     return {
       id: request.id,
@@ -189,6 +201,8 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       deliverBy: request.deliverBy?.toISOString() ?? null,
       deliverByLabel: formatDateTime(request.deliverBy),
       acceptedAtLabel: formatDateTime(request.acceptedAt),
+      declinedAtLabel: formatDateTime(request.declinedAt),
+      declineReason,
       summary: buildSummary(request),
       creator: {
         id: request.creator.id,
