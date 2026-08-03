@@ -38,27 +38,6 @@
   }
 }
 
-/* ——— Auth topbar overflow on narrow phones ——— */
-
-@media (max-width: 520px) {
-  .auth-split__topbar {
-    padding-right: var(--layout-content-padding-sm);
-  }
-
-  .auth-split__signup-prompt {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--space-2);
-    max-width: 100%;
-  }
-
-  .auth-split__signup-prompt-text {
-    white-space: normal;
-    text-align: right;
-    line-height: 1.35;
-  }
-}
-
 /* ——— Parent signup ——— */
 
 @media (max-width: 767px) {
