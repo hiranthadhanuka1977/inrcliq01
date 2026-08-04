@@ -6,7 +6,7 @@ export default function GuardianApprovePage() {
   return (
     <Suspense
       fallback={
-        <AuthPathShell>
+        <AuthPathShell showTopLogo>
           <section className="screen page-centered">
             <div className="page-centered__inner text-center">
               <p className="subtitle mt-2">Loading…</p>

@@ -222,7 +222,8 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-split.auth-split
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-center .logo__img:not(.logo__img--inverse),
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-split__auth .logo__img:not(.logo__img--inverse),
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__topbar .logo__img:not(.logo__img--inverse),
-html:has(.auth-path-shell):not([data-feed-theme="light"]) .page-centered .logo__img:not(.logo__img--inverse) {
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .page-centered .logo__img:not(.logo__img--inverse),
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-top-logo .logo__img:not(.logo__img--inverse) {
   filter: brightness(0) invert(1);
 }
 
@@ -282,7 +283,8 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) .page-centered .logo__
 .auth-split__topbar-actions {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  margin-left: auto;
   pointer-events: auto;
 }
 

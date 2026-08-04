@@ -47,7 +47,7 @@ export function SettingsUnlockForm() {
   }
 
   return (
-    <AuthCenterLayout screenId="screen-settings-unlock">
+    <AuthCenterLayout showTopLogo={false} screenId="screen-settings-unlock">
       <div className="text-center">
         <h1>Settings access</h1>
         <p className="subtitle mt-4">Enter the admin password to continue to settings.</p>

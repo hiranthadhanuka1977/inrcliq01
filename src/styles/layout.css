@@ -169,10 +169,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  /* Leave room for the fixed OTP / verify-email inbox button (40px) + gap on the right. */
-  padding: var(--space-4) calc(var(--layout-content-padding-sm) + 40px + var(--space-4))
-    var(--space-4) var(--layout-content-padding-sm);
+  width: 100%;
+  padding: var(--space-4) var(--space-3) var(--space-4) var(--layout-content-padding-sm);
   pointer-events: none;
+}
+
+html:has(.verify-email__inbox-btn) .auth-split__topbar {
+  padding-right: calc(var(--space-3) + 40px + var(--space-2));
 }
 
 .auth-split__signup-prompt {
@@ -190,9 +193,11 @@
 
 @media (min-width: 768px) {
   .auth-split__topbar {
-    padding: var(--space-6)
-      calc(clamp(var(--space-6), 4vw, var(--space-10)) + 40px + var(--space-4))
-      var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
+    padding: var(--space-6) var(--space-4) var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
+  }
+
+  html:has(.verify-email__inbox-btn) .auth-split__topbar {
+    padding-right: calc(var(--space-4) + 40px + var(--space-2));
   }
 
   .auth-split__signup-prompt-text {
@@ -297,6 +302,7 @@
 }
 
 .auth-split__headline {
+  margin: var(--space-8) 0 0;
   font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-4xl));
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-tight);
@@ -316,6 +322,10 @@
 @media (min-width: 768px) {
   .auth-split__tagline {
     font-size: var(--font-size-lg);
+  }
+
+  .auth-split__headline {
+    margin-top: var(--space-10);
   }
 }
 
@@ -705,6 +715,71 @@
 }
 
 /* ——— Auth centered card ——— */
+.auth-top-logo {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  z-index: 15;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  text-decoration: none;
+  transform: translateX(-50%);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    visibility 0.22s ease;
+}
+
+.auth-top-logo.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-0.45rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-top-logo {
+    transition: none;
+  }
+}
+
+.auth-top-logo .logo__img {
+  display: block;
+  width: auto;
+  height: 27px;
+}
+
+@media (min-width: 768px) {
+  .auth-top-logo {
+    top: var(--space-6);
+  }
+}
+
+.auth-path-shell--top-logo .auth-center {
+  padding-top: calc(var(--space-12) + var(--space-2));
+}
+
+.auth-path-shell--top-logo .auth-center--signup-step {
+  padding-top: calc(var(--auth-form-top) + var(--space-8));
+}
+
+.auth-path-shell--top-logo .page-centered {
+  padding-top: calc(var(--space-12) + var(--space-2));
+}
+
+.auth-path-shell--top-logo .parent-signup {
+  padding-top: calc(var(--space-10) + var(--space-2));
+}
+
+.auth-path-shell--top-logo .parent-signup__topbar {
+  justify-content: flex-end;
+}
+
 .auth-center {
   align-items: center;
   justify-content: center;

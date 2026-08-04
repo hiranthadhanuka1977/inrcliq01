@@ -217,7 +217,7 @@ export function GuardianFlow() {
 
   if (loading) {
     return (
-      <AuthPathShell>
+      <AuthPathShell showTopLogo>
         <ThemeSwitcher className="theme-switcher--auth-fixed" />
         <section className="screen page-centered">
           <div className="page-centered__inner text-center">
@@ -230,7 +230,7 @@ export function GuardianFlow() {
 
   if (loadError || !context) {
     return (
-      <AuthPathShell>
+      <AuthPathShell showTopLogo>
         <ThemeSwitcher className="theme-switcher--auth-fixed" />
         <section className="screen page-centered">
           <div className="page-centered__inner text-center">

@@ -19,7 +19,7 @@ export function ParentConsentStep({
   const firstName = child.firstName;
 
   return (
-    <AuthPathShell>
+    <AuthPathShell showTopLogo>
       <ThemeSwitcher className="theme-switcher--auth-fixed" />
     <section className="screen page-centered">
       <div className="page-centered__inner parent-consent">
@@ -156,7 +156,7 @@ export function ParentDeclinedStep({
   onDone: () => void;
 }) {
   return (
-    <AuthPathShell>
+    <AuthPathShell showTopLogo>
       <ThemeSwitcher className="theme-switcher--auth-fixed" />
       <section className="screen page-centered">
         <div className="page-centered__inner text-center">

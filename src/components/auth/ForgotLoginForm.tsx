@@ -88,7 +88,9 @@ export function ForgotLoginForm() {
   return (
     <>
       <Link href="/" className="back-btn auth-split__back" aria-label="Back to log in">
-        ←
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M14 6l-6 6 6 6" />
+        </svg>
       </Link>
       <h1>Forgot your login details?</h1>
       <p className="subtitle mt-2">

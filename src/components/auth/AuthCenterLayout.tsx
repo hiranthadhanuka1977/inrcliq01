@@ -8,17 +8,19 @@ export function AuthCenterLayout({
   cardClassName = "",
   progressStep,
   screenId,
+  showTopLogo = true,
 }: {
   children: React.ReactNode;
   signupStep?: boolean;
   cardClassName?: string;
   progressStep?: number;
   screenId?: string;
+  showTopLogo?: boolean;
 }) {
   const cardClasses = ["auth-center__card", cardClassName].filter(Boolean).join(" ");
 
   return (
-    <AuthPathShell>
+    <AuthPathShell showTopLogo={showTopLogo}>
       <ThemeSwitcher className="theme-switcher--auth-fixed" />
       <section
         id={screenId}

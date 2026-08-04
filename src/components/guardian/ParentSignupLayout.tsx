@@ -42,21 +42,11 @@ export function ParentSignupLayout({
     .join(" ");
 
   return (
-    <AuthPathShell>
+    <AuthPathShell showTopLogo>
       <div className="app-shell">
         <div className="app-frame">
           <section className={sectionClass} id={screenId}>
             <header className="parent-signup__topbar">
-              <Link href="/" className="logo logo--img">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/logo-InrCliq.svg"
-                  alt="InrCliq"
-                  className="logo__img"
-                  width={114}
-                  height={27}
-                />
-              </Link>
               <div className="parent-signup__topbar-actions">
                 <p className="parent-signup__login-prompt">
                   Already have an account?{" "}
