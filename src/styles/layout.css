@@ -773,11 +773,19 @@ html:has(.verify-email__inbox-btn) .auth-split__topbar {
 }
 
 .auth-path-shell--top-logo .parent-signup {
-  padding-top: calc(var(--space-10) + var(--space-2));
+  padding-top: calc(var(--space-12) + var(--space-4));
 }
 
 .auth-path-shell--top-logo .parent-signup__topbar {
   justify-content: flex-end;
+}
+
+.parent-signup__topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+  pointer-events: auto;
 }
 
 .auth-center {
@@ -1200,18 +1208,32 @@ html:has(.verify-email__inbox-btn) .auth-split__topbar {
 
 /* ——— Parent account setup (PAR-02) ——— */
 .parent-signup {
+  position: relative;
   background: var(--color-bg-page);
-  padding: var(--space-6) var(--layout-content-padding-sm) var(--space-12);
+  padding: calc(var(--space-4) + 40px + var(--space-8)) var(--layout-content-padding-sm) var(--space-12);
   overflow-x: clip;
 }
 
 .parent-signup__topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  max-width: var(--layout-content-max);
-  margin: 0 auto var(--space-10);
+  justify-content: flex-end;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: var(--space-4) var(--space-3) var(--space-4) var(--layout-content-padding-sm);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .parent-signup__topbar {
+    padding: var(--space-6) var(--space-4) var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
+  }
 }
 
 .parent-signup__login-prompt {
