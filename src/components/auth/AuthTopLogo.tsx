@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react";
 const SCROLL_THRESHOLD = 12;
 
 function readScrollTop(target: Window | HTMLElement) {
-  if (target === window) {
-    return window.scrollY || document.documentElement.scrollTop || 0;
+  if (target instanceof Window) {
+    return target.scrollY || document.documentElement.scrollTop || 0;
   }
 
   return target.scrollTop;
