@@ -46,33 +46,15 @@
     padding-bottom: var(--space-8);
   }
 
-  .parent-signup__topbar {
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--space-6);
-  }
-
-  .parent-signup__login-prompt {
+  .auth-topbar__prompt-text {
     font-size: var(--font-size-xs);
     line-height: 1.4;
-  }
-}
-
-@media (max-width: 520px) {
-  .parent-signup__topbar {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 
 @media (max-width: 767px) and (orientation: landscape) {
   .parent-signup {
     padding-block: var(--space-3);
-  }
-
-  .parent-signup__topbar {
-    margin-bottom: var(--space-4);
   }
 }
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthPathShell } from "@/components/auth/AuthPathShell";
+import { AuthTopbar } from "@/components/auth/AuthTopbar";
 import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 
 export function AuthSplitLayout({
@@ -14,17 +15,15 @@ export function AuthSplitLayout({
   return (
     <AuthPathShell>
       <section className="auth-split">
-        <header className="auth-split__topbar">
-          <div className="auth-split__topbar-actions">
-            <div className="auth-split__signup-prompt">
-              <span className="auth-split__signup-prompt-text">New here?</span>
-              <Link href="/signup" className="btn btn--outline-brand btn--xs">
-                Create a free account
-              </Link>
-            </div>
-            <ThemeSwitcher />
+        <AuthTopbar>
+          <div className="auth-topbar__prompt">
+            <span className="auth-topbar__prompt-text">New here?</span>
+            <Link href="/signup" className="btn btn--outline-brand btn--xs">
+              Create a free account
+            </Link>
           </div>
-        </header>
+          <ThemeSwitcher />
+        </AuthTopbar>
 
         <aside className="auth-split__marketing" aria-label="About InrCliq">
           <div className="auth-split__illustration" aria-hidden="true">

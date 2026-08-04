@@ -221,7 +221,6 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-split.auth-split
 /* Dark auth: invert brand mark on dark surfaces (marketing panel already uses --inverse) */
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-center .logo__img:not(.logo__img--inverse),
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-split__auth .logo__img:not(.logo__img--inverse),
-html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__topbar .logo__img:not(.logo__img--inverse),
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .page-centered .logo__img:not(.logo__img--inverse),
 html:has(.auth-path-shell):not([data-feed-theme="light"]) .auth-top-logo .logo__img:not(.logo__img--inverse) {
   filter: brightness(0) invert(1);
@@ -276,27 +275,4 @@ html:has(.verify-email__inbox-btn) .theme-switcher--auth-fixed {
   html:has(.verify-email__inbox-btn) .theme-switcher--auth-fixed {
     right: calc(var(--space-4) + 40px + var(--space-2));
   }
-}
-
-.auth-split__topbar .theme-switcher,
-.parent-signup__topbar-actions .theme-switcher {
-  pointer-events: auto;
-}
-
-.auth-split__topbar {
-  gap: var(--space-3);
-}
-
-.auth-split__topbar-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-left: auto;
-  pointer-events: auto;
-}
-
-.parent-signup__topbar-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
 }

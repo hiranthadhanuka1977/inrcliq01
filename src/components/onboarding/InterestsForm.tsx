@@ -65,7 +65,6 @@ export function InterestsForm() {
 
   return (
     <>
-      <div className="auth-split__step-header" aria-hidden="true" />
       <h1>Pick your interests</h1>
       <p className="subtitle mt-2">
         Choose topics you care about so we can personalize your InrCliq experience.
@@ -91,7 +90,7 @@ export function InterestsForm() {
             );
           })}
         </div>
-        <p className="password-requirement mt-4" id="interests-help">
+        <p className="form-hint mt-4" id="interests-help">
           You can update these later from your profile settings.
         </p>
       </section>

@@ -17,7 +17,9 @@ export function AuthCenterLayout({
   screenId?: string;
   showTopLogo?: boolean;
 }) {
-  const cardClasses = ["auth-center__card", cardClassName].filter(Boolean).join(" ");
+  const cardClasses = ["auth-center__card", signupStep ? "auth-center__card--step-offset" : "", cardClassName]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <AuthPathShell showTopLogo={showTopLogo}>

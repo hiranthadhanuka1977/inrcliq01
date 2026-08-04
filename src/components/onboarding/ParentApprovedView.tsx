@@ -37,7 +37,7 @@ export function ParentApprovedView({ firstName }: ParentApprovedViewProps) {
 
   return (
     <div className="text-center">
-      <div className="toast-card__icon" style={{ margin: "0 auto var(--space-6)" }}>
+      <div className="toast-card__icon toast-card__icon--centered">
         ✓
       </div>
       <h1>Your parent approved!</h1>

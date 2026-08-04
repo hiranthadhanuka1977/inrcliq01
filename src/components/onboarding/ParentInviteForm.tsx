@@ -110,7 +110,6 @@ export function ParentInviteForm({ firstName }: { firstName: string }) {
 
   return (
     <>
-      <div className="auth-split__step-header" aria-hidden="true" />
       <h1>One quick step before you join</h1>
       <p className="subtitle mt-2">
         Based on your Country&apos;s eSafety policies, a parent or guardian needs to approve your account. Enter their

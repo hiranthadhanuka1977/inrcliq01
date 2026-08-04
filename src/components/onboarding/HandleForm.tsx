@@ -74,7 +74,6 @@ export function HandleForm({
 
   return (
     <>
-      <div className="auth-split__step-header" aria-hidden="true" />
       <h1>Choose your handle</h1>
       <p className="subtitle mt-2">Your unique @name on InrCliq — how others find and mention you.</p>
       <p className="password-alt mt-6">

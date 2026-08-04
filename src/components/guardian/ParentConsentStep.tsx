@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AuthPathShell } from "@/components/auth/AuthPathShell";
-import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
+import { AuthPageCentered } from "@/components/auth/AuthPageCentered";
 import type { GuardianChildContext } from "@/lib/auth/guardian-flow";
 
 export function ParentConsentStep({
@@ -19,10 +18,7 @@ export function ParentConsentStep({
   const firstName = child.firstName;
 
   return (
-    <AuthPathShell showTopLogo>
-      <ThemeSwitcher className="theme-switcher--auth-fixed" />
-    <section className="screen page-centered">
-      <div className="page-centered__inner parent-consent">
+    <AuthPageCentered innerClassName="parent-consent">
         <header className="parent-consent__header">
           <h1>{firstName} wants to join InrCliq</h1>
           <p className="subtitle mt-2">
@@ -142,9 +138,7 @@ export function ParentConsentStep({
             I want to decline this request
           </button>
         </div>
-      </div>
-    </section>
-    </AuthPathShell>
+    </AuthPageCentered>
   );
 }
 
@@ -156,22 +150,17 @@ export function ParentDeclinedStep({
   onDone: () => void;
 }) {
   return (
-    <AuthPathShell showTopLogo>
-      <ThemeSwitcher className="theme-switcher--auth-fixed" />
-      <section className="screen page-centered">
-        <div className="page-centered__inner text-center">
-          <div className="toast-card__icon toast-card__icon--error" style={{ margin: "0 auto var(--space-6)" }}>
-            ✕
-          </div>
-          <h1>Request declined</h1>
-          <p className="subtitle mt-4">
-            {childFirstName} has been notified. Their signup details have been removed for security.
-          </p>
-          <button type="button" className="btn btn--primary mt-8" onClick={onDone}>
-            Done
-          </button>
-        </div>
-      </section>
-    </AuthPathShell>
+    <AuthPageCentered innerClassName="text-center">
+      <div className="toast-card__icon toast-card__icon--error toast-card__icon--centered">
+        ✕
+      </div>
+      <h1>Request declined</h1>
+      <p className="subtitle mt-4">
+        {childFirstName} has been notified. Their signup details have been removed for security.
+      </p>
+      <button type="button" className="btn btn--primary mt-8" onClick={onDone}>
+        Done
+      </button>
+    </AuthPageCentered>
   );
 }

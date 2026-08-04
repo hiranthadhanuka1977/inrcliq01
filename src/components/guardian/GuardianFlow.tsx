@@ -11,9 +11,8 @@ import { ParentFaceScanStep, ParentIdCaptureStep } from "@/components/guardian/P
 import { ParentIdentityReviewStep } from "@/components/guardian/ParentIdentityReviewStep";
 import { ParentIdentityVerifyStep } from "@/components/guardian/ParentIdentityVerifyStep";
 import { ParentProtectionStep } from "@/components/guardian/ParentProtectionStep";
-import { AuthPathShell } from "@/components/auth/AuthPathShell";
+import { AuthPageCentered } from "@/components/auth/AuthPageCentered";
 import { ParentSignupLayout } from "@/components/guardian/ParentSignupLayout";
-import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import { ParentVerifyIntroStep } from "@/components/guardian/ParentVerifyIntroStep";
 import type { GuardianContext } from "@/lib/auth/guardian-flow";
 import type { IdDocType, ProtectionTier } from "@/lib/guardian/constants";
@@ -217,28 +216,18 @@ export function GuardianFlow() {
 
   if (loading) {
     return (
-      <AuthPathShell showTopLogo>
-        <ThemeSwitcher className="theme-switcher--auth-fixed" />
-        <section className="screen page-centered">
-          <div className="page-centered__inner text-center">
-            <p className="subtitle mt-2">Loading…</p>
-          </div>
-        </section>
-      </AuthPathShell>
+      <AuthPageCentered innerClassName="text-center">
+        <p className="subtitle mt-2">Loading…</p>
+      </AuthPageCentered>
     );
   }
 
   if (loadError || !context) {
     return (
-      <AuthPathShell showTopLogo>
-        <ThemeSwitcher className="theme-switcher--auth-fixed" />
-        <section className="screen page-centered">
-          <div className="page-centered__inner text-center">
-            <h1>Invalid approval link</h1>
-            <p className="subtitle mt-2">{loadError || "This approval link is no longer valid."}</p>
-          </div>
-        </section>
-      </AuthPathShell>
+      <AuthPageCentered innerClassName="text-center">
+        <h1>Invalid approval link</h1>
+        <p className="subtitle mt-2">{loadError || "This approval link is no longer valid."}</p>
+      </AuthPageCentered>
     );
   }
 

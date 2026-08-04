@@ -89,7 +89,6 @@ export function PasswordForm({ email }: { email: string }) {
 
   return (
     <>
-      <div className="auth-split__step-header" aria-hidden="true" />
       <h1>Create a password</h1>
       <p className="subtitle mt-2">Secure your account so you can sign in to InrCliq anytime.</p>
       <p className="password-alt mt-6">

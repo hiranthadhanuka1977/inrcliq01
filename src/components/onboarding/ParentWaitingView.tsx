@@ -129,10 +129,9 @@ export function ParentWaitingView() {
         onClose={() => setInboxOpen(false)}
       />
 
-      <div className="auth-split__step-header" aria-hidden="true" />
       {isDeclined ? (
         <>
-          <div className="toast-card__icon toast-card__icon--error" style={{ margin: "0 auto var(--space-6)" }}>
+          <div className="toast-card__icon toast-card__icon--error toast-card__icon--centered">
             ✕
           </div>
           <h1>Request declined</h1>

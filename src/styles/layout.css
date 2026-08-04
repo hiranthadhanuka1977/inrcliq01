@@ -152,15 +152,8 @@
   justify-content: center;
 }
 
-/* ——— Landing: left marketing · right login ——— */
-.auth-split {
-  position: relative;
-  min-height: 100dvh;
-  overflow: hidden;
-  background: var(--color-bg-page);
-}
-
-.auth-split__topbar {
+/* ——— Shared auth chrome topbar ——— */
+.auth-topbar {
   position: absolute;
   top: 0;
   left: 0;
@@ -174,35 +167,56 @@
   pointer-events: none;
 }
 
-html:has(.verify-email__inbox-btn) .auth-split__topbar {
+html:has(.verify-email__inbox-btn) .auth-topbar {
   padding-right: calc(var(--space-3) + 40px + var(--space-2));
 }
 
-.auth-split__signup-prompt {
+.auth-topbar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+  pointer-events: auto;
+}
+
+.auth-topbar__prompt {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   pointer-events: auto;
 }
 
-.auth-split__signup-prompt-text {
+.auth-topbar__prompt-text {
+  margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
+.auth-topbar .theme-switcher {
+  pointer-events: auto;
+}
+
 @media (min-width: 768px) {
-  .auth-split__topbar {
+  .auth-topbar {
     padding: var(--space-6) var(--space-4) var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
   }
 
-  html:has(.verify-email__inbox-btn) .auth-split__topbar {
+  html:has(.verify-email__inbox-btn) .auth-topbar {
     padding-right: calc(var(--space-4) + 40px + var(--space-2));
   }
 
-  .auth-split__signup-prompt-text {
+  .auth-topbar__prompt-text {
     font-size: var(--font-size-md);
   }
+}
+
+/* ——— Landing: left marketing · right login ——— */
+.auth-split {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg-page);
 }
 
 .auth-split__marketing {
@@ -545,6 +559,10 @@ html:has(.verify-email__inbox-btn) .auth-split__topbar {
   position: relative;
 }
 
+.auth-split__step.verify-email {
+  padding-top: calc(var(--auth-step-header-height) + var(--space-4));
+}
+
 .auth-split__step-header {
   min-height: var(--auth-step-header-height);
   margin-bottom: var(--space-4);
@@ -776,16 +794,8 @@ html:has(.verify-email__inbox-btn) .auth-split__topbar {
   padding-top: calc(var(--space-12) + var(--space-4));
 }
 
-.auth-path-shell--top-logo .parent-signup__topbar {
-  justify-content: flex-end;
-}
-
-.parent-signup__topbar-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-left: auto;
-  pointer-events: auto;
+.auth-center__card--step-offset {
+  padding-top: calc(var(--auth-step-header-height) + var(--space-4));
 }
 
 .auth-center {
@@ -962,27 +972,6 @@ html:has(.verify-email__inbox-btn) .auth-split__topbar {
 .page-centered__inner {
   width: 100%;
   max-width: var(--layout-parent-max);
-}
-
-.page-centered__inner--email {
-  max-width: var(--layout-email-max);
-}
-
-.page-centered__header {
-  text-align: center;
-  margin-bottom: var(--space-8);
-}
-
-.page-centered__header .logo--img,
-.page-centered__header .logo__img {
-  display: inline-block;
-  margin-bottom: var(--space-4);
-}
-
-.page-centered__header .logo {
-  display: inline-block;
-  margin-bottom: var(--space-4);
-  font-size: var(--font-size-2xl);
 }
 
 /* ——— Parent consent (PAR-01) ——— */
@@ -1212,34 +1201,6 @@ html:has(.verify-email__inbox-btn) .auth-split__topbar {
   background: var(--color-bg-page);
   padding: calc(var(--space-4) + 40px + var(--space-8)) var(--layout-content-padding-sm) var(--space-12);
   overflow-x: clip;
-}
-
-.parent-signup__topbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: var(--space-4) var(--space-3) var(--space-4) var(--layout-content-padding-sm);
-  pointer-events: none;
-}
-
-@media (min-width: 768px) {
-  .parent-signup__topbar {
-    padding: var(--space-6) var(--space-4) var(--space-6) clamp(var(--space-6), 4vw, var(--space-10));
-  }
-}
-
-.parent-signup__login-prompt {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
 }
 
 .parent-signup__shell {

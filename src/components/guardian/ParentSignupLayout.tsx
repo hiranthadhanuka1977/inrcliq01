@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthPathShell } from "@/components/auth/AuthPathShell";
+import { AuthTopbar } from "@/components/auth/AuthTopbar";
 import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import { ParentStepper } from "@/components/guardian/ParentStepper";
 
@@ -46,17 +47,15 @@ export function ParentSignupLayout({
       <div className="app-shell">
         <div className="app-frame">
           <section className={sectionClass} id={screenId}>
-            <header className="parent-signup__topbar">
-              <div className="parent-signup__topbar-actions">
-                <p className="parent-signup__login-prompt">
-                  Already have an account?{" "}
-                  <button type="button" className="link-btn" onClick={() => router.push("/")}>
-                    Log in
-                  </button>
-                </p>
-                <ThemeSwitcher />
-              </div>
-            </header>
+            <AuthTopbar>
+              <p className="auth-topbar__prompt-text">
+                Already have an account?{" "}
+                <button type="button" className="link-btn" onClick={() => router.push("/")}>
+                  Log in
+                </button>
+              </p>
+              <ThemeSwitcher />
+            </AuthTopbar>
 
             <div className="parent-signup__progress">
               <ParentStepper currentStep={stepperStep} completeCurrent={completeCurrentStep} />
