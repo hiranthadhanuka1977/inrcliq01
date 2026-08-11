@@ -258,18 +258,25 @@ export async function sendBookingConfirmationMessage(
   encodedBody: string,
   preview: string,
   specialRequestId?: string | null,
+  options?: {
+    fromMe?: boolean;
+    incrementUnread?: boolean;
+  },
 ) {
   const thread = await prisma.chatThread.findFirst({
     where: { id: threadId, userId },
   });
   if (!thread) return null;
 
+  const fromMe = options?.fromMe ?? false;
+  const incrementUnread = options?.incrementUnread ?? false;
+
   await prisma.$transaction([
     prisma.chatMessage.create({
       data: {
         threadId,
         body: encodedBody,
-        fromMe: false,
+        fromMe,
         specialRequestId: specialRequestId ?? null,
       },
     }),
@@ -278,7 +285,7 @@ export async function sendBookingConfirmationMessage(
       data: {
         preview,
         lastMessageAt: new Date(),
-        unreadCount: 0,
+        unreadCount: incrementUnread ? { increment: 1 } : 0,
       },
     }),
   ]);

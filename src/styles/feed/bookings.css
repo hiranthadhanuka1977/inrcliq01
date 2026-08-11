@@ -22,6 +22,42 @@
   color: var(--color-text-secondary);
 }
 
+.my-bookings__tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  padding: 0.25rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 999px;
+  background: var(--color-neutral-0);
+}
+
+.my-bookings__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.5rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.my-bookings__tab:hover,
+.my-bookings__tab:focus-visible {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-neutral-100) 70%, var(--color-neutral-0));
+}
+
+.my-bookings__tab.is-active {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, var(--color-neutral-0));
+}
+
 .my-bookings__empty {
   margin: 0;
   padding: 1.25rem 1.1rem;
@@ -87,6 +123,21 @@
 
 .my-bookings__card-title-row .booking-status {
   margin-top: 0.1rem;
+}
+
+.my-bookings__reference {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.my-bookings__reference code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--color-text-primary);
 }
 
 .my-bookings__creator {

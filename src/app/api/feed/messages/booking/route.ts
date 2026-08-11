@@ -47,6 +47,22 @@ type BookingRequestBody = {
   };
 };
 
+function initialsFromName(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
+
+function normalizeHandle(value: string | null | undefined, fallback: string) {
+  const raw = (value || fallback).trim();
+  if (!raw) return "@user";
+  return raw.startsWith("@") ? raw : `@${raw}`;
+}
+
 function parseOptionalDate(value: string | undefined | null) {
   if (!value?.trim()) return null;
   const parsed = Date.parse(value);
@@ -160,6 +176,92 @@ export async function POST(request: Request) {
     );
     if (!fresh) {
       return NextResponse.json({ error: "Could not save booking message." }, { status: 500 });
+    }
+
+    const creatorOwner = creatorId
+      ? await prisma.creatorUser.findUnique({
+          where: { id: creatorId },
+          select: { userId: true },
+        })
+      : null;
+
+    const ownerUserId = creatorOwner?.userId;
+    if (ownerUserId && ownerUserId !== user.id) {
+      const requester = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+              avatarInitials: true,
+              avatarColor: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      const requesterName =
+        requester?.profile?.displayName?.trim() ||
+        `${requester?.firstName?.trim() || ""} ${requester?.lastName?.trim() || ""}`.trim() ||
+        "Fan";
+      const requesterHandle = normalizeHandle(
+        requester?.profile?.handle || requester?.handle,
+        requesterName.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 24),
+      );
+      const requesterSlug = requester?.profile?.slug?.trim() || null;
+      const requesterInitials =
+        requester?.profile?.avatarInitials?.trim() || initialsFromName(requesterName);
+      const requesterAvatarColor = requester?.profile?.avatarColor?.trim() || "#6b9fff";
+      const requesterAvatarUrl = requester?.profile?.avatarUrl?.trim() || null;
+
+      const ownerThread =
+        (await prisma.chatThread.findFirst({
+          where: {
+            userId: ownerUserId,
+            OR: [
+              requesterSlug
+                ? { peerSlug: { equals: requesterSlug, mode: "insensitive" } }
+                : undefined,
+              { peerHandle: { equals: requesterHandle, mode: "insensitive" } },
+            ].filter(Boolean) as Array<
+              | { peerSlug: { equals: string; mode: "insensitive" } }
+              | { peerHandle: { equals: string; mode: "insensitive" } }
+            >,
+          },
+          select: { id: true },
+        })) ||
+        (await prisma.chatThread.create({
+          data: {
+            userId: ownerUserId,
+            peerCreatorId: null,
+            peerName: requesterName,
+            peerHandle: requesterHandle,
+            peerInitials: requesterInitials,
+            peerAvatarColor: requesterAvatarColor,
+            peerAvatarUrl: requesterAvatarUrl,
+            peerSlug: requesterSlug,
+            peerOnline: false,
+            preview: null,
+            lastMessageAt: null,
+            unreadCount: 0,
+          },
+          select: { id: true },
+        }));
+
+      await sendBookingConfirmationMessage(
+        ownerUserId,
+        ownerThread.id,
+        encoded,
+        preview,
+        specialRequest.id,
+        { fromMe: false, incrementUnread: true },
+      );
     }
 
     return NextResponse.json({

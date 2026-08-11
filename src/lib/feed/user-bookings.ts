@@ -8,6 +8,7 @@ export type MyBookingSummaryRow = {
 
 export type MyBookingItem = {
   id: string;
+  direction: "outbound" | "inbound";
   reference: string;
   status: string;
   statusLabel: string;
@@ -150,7 +151,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
   const user = await getSessionUser();
   if (!user) return null;
 
-  const requests = await prisma.specialRequest.findMany({
+  const outboundRequests = await prisma.specialRequest.findMany({
     where: { userId: user.id },
     orderBy: [{ createdAt: "desc" }],
     include: {
@@ -168,7 +169,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
     },
   });
 
-  return requests.map((request) => {
+  const outbound = outboundRequests.map((request) => {
     const slug = request.creator.slug?.trim() || null;
     const params = new URLSearchParams();
     if (request.threadId) params.set("thread", request.threadId);
@@ -190,6 +191,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
 
     return {
       id: request.id,
+      direction: "outbound",
       reference: request.reference,
       status: request.status,
       statusLabel: statusLabel(request.status),
@@ -216,4 +218,98 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       messagesHref,
     };
   });
+
+  const inboundRequests = await prisma.specialRequest.findMany({
+    where: {
+      creator: { userId: user.id },
+    },
+    orderBy: [{ createdAt: "desc" }],
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              slug: true,
+              displayName: true,
+              avatarUrl: true,
+              avatarInitials: true,
+              avatarColor: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const inbound = inboundRequests.map((request) => {
+    const profile = request.user.profile;
+    const fullName =
+      `${request.user.firstName?.trim() || ""} ${request.user.lastName?.trim() || ""}`.trim();
+    const requesterName =
+      profile?.displayName?.trim() || fullName || request.user.handle?.trim() || "Requester";
+    const requesterHandle = request.user.handle?.trim() || "@requester";
+    const requesterSlug = profile?.slug?.trim() || null;
+    const requesterInitials =
+      profile?.avatarInitials?.trim() ||
+      requesterName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0] || "")
+        .join("")
+        .toUpperCase() ||
+      "RQ";
+    const requesterAvatarColor = profile?.avatarColor?.trim() || "#6b9fff";
+    const requesterAvatarUrl = profile?.avatarUrl?.trim() || null;
+    const params = new URLSearchParams();
+    if (requesterSlug) params.set("slug", requesterSlug);
+    params.set("booking", request.id);
+    params.set("focus", "latest");
+    const messagesHref = requesterSlug ? `/feed/messages?${params.toString()}` : null;
+    const details =
+      request.detailsJson &&
+      typeof request.detailsJson === "object" &&
+      !Array.isArray(request.detailsJson)
+        ? (request.detailsJson as Record<string, unknown>)
+        : null;
+    const declineReason =
+      typeof details?.declineReason === "string" && details.declineReason.trim()
+        ? details.declineReason.trim()
+        : null;
+
+    return {
+      id: request.id,
+      direction: "inbound" as const,
+      reference: request.reference,
+      status: request.status,
+      statusLabel: statusLabel(request.status),
+      requestLabel: request.requestLabel,
+      category: request.category,
+      contentType: request.contentType,
+      totalLabel: `${request.totalFee} ${request.currency}`,
+      createdLabel: formatDate(request.createdAt),
+      deliverBy: request.deliverBy?.toISOString() ?? null,
+      deliverByLabel: formatDateTime(request.deliverBy),
+      acceptedAtLabel: formatDateTime(request.acceptedAt),
+      declinedAtLabel: formatDateTime(request.declinedAt),
+      declineReason,
+      summary: buildSummary(request),
+      creator: {
+        id: request.user.id,
+        name: requesterName,
+        handle: requesterHandle,
+        slug: requesterSlug,
+        avatarUrl: requesterAvatarUrl,
+        avatarInitials: requesterInitials,
+        avatarColor: requesterAvatarColor,
+      },
+      messagesHref,
+    } satisfies MyBookingItem;
+  });
+
+  return [...inbound, ...outbound];
 }

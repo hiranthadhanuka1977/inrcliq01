@@ -68,39 +68,74 @@ function CreatorBlock({
   );
 }
 
+function findBookingFromParams(
+  bookings: MyBookingItem[],
+  bookingParam: string,
+  refParam: string,
+) {
+  if (bookingParam) {
+    const match = bookings.find((booking) => booking.id === bookingParam);
+    if (match) return match;
+  }
+  if (refParam) {
+    const normalized = refParam.toLowerCase();
+    return bookings.find((booking) => booking.reference.toLowerCase() === normalized) ?? null;
+  }
+  return null;
+}
+
 export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[] }) {
   const panelTitleId = useId();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = bookings.find((booking) => booking.id === selectedId) ?? null;
+  const bookingParam = searchParams.get("booking")?.trim() || "";
+  const refParam = searchParams.get("ref")?.trim() || "";
+  const paramMatch = findBookingFromParams(bookings, bookingParam, refParam);
+  const urlTab = searchParams.get("tab") === "inbound" ? "inbound" : "outbound";
+  const activeTab = paramMatch?.direction ?? urlTab;
+  const visibleBookings = bookings.filter((booking) => booking.direction === activeTab);
+  const manualSelected = selectedId
+    ? visibleBookings.find((booking) => booking.id === selectedId) ?? null
+    : null;
+  const selected =
+    manualSelected ?? (bookingParam || refParam ? paramMatch : null) ?? null;
   const open = Boolean(selected);
 
-  useEffect(() => {
-    const bookingParam = searchParams.get("booking")?.trim() || "";
-    const refParam = searchParams.get("ref")?.trim() || "";
-    if (!bookingParam && !refParam) return;
-
-    const match =
-      (bookingParam ? bookings.find((booking) => booking.id === bookingParam) : null) ||
-      (refParam
-        ? bookings.find(
-            (booking) => booking.reference.toLowerCase() === refParam.toLowerCase(),
-          )
-        : null);
-
-    if (match) {
-      setSelectedId(match.id);
-    }
-  }, [bookings, searchParams]);
+  const openBookingDetails = useCallback(
+    (booking: MyBookingItem) => {
+      setSelectedId(booking.id);
+      const next = new URLSearchParams(searchParams.toString());
+      next.set("tab", booking.direction);
+      next.set("booking", booking.id);
+      next.delete("ref");
+      router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   const clearSelection = useCallback(() => {
     setSelectedId(null);
     if (searchParams.get("booking") || searchParams.get("ref")) {
-      router.replace(pathname, { scroll: false });
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete("booking");
+      next.delete("ref");
+      if (activeTab === "inbound" || activeTab === "outbound") {
+        next.set("tab", activeTab);
+      }
+      const query = next.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     }
-  }, [pathname, router, searchParams]);
+  }, [activeTab, pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (!paramMatch) return;
+    if (searchParams.get("tab") === paramMatch.direction) return;
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("tab", paramMatch.direction);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }, [paramMatch, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!open) return;
@@ -126,17 +161,37 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
         <header className="my-bookings__head">
           <h1 className="my-bookings__title">Bookings</h1>
           <p className="my-bookings__subtitle">
-            Special requests you&apos;ve placed with creators.
+            Track requests you initiated and requests assigned to you.
           </p>
+          <div className="my-bookings__tabs" role="tablist" aria-label="Booking direction">
+            <Link
+              href="/feed/bookings?tab=outbound"
+              className={`my-bookings__tab${activeTab === "outbound" ? " is-active" : ""}`}
+              role="tab"
+              aria-selected={activeTab === "outbound"}
+            >
+              Outbound
+            </Link>
+            <Link
+              href="/feed/bookings?tab=inbound"
+              className={`my-bookings__tab${activeTab === "inbound" ? " is-active" : ""}`}
+              role="tab"
+              aria-selected={activeTab === "inbound"}
+            >
+              Inbound
+            </Link>
+          </div>
         </header>
 
-        {bookings.length === 0 ? (
+        {visibleBookings.length === 0 ? (
           <p className="my-bookings__empty">
-            No bookings yet. When you pay for a special request, it will show up here.
+            {activeTab === "inbound"
+              ? "No inbound bookings yet. Incoming service requests will appear here."
+              : "No outbound bookings yet. When you pay for a special request, it will show up here."}
           </p>
         ) : (
           <ul className="my-bookings__list">
-            {bookings.map((booking) => (
+            {visibleBookings.map((booking) => (
               <li key={booking.id} className="my-bookings__card">
                 <div className="my-bookings__card-main">
                   <span
@@ -160,6 +215,10 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                       </span>
                     </div>
 
+                    <p className="my-bookings__reference">
+                      Ref <code>{booking.reference}</code>
+                    </p>
+
                     {booking.creator.slug ? (
                       <Link
                         href={`/feed/profile/${booking.creator.slug}`}
@@ -181,9 +240,6 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                       <li>{booking.totalLabel}</li>
                       <li>{booking.createdLabel}</li>
                       {booking.contentType ? <li>{booking.contentType}</li> : null}
-                      <li>
-                        Ref <code>{booking.reference}</code>
-                      </li>
                     </ul>
 
                     {showsCountdown(booking) && booking.deliverBy ? (
@@ -196,7 +252,7 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                   <button
                     type="button"
                     className="btn btn--secondary btn--sm"
-                    onClick={() => setSelectedId(booking.id)}
+                    onClick={() => openBookingDetails(booking)}
                   >
                     Details
                   </button>

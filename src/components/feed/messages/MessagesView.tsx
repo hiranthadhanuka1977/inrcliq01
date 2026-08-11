@@ -49,6 +49,16 @@ function messageBookingId(message: Conversation["messages"][number]) {
   );
 }
 
+function bookingDetailsTab(
+  actorName: string | undefined,
+  participantName: string,
+): "inbound" | "outbound" {
+  const actor = actorName?.trim().toLowerCase() || "";
+  const participant = participantName.trim().toLowerCase();
+  if (!actor || !participant) return "outbound";
+  return actor === participant ? "outbound" : "inbound";
+}
+
 export default function MessagesView({
   initialConversations = [],
 }: {
@@ -415,13 +425,18 @@ export default function MessagesView({
                   >
                     {activeConversation.messages.map((message) => {
                       const bookingId = messageBookingId(message);
+                      const participantName = activeConversation.participant.name;
                       if (message.booking) {
                         return (
                           <BookingConfirmationCard
                             key={message.id}
                             booking={message.booking}
                             time={message.time}
-                            creatorName={activeConversation.participant.name}
+                            creatorName={participantName}
+                            detailsTab={bookingDetailsTab(
+                              message.booking.creatorName,
+                              participantName,
+                            )}
                           />
                         );
                       }
@@ -432,6 +447,11 @@ export default function MessagesView({
                             note={message.bookingNote}
                             time={message.time}
                             bookingId={bookingId || undefined}
+                            participantName={participantName}
+                            detailsTab={bookingDetailsTab(
+                              message.bookingNote.creatorName,
+                              participantName,
+                            )}
                           />
                         );
                       }

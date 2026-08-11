@@ -535,6 +535,11 @@ body.page-messages .messages-chat,
   border-bottom-left-radius: 0.35rem;
 }
 
+.booking-confirm-card__details-link {
+  align-self: flex-start;
+  margin-top: 0.4rem;
+}
+
 a.booking-confirm-card:hover,
 a.booking-confirm-card:focus-visible,
 a.booking-status-note__card:hover,
