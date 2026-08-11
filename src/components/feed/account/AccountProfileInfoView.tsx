@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { AccountProfile } from "@/lib/feed/account-profile";
 
 function ProfileField({ label, value }: { label: string; value: string }) {
@@ -22,8 +23,21 @@ export default function AccountProfileInfoView({ profile }: { profile: AccountPr
               Basic details for {profile.handle ? `@${profile.handle}` : profile.fullName}
             </p>
           </div>
-          <span className="account-profile__avatar account-profile__avatar--sm" aria-hidden="true">
-            {profile.avatarInitial}
+          <span
+            className="account-profile__avatar account-profile__avatar--sm"
+            style={
+              profile.avatarColor
+                ? ({ "--story-color": profile.avatarColor } as CSSProperties)
+                : undefined
+            }
+            aria-hidden="true"
+          >
+            {profile.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatarUrl} alt="" width={52} height={52} />
+            ) : (
+              profile.avatarInitial
+            )}
           </span>
         </div>
 

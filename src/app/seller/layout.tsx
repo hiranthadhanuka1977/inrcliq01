@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SellerHeader } from "@/components/seller/SellerHeader";
 import { SellerNav } from "@/components/seller/SellerNav";
 import { FeedSessionProvider } from "@/context/feed/FeedSessionContext";
-import { getSessionUser } from "@/lib/session";
+import { getSessionNavProfile } from "@/lib/feed/session-nav-profile";
 import { getSellerIdentity } from "@/lib/seller/identity";
 
 export const metadata: Metadata = {
@@ -15,11 +15,19 @@ export default async function SellerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, identity] = await Promise.all([getSessionUser(), getSellerIdentity()]);
-  const firstName = user?.firstName?.trim() || identity?.displayName?.split(" ")[0] || null;
+  const [navProfile, identity] = await Promise.all([
+    getSessionNavProfile(),
+    getSellerIdentity(),
+  ]);
+  const firstName =
+    navProfile.firstName || identity?.displayName?.split(" ")[0] || null;
 
   return (
-    <FeedSessionProvider firstName={firstName}>
+    <FeedSessionProvider
+      firstName={firstName}
+      avatarUrl={navProfile.avatarUrl}
+      avatarColor={navProfile.avatarColor}
+    >
       <div className="seller-path-shell feed-path-shell">
         <SellerHeader />
         <div className="seller-shell">

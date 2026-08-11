@@ -134,8 +134,21 @@ export default function AccountProfileView({
     <main className="main-content account-profile" id="main">
       <div className="account-profile__card">
         <div className="account-profile__hero">
-          <span className="account-profile__avatar" aria-hidden="true">
-            {profile.avatarInitial}
+          <span
+            className="account-profile__avatar"
+            style={
+              profile.avatarColor
+                ? ({ "--story-color": profile.avatarColor } as CSSProperties)
+                : undefined
+            }
+            aria-hidden="true"
+          >
+            {profile.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatarUrl} alt="" width={72} height={72} />
+            ) : (
+              profile.avatarInitial
+            )}
           </span>
           <div className="account-profile__hero-copy">
             <h1 className="account-profile__name">{profile.fullName}</h1>

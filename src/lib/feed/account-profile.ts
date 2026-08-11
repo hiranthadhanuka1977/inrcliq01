@@ -13,6 +13,7 @@ import {
   countFollowedCreatorsForUser,
   listFollowedCreatorsForUser,
 } from "@/lib/feed/follow-service";
+import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
 
@@ -52,6 +53,8 @@ export type AccountProfile = {
   privacyTierDescription: string;
   memberSince: string;
   avatarInitial: string;
+  avatarUrl: string | null;
+  avatarColor: string | null;
   social: {
     followersCount: number;
     followingCount: number;
@@ -123,6 +126,39 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
   const fullName = [firstName, lastName].filter(Boolean).join(" ") || "Your profile";
   const avatarInitial = (firstName || user.email || "Y").charAt(0).toUpperCase();
 
+  const [profileRow, creatorRow] = await Promise.all([
+    prisma.userProfile.findUnique({
+      where: { userId: user.id },
+      select: {
+        displayName: true,
+        avatarUrl: true,
+        avatarColor: true,
+        avatarInitials: true,
+      },
+    }),
+    prisma.creatorUser.findFirst({
+      where: { userId: user.id },
+      select: {
+        name: true,
+        avatarUrl: true,
+        avatarColor: true,
+        avatarInitials: true,
+      },
+    }),
+  ]);
+
+  const resolvedFullName =
+    profileRow?.displayName?.trim() ||
+    creatorRow?.name?.trim() ||
+    fullName;
+  const resolvedAvatarInitial =
+    profileRow?.avatarInitials?.trim() ||
+    creatorRow?.avatarInitials?.trim() ||
+    (resolvedFullName === "Your profile" ? avatarInitial : resolvedFullName.charAt(0).toUpperCase());
+  const avatarUrl = profileRow?.avatarUrl?.trim() || creatorRow?.avatarUrl?.trim() || null;
+  const avatarColor =
+    profileRow?.avatarColor?.trim() || creatorRow?.avatarColor?.trim() || null;
+
   let age: number | null = null;
   let dateOfBirth: string | null = null;
   if (user.dateOfBirth) {
@@ -179,7 +215,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     id: user.id,
     firstName,
     lastName,
-    fullName,
+    fullName: resolvedFullName,
     handle: user.handle?.trim() || null,
     email: user.email,
     emailVerified: Boolean(user.emailVerified),
@@ -202,7 +238,9 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
       month: "long",
       year: "numeric",
     }),
-    avatarInitial,
+    avatarInitial: resolvedAvatarInitial,
+    avatarUrl,
+    avatarColor,
     social: {
       followersCount: followers.length,
       followingCount,

@@ -44,10 +44,11 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function LeftNav({ firstName }: { firstName?: string | null } = {}) {
   const pathname = usePathname();
-  const { firstName: sessionFirstName } = useFeedSession();
+  const { firstName: sessionFirstName, avatarUrl, avatarColor } = useFeedSession();
   const { theme, toggleTheme } = useFeedTheme();
   const displayName = (firstName?.trim() || sessionFirstName?.trim() || "You");
   const avatarInitial = displayName === "You" ? "Y" : displayName.charAt(0).toUpperCase();
+  const avatarAccent = avatarColor?.trim() || "#0d9488";
   const [messagesUnread, setMessagesUnread] = useState(0);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -197,12 +198,21 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
 
       <div className="nav-profile" ref={profileMenuRef}>
         <Link href="/feed/me?tab=subscriptions" className="nav-profile__link">
-          <span className="nav-profile__avatar" style={{ "--story-color": "#0d9488" } as React.CSSProperties} aria-hidden="true">
-            {avatarInitial}
+          <span
+            className="nav-profile__avatar"
+            style={{ "--story-color": avatarAccent } as React.CSSProperties}
+            aria-hidden="true"
+          >
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" width={36} height={36} />
+            ) : (
+              avatarInitial
+            )}
           </span>
           <span className="nav-profile__info">
             <span className="nav-profile__name">{displayName}</span>
-            <span className="nav-profile__meta">View network</span>
+            <span className="nav-profile__meta">Your profile</span>
           </span>
         </Link>
         <div className="nav-profile__menu-wrap">
