@@ -13,6 +13,8 @@ const OUT_DIR = join(process.cwd(), "data", "db-export");
 
 const TABLES = [
   "User",
+  "UserProfile",
+  "SpecialRequestCatalog",
   "Account",
   "Session",
   "LoginCode",

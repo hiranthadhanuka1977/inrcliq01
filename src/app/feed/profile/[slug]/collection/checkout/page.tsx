@@ -1,5 +1,6 @@
 import CollectionCheckoutView from "@/components/feed/profile/CollectionCheckoutView";
-import { getCreatorCollection } from "@/lib/feed/collection";
+import { CollectionUnavailablePage } from "@/components/feed/profile/CollectionUnavailable";
+import { getCreatorCollection, getCreatorCollectionRaw } from "@/lib/feed/collection";
 import { getProfileData } from "@/lib/feed/profile";
 import { notFound } from "next/navigation";
 
@@ -16,11 +17,20 @@ export async function generateMetadata({ params }: CheckoutPageProps) {
 
 export default async function CollectionCheckoutPage({ params }: CheckoutPageProps) {
   const { slug } = await params;
-  const [profile, collection] = await Promise.all([
+  const [profile, rawCollection, collection] = await Promise.all([
     getProfileData(slug),
+    getCreatorCollectionRaw(slug),
     getCreatorCollection(slug),
   ]);
-  if (!profile || !collection) notFound();
+  if (!profile) notFound();
+
+  if (rawCollection && rawCollection.enabled === false) {
+    return (
+      <CollectionUnavailablePage creatorName={profile.name} profileSlug={profile.slug} />
+    );
+  }
+
+  if (!collection) notFound();
 
   return <CollectionCheckoutView profile={profile} />;
 }

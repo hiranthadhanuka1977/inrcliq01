@@ -59,6 +59,10 @@ model User {
   subscriptions          CreatorSubscription[]
   follows                CreatorFollow[]
   specialRequests        SpecialRequest[]
+  creatorProfile         CreatorUser?
+  authoredFeedPosts      FeedPost[]
+  profile                UserProfile?
+  specialRequestCatalog  SpecialRequestCatalog?
 }
 
 model Account {
@@ -143,7 +147,54 @@ model ParentApprovalRequest {
   @@index([guardianUserId])
 }
 
-/// Creators imported from feed JSON (separate from auth `User` accounts).
+/// Public profile for an auth `User` (1:1). Rich rows come from profile JSON;
+/// remaining users get unverified stubs.
+model UserProfile {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  slug                   String?  @unique
+  displayName            String
+  handle                 String   @unique
+  avatarInitials         String
+  avatarColor            String
+  avatarUrl              String?
+  coverUrl               String?
+  bio                    String   @default("")
+  verified               Boolean  @default(false)
+  specialRequests        Boolean  @default(false)
+  subscriptionPriceLabel String?
+  followersLabel         String?
+  followingCount         Int      @default(0)
+  subscribersCount       Int      @default(0)
+  postsCountLabel        Int?
+  popularPostsJson       Json?
+  pinnedFeedPostIds      String[] @default([])
+  source                 String   @default("stub")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([verified])
+  @@index([slug])
+}
+
+/// Seller-owned Special Requests catalog (offerings fans can book).
+/// Only creators with a row here (currently Mia Chen) expose service requests.
+model SpecialRequestCatalog {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  enabled   Boolean  @default(true)
+  content   Json
+  source    String   @default("seed")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Feed / storefront creator record. Bridged to auth `User` via `userId`
+/// (one onboarded User identity; CreatorUser remains for content relations for now).
 model CreatorUser {
   id             String   @id @default(cuid())
   email          String   @unique
@@ -160,9 +211,11 @@ model CreatorUser {
   bio            String?
   coverUrl       String?
   source         String   @default("feed-json")
+  userId         String?  @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  user            User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
   posts           FeedPost[]
   collections     CreatorCollection[]
   chatThreads     ChatThread[]
@@ -173,7 +226,8 @@ model CreatorUser {
   @@index([name])
 }
 
-/// Feed posts imported from `data/my_feed.json`, linked to `CreatorUser`.
+/// Feed posts imported from `data/my_feed.json`.
+/// Linked to `CreatorUser` (content author) and optionally to auth `User` via `userId`.
 model FeedPost {
   id          String   @id
   category    String
@@ -190,13 +244,16 @@ model FeedPost {
   postedAgo   String?
   sortOrder   Int      @default(0)
   creatorId   String
+  userId      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator    CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  authorUser User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([category])
   @@index([creatorId])
+  @@index([userId])
   @@index([postedAt])
   @@index([sortOrder])
 }
@@ -207,6 +264,7 @@ model CreatorCollection {
   slug      String   @unique
   title     String
   subtitle  String
+  enabled   Boolean  @default(true)
   source    String   @default("collection-json")
   creatorId String
   createdAt DateTime @default(now())
@@ -234,6 +292,8 @@ model CollectionProduct {
   offerJson      Json?
   ctaLabel       String?
   detailJson     Json?
+  active         Boolean  @default(true)
+  published      Boolean  @default(false)
   sortOrder      Int      @default(0)
   collectionId   String
   createdAt      DateTime @default(now())

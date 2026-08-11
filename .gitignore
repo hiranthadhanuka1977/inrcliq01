@@ -57,3 +57,7 @@ next-env.d.ts
 .env.vercel*
 .env.local
 
+# seller-uploaded images (keep folder via .gitkeep)
+/public/uploads/seller-service-requests/*
+!/public/uploads/seller-service-requests/.gitkeep
+

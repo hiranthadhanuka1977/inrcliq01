@@ -15,6 +15,8 @@ const SECRET = process.env.FULL_SYNC_SECRET || "inrcliq-full-sync-20260728";
 
 const TABLE_ORDER = [
   "User",
+  "UserProfile",
+  "SpecialRequestCatalog",
   "Account",
   "Session",
   "LoginCode",

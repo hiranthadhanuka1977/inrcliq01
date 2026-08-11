@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { prisma } from "@/lib/prisma";
+import { isProductLive, toPublicCollection } from "@/lib/seller/collection-helpers";
 import type {
   CollectionProduct,
   CollectionProductDetail,
@@ -28,6 +29,8 @@ function mapDbProduct(product: {
   offerJson: unknown;
   ctaLabel: string | null;
   detailJson: unknown;
+  active?: boolean;
+  published?: boolean;
 }): CollectionProduct {
   return {
     id: product.productKey,
@@ -43,6 +46,8 @@ function mapDbProduct(product: {
     offer: (product.offerJson as CollectionProductOffer | null) ?? undefined,
     ctaLabel: product.ctaLabel ?? undefined,
     detail: (product.detailJson as CollectionProductDetail | null) ?? undefined,
+    active: product.active !== false,
+    published: product.published === true,
   };
 }
 
@@ -54,10 +59,53 @@ function getCreatorCollectionFromJson(slug: string): CreatorCollection | null {
   if (!existsSync(filePath)) return null;
 
   const raw = readFileSync(filePath, "utf-8");
-  return JSON.parse(raw) as CreatorCollection;
+  const parsed = JSON.parse(raw) as CreatorCollection;
+  // JSON seeds are treated as live/public unless explicitly marked otherwise.
+  return {
+    ...parsed,
+    enabled: parsed.enabled !== false,
+    products: parsed.products.map((product) => ({
+      ...product,
+      active: product.active !== false,
+      published: product.published !== false,
+    })),
+  };
 }
 
-export async function getCreatorCollection(slug: string): Promise<CreatorCollection | null> {
+function mapCollectionRow(collection: {
+  slug: string;
+  title: string;
+  subtitle: string;
+  enabled: boolean;
+  products: Array<{
+    productKey: string;
+    kind: string;
+    name: string;
+    price: string;
+    compareAtPrice: string | null;
+    description: string;
+    image: string;
+    imageAlt: string;
+    rating: number;
+    soldLabel: string;
+    offerJson: unknown;
+    ctaLabel: string | null;
+    detailJson: unknown;
+    active: boolean;
+    published: boolean;
+  }>;
+}): CreatorCollection {
+  return {
+    slug: collection.slug,
+    title: collection.title,
+    subtitle: collection.subtitle,
+    enabled: collection.enabled,
+    products: collection.products.map(mapDbProduct),
+  };
+}
+
+/** Full seller-facing catalog (includes drafts / inactive). */
+export async function getCreatorCollectionRaw(slug: string): Promise<CreatorCollection | null> {
   try {
     const collection = await prisma.creatorCollection.findUnique({
       where: { slug },
@@ -70,55 +118,29 @@ export async function getCreatorCollection(slug: string): Promise<CreatorCollect
       return getCreatorCollectionFromJson(slug);
     }
 
-    return {
-      slug: collection.slug,
-      title: collection.title,
-      subtitle: collection.subtitle,
-      products: collection.products.map(mapDbProduct),
-    };
+    return mapCollectionRow(collection);
   } catch (error) {
-    console.error("getCreatorCollection: falling back to JSON", error);
+    console.error("getCreatorCollectionRaw: falling back to JSON", error);
     return getCreatorCollectionFromJson(slug);
   }
+}
+
+/** Public storefront: hidden when disabled; only live products. */
+export async function getCreatorCollection(slug: string): Promise<CreatorCollection | null> {
+  const raw = await getCreatorCollectionRaw(slug);
+  if (!raw) return null;
+  return toPublicCollection(raw);
 }
 
 export async function getCollectionProduct(
   slug: string,
   productId: string,
 ): Promise<{ collection: CreatorCollection; product: CollectionProduct } | null> {
-  try {
-    const collection = await prisma.creatorCollection.findUnique({
-      where: { slug },
-      include: {
-        products: { orderBy: { sortOrder: "asc" } },
-      },
-    });
+  const publicCollection = await getCreatorCollection(slug);
+  if (!publicCollection) return null;
 
-    if (!collection) {
-      const fromJson = getCreatorCollectionFromJson(slug);
-      if (!fromJson) return null;
-      const product = fromJson.products.find((item) => item.id === productId);
-      if (!product) return null;
-      return { collection: fromJson, product };
-    }
+  const product = publicCollection.products.find((item) => item.id === productId);
+  if (!product || !isProductLive(product)) return null;
 
-    const mapped: CreatorCollection = {
-      slug: collection.slug,
-      title: collection.title,
-      subtitle: collection.subtitle,
-      products: collection.products.map(mapDbProduct),
-    };
-
-    const product = mapped.products.find((item) => item.id === productId);
-    if (!product) return null;
-
-    return { collection: mapped, product };
-  } catch (error) {
-    console.error("getCollectionProduct: falling back to JSON", error);
-    const fromJson = getCreatorCollectionFromJson(slug);
-    if (!fromJson) return null;
-    const product = fromJson.products.find((item) => item.id === productId);
-    if (!product) return null;
-    return { collection: fromJson, product };
-  }
+  return { collection: publicCollection, product };
 }

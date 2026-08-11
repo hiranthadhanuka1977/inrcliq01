@@ -1,14 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
+import FeedVideoViewer from "@/components/feed/FeedVideoViewer";
 import FollowButton from "@/components/feed/FollowButton";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
+import FeedReactionButton, { type FeedReactionId } from "@/components/feed/FeedReactionButton";
 import ShareIcon from "@/components/feed/ShareIcon";
 import type { FeedItem } from "@/types/feed/feed";
 import { formatCount } from "@/lib/feed/format";
-import { getProfileSlugFromHandle } from "@/lib/feed/profile-slugs";
+import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
+import { SAMPLE_FEED_VIDEO_URL } from "@/lib/feed/sample-video";
+
+const muteSvg = (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M16.5 12a4.5 4.5 0 0 0-2.25-3.9v2.18l2.2 2.2c.03-.16.05-.32.05-.48Zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A7.96 7.96 0 0 0 21 12c0-3.63-2.4-6.7-5.7-7.66v2.1A5.99 5.99 0 0 1 19 12ZM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3ZM12 4 9.91 6.09 12 8.18V4Z" />
+  </svg>
+);
+
+function isVideoFeedMedia(media: NonNullable<FeedItem["media"]>, membersOnly?: boolean): boolean {
+  if (membersOnly) return false;
+  if (media.type === "video") return true;
+  if (media.type === "collage" && media.images.length > 1) return true;
+  return media.type === "image" && media.images.length === 1;
+}
 
 const globeSvg = (
   <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -47,10 +63,33 @@ function SubscriberMediaLock() {
 function PostMedia({
   media,
   membersOnly,
+  onOpenVideo,
+  previewPaused = false,
 }: {
   media: NonNullable<FeedItem["media"]>;
   membersOnly?: boolean;
+  onOpenVideo?: (index?: number) => void;
+  previewPaused?: boolean;
 }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const showVideo = isVideoFeedMedia(media, membersOnly);
+  const poster = media.images[0] ?? null;
+  const videoSrc = media.video_url || SAMPLE_FEED_VIDEO_URL;
+
+  useEffect(() => {
+    if (!showVideo || media.type === "collage") return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (previewPaused) {
+      video.pause();
+      return;
+    }
+
+    void video.play().then(() => setPreviewing(true)).catch(() => setPreviewing(false));
+  }, [showVideo, videoSrc, previewPaused, media.type]);
+
   if (media.type === "collage" && media.images.length > 1) {
     const collageClass =
       media.images.length >= 3
@@ -58,11 +97,35 @@ function PostMedia({
         : "post-media post-media--collage";
 
     return (
-      <div className={`${collageClass}${membersOnly ? " post-media--subscriber-locked" : ""}`}>
+      <div
+        className={`${collageClass}${membersOnly ? " post-media--subscriber-locked" : ""}${
+          !membersOnly && onOpenVideo ? " post-media--collage-video" : ""
+        }`}
+      >
         {media.images.map((image, index) => (
           <div
             key={image.url}
             className={`post-media__cell${index === 0 ? " post-media__cell--main" : ""}`}
+            role={!membersOnly && onOpenVideo ? "button" : undefined}
+            tabIndex={!membersOnly && onOpenVideo ? 0 : undefined}
+            aria-label={!membersOnly && onOpenVideo ? `Play video ${index + 1}` : undefined}
+            onClick={
+              !membersOnly && onOpenVideo
+                ? () => {
+                    onOpenVideo(index);
+                  }
+                : undefined
+            }
+            onKeyDown={
+              !membersOnly && onOpenVideo
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onOpenVideo(index);
+                    }
+                  }
+                : undefined
+            }
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={image.url} alt={image.alt} />
@@ -74,20 +137,57 @@ function PostMedia({
     );
   }
 
-  const image = media.images[0];
-  if (!image) return null;
+  if (!poster) return null;
+
+  if (showVideo && onOpenVideo) {
+    return (
+      <div
+        className={`post-media post-media--video${previewing ? " is-previewing" : ""}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Play video"
+        onClick={() => {
+          videoRef.current?.pause();
+          onOpenVideo(0);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            videoRef.current?.pause();
+            onOpenVideo(0);
+          }
+        }}
+      >
+        <video
+          ref={videoRef}
+          className="post-media__video"
+          src={videoSrc}
+          poster={poster.url}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+        <MediaPlayOverlay />
+        <span className="post-media__mute-badge" aria-hidden="true">
+          {muteSvg}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className={`post-media${membersOnly ? " post-media--subscriber-locked" : ""}`}>
       {membersOnly ? (
         <div className="post-media__inner">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image.url} alt={image.alt} />
+          <img src={poster.url} alt={poster.alt} />
         </div>
       ) : (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image.url} alt={image.alt} />
+          <img src={poster.url} alt={poster.alt} />
           <MediaPlayOverlay />
         </>
       )}
@@ -105,14 +205,18 @@ type FeedPostProps = {
   item: FeedItem;
   following?: boolean;
   onFollowingChange?: (next: boolean) => void;
+  hideFollow?: boolean;
 };
 
-export default function FeedPost({ item, following, onFollowingChange }: FeedPostProps) {
+export default function FeedPost({ item, following, onFollowingChange, hideFollow = false }: FeedPostProps) {
   const { author } = item;
   const [hidden, setHidden] = useState(false);
   const [localFollowing, setLocalFollowing] = useState(item.relationship.following);
-  const [liked, setLiked] = useState(false);
+  const [reaction, setReaction] = useState<FeedReactionId | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerMode, setViewerMode] = useState<"media" | "comments">("media");
+  const [videoIndex, setVideoIndex] = useState(0);
 
   useEffect(() => {
     setLocalFollowing(item.relationship.following);
@@ -121,9 +225,21 @@ export default function FeedPost({ item, following, onFollowingChange }: FeedPos
   if (hidden) return null;
 
   const handle = author.handle.startsWith("@") ? author.handle : `@${author.handle}`;
-  const profileSlug = getProfileSlugFromHandle(author.handle);
-  const creatorSlug = profileSlug ?? handle.replace(/^@/, "");
+  const profileSlug = resolveAuthorProfileSlug(author.handle, author.slug);
+  const creatorSlug = profileSlug;
   const isFollowing = following ?? localFollowing;
+  const canOpenVideo = item.media ? isVideoFeedMedia(item.media, item.members_only) : false;
+  const canOpenComments = !item.members_only;
+  const openVideo = (index = 0) => {
+    setVideoIndex(index);
+    setViewerMode("media");
+    setViewerOpen(true);
+  };
+  const openComments = () => {
+    setVideoIndex(0);
+    setViewerMode("comments");
+    setViewerOpen(true);
+  };
 
   const avatar = (
     <div
@@ -179,19 +295,21 @@ export default function FeedPost({ item, following, onFollowingChange }: FeedPos
                   Verified
                 </span>
               ) : null}
-              <FollowButton
-                following={isFollowing}
-                onFollowingChange={(next) => {
-                  if (onFollowingChange) {
-                    onFollowingChange(next);
-                    return;
-                  }
-                  setLocalFollowing(next);
-                }}
-                creatorSlug={creatorSlug}
-                className="post-head__follow"
-                name={author.name}
-              />
+              {!hideFollow ? (
+                <FollowButton
+                  following={isFollowing}
+                  onFollowingChange={(next) => {
+                    if (onFollowingChange) {
+                      onFollowingChange(next);
+                      return;
+                    }
+                    setLocalFollowing(next);
+                  }}
+                  creatorSlug={creatorSlug}
+                  className="post-head__follow"
+                  name={author.name}
+                />
+              ) : null}
             </div>
             <div className="post-head__meta-line">
               <span className="post-head__handle">{handle}</span>
@@ -247,32 +365,29 @@ export default function FeedPost({ item, following, onFollowingChange }: FeedPos
             contentType={resolveAudioContentType(item.tags)}
           />
         ) : null}
-        {item.media ? <PostMedia media={item.media} membersOnly={item.members_only} /> : null}
+        {item.media ? (
+          <PostMedia
+            media={item.media}
+            membersOnly={item.members_only}
+            onOpenVideo={canOpenVideo ? openVideo : undefined}
+            previewPaused={viewerOpen}
+          />
+        ) : null}
       </div>
 
       <div className="post-footer">
         <div className="post-actions post-actions--engage" role="group" aria-label="Post actions">
+          <FeedReactionButton
+            count={item.engagement.likes}
+            reaction={reaction}
+            onReactionChange={setReaction}
+          />
           <button
             type="button"
-            className={`post-action post-action--like${liked ? " is-liked" : ""}`}
-            aria-label={liked ? "Unlike" : "Like"}
-            aria-pressed={liked}
-            onClick={() => setLiked((value) => !value)}
+            className="post-action post-action--comment"
+            aria-label="Comment"
+            onClick={canOpenComments ? openComments : undefined}
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill={liked ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span className="post-action__count">{formatCount(item.engagement.likes + (liked ? 1 : 0))}</span>
-          </button>
-          <button type="button" className="post-action post-action--comment" aria-label="Comment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
@@ -302,6 +417,17 @@ export default function FeedPost({ item, following, onFollowingChange }: FeedPos
           </button>
         </div>
       </div>
+
+      {canOpenComments ? (
+        <FeedVideoViewer
+          item={item}
+          slides={item.media?.images ?? []}
+          initialIndex={videoIndex}
+          open={viewerOpen}
+          mode={viewerMode}
+          onClose={() => setViewerOpen(false)}
+        />
+      ) : null}
     </article>
   );
 }

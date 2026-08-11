@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design System — InrCliq</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/showcase.css" />
+</head>
+<body>
+  <div class="ds-layout">
+    <aside class="ds-sidebar">
+      <div class="ds-sidebar__brand">
+        <a href="index.html"><h1>DS / InrCliq</h1></a>
+        <p>Design System v1.0</p>
+      </div>
+      <nav>
+        <div class="ds-nav__group">
+          <div class="ds-nav__label">Foundation</div>
+          <a href="#colors" class="ds-nav__link">Colors</a>
+          <a href="#typography" class="ds-nav__link">Typography</a>
+          <a href="#spacing" class="ds-nav__link">Spacing</a>
+          <a href="#shadows" class="ds-nav__link">Shadows</a>
+          <a href="#radius" class="ds-nav__link">Border Radius</a>
+          <a href="#layout" class="ds-nav__link">Layout Tokens</a>
+          <a href="#iconography" class="ds-nav__link">Iconography</a>
+          <a href="#themes" class="ds-nav__link">Themes</a>
+        </div>
+        <div class="ds-nav__group">
+          <div class="ds-nav__label">Components</div>
+          <a href="#buttons" class="ds-nav__link">Buttons</a>
+          <a href="#inputs" class="ds-nav__link">Form Inputs</a>
+          <a href="#chips" class="ds-nav__link">Chips</a>
+          <a href="#feedback" class="ds-nav__link">Feedback</a>
+          <a href="#disclosure" class="ds-nav__link">Disclosure</a>
+          <a href="#chrome" class="ds-nav__link">Chrome &amp; Progress</a>
+          <a href="#parent" class="ds-nav__link">Parent Patterns</a>
+        </div>
+        <div class="ds-nav__group">
+          <div class="ds-nav__label">Sample Pages</div>
+          <a href="phase-01-onboarding.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">All flows hub</a>
+          <a href="pages/auth/login.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Login</a>
+          <a href="pages/auth/signup-step1.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Sign up</a>
+          <a href="pages/onboarding/parent-invite.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Parent invite</a>
+          <a href="pages/onboarding/waiting.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Waiting</a>
+          <a href="pages/parent/consent.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Parent consent</a>
+          <a href="pages/parent/protection.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Protection</a>
+          <a href="#sample-pages" class="ds-nav__link">All sample pages</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="ds-main">
+      <section class="ds-section" id="intro">
+        <div class="ds-section__header">
+          <h1 class="ds-section__title" style="font-size:var(--font-size-3xl)">InrCliq Design System</h1>
+          <p class="ds-section__description">
+            Tokens, components, and live demos for InrCliq login, signup, child onboarding, and parent approval.
+            Every demo below uses the same CSS classes as the prototype pages.
+          </p>
+        </div>
+      </section>
+
+      <!-- Colors -->
+      <section class="ds-section" id="colors">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Colors</h2>
+          <p class="ds-section__description">Brand, neutral, and semantic color tokens that drive every surface, text, and feedback state.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Brand</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary</div><div class="token-swatch__value">#1241a6</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary-hover)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary-hover</div><div class="token-swatch__value">#0f3690</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary-active)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary-active</div><div class="token-swatch__value">#0d2e7a</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary-subtle)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary-subtle</div><div class="token-swatch__value">#e8eef9</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-secondary)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-secondary</div><div class="token-swatch__value">#3d6fd4</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-tertiary)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-tertiary</div><div class="token-swatch__value">#6892e0</div></div></div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Neutrals</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-0);border-bottom:1px solid var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-0</div><div class="token-swatch__value">#ffffff</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-50)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-50</div><div class="token-swatch__value">#f7f7f7</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-100)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-100</div><div class="token-swatch__value">#f0f0f0</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-200)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-200</div><div class="token-swatch__value">#ebebeb</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-300)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-300</div><div class="token-swatch__value">#dddddd</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-400)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-400</div><div class="token-swatch__value">#b0b0b0</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-500)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-500</div><div class="token-swatch__value">#717171</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-600)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-600</div><div class="token-swatch__value">#484848</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-700)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-700</div><div class="token-swatch__value">#222222</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-neutral-900)"></div><div class="token-swatch__info"><div class="token-swatch__name">neutral-900</div><div class="token-swatch__value">#111111</div></div></div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Text &amp; Surfaces</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-text-primary)"></div><div class="token-swatch__info"><div class="token-swatch__name">text-primary</div><div class="token-swatch__value">neutral-700</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-text-secondary)"></div><div class="token-swatch__info"><div class="token-swatch__name">text-secondary</div><div class="token-swatch__value">neutral-500</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-text-tertiary)"></div><div class="token-swatch__info"><div class="token-swatch__name">text-tertiary</div><div class="token-swatch__value">neutral-400</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-bg-page);border:1px solid var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">bg-page</div><div class="token-swatch__value">neutral-0</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-bg-subtle)"></div><div class="token-swatch__info"><div class="token-swatch__name">bg-subtle</div><div class="token-swatch__value">neutral-50</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-bg-muted)"></div><div class="token-swatch__info"><div class="token-swatch__name">bg-muted</div><div class="token-swatch__value">neutral-100</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">border-default</div><div class="token-swatch__value">neutral-200</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-border-strong)"></div><div class="token-swatch__info"><div class="token-swatch__name">border-strong</div><div class="token-swatch__value">neutral-300</div></div></div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Feedback</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-success)"></div><div class="token-swatch__info"><div class="token-swatch__name">success</div><div class="token-swatch__value">#008a05</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-success-bg)"></div><div class="token-swatch__info"><div class="token-swatch__name">success-bg</div><div class="token-swatch__value">#e8f5e9</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-warning)"></div><div class="token-swatch__info"><div class="token-swatch__name">warning</div><div class="token-swatch__value">#c27803</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-warning-bg)"></div><div class="token-swatch__info"><div class="token-swatch__name">warning-bg</div><div class="token-swatch__value">#fff8e6</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-error)"></div><div class="token-swatch__info"><div class="token-swatch__name">error</div><div class="token-swatch__value">#c13515</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-error-bg)"></div><div class="token-swatch__info"><div class="token-swatch__name">error-bg</div><div class="token-swatch__value">#fdecea</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-info)"></div><div class="token-swatch__info"><div class="token-swatch__name">info</div><div class="token-swatch__value">#0f5fdc</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-info-bg)"></div><div class="token-swatch__info"><div class="token-swatch__name">info-bg</div><div class="token-swatch__value">#e8f0fe</div></div></div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Usage</h3>
+          <p class="ds-section__description" style="margin-bottom:var(--space-4)">Apply tokens with CSS custom properties. Prefer semantic tokens (<code>--color-text-*</code>, <code>--color-bg-*</code>, <code>--color-brand-*</code>) over raw neutrals.</p>
+
+          <p class="ds-subsection__title" style="font-size:var(--font-size-sm);margin-bottom:var(--space-3)">Brand &amp; surfaces</p>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="color-usage-card" style="background:var(--color-bg-subtle);border:1px solid var(--color-border-default);border-radius:var(--radius-lg);padding:var(--space-5)">
+              <p style="margin:0 0 var(--space-2);font-size:var(--font-size-xs);font-weight:var(--font-weight-semibold);color:var(--color-brand-primary);letter-spacing:0.04em;text-transform:uppercase">InrCliq</p>
+              <h4 style="margin:0 0 var(--space-2);color:var(--color-text-primary);font-size:var(--font-size-xl)">Welcome back.</h4>
+              <p style="margin:0 0 var(--space-4);color:var(--color-text-secondary);font-size:var(--font-size-sm)">Log in to your InrCliq account.</p>
+              <button type="button" class="btn btn--primary" style="width:auto"><span class="btn__label">Continue</span></button>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;!-- Prefer CSS classes; inline vars shown for clarity --&gt;
+&lt;div style=&quot;background: var(--color-bg-subtle); border: 1px solid var(--color-border-default); color: var(--color-text-primary)&quot;&gt;
+  &lt;p style=&quot;color: var(--color-brand-primary)&quot;&gt;InrCliq&lt;/p&gt;
+  &lt;h2 style=&quot;color: var(--color-text-primary)&quot;&gt;Welcome back.&lt;/h2&gt;
+  &lt;p style=&quot;color: var(--color-text-secondary)&quot;&gt;Log in to your InrCliq account.&lt;/p&gt;
+  &lt;button type=&quot;button&quot; class=&quot;btn btn--primary&quot;&gt;
+    &lt;span class=&quot;btn__label&quot;&gt;Continue&lt;/span&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+
+/* CSS */
+.panel {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+}
+.panel__brand { color: var(--color-brand-primary); }
+.panel__muted { color: var(--color-text-secondary); }</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>{/* Prefer CSS classes; inline vars shown for clarity */}
+&lt;div
+  style={{
+    background: &quot;var(--color-bg-subtle)&quot;,
+    border: &quot;1px solid var(--color-border-default)&quot;,
+    color: &quot;var(--color-text-primary)&quot;,
+  }}
+&gt;
+  &lt;p style={{ color: &quot;var(--color-brand-primary)&quot; }}&gt;InrCliq&lt;/p&gt;
+  &lt;h2 style={{ color: &quot;var(--color-text-primary)&quot; }}&gt;Welcome back.&lt;/h2&gt;
+  &lt;p style={{ color: &quot;var(--color-text-secondary)&quot; }}&gt;
+    Log in to your InrCliq account.
+  &lt;/p&gt;
+  &lt;button type=&quot;button&quot; className=&quot;btn btn--primary&quot;&gt;
+    &lt;span className=&quot;btn__label&quot;&gt;Continue&lt;/span&gt;
+  &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+          <p class="ds-subsection__title" style="font-size:var(--font-size-sm);margin:var(--space-6) 0 var(--space-3)">Feedback</p>
+          <div class="ds-demo ds-demo--stack ds-demo--has-markup">
+            <div style="display:flex;flex-direction:column;gap:var(--space-3);max-width:420px">
+              <div style="padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--color-success-bg);color:var(--color-success);border:1px solid var(--color-success)">
+                Email verified successfully.
+              </div>
+              <div style="padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--color-error-bg);color:var(--color-error);border:1px solid var(--color-error)">
+                Please enter a valid email.
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;banner banner--success&quot; style=&quot;background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success)&quot;&gt;
+  Email verified successfully.
+&lt;/div&gt;
+&lt;div class=&quot;banner banner--error&quot; style=&quot;background: var(--color-error-bg); color: var(--color-error); border: 1px solid var(--color-error)&quot;&gt;
+  Please enter a valid email.
+&lt;/div&gt;
+
+/* CSS */
+.banner--success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+.banner--error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div
+  className=&quot;banner banner--success&quot;
+  style={{
+    background: &quot;var(--color-success-bg)&quot;,
+    color: &quot;var(--color-success)&quot;,
+    border: &quot;1px solid var(--color-success)&quot;,
+  }}
+&gt;
+  Email verified successfully.
+&lt;/div&gt;
+&lt;div
+  className=&quot;banner banner--error&quot;
+  style={{
+    background: &quot;var(--color-error-bg)&quot;,
+    color: &quot;var(--color-error)&quot;,
+    border: &quot;1px solid var(--color-error)&quot;,
+  }}
+&gt;
+  Please enter a valid email.
+&lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Typography -->
+      <section class="ds-section" id="typography">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Typography</h2>
+          <p class="ds-section__description">Plus Jakarta Sans across the entire product — a single humanist sans for headings, body copy, and UI labels.</p>
+        </div>
+        <div class="ds-demo">
+          <div class="typography-demo">
+            <div class="typography-row"><span class="typography-row__meta">4xl / 44px</span><span style="font-size:var(--font-size-4xl);font-weight:var(--font-weight-bold)">Unlock creators</span></div>
+            <div class="typography-row"><span class="typography-row__meta">3xl / 36px</span><span style="font-size:var(--font-size-3xl);font-weight:var(--font-weight-bold)">Join InrCliq</span></div>
+            <div class="typography-row"><span class="typography-row__meta">2xl / 26px</span><span style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-bold)">Welcome back.</span></div>
+            <div class="typography-row"><span class="typography-row__meta">xl / 22px</span><span style="font-size:var(--font-size-xl);font-weight:var(--font-weight-semibold)">Create a password</span></div>
+            <div class="typography-row"><span class="typography-row__meta">lg / 18px</span><span style="font-size:var(--font-size-lg)">Choose your handle</span></div>
+            <div class="typography-row"><span class="typography-row__meta">md / 16px</span><span style="font-size:var(--font-size-md)">Log in to your InrCliq account.</span></div>
+            <div class="typography-row"><span class="typography-row__meta">sm / 14px</span><span style="font-size:var(--font-size-sm)">Field labels, buttons, helper text</span></div>
+            <div class="typography-row"><span class="typography-row__meta">xs / 12px</span><span style="font-size:var(--font-size-xs);color:var(--color-text-tertiary)">Caption &amp; meta text</span></div>
+          </div>
+        </div>
+        <p class="ds-section__description" style="margin-bottom:var(--space-4)">Loaded via <code>fonts.css</code> from Google Fonts — weights 400 through 700.</p>
+        <table class="token-table">
+          <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td><code>--font-family-sans</code></td><td>Plus Jakarta Sans, system-ui</td><td>All UI text</td></tr>
+            <tr><td><code>--font-weight-regular</code></td><td>400</td><td>Body copy</td></tr>
+            <tr><td><code>--font-weight-medium</code></td><td>500</td><td>Labels, chips</td></tr>
+            <tr><td><code>--font-weight-semibold</code></td><td>600</td><td>Field labels, buttons</td></tr>
+            <tr><td><code>--font-weight-bold</code></td><td>700</td><td>Headings</td></tr>
+            <tr><td><code>--line-height-tight</code></td><td>1.2</td><td>Headings</td></tr>
+            <tr><td><code>--line-height-normal</code></td><td>1.5</td><td>Body text</td></tr>
+            <tr><td><code>--line-height-relaxed</code></td><td>1.6</td><td>Paragraphs, hints</td></tr>
+            <tr><td><code>--letter-spacing-tight</code></td><td>-0.02em</td><td>Large headings</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Spacing -->
+      <section class="ds-section" id="spacing">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Spacing</h2>
+          <p class="ds-section__description">A 4px-based spacing scale used for padding, gaps, and margins across every component.</p>
+        </div>
+        <div class="ds-demo">
+          <div class="spacing-demo">
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-1);height:32px"></div><span class="spacing-block__label">space-1 (4px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-2);height:32px"></div><span class="spacing-block__label">space-2 (8px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-3);height:32px"></div><span class="spacing-block__label">space-3 (12px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-4);height:32px"></div><span class="spacing-block__label">space-4 (16px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-5);height:32px"></div><span class="spacing-block__label">space-5 (20px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-6);height:32px"></div><span class="spacing-block__label">space-6 (24px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-8);height:32px"></div><span class="spacing-block__label">space-8 (32px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-10);height:32px"></div><span class="spacing-block__label">space-10 (40px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-12);height:32px"></div><span class="spacing-block__label">space-12 (48px)</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-16);height:32px"></div><span class="spacing-block__label">space-16 (64px)</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Shadows -->
+      <section class="ds-section" id="shadows">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Shadows</h2>
+          <p class="ds-section__description">Elevation tokens for cards, modals, and floating chrome.</p>
+        </div>
+        <div class="ds-demo">
+          <div class="shadow-demo">
+            <div class="shadow-box" style="box-shadow:var(--shadow-xs)">xs</div>
+            <div class="shadow-box" style="box-shadow:var(--shadow-sm)">sm</div>
+            <div class="shadow-box" style="box-shadow:var(--shadow-md)">md</div>
+            <div class="shadow-box" style="box-shadow:var(--shadow-lg)">lg</div>
+            <div class="shadow-box" style="box-shadow:var(--shadow-card)">card</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Border Radius -->
+      <section class="ds-section" id="radius">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Border Radius</h2>
+          <p class="ds-section__description">Generous, warm rounding — a signature of the InrCliq visual language.</p>
+        </div>
+        <div class="ds-demo radius-demo">
+          <div class="radius-box" style="border-radius:var(--radius-sm)">sm</div>
+          <div class="radius-box" style="border-radius:var(--radius-md)">md</div>
+          <div class="radius-box" style="border-radius:var(--radius-lg)">lg</div>
+          <div class="radius-box" style="border-radius:var(--radius-xl)">xl</div>
+          <div class="radius-box" style="border-radius:var(--radius-full)">full</div>
+        </div>
+      </section>
+
+      <!-- Layout Tokens -->
+      <section class="ds-section" id="layout">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Layout Tokens</h2>
+          <p class="ds-section__description">Structural dimensions shared by auth cards, components, and z-index layering.</p>
+        </div>
+        <table class="token-table">
+          <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td><code>--layout-site-max</code></td><td>1440px</td><td>Site-wide max width</td></tr>
+            <tr><td><code>--layout-content-max</code></td><td>1280px</td><td>Content max width</td></tr>
+            <tr><td><code>--layout-auth-card-max</code></td><td>440px</td><td>Login / signup card</td></tr>
+            <tr><td><code>--layout-parent-max</code></td><td>720px</td><td>Parent approval pages</td></tr>
+            <tr><td><code>--layout-parent-stepper-width</code></td><td>600px</td><td>Parent setup stepper</td></tr>
+            <tr><td><code>--button-height</code></td><td>48px</td><td>Default button</td></tr>
+            <tr><td><code>--button-height-sm</code></td><td>40px</td><td>Small button</td></tr>
+            <tr><td><code>--input-height</code></td><td>48px</td><td>Inputs, selects, OTP group</td></tr>
+            <tr><td><code>--chip-height</code></td><td>36px</td><td>Chips</td></tr>
+            <tr><td><code>--modal-max-width</code></td><td>480px</td><td>Modal / toast card</td></tr>
+            <tr><td><code>--z-header</code></td><td>50</td><td>Sticky header</td></tr>
+            <tr><td><code>--z-modal</code></td><td>100</td><td>Modal backdrop</td></tr>
+            <tr><td><code>--z-toast</code></td><td>110</td><td>Toast overlay, inbox</td></tr>
+            <tr><td><code>--z-signup-progress</code></td><td>1000</td><td>Signup progress bar</td></tr>
+            <tr><td><code>--duration-fast</code></td><td>150ms</td><td>Hover / focus transitions</td></tr>
+            <tr><td><code>--duration-normal</code></td><td>250ms</td><td>Disclosure, toggle</td></tr>
+            <tr><td><code>--duration-slow</code></td><td>400ms</td><td>Toast entrance</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Iconography -->
+      <section class="ds-section" id="iconography">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Iconography</h2>
+          <p class="ds-section__description">
+            Stroke-based 24×24 SVG icons used across auth, onboarding, and parent flows.
+            Icons inherit color from <code>currentColor</code> unless brand-filled (Google).
+            Prefer <code>aria-hidden="true"</code> when paired with visible text; use
+            <code>aria-label</code> on icon-only buttons.
+          </p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Icon library</h3>
+          <div class="icon-grid">
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6" /></svg>
+              <span class="icon-grid__name">chevron-left</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+              <span class="icon-grid__name">chevron-down</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+              <span class="icon-grid__name">lock</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+              <span class="icon-grid__name">eye</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+              <span class="icon-grid__name">eye-off</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
+              <span class="icon-grid__name">sun</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5z" /></svg>
+              <span class="icon-grid__name">moon</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" stroke-linecap="round" /></svg>
+              <span class="icon-grid__name">info</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" stroke-linecap="round" /></svg>
+              <span class="icon-grid__name">warning</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+              <span class="icon-grid__name">check</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              <span class="icon-grid__name">close</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><path d="M22 6l-10 7L2 6" /></svg>
+              <span class="icon-grid__name">mail</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="M15 8h2M15 12h2M7 16h10" stroke-linecap="round" /></svg>
+              <span class="icon-grid__name">id-card</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+              <span class="icon-grid__name">camera</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+              <span class="icon-grid__name">shield</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:24px;height:24px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              <span class="icon-grid__name">google</span>
+            </div>
+            <div class="icon-grid__item">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" /></svg>
+              <span class="icon-grid__name">apple</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Sizes</h3>
+          <div class="ds-demo ds-demo--inline">
+            <div class="icon-size-demo">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+              <span class="icon-size-demo__label">20px · .btn-icon</span>
+            </div>
+            <div class="icon-size-demo">
+              <svg style="width:24px;height:24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+              <span class="icon-size-demo__label">24px · default</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Colors</h3>
+          <div class="ds-demo">
+            <div class="icon-color-demo">
+              <div class="icon-color-demo__item" style="color:var(--color-text-primary)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                <span class="icon-size-demo__label">primary</span>
+              </div>
+              <div class="icon-color-demo__item" style="color:var(--color-text-secondary)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                <span class="icon-size-demo__label">secondary</span>
+              </div>
+              <div class="icon-color-demo__item" style="color:var(--color-brand-primary)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                <span class="icon-size-demo__label">brand</span>
+              </div>
+              <div class="icon-color-demo__item" style="color:var(--color-error)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                <span class="icon-size-demo__label">error</span>
+              </div>
+              <div class="icon-color-demo__item" style="color:var(--color-success)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                <span class="icon-size-demo__label">success</span>
+              </div>
+              <div class="icon-color-demo__item" style="padding:var(--space-3);border-radius:var(--radius-md);background:var(--color-icon-badge-bg);color:var(--color-icon-badge-fg)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><path d="M22 6l-10 7L2 6" /></svg>
+                <span class="icon-size-demo__label">badge</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Usage in context</h3>
+          <div class="ds-demo ds-demo--inline">
+            <button type="button" class="back-btn" aria-label="Back">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6" /></svg>
+            </button>
+            <button type="button" class="btn btn--secondary" data-oauth="google" style="width:auto">
+              <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continue with Google
+            </button>
+            <p class="login-method-switch" style="margin:0;text-align:left">
+              <button type="button" class="link-btn login-method-switch__link">
+                <svg class="login-method-switch__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                Use password to login
+              </button>
+            </p>
+            <button type="button" class="theme-switcher" aria-label="Theme" style="position:static">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
+            </button>
+            <div class="toast-card__icon toast-card__icon--centered">✓</div>
+            <div class="toast-card__icon toast-card__icon--error toast-card__icon--centered">✕</div>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Implementation</h3>
+          <table class="token-table">
+            <thead><tr><th>Pattern</th><th>When to use</th></tr></thead>
+            <tbody>
+              <tr><td><code>stroke="currentColor"</code></td><td>Default UI icons — color follows parent text / CSS</td></tr>
+              <tr><td><code>.btn-icon</code></td><td>Icons inside buttons (20×20), e.g. Google / Apple OAuth</td></tr>
+              <tr><td><code>.password-toggle__icon</code></td><td>Show / hide password glyphs in <code>.input-with-action__btn</code></td></tr>
+              <tr><td><code>.login-method-switch__icon</code></td><td>Lock icon beside method-switch link</td></tr>
+              <tr><td><code>GoogleIcon</code> / <code>AppleIcon</code></td><td>Next.js: <code>src/components/auth/OAuthIcons.tsx</code></td></tr>
+              <tr><td><code>aria-hidden="true"</code></td><td>Decorative icons paired with visible text</td></tr>
+              <tr><td><code>aria-label</code> on button</td><td>Icon-only controls (back, theme switcher, password toggle)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Icon tokens</h3>
+          <table class="token-table">
+            <thead><tr><th>Token</th><th>Usage</th></tr></thead>
+            <tbody>
+              <tr><td><code>--color-icon-badge-bg</code></td><td>Status / waiting icon badge background</td></tr>
+              <tr><td><code>--color-icon-badge-fg</code></td><td>Icon color on badge</td></tr>
+              <tr><td><code>--color-text-primary</code></td><td>Default stroke icon color</td></tr>
+              <tr><td><code>--color-text-secondary</code></td><td>Muted / secondary icons</td></tr>
+              <tr><td><code>--color-brand-primary</code></td><td>Brand-accent icons</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Themes -->
+      <section class="ds-section" id="themes">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Themes</h2>
+          <p class="ds-section__description">
+            Light and dark are driven by a single <code>data-feed-theme</code> attribute on <code>&lt;html&gt;</code>.
+          </p>
+        </div>
+        <div class="ds-demo ds-demo--stack">
+          <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:var(--line-height-relaxed)">
+            Use the floating <strong>Toggle Dark Mode</strong> control to flip
+            <code>data-feed-theme</code> on <code>&lt;html&gt;</code>. Auth and parent pages apply the same
+            attribute inside <code>.auth-path-shell</code>; this docs page mirrors those tokens so you can
+            preview both themes here.
+          </p>
+          <div class="ds-demo ds-demo--inline" style="margin:0">
+            <button type="button" class="btn btn--primary"><span class="btn__label">Primary</span></button>
+            <button type="button" class="btn btn--secondary">Secondary</button>
+            <button type="button" class="btn btn--outline-brand">Outline</button>
+            <span class="chip is-selected" aria-pressed="true">Chip</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Buttons -->
+      <section class="ds-section" id="buttons">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Buttons</h2>
+          <p class="ds-section__description">Primary, secondary, and contextual button variants used across auth, onboarding, and parent flows.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Variants</h3>
+          <div class="ds-demo ds-demo--inline ds-demo--has-markup">
+            <button type="button" class="btn btn--primary"><span class="btn__label">Primary</span></button>
+            <button type="button" class="btn btn--secondary">Secondary</button>
+            <button type="button" class="btn btn--outline-brand">Outline brand</button>
+            <button type="button" class="btn btn--outline-info">Outline info</button>
+            <button type="button" class="btn btn--dark">Dark</button>
+            <button type="button" class="btn btn--danger">Danger</button>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;btn btn--primary&quot;&gt;
+  &lt;span class=&quot;btn__label&quot;&gt;Primary&lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--secondary&quot;&gt;Secondary&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--outline-brand&quot;&gt;Outline brand&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--outline-info&quot;&gt;Outline info&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--dark&quot;&gt;Dark&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--danger&quot;&gt;Danger&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;btn btn--primary&quot;&gt;
+  &lt;span className=&quot;btn__label&quot;&gt;Primary&lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--secondary&quot;&gt;Secondary&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--outline-brand&quot;&gt;Outline brand&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--outline-info&quot;&gt;Outline info&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--dark&quot;&gt;Dark&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--danger&quot;&gt;Danger&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Sizes</h3>
+          <div class="ds-demo ds-demo--inline ds-demo--has-markup">
+            <button type="button" class="btn btn--primary btn--sm">Small</button>
+            <button type="button" class="btn btn--primary">Default</button>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;btn btn--primary btn--sm&quot;&gt;
+  &lt;span class=&quot;btn__label&quot;&gt;Small&lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--primary&quot;&gt;
+  &lt;span class=&quot;btn__label&quot;&gt;Default&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;btn btn--primary btn--sm&quot;&gt;
+  &lt;span className=&quot;btn__label&quot;&gt;Small&lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--primary&quot;&gt;
+  &lt;span className=&quot;btn__label&quot;&gt;Default&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">States</h3>
+          <div class="ds-demo ds-demo--inline ds-demo--has-markup">
+            <button type="button" class="btn btn--primary" disabled>Disabled</button>
+            <button type="button" class="btn btn--primary is-loading" style="width:220px">
+              <span class="btn__label">Verifying…</span>
+              <span class="btn__progress" aria-hidden="true"><span class="btn__progress-bar" style="width:55%"></span></span>
+            </button>
+            <button type="button" class="back-btn" aria-label="Back">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 6l-6 6 6 6" /></svg>
+            </button>
+            <button type="button" class="link-btn">Link button</button>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;btn btn--primary&quot; disabled&gt;
+  &lt;span class=&quot;btn__label&quot;&gt;Disabled&lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--primary is-loading&quot;&gt;
+  &lt;span class=&quot;btn__label&quot;&gt;Verifying…&lt;/span&gt;
+  &lt;span class=&quot;btn__progress&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;span class=&quot;btn__progress-bar&quot;&gt;&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;back-btn&quot; aria-label=&quot;Back&quot;&gt;
+  &lt;svg viewBox=&quot;0 0 24 24&quot; …&gt;&lt;path d=&quot;M14 6l-6 6 6 6&quot; /&gt;&lt;/svg&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;link-btn&quot;&gt;Link button&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;btn btn--primary&quot; disabled&gt;
+  &lt;span className=&quot;btn__label&quot;&gt;Disabled&lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--primary is-loading&quot;&gt;
+  &lt;span className=&quot;btn__label&quot;&gt;Verifying…&lt;/span&gt;
+  &lt;span className=&quot;btn__progress&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;span className=&quot;btn__progress-bar&quot;&gt;&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;back-btn&quot; aria-label=&quot;Back&quot;&gt;
+  &lt;svg viewBox=&quot;0 0 24 24&quot; …&gt;&lt;path d=&quot;M14 6l-6 6 6 6&quot; /&gt;&lt;/svg&gt;
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;link-btn&quot;&gt;Link button&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">OAuth &amp; Method Switch</h3>
+          <div class="ds-demo ds-demo--stack ds-demo--has-markup">
+            <div class="ds-stack-narrow gap-3">
+              <button type="button" class="btn btn--secondary" data-oauth="google">
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Continue with Google
+              </button>
+              <button type="button" class="btn btn--dark" data-oauth="apple">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                </svg>
+                Continue with Apple
+              </button>
+            </div>
+            <p class="login-method-switch">
+              <button type="button" class="link-btn login-method-switch__link">
+                <svg class="login-method-switch__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Use password to login
+              </button>
+            </p>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;btn btn--secondary&quot; data-oauth=&quot;google&quot;&gt;
+  &lt;!-- Google SVG with class=&quot;btn-icon&quot; --&gt;
+  Continue with Google
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--dark&quot; data-oauth=&quot;apple&quot;&gt;
+  &lt;!-- Apple SVG with class=&quot;btn-icon&quot; --&gt;
+  Continue with Apple
+&lt;/button&gt;
+&lt;p class=&quot;login-method-switch&quot;&gt;
+  &lt;button type=&quot;button&quot; class=&quot;link-btn login-method-switch__link&quot;&gt;
+    &lt;!-- lock icon class=&quot;login-method-switch__icon&quot; --&gt;
+    Use password to login
+  &lt;/button&gt;
+&lt;/p&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;btn btn--secondary&quot; data-oauth=&quot;google&quot;&gt;
+  {/* Google SVG with className=&quot;btn-icon&quot; */}
+  Continue with Google
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--dark&quot; data-oauth=&quot;apple&quot;&gt;
+  {/* Apple SVG with className=&quot;btn-icon&quot; */}
+  Continue with Apple
+&lt;/button&gt;
+&lt;p className=&quot;login-method-switch&quot;&gt;
+  &lt;button type=&quot;button&quot; className=&quot;link-btn login-method-switch__link&quot;&gt;
+    {/* lock icon className=&quot;login-method-switch__icon&quot; */}
+    Use password to login
+  &lt;/button&gt;
+&lt;/p&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Form Inputs -->
+      <section class="ds-section" id="inputs">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Form Inputs</h2>
+          <p class="ds-section__description">Text fields, selects, OTP groups, and the compound inputs used throughout signup and verification.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Text &amp; Select</h3>
+          <div class="ds-demo ds-demo--grid ds-demo--has-markup" style="grid-template-columns:repeat(2,1fr)">
+            <div class="field">
+              <label class="field-label" for="ds-email">Email</label>
+              <input class="input" type="email" id="ds-email" placeholder="you@example.com" />
+              <p class="field-hint">Your primary login identifier.</p>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ds-email-error">Email</label>
+              <input class="input input--error" type="email" id="ds-email-error" value="invalid@" />
+              <p class="field-error">Please enter a valid email.</p>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ds-readonly">Your email</label>
+              <input class="input input--readonly" type="email" id="ds-readonly" value="guardian@example.com" readonly />
+            </div>
+            <div class="field">
+              <label class="field-label" for="ds-country">Country</label>
+              <select class="select" id="ds-country">
+                <option>🇱🇰 Sri Lanka</option>
+                <option>🇺🇸 United States</option>
+                <option>🇬🇧 United Kingdom</option>
+              </select>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;field&quot;&gt;
+  &lt;label class=&quot;field-label&quot; for=&quot;login-email&quot;&gt;Email&lt;/label&gt;
+  &lt;input class=&quot;input&quot; type=&quot;email&quot; id=&quot;login-email&quot; placeholder=&quot;you@example.com&quot; /&gt;
+  &lt;p class=&quot;field-hint&quot;&gt;Your primary login identifier.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;field&quot;&gt;
+  &lt;label class=&quot;field-label&quot; for=&quot;login-email-error&quot;&gt;Email&lt;/label&gt;
+  &lt;input class=&quot;input input--error&quot; type=&quot;email&quot; id=&quot;login-email-error&quot; /&gt;
+  &lt;p class=&quot;field-error&quot; role=&quot;alert&quot;&gt;Please enter a valid email.&lt;/p&gt;
+&lt;/div&gt;
+&lt;input class=&quot;input input--readonly&quot; type=&quot;email&quot; value=&quot;guardian@example.com&quot; readonly /&gt;
+&lt;select class=&quot;select&quot; id=&quot;country&quot;&gt;…&lt;/select&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;field&quot;&gt;
+  &lt;label className=&quot;field-label&quot; htmlFor=&quot;login-email&quot;&gt;Email&lt;/label&gt;
+  &lt;input className=&quot;input&quot; type=&quot;email&quot; id=&quot;login-email&quot; placeholder=&quot;you@example.com&quot; /&gt;
+  &lt;p className=&quot;field-hint&quot;&gt;Your primary login identifier.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div className=&quot;field&quot;&gt;
+  &lt;label className=&quot;field-label&quot; htmlFor=&quot;login-email-error&quot;&gt;Email&lt;/label&gt;
+  &lt;input className=&quot;input input--error&quot; type=&quot;email&quot; id=&quot;login-email-error&quot; /&gt;
+  &lt;p className=&quot;field-error&quot; role=&quot;alert&quot;&gt;Please enter a valid email.&lt;/p&gt;
+&lt;/div&gt;
+&lt;input className=&quot;input input--readonly&quot; type=&quot;email&quot; value=&quot;guardian@example.com&quot; readonly /&gt;
+&lt;select className=&quot;select&quot; id=&quot;country&quot;&gt;…&lt;/select&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Password &amp; OTP</h3>
+          <div class="ds-demo ds-demo--grid ds-demo--has-markup" style="grid-template-columns:repeat(2,1fr)">
+            <div class="field">
+              <label class="field-label" for="ds-password">Password</label>
+              <div class="input-with-action">
+                <input class="input" type="password" id="ds-password" value="Pass1234" />
+                <button type="button" class="input-with-action__btn" aria-label="Show password">
+                  <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+              <p class="password-requirement is-met">
+                <span class="password-requirement__mark" aria-hidden="true"></span>
+                <span>Use at least 8 characters with a mix of letters and numbers.</span>
+              </p>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ds-otp">Enter 6-digit code</label>
+              <div class="otp-input-group">
+                <input class="input otp-input otp-input-group__input" type="text" id="ds-otp" inputmode="numeric" maxlength="6" value="482916" />
+                <button type="button" class="otp-input-group__action input-with-action__btn--link">Send again</button>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;field&quot;&gt;
+  &lt;label class=&quot;field-label&quot; for=&quot;signup-password&quot;&gt;Password&lt;/label&gt;
+  &lt;div class=&quot;input-with-action&quot;&gt;
+    &lt;input class=&quot;input&quot; type=&quot;password&quot; id=&quot;signup-password&quot; /&gt;
+    &lt;button type=&quot;button&quot; class=&quot;input-with-action__btn&quot; aria-label=&quot;Show password&quot;&gt;
+      &lt;!-- .password-toggle__icon --show / --hide --&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p class=&quot;password-requirement is-met&quot;&gt;
+    &lt;span class=&quot;password-requirement__mark&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+    &lt;span&gt;Use at least 8 characters…&lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;otp-input-group&quot;&gt;
+  &lt;input class=&quot;otp-input-group__input otp-input&quot; type=&quot;text&quot;
+    inputmode=&quot;numeric&quot; maxlength=&quot;6&quot; placeholder=&quot;••••••&quot; /&gt;
+  &lt;button type=&quot;button&quot; class=&quot;otp-input-group__action input-with-action__btn--link&quot;&gt;
+    Send again
+  &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;field&quot;&gt;
+  &lt;label className=&quot;field-label&quot; htmlFor=&quot;signup-password&quot;&gt;Password&lt;/label&gt;
+  &lt;div className=&quot;input-with-action&quot;&gt;
+    &lt;input className=&quot;input&quot; type=&quot;password&quot; id=&quot;signup-password&quot; /&gt;
+    &lt;button type=&quot;button&quot; className=&quot;input-with-action__btn&quot; aria-label=&quot;Show password&quot;&gt;
+      {/* .password-toggle__icon --show / --hide */}
+    &lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p className=&quot;password-requirement is-met&quot;&gt;
+    &lt;span className=&quot;password-requirement__mark&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+    &lt;span&gt;Use at least 8 characters…&lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+&lt;div className=&quot;otp-input-group&quot;&gt;
+  &lt;input className=&quot;otp-input-group__input otp-input&quot; type=&quot;text&quot;
+    inputmode=&quot;numeric&quot; maxLength=&quot;6&quot; placeholder=&quot;••••••&quot; /&gt;
+  &lt;button type=&quot;button&quot; className=&quot;otp-input-group__action input-with-action__btn--link&quot;&gt;
+    Send again
+  &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Handle, Name &amp; Date of Birth</h3>
+          <div class="ds-demo ds-demo--stack ds-demo--has-markup">
+            <div class="field ds-stack-narrow">
+              <label class="field-label" for="ds-handle">Handle</label>
+              <div class="handle-input">
+                <span class="handle-input__prefix" aria-hidden="true">@</span>
+                <input class="input handle-input__field" type="text" id="ds-handle" value="alexsmith" />
+              </div>
+            </div>
+            <div class="field">
+              <span class="field-label">Name</span>
+              <div class="name-row">
+                <input class="input" type="text" value="Alex" placeholder="First name" />
+                <input class="input" type="text" value="Smith" placeholder="Last name" />
+              </div>
+            </div>
+            <div class="field">
+              <span class="field-label">Date of birth</span>
+              <div class="dob-row">
+                <select class="select" aria-label="Month"><option>March</option></select>
+                <select class="select" aria-label="Day"><option>15</option></select>
+                <select class="select" aria-label="Year"><option>2012</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;handle-input&quot;&gt;
+  &lt;span class=&quot;handle-input__prefix&quot; aria-hidden=&quot;true&quot;&gt;@&lt;/span&gt;
+  &lt;input class=&quot;input handle-input__field&quot; type=&quot;text&quot; maxlength=&quot;24&quot; placeholder=&quot;yourname&quot; /&gt;
+&lt;/div&gt;
+&lt;div class=&quot;name-row&quot;&gt;
+  &lt;div class=&quot;field&quot;&gt;…first name…&lt;/div&gt;
+  &lt;div class=&quot;field&quot;&gt;…last name…&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;dob-row&quot;&gt;
+  &lt;div class=&quot;field&quot;&gt;…day…&lt;/div&gt;
+  &lt;div class=&quot;field&quot;&gt;…month…&lt;/div&gt;
+  &lt;div class=&quot;field&quot;&gt;…year…&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;handle-input&quot;&gt;
+  &lt;span className=&quot;handle-input__prefix&quot; aria-hidden=&quot;true&quot;&gt;@&lt;/span&gt;
+  &lt;input className=&quot;input handle-input__field&quot; type=&quot;text&quot; maxLength=&quot;24&quot; placeholder=&quot;yourname&quot; /&gt;
+&lt;/div&gt;
+&lt;div className=&quot;name-row&quot;&gt;
+  &lt;div className=&quot;field&quot;&gt;…first name…&lt;/div&gt;
+  &lt;div className=&quot;field&quot;&gt;…last name…&lt;/div&gt;
+&lt;/div&gt;
+&lt;div className=&quot;dob-row&quot;&gt;
+  &lt;div className=&quot;field&quot;&gt;…day…&lt;/div&gt;
+  &lt;div className=&quot;field&quot;&gt;…month…&lt;/div&gt;
+  &lt;div className=&quot;field&quot;&gt;…year…&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Divider, Toggle &amp; Help Tip</h3>
+          <div class="ds-demo ds-demo--inline ds-demo--has-markup">
+            <div style="width:180px" class="divider">or</div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-switch__track" aria-hidden="true"><span class="toggle-switch__thumb"></span></span>
+            </label>
+            <span class="help-tip">
+              <button type="button" class="help-tip__trigger" aria-label="About this field">
+                <svg class="help-tip__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+              <span class="help-tip__content">We use this to apply the correct regional safety rules.</span>
+            </span>
+            <label class="parent-signup__confirm" style="width:auto">
+              <input type="checkbox" checked />
+              <span>I confirm this information is correct.</span>
+            </label>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;divider&quot; role=&quot;separator&quot;&gt;or&lt;/div&gt;
+&lt;label class=&quot;toggle-switch&quot;&gt;
+  &lt;span class=&quot;sr-only&quot;&gt;Label&lt;/span&gt;
+  &lt;input type=&quot;checkbox&quot; /&gt;
+  &lt;span class=&quot;toggle-switch__track&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;span class=&quot;toggle-switch__thumb&quot;&gt;&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/label&gt;
+&lt;span class=&quot;help-tip&quot;&gt;
+  &lt;button type=&quot;button&quot; class=&quot;help-tip__trigger&quot; aria-describedby=&quot;tip&quot;&gt;
+    &lt;span class=&quot;help-tip__icon&quot; aria-hidden=&quot;true&quot;&gt;i&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;span class=&quot;help-tip__content&quot; id=&quot;tip&quot; role=&quot;tooltip&quot;&gt;…&lt;/span&gt;
+&lt;/span&gt;
+&lt;label class=&quot;parent-signup__confirm&quot;&gt;
+  &lt;input type=&quot;checkbox&quot; /&gt;
+  &lt;span&gt;I confirm this information is correct.&lt;/span&gt;
+&lt;/label&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;divider&quot; role=&quot;separator&quot;&gt;or&lt;/div&gt;
+&lt;label className=&quot;toggle-switch&quot;&gt;
+  &lt;span className=&quot;sr-only&quot;&gt;Label&lt;/span&gt;
+  &lt;input type=&quot;checkbox&quot; /&gt;
+  &lt;span className=&quot;toggle-switch__track&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;span className=&quot;toggle-switch__thumb&quot;&gt;&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/label&gt;
+&lt;span className=&quot;help-tip&quot;&gt;
+  &lt;button type=&quot;button&quot; className=&quot;help-tip__trigger&quot; aria-describedby=&quot;tip&quot;&gt;
+    &lt;span className=&quot;help-tip__icon&quot; aria-hidden=&quot;true&quot;&gt;i&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;span className=&quot;help-tip__content&quot; id=&quot;tip&quot; role=&quot;tooltip&quot;&gt;…&lt;/span&gt;
+&lt;/span&gt;
+&lt;label className=&quot;parent-signup__confirm&quot;&gt;
+  &lt;input type=&quot;checkbox&quot; /&gt;
+  &lt;span&gt;I confirm this information is correct.&lt;/span&gt;
+&lt;/label&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Chips -->
+      <section class="ds-section" id="chips">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Chips</h2>
+          <p class="ds-section__description">Multi-select interest chips used on the child onboarding interests step.</p>
+        </div>
+
+        <div class="ds-demo ds-demo--has-markup" style="padding:0">
+          <section class="chips-section" style="margin-bottom:0">
+            <div class="chips-header"><span>Select all that apply</span></div>
+            <div class="chips-row">
+              <button type="button" class="chip is-selected">Music</button>
+              <button type="button" class="chip">Sports</button>
+              <button type="button" class="chip is-selected">Gaming</button>
+              <button type="button" class="chip">Fitness</button>
+              <button type="button" class="chip">Travel</button>
+              <button type="button" class="chip is-selected">Technology</button>
+            </div>
+          </section>
+        </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;section class=&quot;chips-section&quot; aria-label=&quot;Interests&quot;&gt;
+  &lt;div class=&quot;chips-header&quot;&gt;&lt;span&gt;Select all that apply&lt;/span&gt;&lt;/div&gt;
+  &lt;div class=&quot;chips-row&quot; role=&quot;group&quot;&gt;
+    &lt;button type=&quot;button&quot; class=&quot;chip is-selected&quot; aria-pressed=&quot;true&quot;&gt;Music&lt;/button&gt;
+    &lt;button type=&quot;button&quot; class=&quot;chip&quot; aria-pressed=&quot;false&quot;&gt;Sports&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;section className=&quot;chips-section&quot; aria-label=&quot;Interests&quot;&gt;
+  &lt;div className=&quot;chips-header&quot;&gt;&lt;span&gt;Select all that apply&lt;/span&gt;&lt;/div&gt;
+  &lt;div className=&quot;chips-row&quot; role=&quot;group&quot;&gt;
+    &lt;button type=&quot;button&quot; className=&quot;chip is-selected&quot; aria-pressed=&quot;true&quot;&gt;Music&lt;/button&gt;
+    &lt;button type=&quot;button&quot; className=&quot;chip&quot; aria-pressed=&quot;false&quot;&gt;Sports&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+          </div>
+      </section>
+
+      <!-- Feedback -->
+      <section class="ds-section" id="feedback">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Feedback</h2>
+          <p class="ds-section__description">Toast icons, decline modal, and resend cooldown used in auth and parent flows.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Toast Icons</h3>
+          <div class="ds-demo ds-demo--inline ds-demo--has-markup">
+            <div class="toast-card__icon" style="margin:0">✓</div>
+            <div class="toast-card__icon toast-card__icon--error" style="margin:0">✕</div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;toast-card__icon toast-card__icon--centered&quot;&gt;✓&lt;/div&gt;
+&lt;div class=&quot;toast-card__icon toast-card__icon--error toast-card__icon--centered&quot;&gt;✕&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;toast-card__icon toast-card__icon--centered&quot;&gt;✓&lt;/div&gt;
+&lt;div className=&quot;toast-card__icon toast-card__icon--error toast-card__icon--centered&quot;&gt;✕&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Modal</h3>
+          <div class="ds-demo ds-demo--has-markup" style="display:flex;justify-content:center;background:var(--color-bg-subtle)">
+            <div class="modal" style="position:relative;max-height:none">
+              <button type="button" class="modal__close" aria-label="Close">&times;</button>
+              <div class="decline-modal__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <h2 class="text-center">Decline this request?</h2>
+              <p class="subtitle text-center mt-2">This can't be undone. Alex will be notified and their signup details removed.</p>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;modal-backdrop is-open&quot;&gt;
+  &lt;div class=&quot;modal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot;&gt;
+    &lt;button type=&quot;button&quot; class=&quot;modal__close&quot; aria-label=&quot;Close&quot;&gt;&amp;times;&lt;/button&gt;
+    &lt;div class=&quot;decline-modal__icon&quot;&gt;…&lt;/div&gt;
+    &lt;h2 class=&quot;text-center&quot;&gt;Decline this request?&lt;/h2&gt;
+    &lt;p class=&quot;subtitle text-center mt-2&quot;&gt;…&lt;/p&gt;
+    &lt;button type=&quot;button&quot; class=&quot;btn btn--danger&quot;&gt;Decline&lt;/button&gt;
+    &lt;button type=&quot;button&quot; class=&quot;btn btn--outline-info&quot;&gt;Cancel&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;modal-backdrop is-open&quot;&gt;
+  &lt;div className=&quot;modal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot;&gt;
+    &lt;button type=&quot;button&quot; className=&quot;modal__close&quot; aria-label=&quot;Close&quot;&gt;&amp;times;&lt;/button&gt;
+    &lt;div className=&quot;decline-modal__icon&quot;&gt;…&lt;/div&gt;
+    &lt;h2 className=&quot;text-center&quot;&gt;Decline this request?&lt;/h2&gt;
+    &lt;p className=&quot;subtitle text-center mt-2&quot;&gt;…&lt;/p&gt;
+    &lt;button type=&quot;button&quot; className=&quot;btn btn--danger&quot;&gt;Decline&lt;/button&gt;
+    &lt;button type=&quot;button&quot; className=&quot;btn btn--outline-info&quot;&gt;Cancel&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Resend Cooldown</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="resend-cooldown ds-stack-narrow">
+              <div class="resend-progress">
+                <div class="resend-progress-bar" style="width:50%"></div>
+              </div>
+              <p class="resend-countdown">Send again in 30s</p>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;resend-cooldown&quot;&gt;
+  &lt;div class=&quot;resend-progress&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;div class=&quot;resend-progress-bar&quot; style=&quot;width: 50%&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;p class=&quot;resend-countdown&quot;&gt;Send again in 30s&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;resend-cooldown&quot;&gt;
+  &lt;div className=&quot;resend-progress&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;div className=&quot;resend-progress-bar&quot; style={{ width: &quot;50%&quot; }}&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;p className=&quot;resend-countdown&quot;&gt;Send again in 30s&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Disclosure -->
+      <section class="ds-section" id="disclosure">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Disclosure</h2>
+          <p class="ds-section__description">Expand / collapse panels used to preview emails and reveal capture tips.</p>
+        </div>
+        <div class="ds-demo ds-demo--has-markup">
+          <div class="disclosure verify-email__info is-open">
+            <button type="button" class="disclosure__trigger" aria-expanded="true">
+              <span class="disclosure__trigger-main">
+                <svg class="disclosure__info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span class="disclosure__label">Here's what we'll send them</span>
+              </span>
+              <svg class="disclosure__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div class="disclosure__panel">
+              <div class="disclosure__panel-inner">
+                <div class="disclosure__content verify-email__info-content">
+                  <p class="verify-email__info-line"><span>From :</span> InrCliq</p>
+                  <p class="verify-email__info-line"><span>Subject :</span> Alex wants to join InrCliq</p>
+                  <p class="verify-email__info-detail">"Alex has requested to Signup with InrCliq, we need your approval……"</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;disclosure verify-email__info is-open&quot;&gt;
+  &lt;button type=&quot;button&quot; class=&quot;disclosure__trigger&quot; aria-expanded=&quot;true&quot; aria-controls=&quot;panel&quot;&gt;
+    &lt;span class=&quot;disclosure__trigger-main&quot;&gt;
+      &lt;!-- .disclosure__info-icon --&gt;
+      &lt;span class=&quot;disclosure__label&quot;&gt;Here's what we'll send them&lt;/span&gt;
+    &lt;/span&gt;
+    &lt;!-- .disclosure__chevron --&gt;
+  &lt;/button&gt;
+  &lt;div class=&quot;disclosure__panel&quot; id=&quot;panel&quot;&gt;
+    &lt;div class=&quot;disclosure__panel-inner&quot;&gt;
+      &lt;div class=&quot;disclosure__content&quot;&gt;…&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;disclosure verify-email__info is-open&quot;&gt;
+  &lt;button type=&quot;button&quot; className=&quot;disclosure__trigger&quot; aria-expanded=&quot;true&quot; aria-controls=&quot;panel&quot;&gt;
+    &lt;span className=&quot;disclosure__trigger-main&quot;&gt;
+      {/* .disclosure__info-icon */}
+      &lt;span className=&quot;disclosure__label&quot;&gt;Here's what we'll send them&lt;/span&gt;
+    &lt;/span&gt;
+    {/* .disclosure__chevron */}
+  &lt;/button&gt;
+  &lt;div className=&quot;disclosure__panel&quot; id=&quot;panel&quot;&gt;
+    &lt;div className=&quot;disclosure__panel-inner&quot;&gt;
+      &lt;div className=&quot;disclosure__content&quot;&gt;…&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+      </section>
+
+      <!-- Chrome & Progress -->
+      <section class="ds-section" id="chrome">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Chrome &amp; Progress</h2>
+          <p class="ds-section__description">Logo lockups, the shared auth topbar, signup progress bar, and the parent setup stepper.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Logo</h3>
+          <div class="ds-demo ds-demo--inline ds-demo--has-markup">
+            <a href="#" class="logo logo--img"><img src="assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" /></a>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a href=&quot;/&quot; class=&quot;logo logo--img&quot; aria-label=&quot;InrCliq home&quot;&gt;
+  &lt;img class=&quot;logo__img&quot; src=&quot;/assets/logo-InrCliq.svg&quot; alt=&quot;&quot; width=&quot;114&quot; height=&quot;27&quot; /&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a href=&quot;/&quot; className=&quot;logo logo--img&quot; aria-label=&quot;InrCliq home&quot;&gt;
+  &lt;img className=&quot;logo__img&quot; src=&quot;/assets/logo-InrCliq.svg&quot; alt=&quot;&quot; width=&quot;114&quot; height=&quot;27&quot; /&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Auth Topbar</h3>
+          <div class="ds-demo ds-demo--has-markup" style="position:relative;min-height:88px;padding:0;overflow:hidden">
+            <header class="auth-topbar" style="position:relative">
+              <div class="auth-topbar__actions">
+                <div class="auth-topbar__prompt">
+                  <span class="auth-topbar__prompt-text">New here?</span>
+                  <a href="#" class="btn btn--outline-brand">Create a free account</a>
+                </div>
+              </div>
+            </header>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;header class=&quot;auth-topbar&quot;&gt;
+  &lt;div class=&quot;auth-topbar__actions&quot;&gt;
+    &lt;div class=&quot;auth-topbar__prompt&quot;&gt;
+      &lt;span class=&quot;auth-topbar__prompt-text&quot;&gt;New here?&lt;/span&gt;
+      &lt;a href=&quot;/signup&quot; class=&quot;btn btn--outline-brand&quot;&gt;Create a free account&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/header&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;header className=&quot;auth-topbar&quot;&gt;
+  &lt;div className=&quot;auth-topbar__actions&quot;&gt;
+    &lt;div className=&quot;auth-topbar__prompt&quot;&gt;
+      &lt;span className=&quot;auth-topbar__prompt-text&quot;&gt;New here?&lt;/span&gt;
+      &lt;a href=&quot;/signup&quot; className=&quot;btn btn--outline-brand&quot;&gt;Create a free account&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/header&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Signup Progress</h3>
+          <div class="ds-demo ds-demo--has-markup" style="padding:0;overflow:hidden">
+            <div class="signup-progress is-visible" style="position:relative">
+              <div class="signup-progress__track">
+                <div class="signup-progress__bar" style="width:62%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;signup-progress is-visible&quot; role=&quot;progressbar&quot;
+  aria-valuemin=&quot;0&quot; aria-valuemax=&quot;100&quot; aria-valuenow=&quot;62&quot;
+  aria-label=&quot;Signup progress&quot;&gt;
+  &lt;div class=&quot;signup-progress__track&quot;&gt;
+    &lt;div class=&quot;signup-progress__bar&quot; style=&quot;width: 62%&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;signup-progress is-visible&quot; role=&quot;progressbar&quot;
+  aria-valuemin=&quot;0&quot; aria-valuemax=&quot;100&quot; aria-valuenow=&quot;62&quot;
+  aria-label=&quot;Signup progress&quot;&gt;
+  &lt;div className=&quot;signup-progress__track&quot;&gt;
+    &lt;div className=&quot;signup-progress__bar&quot; style={{ width: &quot;62%&quot; }}&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Parent Stepper</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <nav class="parent-stepper" style="width:100%">
+              <ol class="parent-stepper__list">
+                <li class="parent-stepper__item is-complete"><span class="parent-stepper__bar" aria-hidden="true"></span><span class="parent-stepper__label">Account</span></li>
+                <li class="parent-stepper__item is-complete"><span class="parent-stepper__bar" aria-hidden="true"></span><span class="parent-stepper__label">Verify</span></li>
+                <li class="parent-stepper__item is-active"><span class="parent-stepper__bar" aria-hidden="true"></span><span class="parent-stepper__label">Review</span></li>
+                <li class="parent-stepper__item"><span class="parent-stepper__bar" aria-hidden="true"></span><span class="parent-stepper__label">Protection</span></li>
+                <li class="parent-stepper__item"><span class="parent-stepper__bar" aria-hidden="true"></span><span class="parent-stepper__label">Approved</span></li>
+              </ol>
+            </nav>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;nav class=&quot;parent-stepper&quot; aria-label=&quot;Parent approval steps&quot;&gt;
+  &lt;ol class=&quot;parent-stepper__list&quot;&gt;
+    &lt;li class=&quot;parent-stepper__item is-complete&quot;&gt;
+      &lt;span class=&quot;parent-stepper__bar&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+      &lt;span class=&quot;parent-stepper__label&quot;&gt;Account&lt;/span&gt;
+    &lt;/li&gt;
+    &lt;li class=&quot;parent-stepper__item is-active&quot;&gt;
+      &lt;span class=&quot;parent-stepper__bar&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+      &lt;span class=&quot;parent-stepper__label&quot;&gt;Review&lt;/span&gt;
+    &lt;/li&gt;
+    &lt;li class=&quot;parent-stepper__item&quot;&gt;
+      &lt;span class=&quot;parent-stepper__bar&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+      &lt;span class=&quot;parent-stepper__label&quot;&gt;Protection&lt;/span&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/nav&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;nav className=&quot;parent-stepper&quot; aria-label=&quot;Parent approval steps&quot;&gt;
+  &lt;ol className=&quot;parent-stepper__list&quot;&gt;
+    &lt;li className=&quot;parent-stepper__item is-complete&quot;&gt;
+      &lt;span className=&quot;parent-stepper__bar&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+      &lt;span className=&quot;parent-stepper__label&quot;&gt;Account&lt;/span&gt;
+    &lt;/li&gt;
+    &lt;li className=&quot;parent-stepper__item is-active&quot;&gt;
+      &lt;span className=&quot;parent-stepper__bar&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+      &lt;span className=&quot;parent-stepper__label&quot;&gt;Review&lt;/span&gt;
+    &lt;/li&gt;
+    &lt;li className=&quot;parent-stepper__item&quot;&gt;
+      &lt;span className=&quot;parent-stepper__bar&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+      &lt;span className=&quot;parent-stepper__label&quot;&gt;Protection&lt;/span&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/nav&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Parent Patterns -->
+      <section class="ds-section" id="parent">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Parent Patterns</h2>
+          <p class="ds-section__description">Protection tiers, ID document selection, and the parent waiting status card.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Protection Tier</h3>
+          <div class="ds-demo ds-demo--grid ds-demo--has-markup" style="grid-template-columns:repeat(3,1fr)">
+            <button type="button" class="protection-tier" role="radio" aria-checked="false">
+              <span class="protection-tier__icon protection-tier__icon--strict" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+              </span>
+              <span class="protection-tier__heading"><strong class="protection-tier__name">Strict</strong></span>
+              <span class="protection-tier__tagline">Recommended for kids &amp; younger teens.</span>
+            </button>
+            <button type="button" class="protection-tier is-selected" role="radio" aria-checked="true">
+              <span class="protection-tier__icon protection-tier__icon--standard" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+              </span>
+              <span class="protection-tier__heading"><strong class="protection-tier__name">Standard</strong><span class="protection-tier__badge">Recommended</span></span>
+              <span class="protection-tier__tagline">Most parents pick this.</span>
+            </button>
+            <button type="button" class="protection-tier" role="radio" aria-checked="false">
+              <span class="protection-tier__icon protection-tier__icon--relaxed" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+              </span>
+              <span class="protection-tier__heading"><strong class="protection-tier__name">Relaxed</strong></span>
+              <span class="protection-tier__tagline">For older, mature teens.</span>
+            </button>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;protection-tier is-selected&quot; aria-pressed=&quot;true&quot;&gt;
+  &lt;div class=&quot;protection-tier__heading&quot;&gt;
+    &lt;span class=&quot;protection-tier__name&quot;&gt;Standard&lt;/span&gt;
+    &lt;span class=&quot;protection-tier__badge&quot;&gt;Recommended&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;p class=&quot;protection-tier__tagline&quot;&gt;Balanced safety defaults&lt;/p&gt;
+&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;protection-tier is-selected&quot; aria-pressed=&quot;true&quot;&gt;
+  &lt;div className=&quot;protection-tier__heading&quot;&gt;
+    &lt;span className=&quot;protection-tier__name&quot;&gt;Standard&lt;/span&gt;
+    &lt;span className=&quot;protection-tier__badge&quot;&gt;Recommended&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;p className=&quot;protection-tier__tagline&quot;&gt;Balanced safety defaults&lt;/p&gt;
+&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">ID Document Option</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="id-verify__doc-options">
+              <button type="button" class="id-verify__doc-option is-selected" role="radio" aria-checked="true">Passport</button>
+              <button type="button" class="id-verify__doc-option" role="radio" aria-checked="false">National ID</button>
+              <button type="button" class="id-verify__doc-option" role="radio" aria-checked="false">Driving license</button>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;id-verify__doc-option is-selected&quot; aria-pressed=&quot;true&quot;&gt;
+  Passport
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;id-verify__doc-option&quot; aria-pressed=&quot;false&quot;&gt;
+  Driver license
+&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;id-verify__doc-option is-selected&quot; aria-pressed=&quot;true&quot;&gt;
+  Passport
+&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;id-verify__doc-option&quot; aria-pressed=&quot;false&quot;&gt;
+  Driver license
+&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Parent Waiting Status</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="parent-waiting__status">
+              <div class="parent-waiting__status-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+              </div>
+              <div class="parent-waiting__status-body">
+                <strong class="parent-waiting__status-title">Email sent</strong>
+                <span class="parent-waiting__status-meta">Just now · Expires in 23h 59m</span>
+              </div>
+              <span class="parent-waiting__badge">Pending</span>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;parent-waiting__status&quot;&gt;
+  &lt;div class=&quot;parent-waiting__status-icon&quot; aria-hidden=&quot;true&quot;&gt;…&lt;/div&gt;
+  &lt;div class=&quot;parent-waiting__status-body&quot;&gt;
+    &lt;strong class=&quot;parent-waiting__status-title&quot;&gt;Email sent&lt;/strong&gt;
+    &lt;span class=&quot;parent-waiting__status-meta&quot;&gt;Just now · Expires in 23h 59m&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;span class=&quot;parent-waiting__badge&quot;&gt;Pending&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;parent-waiting__status&quot;&gt;
+  &lt;div className=&quot;parent-waiting__status-icon&quot; aria-hidden=&quot;true&quot;&gt;…&lt;/div&gt;
+  &lt;div className=&quot;parent-waiting__status-body&quot;&gt;
+    &lt;strong className=&quot;parent-waiting__status-title&quot;&gt;Email sent&lt;/strong&gt;
+    &lt;span className=&quot;parent-waiting__status-meta&quot;&gt;Just now · Expires in 23h 59m&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;span className=&quot;parent-waiting__badge&quot;&gt;Pending&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Sample Pages -->
+      <section class="ds-section" id="sample-pages">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Sample Pages</h2>
+          <p class="ds-section__description">Fully composed pages built entirely with this design system — the real auth, onboarding, and parent-approval flows.</p>
+        </div>
+        <div class="sample-grid">
+          <a href="phase-01-onboarding.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">All flows hub</div>
+            <p class="sample-card__desc">Every login, signup, onboarding, and parent-approval screen in phase-01-onboarding.</p>
+          </a>
+          <a href="pages/auth/login.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Login</div>
+            <p class="sample-card__desc">Email code login with Google / Apple OAuth and a password fallback.</p>
+          </a>
+          <a href="pages/auth/signup-step1.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Sign up</div>
+            <p class="sample-card__desc">Choose a signup method, then complete the join form with age &amp; country checks.</p>
+          </a>
+          <a href="pages/onboarding/parent-invite.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Parent invite</div>
+            <p class="sample-card__desc">Collect a guardian's email with a live preview of the approval request they'll receive.</p>
+          </a>
+          <a href="pages/onboarding/waiting.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Waiting</div>
+            <p class="sample-card__desc">Pending-approval status card with resend cooldown and an alternate email option.</p>
+          </a>
+          <a href="pages/parent/consent.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Parent consent</div>
+            <p class="sample-card__desc">Explains InrCliq, the approval steps, and privacy commitments before a parent proceeds.</p>
+          </a>
+          <a href="pages/parent/protection.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Protection</div>
+            <p class="sample-card__desc">Strict / Standard / Relaxed protection tiers with a recommendation banner.</p>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <button type="button" class="btn btn--secondary theme-toggle" id="theme-toggle">Toggle Dark Mode</button>
+
+  <script src="js/onboarding.js"></script>
+  <script>
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-feed-theme');
+      html.setAttribute('data-feed-theme', current === 'dark' ? 'light' : 'dark');
+    });
+
+    const sections = document.querySelectorAll('.ds-section[id]');
+    const navLinks = document.querySelectorAll('.ds-nav__link[href^="#"]');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          navLinks.forEach((link) => link.classList.remove('is-active'));
+          const active = document.querySelector(`.ds-nav__link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('is-active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach((section) => observer.observe(section));
+
+    (function () {
+      var copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+      var checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg>';
+      function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+        return new Promise(function (resolve, reject) {
+          var ta = document.createElement("textarea");
+          ta.value = text; ta.setAttribute("readonly", "");
+          ta.style.position = "fixed"; ta.style.left = "-9999px";
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); resolve(); } catch (e) { reject(e); }
+          finally { document.body.removeChild(ta); }
+        });
+      }
+      function setLang(block, lang) {
+        block.setAttribute("data-markup-lang", lang);
+        block.querySelectorAll(".ds-markup__lang").forEach(function (btn) {
+          var on = btn.getAttribute("data-lang") === lang;
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        block.querySelectorAll(".ds-markup__code").forEach(function (pre) {
+          var match = pre.getAttribute("data-lang") === lang;
+          if (match) pre.removeAttribute("hidden");
+          else pre.setAttribute("hidden", "");
+        });
+      }
+      document.querySelectorAll(".ds-markup").forEach(function (block) {
+        block.querySelectorAll(".ds-markup__lang").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            setLang(block, btn.getAttribute("data-lang") || "html");
+          });
+        });
+        var copyBtn = block.querySelector(".ds-markup__copy");
+        if (!copyBtn) return;
+        var timer = null;
+        copyBtn.addEventListener("click", function () {
+          var lang = block.getAttribute("data-markup-lang") || "html";
+          var code = block.querySelector('.ds-markup__code[data-lang="' + lang + '"] code');
+          if (!code) return;
+          copyText(code.textContent || "").then(function () {
+            copyBtn.classList.add("is-copied");
+            copyBtn.setAttribute("aria-label", "Copied");
+            copyBtn.setAttribute("title", "Copied");
+            copyBtn.innerHTML = checkIcon;
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function () {
+              copyBtn.classList.remove("is-copied");
+              copyBtn.setAttribute("aria-label", "Copy markup");
+              copyBtn.setAttribute("title", "Copy markup");
+              copyBtn.innerHTML = copyIcon;
+            }, 1600);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parent invite — InrCliq Onboarding</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section id="screen-ONB-03" class="auth-center auth-center--signup-step">
+        <div class="auth-center__card auth-center__card--step-offset">
+          <h1>One quick step before you join</h1>
+          <p class="subtitle mt-2">
+            Based on your Country's eSafety policies, a parent or guardian needs to approve your account. Enter their
+            email below and we will request for their Approval.
+          </p>
+
+          <ol class="parent-steps" aria-label="Parent approval steps">
+            <li class="parent-steps__item">
+              <span class="parent-steps__num" aria-hidden="true">1</span>
+              <span class="parent-steps__text">Enter your parent's email</span>
+            </li>
+            <li class="parent-steps__item">
+              <span class="parent-steps__num" aria-hidden="true">2</span>
+              <span class="parent-steps__text">Parent receives a link and approves</span>
+            </li>
+            <li class="parent-steps__item">
+              <span class="parent-steps__num" aria-hidden="true">3</span>
+              <span class="parent-steps__text">Your account is activated</span>
+            </li>
+          </ol>
+
+          <div class="field mt-8">
+            <label class="field-label" for="parent-email">Email</label>
+            <input
+              class="input"
+              type="email"
+              id="parent-email"
+              value="guardian@example.com"
+              placeholder="Parent or guardian's email"
+              autocomplete="off"
+              aria-describedby="parent-email-error"
+            />
+            <p class="field-error mt-3 hidden" id="parent-email-error" role="alert">
+              Please enter your parent or guardian's email address.
+            </p>
+          </div>
+
+          <div class="disclosure verify-email__info is-open" id="parent-email-preview">
+            <button
+              type="button"
+              class="disclosure__trigger"
+              id="parent-email-preview-trigger"
+              aria-expanded="true"
+              aria-controls="parent-email-preview-panel"
+            >
+              <span class="disclosure__trigger-main">
+                <svg class="disclosure__info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span class="disclosure__label">Here's what we'll send them</span>
+              </span>
+              <svg class="disclosure__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div class="disclosure__panel" id="parent-email-preview-panel">
+              <div class="disclosure__panel-inner">
+                <div class="disclosure__content verify-email__info-content">
+                  <p class="verify-email__info-line"><span>From :</span> InrCliq</p>
+                  <p class="verify-email__info-line">
+                    <span>Subject :</span> <span id="parent-preview-subject">Alex wants to join InrCliq</span>
+                  </p>
+                  <p class="verify-email__info-detail" id="parent-preview-body">
+                    "Alex has requested to Signup with InrCliq, we need your approval......"
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn--primary mt-8" id="btn-send-parent-invite">
+            <span class="btn__label">Send email to Parent/Guardian</span>
+            <span class="btn__progress" aria-hidden="true"><span class="btn__progress-bar"></span></span>
+          </button>
+
+          <div class="password-skip-row mt-4">
+            <button type="button" class="link-btn password-skip-row__action" id="link-fix-birthday">
+              I made a mistake. I'm actually 18+
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div
+        class="signup-progress is-visible"
+        id="signup-progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="62"
+        aria-label="Signup progress"
+      >
+        <div class="signup-progress__track">
+          <div class="signup-progress__bar" id="signup-progress-bar" style="width: 62%"></div>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

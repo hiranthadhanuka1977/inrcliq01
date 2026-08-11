@@ -1,0 +1,113 @@
+/* Back-to-top / jump-to-feed floating button — from profile.css */
+
+.profile-jump-feed {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: auto;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-brand-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition:
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.25s ease;
+}
+
+.profile-jump-feed.is-top-mode {
+  width: 38px;
+  padding: 0;
+  background: var(--color-brand-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-brand-primary);
+}
+
+.profile-jump-feed__label {
+  display: inline-block;
+  max-width: 9.5rem;
+  opacity: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
+}
+
+.profile-jump-feed.is-top-mode .profile-jump-feed__label {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(0.5rem);
+}
+
+.profile-jump-feed__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0;
+  height: 18px;
+  opacity: 0;
+  transform: scale(0.6) translateY(4px);
+  transition:
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.profile-jump-feed__icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.profile-jump-feed.is-top-mode .profile-jump-feed__icon {
+  width: 18px;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.profile-jump-feed:hover {
+  background: var(--color-brand-primary-subtle);
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
+
+.profile-jump-feed.is-top-mode:hover {
+  background: var(--color-brand-primary-hover);
+  border-color: var(--color-brand-primary-hover);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-lg);
+}
+
+.profile-jump-feed:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 900px) {
+  .profile-jump-feed {
+    right: var(--space-4);
+    bottom: calc(var(--space-4) + 3.5rem);
+  }
+}

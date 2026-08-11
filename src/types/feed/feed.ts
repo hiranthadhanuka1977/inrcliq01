@@ -1,6 +1,8 @@
 export interface FeedAuthor {
   name: string;
   handle: string;
+  /** Public profile URL slug when known (from CreatorUser / UserProfile). */
+  slug?: string | null;
   avatar_initials: string;
   avatar_color: string;
   avatar_url: string | null;
@@ -30,8 +32,10 @@ export interface FeedAudio {
 }
 
 export interface FeedMedia {
-  type: "image" | "collage";
+  type: "image" | "collage" | "video";
   images: FeedImage[];
+  /** Optional clip URL; feed falls back to the shared sample video when omitted. */
+  video_url?: string | null;
 }
 
 export interface FeedEngagement {

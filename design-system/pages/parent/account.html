@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create parent account — InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <div class="app-shell">
+        <div class="app-frame">
+          <section class="screen parent-signup" id="screen-PAR-02">
+            <header class="auth-topbar">
+              <div class="auth-topbar__actions">
+                <p class="auth-topbar__prompt-text">
+                  Already have an account? <a href="../auth/login.html" class="link-btn">Log in</a>
+                </p>
+                <button type="button" class="theme-switcher" aria-label="Switch to light theme" title="Light mode">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div class="parent-signup__progress">
+              <nav class="parent-stepper" aria-label="Parent setup progress">
+                <ol class="parent-stepper__list">
+                  <li class="parent-stepper__item is-active" data-step="1" aria-current="step">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 1:</span>Account</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="2">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 2:</span>Verify</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="3">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 3:</span>Review</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="4">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 4:</span>Protection</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="5">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 5:</span>Approved</span>
+                  </li>
+                </ol>
+              </nav>
+              <hr class="parent-signup__progress-divider" />
+            </div>
+
+            <div class="parent-signup__shell">
+              <div class="parent-signup__layout">
+                <div class="parent-signup__main">
+                  <button type="button" class="back-btn" id="btn-parent-back" aria-label="Back" onclick="window.location.href='consent.html'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 6l-6 6 6 6" />
+                    </svg>
+                  </button>
+
+                  <h1 class="parent-signup__title">Create your parent account</h1>
+                  <p class="subtitle mt-2">Just a few details, your identity will be confirmed in the next step.</p>
+
+                  <div class="parent-signup__form mt-8">
+                    <div class="field">
+                      <label class="field-label" for="par-parent-email">Your email</label>
+                      <div class="input-with-action">
+                        <input
+                          class="input input--readonly"
+                          type="email"
+                          id="par-parent-email"
+                          value="guardian@example.com"
+                          readonly
+                        />
+                        <button type="button" class="input-with-action__btn" aria-label="Edit email">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="field mt-6">
+                      <label class="field-label" for="par-parent-password">Create a password</label>
+                      <div class="input-with-action">
+                        <input
+                          class="input"
+                          type="password"
+                          id="par-parent-password"
+                          placeholder="Password"
+                          autocomplete="new-password"
+                          value="SecurePass1"
+                          aria-describedby="par-parent-password-error par-parent-password-requirement"
+                        />
+                        <button
+                          type="button"
+                          class="input-with-action__btn"
+                          id="btn-par-parent-password-toggle"
+                          aria-label="Show password"
+                          aria-pressed="false"
+                        >
+                          <svg class="password-toggle__icon password-toggle__icon--show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                          <svg class="password-toggle__icon password-toggle__icon--hide hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        </button>
+                      </div>
+                      <p class="field-error hidden" id="par-parent-password-error" role="alert">Please enter your password.</p>
+                      <p class="password-requirement mt-4 is-met" id="par-parent-password-requirement">
+                        <span class="password-requirement__mark" aria-hidden="true"></span>
+                        <span>Use at least 8 characters with a mix of letters and numbers.</span>
+                      </p>
+                    </div>
+
+                    <div class="field mt-8">
+                      <div class="field-label-row">
+                        <span class="field-label">Country of residence</span>
+                        <span class="help-tip">
+                          <button type="button" class="help-tip__trigger" aria-label="About country of residence" aria-describedby="par-country-tip">
+                            <svg class="help-tip__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                              <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                          </button>
+                          <span class="help-tip__content" id="par-country-tip" role="tooltip">
+                            We use this to apply the correct child safety and privacy rules for your region.
+                          </span>
+                        </span>
+                      </div>
+                      <div class="field mt-2">
+                        <label class="field-label sr-only" for="par-parent-country">Country</label>
+                        <select class="select" id="par-parent-country" aria-label="Country">
+                          <option value="LK" selected>🇱🇰 Sri Lanka</option>
+                          <option value="US">🇺🇸 United States</option>
+                          <option value="GB">🇬🇧 United Kingdom</option>
+                          <option value="AU">🇦🇺 Australia</option>
+                          <option value="IN">🇮🇳 India</option>
+                        </select>
+                      </div>
+                      <div class="field mt-4 hidden">
+                        <label class="field-label" for="par-parent-state">State</label>
+                        <select class="select" id="par-parent-state" aria-label="State">
+                          <option value="" disabled selected>Select state</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <label class="parent-signup__confirm mt-6">
+                      <input type="checkbox" id="par-parent-confirm" checked />
+                      <span>I confirm that the information provided is true and correct.</span>
+                    </label>
+
+                    <a href="verify-intro.html" class="btn btn--primary mt-8" id="btn-parent-submit">Submit and verify identity</a>
+
+                    <div class="parent-signup__id-notice mt-6" role="note">
+                      <span class="parent-signup__id-notice-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 16v-4" />
+                          <path d="M12 8h.01" />
+                        </svg>
+                      </span>
+                      <p class="parent-signup__id-notice-text">
+                        Your date of birth will be captured from your ID scan in the next step.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <aside class="parent-signup__sidebar" aria-label="Child request details">
+                  <div class="parent-signup__profile">
+                    <div class="parent-signup__avatar" id="par-child-avatar" aria-hidden="true">AS</div>
+                    <div>
+                      <strong class="parent-signup__profile-name" id="par-child-display-name">Alex Smith</strong>
+                      <p class="parent-signup__profile-age" id="par-child-age">14 years old</p>
+                    </div>
+                    <span class="parent-signup__status-badge">Awaiting your approval</span>
+                  </div>
+
+                  <hr class="parent-signup__divider" />
+
+                  <dl class="parent-signup__details">
+                    <div class="parent-signup__detail">
+                      <dt class="parent-signup__detail-label">Name</dt>
+                      <dd class="parent-signup__detail-value">
+                        <strong id="par-child-detail-name">Alex Smith</strong>
+                        <button type="button" class="parent-signup__edit-btn" aria-label="Edit name">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      </dd>
+                    </div>
+
+                    <hr class="parent-signup__divider" />
+
+                    <div class="parent-signup__detail">
+                      <dt class="parent-signup__detail-label">Email</dt>
+                      <dd class="parent-signup__detail-value">
+                        <strong id="par-child-detail-email">alex@example.com</strong>
+                      </dd>
+                    </div>
+
+                    <hr class="parent-signup__divider" />
+
+                    <div class="parent-signup__detail">
+                      <dt class="parent-signup__detail-label">Date of birth</dt>
+                      <dd class="parent-signup__detail-value">
+                        <strong id="par-child-detail-dob">15th March 2012</strong>
+                        <button type="button" class="parent-signup__edit-btn" aria-label="Edit date of birth">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      </dd>
+                    </div>
+
+                    <hr class="parent-signup__divider" />
+
+                    <div class="parent-signup__detail">
+                      <dt class="parent-signup__detail-label">Country</dt>
+                      <dd class="parent-signup__detail-value">
+                        <strong id="par-child-detail-country">Sri Lanka</strong>
+                        <button type="button" class="parent-signup__edit-btn" aria-label="Edit country">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      </dd>
+                    </div>
+
+                    <hr class="parent-signup__divider" />
+
+                    <div class="parent-signup__detail">
+                      <dt class="parent-signup__detail-label">State</dt>
+                      <dd class="parent-signup__detail-value">
+                        <strong id="par-child-detail-state">—</strong>
+                      </dd>
+                    </div>
+
+                    <hr class="parent-signup__divider" />
+
+                    <div class="parent-signup__detail">
+                      <dt class="parent-signup__detail-label">Request sent</dt>
+                      <dd class="parent-signup__detail-value">
+                        <strong id="par-child-detail-sent">4th August 2026</strong>
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <hr class="parent-signup__divider" />
+
+                  <div class="parent-signup__sidebar-decline">
+                    <p class="parent-signup__sidebar-decline-text">Something looks wrong?</p>
+                    <button type="button" class="parent-signup__decline-btn" id="btn-parent-decline-sidebar" onclick="window.location.href='declined.html'">Decline the request</button>
+                  </div>
+
+                  <hr class="parent-signup__divider" />
+
+                  <div class="parent-signup__sidebar-note">
+                    <span class="parent-signup__sidebar-note-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                      </svg>
+                    </span>
+                    <p>
+                      Your account is separate from <span id="par-sidebar-privacy-child">Alex</span>'s. You won't
+                      share a login. Identity data is encrypted and used for compliance only.
+                    </p>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

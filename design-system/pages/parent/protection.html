@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Protection setup — InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <div class="app-shell">
+        <div class="app-frame">
+          <section class="screen parent-signup parent-signup--single parent-signup--protection parent-signup--stepper-width" id="screen-PAR-06">
+            <header class="auth-topbar">
+              <div class="auth-topbar__actions">
+                <p class="auth-topbar__prompt-text">
+                  Already have an account? <a href="../auth/login.html" class="link-btn">Log in</a>
+                </p>
+                <button type="button" class="theme-switcher" aria-label="Switch to light theme" title="Light mode">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div class="parent-signup__progress">
+              <nav class="parent-stepper" aria-label="Parent setup progress">
+                <ol class="parent-stepper__list">
+                  <li class="parent-stepper__item is-complete" data-step="1">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 1:</span>Account</span>
+                  </li>
+                  <li class="parent-stepper__item is-complete" data-step="2">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 2:</span>Verify</span>
+                  </li>
+                  <li class="parent-stepper__item is-complete" data-step="3">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 3:</span>Review</span>
+                  </li>
+                  <li class="parent-stepper__item is-active" data-step="4" aria-current="step">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 4:</span>Protection</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="5">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 5:</span>Approved</span>
+                  </li>
+                </ol>
+              </nav>
+              <hr class="parent-signup__progress-divider" />
+            </div>
+
+            <div class="parent-signup__shell">
+              <div class="parent-signup__layout parent-signup__layout--single">
+                <div class="parent-signup__main">
+                  <div class="protection-setup">
+                    <div class="protection-setup__recommendation" role="note">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      <p>
+                        Alex · Age 14, Based on Alex's age we recommend Standard protection. You can change this anytime.
+                      </p>
+                    </div>
+
+                    <h1 id="par-protection-title" class="parent-signup__title protection-setup__title text-center mt-8">
+                      Choose Alex's protection level
+                    </h1>
+                    <p class="subtitle mt-2 text-center">You can change this anytime from your dashboard.</p>
+
+                    <div class="protection-tiers mt-8" role="radiogroup" aria-labelledby="par-protection-title">
+                      <button type="button" class="protection-tier" role="radio" aria-checked="false" aria-label="Strict protection">
+                        <span class="protection-tier__icon protection-tier__icon--strict" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <polyline points="9 12 11 14 15 10" />
+                          </svg>
+                        </span>
+                        <span class="protection-tier__heading">
+                          <strong class="protection-tier__name">Strict</strong>
+                        </span>
+                        <span class="protection-tier__tagline">Recommended for kids &amp; younger teens.</span>
+                        <ul class="protection-tier__features">
+                          <li>Curated creators only</li>
+                          <li>No DMs</li>
+                          <li>All comments hidden</li>
+                          <li>Screen time: 1 h/day</li>
+                        </ul>
+                      </button>
+
+                      <button type="button" class="protection-tier is-selected" role="radio" aria-checked="true" aria-label="Standard protection">
+                        <span class="protection-tier__icon protection-tier__icon--standard" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                        </span>
+                        <span class="protection-tier__heading">
+                          <strong class="protection-tier__name">Standard</strong>
+                          <span class="protection-tier__badge">Recommended</span>
+                        </span>
+                        <span class="protection-tier__tagline">Most parents pick this</span>
+                        <ul class="protection-tier__features">
+                          <li>Verified creators</li>
+                          <li>DMs from approved only</li>
+                          <li>Comment filter on</li>
+                          <li>Screen time: 2 h/day</li>
+                        </ul>
+                      </button>
+
+                      <button type="button" class="protection-tier" role="radio" aria-checked="false" aria-label="Relaxed protection">
+                        <span class="protection-tier__icon protection-tier__icon--relaxed" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <polygon points="12 7 13.5 10.5 17 11 14.5 13.5 15 17 12 15 9 17 9.5 13.5 7 11 10.5 7 7" />
+                          </svg>
+                        </span>
+                        <span class="protection-tier__heading">
+                          <strong class="protection-tier__name">Relaxed</strong>
+                        </span>
+                        <span class="protection-tier__tagline">For older, mature teens</span>
+                        <ul class="protection-tier__features">
+                          <li>All creators</li>
+                          <li>DMs allowed</li>
+                          <li>Standard moderation</li>
+                          <li>No screen time limit</li>
+                        </ul>
+                      </button>
+                    </div>
+
+                    <div class="protection-setup__actions">
+                      <a href="approved.html" class="btn btn--primary protection-setup__approve">Approve and activate Alex's account</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Platform Design System — InrCliq Feed</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/showcase.css" />
+  <link rel="stylesheet" href="css/platform-showcase.css" />
+</head>
+<body>
+  <div class="ds-layout">
+    <aside class="ds-sidebar">
+      <div class="ds-sidebar__brand">
+        <a href="index.html"><h1>DS / Platform</h1></a>
+        <p>Feed landing · v1.0</p>
+      </div>
+      <nav>
+        <div class="ds-nav__group">
+          <div class="ds-nav__label">Foundation</div>
+          <a href="#colors" class="ds-nav__link">Colors</a>
+          <a href="#feed-tokens" class="ds-nav__link">Feed Tokens</a>
+          <a href="#typography" class="ds-nav__link">Typography</a>
+          <a href="#spacing" class="ds-nav__link">Spacing</a>
+          <a href="#radius" class="ds-nav__link">Border Radius</a>
+          <a href="#layout" class="ds-nav__link">Layout Tokens</a>
+          <a href="#themes" class="ds-nav__link">Themes</a>
+        </div>
+        <div class="ds-nav__group">
+          <div class="ds-nav__label">Components</div>
+          <a href="#buttons" class="ds-nav__link">Buttons</a>
+          <a href="#left-nav" class="ds-nav__link">Left Nav</a>
+          <a href="#mobile-nav" class="ds-nav__link">Mobile Nav</a>
+          <a href="#stories" class="ds-nav__link">Stories</a>
+          <a href="#filters" class="ds-nav__link">Greeting &amp; Filters</a>
+          <a href="#post" class="ds-nav__link">Feed Post</a>
+          <a href="#follow" class="ds-nav__link">Follow Button</a>
+          <a href="#snaps" class="ds-nav__link">Snaps Rail</a>
+          <a href="#top-creators" class="ds-nav__link">Top Creators</a>
+          <a href="#right-rail" class="ds-nav__link">Right Rail</a>
+          <a href="#loading" class="ds-nav__link">Loading</a>
+        </div>
+        <div class="ds-nav__group">
+          <div class="ds-nav__label">Sample Pages</div>
+          <a href="pages/feed/home.html" class="ds-nav__link" target="_blank" rel="noopener noreferrer">Home feed</a>
+          <a href="#sample-pages" class="ds-nav__link">All sample pages</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="ds-main">
+      <section class="ds-section" id="intro">
+        <div class="ds-section__header">
+          <h1 class="ds-section__title" style="font-size:var(--font-size-3xl)">Platform Design System</h1>
+          <p class="ds-section__description">
+            Tokens and components for the InrCliq <strong>feed landing</strong> (<code>/feed</code>) —
+            shell chrome, stories, filters, posts, and rails. Uses the same CSS classes as
+            <code>src/components/feed</code> and <code>src/styles/feed</code>.
+          </p>
+        </div>
+      </section>
+
+      <section class="ds-section" id="colors">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Colors</h2>
+          <p class="ds-section__description">Shared brand and semantic palette. Feed dark/light remaps these via <code>app-theme.css</code>.</p>
+        </div>
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Brand</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary</div><div class="token-swatch__value">theme accent</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary-hover)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary-hover</div><div class="token-swatch__value">hover</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-brand-primary-subtle)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary-subtle</div><div class="token-swatch__value">selected / chip</div></div></div>
+          </div>
+        </div>
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Surfaces &amp; text</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-bg-page);border:1px solid var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">bg-page</div><div class="token-swatch__value">app background</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-bg-subtle)"></div><div class="token-swatch__info"><div class="token-swatch__name">bg-subtle</div><div class="token-swatch__value">panels</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-text-primary)"></div><div class="token-swatch__info"><div class="token-swatch__name">text-primary</div><div class="token-swatch__value">body / titles</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-text-secondary)"></div><div class="token-swatch__info"><div class="token-swatch__name">text-secondary</div><div class="token-swatch__value">meta</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">border-default</div><div class="token-swatch__value">hairlines</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="feed-tokens">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Feed Tokens</h2>
+          <p class="ds-section__description">Feed-specific variables from <code>app-theme.css</code> — cards, dividers, shell widths, stories.</p>
+        </div>
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Cards &amp; chrome</h3>
+          <div class="token-grid">
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--feed-card-bg);border:1px solid var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">feed-card-bg</div><div class="token-swatch__value">post surface</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--feed-divider)"></div><div class="token-swatch__info"><div class="token-swatch__name">feed-divider</div><div class="token-swatch__value">between posts</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--hairline)"></div><div class="token-swatch__info"><div class="token-swatch__name">hairline</div><div class="token-swatch__value">subtle border</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--surface-hover)"></div><div class="token-swatch__info"><div class="token-swatch__name">surface-hover</div><div class="token-swatch__value">nav / row hover</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--color-story-ring)"></div><div class="token-swatch__info"><div class="token-swatch__name">story-ring</div><div class="token-swatch__value">muted ring</div></div></div>
+            <div class="token-swatch"><div class="token-swatch__color" style="background:var(--shimmer-mid)"></div><div class="token-swatch__info"><div class="token-swatch__name">shimmer-mid</div><div class="token-swatch__value">loading</div></div></div>
+          </div>
+        </div>
+        <table class="token-table">
+          <thead><tr><th>Token</th><th>Typical value</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td><code>--nav-width</code></td><td>245px</td><td>Left sidebar</td></tr>
+            <tr><td><code>--feed-width</code></td><td>720px</td><td>Main feed column</td></tr>
+            <tr><td><code>--right-rail-width</code></td><td>280px</td><td>Suggested / trending</td></tr>
+            <tr><td><code>--feed-card-radius</code></td><td>12px / radius-md</td><td>Card rounding</td></tr>
+            <tr><td><code>--feed-card-gap</code></td><td>1rem</td><td>Stack gap</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="ds-section" id="typography">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Typography</h2>
+          <p class="ds-section__description">Plus Jakarta Sans — same family as auth and feed.</p>
+        </div>
+        <div class="ds-demo">
+          <div class="typography-demo">
+            <div class="typography-row"><span class="typography-row__meta">2xl</span><span style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-bold)">Good morning, Hiran</span></div>
+            <div class="typography-row"><span class="typography-row__meta">lg</span><span style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold)">Suggested</span></div>
+            <div class="typography-row"><span class="typography-row__meta">md</span><span style="font-size:var(--font-size-md)">New stage moments from the weekend show.</span></div>
+            <div class="typography-row"><span class="typography-row__meta">sm</span><span style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">@bathiya · 2h</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="spacing">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Spacing</h2>
+          <p class="ds-section__description">4px-based scale shared with the rest of the product.</p>
+        </div>
+        <div class="ds-demo">
+          <div class="spacing-demo">
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-2);height:32px"></div><span class="spacing-block__label">space-2</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-3);height:32px"></div><span class="spacing-block__label">space-3</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-4);height:32px"></div><span class="spacing-block__label">space-4</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-6);height:32px"></div><span class="spacing-block__label">space-6</span></div>
+            <div class="spacing-block"><div class="spacing-block__visual" style="width:var(--space-8);height:32px"></div><span class="spacing-block__label">space-8</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="radius">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Border Radius</h2>
+          <p class="ds-section__description">Cards and chips lean on medium/large radii; avatars use full.</p>
+        </div>
+        <div class="ds-demo radius-demo">
+          <div class="radius-box" style="border-radius:var(--radius-sm)">sm</div>
+          <div class="radius-box" style="border-radius:var(--radius-md)">md</div>
+          <div class="radius-box" style="border-radius:var(--radius-lg)">lg</div>
+          <div class="radius-box" style="border-radius:var(--radius-full)">full</div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="layout">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Layout Tokens</h2>
+          <p class="ds-section__description">Structural widths for the three-column feed shell.</p>
+        </div>
+        <table class="token-table">
+          <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td><code>--nav-width</code></td><td>245px</td><td><code>.left-nav</code></td></tr>
+            <tr><td><code>--feed-width</code></td><td>720px</td><td><code>.feed-main</code> / post column</td></tr>
+            <tr><td><code>--right-rail-width</code></td><td>280px</td><td><code>.right-rail</code></td></tr>
+            <tr><td><code>.app-shell</code></td><td>—</td><td>Desktop 3-column frame</td></tr>
+            <tr><td><code>.page-home</code></td><td>—</td><td>Body class for <code>/feed</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="ds-section" id="themes">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Themes</h2>
+          <p class="ds-section__description">Dark is the feed default. Light is opt-in via <code>data-feed-theme="light"</code>.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Theme switch</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-demo--inline" style="gap:var(--space-4)">
+              <div class="token-swatch" style="min-width:140px"><div class="token-swatch__color" style="background:var(--color-bg-page);border:1px solid var(--color-border-default)"></div><div class="token-swatch__info"><div class="token-swatch__name">bg-page</div><div class="token-swatch__value">theme surface</div></div></div>
+              <div class="token-swatch" style="min-width:140px"><div class="token-swatch__color" style="background:var(--feed-divider)"></div><div class="token-swatch__info"><div class="token-swatch__name">feed-divider</div><div class="token-swatch__value">post separator</div></div></div>
+              <div class="token-swatch" style="min-width:140px"><div class="token-swatch__color" style="background:var(--color-brand-primary)"></div><div class="token-swatch__info"><div class="token-swatch__name">brand-primary</div><div class="token-swatch__value">accent</div></div></div>
+            </div>
+            <p class="ds-section__description" style="margin-top:var(--space-3)">Toggle the floating theme control. Feed chrome uses <code>html[data-feed-theme]</code> with a <code>.feed-path-shell</code> ancestor.</p>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;!-- Set on &lt;html&gt; --&gt;
+&lt;html lang=&quot;en&quot; data-feed-theme=&quot;dark&quot;&gt;
+  &lt;body&gt;
+    &lt;div class=&quot;feed-path-shell&quot;&gt;
+      &lt;!-- feed app --&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+/* Light mode */
+&lt;html data-feed-theme=&quot;light&quot;&gt;…&lt;/html&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>{/* Set on &lt;html&gt; */}
+&lt;html lang=&quot;en&quot; data-feed-theme=&quot;dark&quot;&gt;
+  &lt;body&gt;
+    &lt;div className=&quot;feed-path-shell&quot;&gt;
+      {/* feed app */}
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+/* Light mode */
+&lt;html data-feed-theme=&quot;light&quot;&gt;…&lt;/html&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="buttons">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Buttons</h2>
+          <p class="ds-section__description">Shared button primitives used in nav promo, create, and feed CTAs.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Variants</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-demo--inline" style="padding:var(--space-5);flex-wrap:wrap">
+              <button type="button" class="btn btn--primary"><span class="btn__label">Primary</span></button>
+              <button type="button" class="btn btn--secondary">Secondary</button>
+              <button type="button" class="btn btn--outline-brand btn--sm">Outline sm</button>
+              <button type="button" class="btn btn--warning btn--sm">Warning</button>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;btn btn--primary&quot;&gt;&lt;span class=&quot;btn__label&quot;&gt;Primary&lt;/span&gt;&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--secondary&quot;&gt;Secondary&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--outline-brand btn--sm&quot;&gt;Outline sm&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;btn btn--warning btn--sm&quot;&gt;Warning&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;btn btn--primary&quot;&gt;&lt;span className=&quot;btn__label&quot;&gt;Primary&lt;/span&gt;&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--secondary&quot;&gt;Secondary&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--outline-brand btn--sm&quot;&gt;Outline sm&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;btn btn--warning btn--sm&quot;&gt;Warning&lt;/button&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="left-nav">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Left Nav</h2>
+          <p class="ds-section__description">Desktop sidebar — brand, primary destinations, premium promo, create, profile.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Structure</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell">
+              <aside class="left-nav ds-feed-frame__nav">
+                <div class="left-nav__body">
+                  <div class="left-nav__header">
+                    <div class="brand">INRCLIQ<span class="dot">.</span></div>
+                  </div>
+                  <nav>
+                    <a class="nav-item active" href="#"><span class="nav-item__label"><span class="nav-icon nav-icon--home" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span><span class="nav-item__text">Home</span></span></a>
+                    <a class="nav-item" href="#"><span class="nav-item__label"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="nav-item__text">Messages<span class="badge">3</span></span></span></a>
+                    <hr class="nav-separator" />
+                    <a class="nav-item" href="#"><span class="nav-item__label"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="nav-item__text">Audio</span></span></a>
+                  </nav>
+                </div>
+                <div class="nav-create">
+                  <button type="button" class="nav-create__btn">Create</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;aside class=&quot;left-nav&quot;&gt;
+  &lt;div class=&quot;left-nav__body&quot;&gt;
+    &lt;div class=&quot;left-nav__header&quot;&gt;
+      &lt;div class=&quot;brand&quot;&gt;INRCLIQ&lt;span class=&quot;dot&quot;&gt;.&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;nav&gt;
+      &lt;a class=&quot;nav-item active&quot; href=&quot;/feed&quot;&gt;
+        &lt;span class=&quot;nav-item__label&quot;&gt;
+          &lt;span class=&quot;nav-icon nav-icon--home&quot; aria-hidden=&quot;true&quot;&gt;&lt;!-- icon --&gt;&lt;/span&gt;
+          &lt;span class=&quot;nav-item__text&quot;&gt;Home&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/a&gt;
+      &lt;a class=&quot;nav-item&quot; href=&quot;/feed/messages&quot;&gt;
+        &lt;span class=&quot;nav-item__label&quot;&gt;
+          &lt;span class=&quot;nav-icon&quot; aria-hidden=&quot;true&quot;&gt;&lt;!-- icon --&gt;&lt;/span&gt;
+          &lt;span class=&quot;nav-item__text&quot;&gt;Messages&lt;span class=&quot;badge&quot;&gt;3&lt;/span&gt;&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;nav-create&quot;&gt;
+    &lt;button type=&quot;button&quot; class=&quot;nav-create__btn&quot;&gt;Create&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/aside&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;aside className=&quot;left-nav&quot;&gt;
+  &lt;div className=&quot;left-nav__body&quot;&gt;
+    &lt;div className=&quot;left-nav__header&quot;&gt;
+      &lt;div className=&quot;brand&quot;&gt;INRCLIQ&lt;span className=&quot;dot&quot;&gt;.&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;nav&gt;
+      &lt;a className=&quot;nav-item active&quot; href=&quot;/feed&quot;&gt;
+        &lt;span className=&quot;nav-item__label&quot;&gt;
+          &lt;span className=&quot;nav-icon nav-icon--home&quot; aria-hidden=&quot;true&quot;&gt;{/* icon */}&lt;/span&gt;
+          &lt;span className=&quot;nav-item__text&quot;&gt;Home&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/a&gt;
+      &lt;a className=&quot;nav-item&quot; href=&quot;/feed/messages&quot;&gt;
+        &lt;span className=&quot;nav-item__label&quot;&gt;
+          &lt;span className=&quot;nav-icon&quot; aria-hidden=&quot;true&quot;&gt;{/* icon */}&lt;/span&gt;
+          &lt;span className=&quot;nav-item__text&quot;&gt;Messages&lt;span className=&quot;badge&quot;&gt;3&lt;/span&gt;&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/div&gt;
+  &lt;div className=&quot;nav-create&quot;&gt;
+    &lt;button type=&quot;button&quot; className=&quot;nav-create__btn&quot;&gt;Create&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/aside&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="mobile-nav">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Mobile Nav</h2>
+          <p class="ds-section__description">Bottom bar for small screens, with a More sheet for secondary destinations.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Bar</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell" style="padding:var(--space-4)">
+              <nav class="mobile-nav ds-mobile-nav-demo" aria-label="Primary navigation">
+                <a class="active" href="#" aria-label="Home" aria-current="page"><span class="nav-icon nav-icon--home" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>Home</a>
+                <a href="#" aria-label="Messages"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Messages</a>
+                <a href="#" aria-label="Audio"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>Audio</a>
+                <button type="button" aria-label="More"><span class="nav-icon" aria-hidden="true">···</span>More</button>
+              </nav>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;nav class=&quot;mobile-nav&quot; aria-label=&quot;Primary navigation&quot;&gt;
+  &lt;a class=&quot;active&quot; href=&quot;/feed&quot; aria-current=&quot;page&quot;&gt;
+    &lt;span class=&quot;nav-icon nav-icon--home&quot; aria-hidden=&quot;true&quot;&gt;&lt;!-- home --&gt;&lt;/span&gt;
+    Home
+  &lt;/a&gt;
+  &lt;a href=&quot;/feed/messages&quot; aria-label=&quot;Messages&quot;&gt;
+    &lt;span class=&quot;nav-icon&quot; aria-hidden=&quot;true&quot;&gt;&lt;!-- messages --&gt;&lt;/span&gt;
+    Messages
+  &lt;/a&gt;
+  &lt;button type=&quot;button&quot; aria-label=&quot;More&quot; aria-haspopup=&quot;menu&quot;&gt;
+    &lt;span class=&quot;nav-icon&quot; aria-hidden=&quot;true&quot;&gt;&lt;!-- more --&gt;&lt;/span&gt;
+    More
+  &lt;/button&gt;
+&lt;/nav&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;nav className=&quot;mobile-nav&quot; aria-label=&quot;Primary navigation&quot;&gt;
+  &lt;a className=&quot;active&quot; href=&quot;/feed&quot; aria-current=&quot;page&quot;&gt;
+    &lt;span className=&quot;nav-icon nav-icon--home&quot; aria-hidden=&quot;true&quot;&gt;{/* home */}&lt;/span&gt;
+    Home
+  &lt;/a&gt;
+  &lt;a href=&quot;/feed/messages&quot; aria-label=&quot;Messages&quot;&gt;
+    &lt;span className=&quot;nav-icon&quot; aria-hidden=&quot;true&quot;&gt;{/* messages */}&lt;/span&gt;
+    Messages
+  &lt;/a&gt;
+  &lt;button type=&quot;button&quot; aria-label=&quot;More&quot; aria-haspopup=&quot;menu&quot;&gt;
+    &lt;span className=&quot;nav-icon&quot; aria-hidden=&quot;true&quot;&gt;{/* more */}&lt;/span&gt;
+    More
+  &lt;/button&gt;
+&lt;/nav&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="ds-section" id="stories">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Stories</h2>
+          <p class="ds-section__description">
+            Horizontal strip at the top of <code>/feed</code>. Item variants are composed from three axes:
+            <strong>ring</strong> (gradient = unread, muted = viewed),
+            <strong>presence</strong> (online dot vs <code>story-avatar--offline</code>),
+            and <strong>face</strong> (image, initials, or Your Snap plus icon).
+            There is no separate <code>unread</code> / <code>live</code> / <code>verified</code> class on story items.
+          </p>
+        </div>
+
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Full bar</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell">
+              <section class="stories-bar" aria-label="Stories">
+                <div class="stories has-next">
+                  <div class="stories-track" id="ds-stories-track">
+                    <a class="story story--snap" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--snap" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                        </div>
+                      </div>
+                      <span>Your Snap</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar" style="--story-color: #4f46e5">
+                          <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Taylor" />
+                        </div>
+                      </div>
+                      <span>Taylor</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #8b5cf6">
+                          JL
+                        </div>
+                      </div>
+                      <span>Jennifer</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar" style="--story-color: #a21caf">
+                          <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Bruno" />
+                        </div>
+                      </div>
+                      <span>Bruno</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #c026d3">
+                          <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Dua" />
+                        </div>
+                      </div>
+                      <span>Dua</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #0f766e">
+                          BE
+                        </div>
+                      </div>
+                      <span>Billie</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar" style="--story-color: #6d28d9">
+                          OR
+                        </div>
+                      </div>
+                      <span>Olivia</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar" style="--story-color: #166534">
+                          ED
+                        </div>
+                      </div>
+                      <span>Ed S.</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar" style="--story-color: #b45309">
+                          <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Adele" />
+                        </div>
+                      </div>
+                      <span>Adele</span>
+                    </a>
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #374151">
+                          <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Drake" />
+                        </div>
+                      </div>
+                      <span>Drake</span>
+                    </a>
+                  </div>
+                  <button class="story-nav story-nav--prev" type="button" aria-label="Previous stories" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg></button>
+                  <button class="story-nav story-nav--next is-visible" type="button" aria-label="Next stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg></button>
+                </div>
+              </section>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;section class=&quot;stories-bar&quot; aria-label=&quot;Stories&quot;&gt;
+  &lt;div class=&quot;stories has-next&quot;&gt;
+    &lt;div class=&quot;stories-track&quot; id=&quot;stories-track&quot;&gt;
+      &lt;!-- Your Snap + peer stories --&gt;
+&lt;a class=&quot;story story--snap&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div class=&quot;story-avatar story-avatar--snap&quot; aria-hidden=&quot;true&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; stroke-linecap=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot; /&gt;&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot; /&gt;&lt;/svg&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Your Snap&lt;/span&gt;
+&lt;/a&gt;
+&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div class=&quot;story-avatar&quot; style=&quot;--story-color: #4f46e5&quot;&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Taylor&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Taylor&lt;/span&gt;
+&lt;/a&gt;
+      &lt;!-- …more stories… --&gt;
+    &lt;/div&gt;
+    &lt;button class=&quot;story-nav story-nav--prev&quot; type=&quot;button&quot; aria-label=&quot;Previous stories&quot; disabled&gt;
+      &lt;!-- chevron --&gt;
+    &lt;/button&gt;
+    &lt;button class=&quot;story-nav story-nav--next is-visible&quot; type=&quot;button&quot; aria-label=&quot;Next stories&quot;&gt;
+      &lt;!-- chevron --&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;section className=&quot;stories-bar&quot; aria-label=&quot;Stories&quot;&gt;
+  &lt;div className=&quot;stories has-next&quot;&gt;
+    &lt;div className=&quot;stories-track&quot; id=&quot;stories-track&quot;&gt;
+      {/* Your Snap + peer stories */}
+&lt;a className=&quot;story story--snap&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div className=&quot;story-avatar story-avatar--snap&quot; aria-hidden=&quot;true&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2.5&quot; strokeLinecap=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot; /&gt;&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot; /&gt;&lt;/svg&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Your Snap&lt;/span&gt;
+&lt;/a&gt;
+&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div className=&quot;story-avatar&quot; style={{ &quot;--story-color&quot;: &quot;#4f46e5&quot; }}&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Taylor&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Taylor&lt;/span&gt;
+&lt;/a&gt;
+      {/* …more stories… */}
+    &lt;/div&gt;
+    &lt;button className=&quot;story-nav story-nav--prev&quot; type=&quot;button&quot; aria-label=&quot;Previous stories&quot; disabled&gt;
+      {/* chevron */}
+    &lt;/button&gt;
+    &lt;button className=&quot;story-nav story-nav--next is-visible&quot; type=&quot;button&quot; aria-label=&quot;Next stories&quot;&gt;
+      {/* chevron */}
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">State axes</h3>
+          <table class="token-table">
+            <thead><tr><th>Axis</th><th>Classes</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>Entry</td><td><code>story</code> / <code>story story--snap</code></td><td>Peer story vs Your Snap</td></tr>
+              <tr><td>Ring</td><td><code>story-avatar-ring--gradient</code></td><td>Unread / unviewed</td></tr>
+              <tr><td>Ring</td><td><code>story-avatar-ring--muted</code></td><td>Viewed (or snap shell)</td></tr>
+              <tr><td>Presence</td><td>default <code>.story-avatar::after</code></td><td>Online green dot</td></tr>
+              <tr><td>Presence</td><td><code>story-avatar--offline</code></td><td>Hide online dot</td></tr>
+              <tr><td>Snap face</td><td><code>story-avatar--snap</code></td><td>Plus icon; forces no presence dot</td></tr>
+              <tr><td>Face</td><td><code>&lt;img&gt;</code> or initials text</td><td>Photo vs <code>--story-color</code> initials</td></tr>
+              <tr><td>Chrome</td><td><code>.stories.has-prev</code> / <code>.has-next</code></td><td>Edge fade when scrollable</td></tr>
+              <tr><td>Chrome</td><td><code>.story-nav.is-visible</code></td><td>Show carousel chevrons</td></tr>
+              <tr><td>Chrome</td><td><code>.feed-header.is-stories-collapsed</code></td><td>Scroll-hide the bar on home</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">State matrix</h3>
+          <p class="ds-subsection__note">All production combinations. Markup for each state is documented below.</p>
+          <div class="ds-demo">
+            <div class="ds-feed-frame feed-path-shell">
+              <div class="ds-story-matrix">
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Your Snap</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story story--snap" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--muted">
+                          <div class="story-avatar story-avatar--snap" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                          </div>
+                        </div>
+                        <span>Your Snap</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Unread · online · image</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--gradient">
+                          <div class="story-avatar" style="--story-color: #4f46e5">
+                            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Taylor" />
+                          </div>
+                        </div>
+                        <span>Taylor</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Unread · online · initials</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--gradient">
+                          <div class="story-avatar" style="--story-color: #6d28d9">
+                            OR
+                          </div>
+                        </div>
+                        <span>Olivia</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Unread · offline · image</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--gradient">
+                          <div class="story-avatar story-avatar--offline" style="--story-color: #c026d3">
+                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Dua" />
+                          </div>
+                        </div>
+                        <span>Dua</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Unread · offline · initials</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--gradient">
+                          <div class="story-avatar story-avatar--offline" style="--story-color: #ef4444">
+                            MC
+                          </div>
+                        </div>
+                        <span>Miley</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Viewed · online · image</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--muted">
+                          <div class="story-avatar" style="--story-color: #b45309">
+                            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Adele" />
+                          </div>
+                        </div>
+                        <span>Adele</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Viewed · online · initials</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--muted">
+                          <div class="story-avatar" style="--story-color: #166534">
+                            ED
+                          </div>
+                        </div>
+                        <span>Ed S.</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Viewed · offline · image</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--muted">
+                          <div class="story-avatar story-avatar--offline" style="--story-color: #374151">
+                            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Drake" />
+                          </div>
+                        </div>
+                        <span>Drake</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-story-matrix__cell">
+                <span class="ds-story-matrix__caption">Viewed · offline · initials</span>
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                      <a class="story" href="#">
+                        <div class="story-avatar-ring story-avatar-ring--muted">
+                          <div class="story-avatar story-avatar--offline" style="--story-color: #8b5cf6">
+                            JL
+                          </div>
+                        </div>
+                        <span>Jennifer</span>
+                      </a>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Your Snap</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label"><code>story--snap</code> + muted ring + <code>story-avatar--snap</code>. Plus icon; online dot is forced off.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story story--snap" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--snap" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                        </div>
+                      </div>
+                      <span>Your Snap</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story story--snap&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div class=&quot;story-avatar story-avatar--snap&quot; aria-hidden=&quot;true&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; stroke-linecap=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot; /&gt;&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot; /&gt;&lt;/svg&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Your Snap&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story story--snap&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div className=&quot;story-avatar story-avatar--snap&quot; aria-hidden=&quot;true&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2.5&quot; strokeLinecap=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot; /&gt;&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot; /&gt;&lt;/svg&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Your Snap&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Unread · online · image</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Gradient ring + photo avatar. Default presence shows the green online dot.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar" style="--story-color: #4f46e5">
+                          <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Taylor" />
+                        </div>
+                      </div>
+                      <span>Taylor</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div class=&quot;story-avatar&quot; style=&quot;--story-color: #4f46e5&quot;&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Taylor&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Taylor&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div className=&quot;story-avatar&quot; style={{ &quot;--story-color&quot;: &quot;#4f46e5&quot; }}&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Taylor&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Taylor&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Unread · online · initials</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Gradient ring + initials face via <code>--story-color</code>.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar" style="--story-color: #6d28d9">
+                          OR
+                        </div>
+                      </div>
+                      <span>Olivia</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div class=&quot;story-avatar&quot; style=&quot;--story-color: #6d28d9&quot;&gt;
+      OR
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Olivia&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div className=&quot;story-avatar&quot; style={{ &quot;--story-color&quot;: &quot;#6d28d9&quot; }}&gt;
+      OR
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Olivia&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Unread · offline · image</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Gradient ring + photo + <code>story-avatar--offline</code> (hides presence dot).</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #c026d3">
+                          <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Dua" />
+                        </div>
+                      </div>
+                      <span>Dua</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div class=&quot;story-avatar story-avatar--offline&quot; style=&quot;--story-color: #c026d3&quot;&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Dua&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Dua&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div className=&quot;story-avatar story-avatar--offline&quot; style={{ &quot;--story-color&quot;: &quot;#c026d3&quot; }}&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Dua&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Dua&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Unread · offline · initials</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Gradient ring + initials + offline.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--gradient">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #ef4444">
+                          MC
+                        </div>
+                      </div>
+                      <span>Miley</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div class=&quot;story-avatar story-avatar--offline&quot; style=&quot;--story-color: #ef4444&quot;&gt;
+      MC
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Miley&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--gradient&quot;&gt;
+    &lt;div className=&quot;story-avatar story-avatar--offline&quot; style={{ &quot;--story-color&quot;: &quot;#ef4444&quot; }}&gt;
+      MC
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Miley&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Viewed · online · image</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Muted ring (<code>story-avatar-ring--muted</code>) + photo + online.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar" style="--story-color: #b45309">
+                          <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Adele" />
+                        </div>
+                      </div>
+                      <span>Adele</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div class=&quot;story-avatar&quot; style=&quot;--story-color: #b45309&quot;&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Adele&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Adele&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div className=&quot;story-avatar&quot; style={{ &quot;--story-color&quot;: &quot;#b45309&quot; }}&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Adele&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Adele&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Viewed · online · initials</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Muted ring + initials + online.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar" style="--story-color: #166534">
+                          ED
+                        </div>
+                      </div>
+                      <span>Ed S.</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div class=&quot;story-avatar&quot; style=&quot;--story-color: #166534&quot;&gt;
+      ED
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Ed S.&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div className=&quot;story-avatar&quot; style={{ &quot;--story-color&quot;: &quot;#166534&quot; }}&gt;
+      ED
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Ed S.&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Viewed · offline · image</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Muted ring + photo + offline.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #374151">
+                          <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Drake" />
+                        </div>
+                      </div>
+                      <span>Drake</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div class=&quot;story-avatar story-avatar--offline&quot; style=&quot;--story-color: #374151&quot;&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Drake&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Drake&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div className=&quot;story-avatar story-avatar--offline&quot; style={{ &quot;--story-color&quot;: &quot;#374151&quot; }}&gt;
+      &lt;img src=&quot;https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;amp;q=80&amp;amp;auto=format&amp;amp;fit=crop&quot; alt=&quot;Drake&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Drake&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Viewed · offline · initials</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-story-state">
+              <p class="ds-state-label">Muted ring + initials + offline — common for viewed peers without photos.</p>
+              <div class="stories-bar">
+                <div class="stories">
+                  <div class="stories-track ds-story-state__track">
+                    <a class="story" href="#">
+                      <div class="story-avatar-ring story-avatar-ring--muted">
+                        <div class="story-avatar story-avatar--offline" style="--story-color: #8b5cf6">
+                          JL
+                        </div>
+                      </div>
+                      <span>Jennifer</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;a class=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div class=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div class=&quot;story-avatar story-avatar--offline&quot; style=&quot;--story-color: #8b5cf6&quot;&gt;
+      JL
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Jennifer&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;a className=&quot;story&quot; href=&quot;#&quot;&gt;
+  &lt;div className=&quot;story-avatar-ring story-avatar-ring--muted&quot;&gt;
+    &lt;div className=&quot;story-avatar story-avatar--offline&quot; style={{ &quot;--story-color&quot;: &quot;#8b5cf6&quot; }}&gt;
+      JL
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;span&gt;Jennifer&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Chrome · nav &amp; collapse</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-demo--stack" style="gap:var(--space-5)">
+              <div>
+                <p class="ds-state-label">Carousel chrome — <code>has-prev</code> / <code>has-next</code> fades + <code>story-nav.is-visible</code></p>
+                <section class="stories-bar" aria-label="Stories chrome">
+                  <div class="stories has-prev has-next">
+                    <div class="stories-track">
+                      <a class="story story--snap" href="#">
+  <div class="story-avatar-ring story-avatar-ring--muted">
+    <div class="story-avatar story-avatar--snap" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+    </div>
+  </div>
+  <span>Your Snap</span>
+</a>
+                      <a class="story" href="#">
+  <div class="story-avatar-ring story-avatar-ring--gradient">
+    <div class="story-avatar" style="--story-color: #4f46e5">
+      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Taylor" />
+    </div>
+  </div>
+  <span>Taylor</span>
+</a>
+                      <a class="story" href="#">
+  <div class="story-avatar-ring story-avatar-ring--gradient">
+    <div class="story-avatar" style="--story-color: #a21caf">
+      <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Bruno" />
+    </div>
+  </div>
+  <span>Bruno</span>
+</a>
+                      <a class="story" href="#">
+  <div class="story-avatar-ring story-avatar-ring--muted">
+    <div class="story-avatar story-avatar--offline" style="--story-color: #8b5cf6">
+      JL
+    </div>
+  </div>
+  <span>Jennifer</span>
+</a>
+                    </div>
+                    <button class="story-nav story-nav--prev is-visible" type="button" aria-label="Previous stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg></button>
+                    <button class="story-nav story-nav--next is-visible" type="button" aria-label="Next stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg></button>
+                  </div>
+                </section>
+              </div>
+              <div>
+                <p class="ds-state-label">Collapsed — parent <code>.feed-header.is-stories-collapsed</code> (scroll-hide on home)</p>
+                <div class="feed-header is-stories-collapsed">
+                  <section class="stories-bar" aria-label="Collapsed stories">
+                    <div class="stories">
+                      <div class="stories-track">
+                        <a class="story story--snap" href="#">
+  <div class="story-avatar-ring story-avatar-ring--muted">
+    <div class="story-avatar story-avatar--snap" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+    </div>
+  </div>
+  <span>Your Snap</span>
+</a>
+                        <a class="story" href="#">
+  <div class="story-avatar-ring story-avatar-ring--gradient">
+    <div class="story-avatar" style="--story-color: #4f46e5">
+      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="Taylor" />
+    </div>
+  </div>
+  <span>Taylor</span>
+</a>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;!-- Carousel edge fades + nav --&gt;
+&lt;div class=&quot;stories has-prev has-next&quot;&gt;
+  &lt;div class=&quot;stories-track&quot; id=&quot;stories-track&quot;&gt;&lt;!-- items --&gt;&lt;/div&gt;
+  &lt;button class=&quot;story-nav story-nav--prev is-visible&quot; type=&quot;button&quot; aria-label=&quot;Previous stories&quot;&gt;&lt;/button&gt;
+  &lt;button class=&quot;story-nav story-nav--next is-visible&quot; type=&quot;button&quot; aria-label=&quot;Next stories&quot;&gt;&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;!-- Scroll-hide on home (applied by useStoriesScrollHide) --&gt;
+&lt;div class=&quot;feed-header is-stories-collapsed&quot;&gt;
+  &lt;section class=&quot;stories-bar&quot; aria-label=&quot;Stories&quot;&gt;&lt;!-- … --&gt;&lt;/section&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>{/* Carousel edge fades + nav */}
+&lt;div className=&quot;stories has-prev has-next&quot;&gt;
+  &lt;div className=&quot;stories-track&quot; id=&quot;stories-track&quot;&gt;{/* items */}&lt;/div&gt;
+  &lt;button className=&quot;story-nav story-nav--prev is-visible&quot; type=&quot;button&quot; aria-label=&quot;Previous stories&quot;&gt;&lt;/button&gt;
+  &lt;button className=&quot;story-nav story-nav--next is-visible&quot; type=&quot;button&quot; aria-label=&quot;Next stories&quot;&gt;&lt;/button&gt;
+&lt;/div&gt;
+
+{/* Scroll-hide on home (applied by useStoriesScrollHide) */}
+&lt;div className=&quot;feed-header is-stories-collapsed&quot;&gt;
+  &lt;section className=&quot;stories-bar&quot; aria-label=&quot;Stories&quot;&gt;{/* … */}&lt;/section&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="filters">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Greeting &amp; Filters</h2>
+          <p class="ds-section__description"><code>spotify-landing</code> greeting plus collapsible category tabs.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Landing header</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell">
+              <section class="feed-filters feed-filters--audio feed-filters--collapsible feed-filters--in-feed feed-landing is-expanded" aria-label="Feed categories">
+                <div class="feed-landing__header">
+                  <section class="spotify-landing" aria-label="Quick access">
+                    <div class="spotify-landing__intro">
+                      <div class="spotify-landing__greeting-row">
+                        <a href="#" class="spotify-landing__avatar spotify-landing__avatar--live" style="--story-color:#0d9488" aria-label="Profile">HI</a>
+                        <h1 class="spotify-landing__greeting">Good morning, Hiran</h1>
+                      </div>
+                    </div>
+                  </section>
+                  <button type="button" class="feed-filters__toggle" aria-expanded="true" aria-label="Hide category filters">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="feed-filters__toggle-icon"><path d="M4 7h16M7 12h10M10 17h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="17" r="2" fill="currentColor"/></svg>
+                  </button>
+                </div>
+                <div class="feed-filters__pills-wrap">
+                  <div class="feed-filters__pills-inner">
+                    <div class="feed-filters__track feed-filters__track--audio" role="tablist">
+                      <span class="feed-filter-item is-active"><button type="button" role="tab" aria-selected="true" class="feed-filter">All</button></span>
+                      <span class="feed-filter-item"><button type="button" role="tab" aria-selected="false" class="feed-filter">Music</button></span>
+                      <span class="feed-filter-item"><button type="button" role="tab" aria-selected="false" class="feed-filter">Discovery</button></span>
+                      <span class="feed-filter-item"><button type="button" role="tab" aria-selected="false" class="feed-filter">Comedy</button></span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;section class=&quot;feed-filters feed-filters--audio feed-filters--collapsible feed-filters--in-feed feed-landing is-expanded&quot; aria-label=&quot;Feed categories&quot;&gt;
+  &lt;div class=&quot;feed-landing__header&quot;&gt;
+    &lt;section class=&quot;spotify-landing&quot;&gt;
+      &lt;div class=&quot;spotify-landing__greeting-row&quot;&gt;
+        &lt;a href=&quot;/feed/me&quot; class=&quot;spotify-landing__avatar spotify-landing__avatar--live&quot; style=&quot;--story-color: #0d9488&quot;&gt;HI&lt;/a&gt;
+        &lt;h1 class=&quot;spotify-landing__greeting&quot;&gt;Good morning, Hiran&lt;/h1&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+    &lt;button type=&quot;button&quot; class=&quot;feed-filters__toggle&quot; aria-expanded=&quot;true&quot;&gt;&lt;!-- filter icon --&gt;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;feed-filters__pills-wrap&quot;&gt;
+    &lt;div class=&quot;feed-filters__track feed-filters__track--audio&quot; role=&quot;tablist&quot;&gt;
+      &lt;span class=&quot;feed-filter-item is-active&quot;&gt;
+        &lt;button type=&quot;button&quot; role=&quot;tab&quot; aria-selected=&quot;true&quot; class=&quot;feed-filter&quot;&gt;All&lt;/button&gt;
+      &lt;/span&gt;
+      &lt;span class=&quot;feed-filter-item&quot;&gt;
+        &lt;button type=&quot;button&quot; role=&quot;tab&quot; aria-selected=&quot;false&quot; class=&quot;feed-filter&quot;&gt;Music&lt;/button&gt;
+      &lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;section className=&quot;feed-filters feed-filters--audio feed-filters--collapsible feed-filters--in-feed feed-landing is-expanded&quot; aria-label=&quot;Feed categories&quot;&gt;
+  &lt;div className=&quot;feed-landing__header&quot;&gt;
+    &lt;section className=&quot;spotify-landing&quot;&gt;
+      &lt;div className=&quot;spotify-landing__greeting-row&quot;&gt;
+        &lt;a href=&quot;/feed/me&quot; className=&quot;spotify-landing__avatar spotify-landing__avatar--live&quot; style={{ &quot;--story-color&quot;: &quot;#0d9488&quot; }}&gt;HI&lt;/a&gt;
+        &lt;h1 className=&quot;spotify-landing__greeting&quot;&gt;Good morning, Hiran&lt;/h1&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+    &lt;button type=&quot;button&quot; className=&quot;feed-filters__toggle&quot; aria-expanded=&quot;true&quot;&gt;{/* filter icon */}&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div className=&quot;feed-filters__pills-wrap&quot;&gt;
+    &lt;div className=&quot;feed-filters__track feed-filters__track--audio&quot; role=&quot;tablist&quot;&gt;
+      &lt;span className=&quot;feed-filter-item is-active&quot;&gt;
+        &lt;button type=&quot;button&quot; role=&quot;tab&quot; aria-selected=&quot;true&quot; className=&quot;feed-filter&quot;&gt;All&lt;/button&gt;
+      &lt;/span&gt;
+      &lt;span className=&quot;feed-filter-item&quot;&gt;
+        &lt;button type=&quot;button&quot; role=&quot;tab&quot; aria-selected=&quot;false&quot; className=&quot;feed-filter&quot;&gt;Music&lt;/button&gt;
+      &lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="post">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Feed Post</h2>
+          <p class="ds-section__description">Simple post card — author head, tags, caption, media, engagement actions.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Simple post</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell" style="max-width:520px">
+              <article class="post post--simple">
+                <div class="post-head">
+                  <div class="post-head__author">
+                    <div class="post-head__avatar" style="--story-color:#1241a6" aria-hidden="true">
+                      <img src="assets/creators/avatar.jpg" alt="" />
+                    </div>
+                    <div class="post-head__identity">
+                      <div class="post-head__name-row">
+                        <strong class="post-head__name">Bathiya &amp; Santhush</strong>
+                        <span class="post-head__badge"><span class="post-head__badge-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg></span> Verified</span>
+                        <button type="button" class="follow-btn post-head__follow">Follow</button>
+                      </div>
+                      <div class="post-head__meta-line">
+                        <span class="post-head__handle">@bathiya</span>
+                        <span class="post-head__meta-dot" aria-hidden="true">·</span>
+                        <time class="post-head__time">2h</time>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="post-head__tools">
+                    <button type="button" class="more" aria-label="More options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg></button>
+                  </div>
+                </div>
+                <div class="post__body">
+                  <div class="post-tags"><span class="tag">Music</span><span class="tag">Live</span></div>
+                  <p>New stage moments from the weekend show. Which song should we open with next?</p>
+                  <div class="post-media">
+                    <img src="assets/creators/feed.jpg" alt="Live performance" />
+                    <div class="post-media__play" aria-hidden="true"><span><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#fff" stroke="#fff" stroke-width="2"/><path d="M19 15.5v17l14-8.5-14-8.5z" fill="#111"/></svg></span></div>
+                  </div>
+                </div>
+                <div class="post-footer">
+                  <div class="post-actions post-actions--engage" role="group" aria-label="Post actions">
+                    <button type="button" class="post-action post-action--like is-liked" aria-label="Like" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="post-action__count">12.4K</span></button>
+                    <button type="button" class="post-action post-action--comment" aria-label="Comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="post-action__count">864</span></button>
+                    <button type="button" class="post-action post-action--share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+                    <button type="button" class="post-action post-action--save is-saved" aria-label="Bookmark" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;article class=&quot;post post--simple&quot;&gt;
+  &lt;div class=&quot;post-head&quot;&gt;
+    &lt;div class=&quot;post-head__author&quot;&gt;
+      &lt;div class=&quot;post-head__avatar&quot; style=&quot;--story-color: #1241a6&quot; aria-hidden=&quot;true&quot;&gt;
+        &lt;img src=&quot;/assets/creators/avatar.jpg&quot; alt=&quot;&quot; /&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;post-head__identity&quot;&gt;
+        &lt;div class=&quot;post-head__name-row&quot;&gt;
+          &lt;strong class=&quot;post-head__name&quot;&gt;Bathiya &amp;amp; Santhush&lt;/strong&gt;
+          &lt;span class=&quot;post-head__badge&quot;&gt;&lt;!-- verified icon --&gt; Verified&lt;/span&gt;
+          &lt;button type=&quot;button&quot; class=&quot;follow-btn post-head__follow&quot;&gt;Follow&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;post-head__meta-line&quot;&gt;
+          &lt;span class=&quot;post-head__handle&quot;&gt;@bathiya&lt;/span&gt;
+          &lt;time class=&quot;post-head__time&quot;&gt;2h&lt;/time&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;post__body&quot;&gt;
+    &lt;div class=&quot;post-tags&quot;&gt;&lt;span class=&quot;tag&quot;&gt;Music&lt;/span&gt;&lt;/div&gt;
+    &lt;p&gt;New stage moments from the weekend show.&lt;/p&gt;
+    &lt;div class=&quot;post-media&quot;&gt;
+      &lt;img src=&quot;/assets/creators/feed.jpg&quot; alt=&quot;Live performance&quot; /&gt;
+      &lt;div class=&quot;post-media__play&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;&lt;!-- play --&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;post-footer&quot;&gt;
+    &lt;div class=&quot;post-actions post-actions--engage&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;post-action post-action--like is-liked&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Like&quot;&gt;
+        &lt;!-- heart --&gt;&lt;span class=&quot;post-action__count&quot;&gt;12.4K&lt;/span&gt;
+      &lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;post-action post-action--comment&quot; aria-label=&quot;Comment&quot;&gt;
+        &lt;!-- comment --&gt;&lt;span class=&quot;post-action__count&quot;&gt;864&lt;/span&gt;
+      &lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;post-action post-action--share&quot; aria-label=&quot;Share&quot;&gt;&lt;!-- share --&gt;&lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;post-action post-action--save is-saved&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Bookmark&quot;&gt;&lt;!-- save --&gt;&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/article&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;article className=&quot;post post--simple&quot;&gt;
+  &lt;div className=&quot;post-head&quot;&gt;
+    &lt;div className=&quot;post-head__author&quot;&gt;
+      &lt;div className=&quot;post-head__avatar&quot; style={{ &quot;--story-color&quot;: &quot;#1241a6&quot; }} aria-hidden=&quot;true&quot;&gt;
+        &lt;img src=&quot;/assets/creators/avatar.jpg&quot; alt=&quot;&quot; /&gt;
+      &lt;/div&gt;
+      &lt;div className=&quot;post-head__identity&quot;&gt;
+        &lt;div className=&quot;post-head__name-row&quot;&gt;
+          &lt;strong className=&quot;post-head__name&quot;&gt;Bathiya &amp;amp; Santhush&lt;/strong&gt;
+          &lt;span className=&quot;post-head__badge&quot;&gt;{/* verified icon */} Verified&lt;/span&gt;
+          &lt;button type=&quot;button&quot; className=&quot;follow-btn post-head__follow&quot;&gt;Follow&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div className=&quot;post-head__meta-line&quot;&gt;
+          &lt;span className=&quot;post-head__handle&quot;&gt;@bathiya&lt;/span&gt;
+          &lt;time className=&quot;post-head__time&quot;&gt;2h&lt;/time&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div className=&quot;post__body&quot;&gt;
+    &lt;div className=&quot;post-tags&quot;&gt;&lt;span className=&quot;tag&quot;&gt;Music&lt;/span&gt;&lt;/div&gt;
+    &lt;p&gt;New stage moments from the weekend show.&lt;/p&gt;
+    &lt;div className=&quot;post-media&quot;&gt;
+      &lt;img src=&quot;/assets/creators/feed.jpg&quot; alt=&quot;Live performance&quot; /&gt;
+      &lt;div className=&quot;post-media__play&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;{/* play */}&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div className=&quot;post-footer&quot;&gt;
+    &lt;div className=&quot;post-actions post-actions--engage&quot;&gt;
+      &lt;button type=&quot;button&quot; className=&quot;post-action post-action--like is-liked&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Like&quot;&gt;
+        {/* heart */}&lt;span className=&quot;post-action__count&quot;&gt;12.4K&lt;/span&gt;
+      &lt;/button&gt;
+      &lt;button type=&quot;button&quot; className=&quot;post-action post-action--comment&quot; aria-label=&quot;Comment&quot;&gt;
+        {/* comment */}&lt;span className=&quot;post-action__count&quot;&gt;864&lt;/span&gt;
+      &lt;/button&gt;
+      &lt;button type=&quot;button&quot; className=&quot;post-action post-action--share&quot; aria-label=&quot;Share&quot;&gt;{/* share */}&lt;/button&gt;
+      &lt;button type=&quot;button&quot; className=&quot;post-action post-action--save is-saved&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Bookmark&quot;&gt;{/* save */}&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/article&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Action states</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-demo--inline" style="padding:var(--space-5);flex-wrap:wrap;gap:var(--space-6)">
+              <div class="ds-state-pair">
+                <p class="ds-state-label">Default</p>
+                <div class="post-actions post-actions--engage" role="group">
+                  <button type="button" class="post-action post-action--like" aria-label="Like"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="post-action__count">128</span></button>
+                  <button type="button" class="post-action post-action--comment" aria-label="Comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="post-action__count">12</span></button>
+                  <button type="button" class="post-action post-action--share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+                  <button type="button" class="post-action post-action--save" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+                </div>
+              </div>
+              <div class="ds-state-pair">
+                <p class="ds-state-label">Liked + saved</p>
+                <div class="post-actions post-actions--engage" role="group">
+                  <button type="button" class="post-action post-action--like is-liked" aria-pressed="true" aria-label="Like"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="post-action__count">129</span></button>
+                  <button type="button" class="post-action post-action--comment" aria-label="Comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="post-action__count">12</span></button>
+                  <button type="button" class="post-action post-action--share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+                  <button type="button" class="post-action post-action--save is-saved" aria-pressed="true" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;!-- Default --&gt;
+&lt;button type=&quot;button&quot; class=&quot;post-action post-action--like&quot; aria-label=&quot;Like&quot;&gt;…&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;post-action post-action--save&quot; aria-label=&quot;Bookmark&quot;&gt;…&lt;/button&gt;
+
+&lt;!-- Pressed --&gt;
+&lt;button type=&quot;button&quot; class=&quot;post-action post-action--like is-liked&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Like&quot;&gt;…&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;post-action post-action--save is-saved&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Bookmark&quot;&gt;…&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>{/* Default */}
+&lt;button type=&quot;button&quot; className=&quot;post-action post-action--like&quot; aria-label=&quot;Like&quot;&gt;…&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;post-action post-action--save&quot; aria-label=&quot;Bookmark&quot;&gt;…&lt;/button&gt;
+
+{/* Pressed */}
+&lt;button type=&quot;button&quot; className=&quot;post-action post-action--like is-liked&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Like&quot;&gt;…&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;post-action post-action--save is-saved&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Bookmark&quot;&gt;…&lt;/button&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="follow">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Follow Button</h2>
+          <p class="ds-section__description">Follow / Following control used on posts and the suggested rail.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">States</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell ds-demo--inline" style="padding:var(--space-5);gap:var(--space-4)">
+              <button type="button" class="follow-btn">Follow</button>
+              <button type="button" class="follow-btn is-following">Following</button>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;button type=&quot;button&quot; class=&quot;follow-btn&quot;&gt;Follow&lt;/button&gt;
+&lt;button type=&quot;button&quot; class=&quot;follow-btn is-following&quot;&gt;Following&lt;/button&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;button type=&quot;button&quot; className=&quot;follow-btn&quot;&gt;Follow&lt;/button&gt;
+&lt;button type=&quot;button&quot; className=&quot;follow-btn is-following&quot;&gt;Following&lt;/button&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="snaps">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Snaps Rail</h2>
+          <p class="ds-section__description">In-feed recommendation grid (<code>.snaps-rail</code>) — separate from the stories bar. Tile anatomy: cover, play overlay, duration, views, creator.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Grid</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell" style="max-width:520px;padding:var(--space-4)">
+              <div class="feed-surface feed-surface--simple">
+                <section class="rail snaps-rail" aria-label="Snaps">
+                  <div class="rail-title">
+                    <h3>Snaps · because you watched Dua Lipa</h3>
+                    <a class="rail-title__link" href="#">See all →</a>
+                  </div>
+                  <div class="snap-grid">
+                    <a class="snap-tile" href="#">
+  <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" />
+  <div class="snap-tile__play" aria-hidden="true"><span><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#fff" stroke="#fff" stroke-width="2"/><path d="M19 15.5v17l14-8.5-14-8.5z" fill="#111"/></svg></span></div>
+  <span class="snap-tile__duration">0:41</span>
+  <div class="snap-tile__overlay">
+    <span class="snap-tile__views">4.1M views</span>
+    <span class="snap-tile__creator">
+      <span class="snap-tile__avatar"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" /></span>
+      <span class="snap-tile__handle">@streetbeats · <span class="snap-tile__meta">viral</span></span>
+    </span>
+  </div>
+</a>
+                    <a class="snap-tile" href="#">
+                      <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" />
+                      <div class="snap-tile__play" aria-hidden="true"><span><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#fff" stroke="#fff" stroke-width="2"/><path d="M19 15.5v17l14-8.5-14-8.5z" fill="#111"/></svg></span></div>
+                      <span class="snap-tile__duration">0:36</span>
+                      <div class="snap-tile__overlay">
+                        <span class="snap-tile__views">2.8M views</span>
+                        <span class="snap-tile__creator">
+                          <span class="snap-tile__avatar"><img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" /></span>
+                          <span class="snap-tile__handle">@nomadlens · <span class="snap-tile__meta">viral</span></span>
+                        </span>
+                      </div>
+                    </a>
+                    <a class="snap-tile" href="#">
+                      <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" />
+                      <div class="snap-tile__play" aria-hidden="true"><span><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#fff" stroke="#fff" stroke-width="2"/><path d="M19 15.5v17l14-8.5-14-8.5z" fill="#111"/></svg></span></div>
+                      <span class="snap-tile__duration">0:48</span>
+                      <div class="snap-tile__overlay">
+                        <span class="snap-tile__views">1.9M views</span>
+                        <span class="snap-tile__creator">
+                          <span class="snap-tile__avatar"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" /></span>
+                          <span class="snap-tile__handle">@daydream · <span class="snap-tile__meta">music</span></span>
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;section class=&quot;rail snaps-rail&quot; aria-label=&quot;Snaps&quot;&gt;
+  &lt;div class=&quot;rail-title&quot;&gt;
+    &lt;h3&gt;Snaps · because you watched Dua Lipa&lt;/h3&gt;
+    &lt;a class=&quot;rail-title__link&quot; href=&quot;#&quot;&gt;See all →&lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;snap-grid&quot;&gt;
+    &lt;a class=&quot;snap-tile&quot; href=&quot;#&quot;&gt;
+      &lt;img src=&quot;…&quot; alt=&quot;&quot; /&gt;
+      &lt;div class=&quot;snap-tile__play&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;&lt;!-- play --&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;span class=&quot;snap-tile__duration&quot;&gt;0:41&lt;/span&gt;
+      &lt;div class=&quot;snap-tile__overlay&quot;&gt;
+        &lt;span class=&quot;snap-tile__views&quot;&gt;4.1M views&lt;/span&gt;
+        &lt;span class=&quot;snap-tile__creator&quot;&gt;
+          &lt;span class=&quot;snap-tile__avatar&quot;&gt;&lt;img src=&quot;…&quot; alt=&quot;&quot; /&gt;&lt;/span&gt;
+          &lt;span class=&quot;snap-tile__handle&quot;&gt;@streetbeats · &lt;span class=&quot;snap-tile__meta&quot;&gt;viral&lt;/span&gt;&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;section className=&quot;rail snaps-rail&quot; aria-label=&quot;Snaps&quot;&gt;
+  &lt;div className=&quot;rail-title&quot;&gt;
+    &lt;h3&gt;Snaps · because you watched Dua Lipa&lt;/h3&gt;
+    &lt;a className=&quot;rail-title__link&quot; href=&quot;#&quot;&gt;See all →&lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div className=&quot;snap-grid&quot;&gt;
+    &lt;a className=&quot;snap-tile&quot; href=&quot;#&quot;&gt;
+      &lt;img src=&quot;…&quot; alt=&quot;&quot; /&gt;
+      &lt;div className=&quot;snap-tile__play&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;{/* play */}&lt;/span&gt;&lt;/div&gt;
+      &lt;span className=&quot;snap-tile__duration&quot;&gt;0:41&lt;/span&gt;
+      &lt;div className=&quot;snap-tile__overlay&quot;&gt;
+        &lt;span className=&quot;snap-tile__views&quot;&gt;4.1M views&lt;/span&gt;
+        &lt;span className=&quot;snap-tile__creator&quot;&gt;
+          &lt;span className=&quot;snap-tile__avatar&quot;&gt;&lt;img src=&quot;…&quot; alt=&quot;&quot; /&gt;&lt;/span&gt;
+          &lt;span className=&quot;snap-tile__handle&quot;&gt;@streetbeats · &lt;span className=&quot;snap-tile__meta&quot;&gt;viral&lt;/span&gt;&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="top-creators">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Top Creators</h2>
+          <p class="ds-section__description">Horizontal creator cards injected into the home feed (<code>.audio-top-creators</code>).</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Creator row</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell" style="padding:var(--space-4)">
+              <section class="audio-top-creators" aria-label="Top creators">
+                <div class="rail-title">
+                  <h3>Top Creators</h3>
+                  <span class="audio-section__subtitle">Artists, hosts, and narrators rising this week</span>
+                </div>
+                <div class="audio-top-creators__row">
+                  <article class="audio-top-creator-card">
+                    <a href="#" class="audio-top-creator-card__hit" aria-label="View Billie Eilish">
+                      <span class="audio-top-creator-card__art"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" /></span>
+                      <span class="audio-top-creator-card__body">
+                        <strong class="audio-top-creator-card__name">Billie Eilish <span class="audio-top-creator-card__verified" aria-label="Verified"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg></span></strong>
+                        <span class="audio-top-creator-card__handle">@billieeilish</span>
+                        <span class="audio-top-creator-card__meta">Music · 12.4M monthly</span>
+                      </span>
+                    </a>
+                    <button type="button" class="follow-btn audio-top-creator-card__follow">Follow</button>
+                  </article>
+                  <article class="audio-top-creator-card">
+                    <a href="#" class="audio-top-creator-card__hit" aria-label="View Hard Fork">
+                      <span class="audio-top-creator-card__art"><img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&amp;q=80&amp;auto=format&amp;fit=crop" alt="" /></span>
+                      <span class="audio-top-creator-card__body">
+                        <strong class="audio-top-creator-card__name">Hard Fork</strong>
+                        <span class="audio-top-creator-card__handle">@hardfork</span>
+                        <span class="audio-top-creator-card__meta">Podcast · 2.1M monthly</span>
+                      </span>
+                    </a>
+                    <button type="button" class="follow-btn audio-top-creator-card__follow is-following">Following</button>
+                  </article>
+                </div>
+              </section>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;section class=&quot;audio-top-creators&quot; aria-label=&quot;Top creators&quot;&gt;
+  &lt;div class=&quot;rail-title&quot;&gt;
+    &lt;h3&gt;Top Creators&lt;/h3&gt;
+    &lt;span class=&quot;audio-section__subtitle&quot;&gt;Artists, hosts, and narrators rising this week&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;audio-top-creators__row&quot;&gt;
+    &lt;article class=&quot;audio-top-creator-card&quot;&gt;
+      &lt;a href=&quot;#&quot; class=&quot;audio-top-creator-card__hit&quot; aria-label=&quot;View Billie Eilish&quot;&gt;
+        &lt;span class=&quot;audio-top-creator-card__art&quot;&gt;&lt;img src=&quot;…&quot; alt=&quot;&quot; /&gt;&lt;/span&gt;
+        &lt;span class=&quot;audio-top-creator-card__body&quot;&gt;
+          &lt;strong class=&quot;audio-top-creator-card__name&quot;&gt;Billie Eilish&lt;/strong&gt;
+          &lt;span class=&quot;audio-top-creator-card__handle&quot;&gt;@billieeilish&lt;/span&gt;
+          &lt;span class=&quot;audio-top-creator-card__meta&quot;&gt;Music · 12.4M monthly&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/a&gt;
+      &lt;button type=&quot;button&quot; class=&quot;follow-btn audio-top-creator-card__follow&quot;&gt;Follow&lt;/button&gt;
+    &lt;/article&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;section className=&quot;audio-top-creators&quot; aria-label=&quot;Top creators&quot;&gt;
+  &lt;div className=&quot;rail-title&quot;&gt;
+    &lt;h3&gt;Top Creators&lt;/h3&gt;
+    &lt;span className=&quot;audio-section__subtitle&quot;&gt;Artists, hosts, and narrators rising this week&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div className=&quot;audio-top-creators__row&quot;&gt;
+    &lt;article className=&quot;audio-top-creator-card&quot;&gt;
+      &lt;a href=&quot;#&quot; className=&quot;audio-top-creator-card__hit&quot; aria-label=&quot;View Billie Eilish&quot;&gt;
+        &lt;span className=&quot;audio-top-creator-card__art&quot;&gt;&lt;img src=&quot;…&quot; alt=&quot;&quot; /&gt;&lt;/span&gt;
+        &lt;span className=&quot;audio-top-creator-card__body&quot;&gt;
+          &lt;strong className=&quot;audio-top-creator-card__name&quot;&gt;Billie Eilish&lt;/strong&gt;
+          &lt;span className=&quot;audio-top-creator-card__handle&quot;&gt;@billieeilish&lt;/span&gt;
+          &lt;span className=&quot;audio-top-creator-card__meta&quot;&gt;Music · 12.4M monthly&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/a&gt;
+      &lt;button type=&quot;button&quot; className=&quot;follow-btn audio-top-creator-card__follow&quot;&gt;Follow&lt;/button&gt;
+    &lt;/article&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="right-rail">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Right Rail</h2>
+          <p class="ds-section__description">Suggested people and trending topics beside the main feed.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Widgets</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell" style="max-width:320px">
+              <aside class="right-rail" style="position:relative;width:100%">
+                <section class="rail-widget">
+                  <div class="rail-widget__head">
+                    <h3>Suggested</h3>
+                    <a class="rail-widget__link" href="#">See all</a>
+                  </div>
+                  <ul class="suggest-list">
+                    <li class="suggest-item">
+                      <div class="suggest-item__av" style="--story-color:#8b5cf6" aria-hidden="true">JL</div>
+                      <div class="suggest-item__body">
+                        <span class="suggest-item__name">Jennifer Lopez</span>
+                        <span class="suggest-item__meta">48.2M followers</span>
+                      </div>
+                      <button type="button" class="follow-btn suggest-item__btn">Follow</button>
+                    </li>
+                    <li class="suggest-item">
+                      <div class="suggest-item__av" style="--story-color:#166534" aria-hidden="true">ED</div>
+                      <div class="suggest-item__body">
+                        <span class="suggest-item__name">Ed Sheeran</span>
+                        <span class="suggest-item__meta">64.1M followers</span>
+                      </div>
+                      <button type="button" class="follow-btn suggest-item__btn is-following">Following</button>
+                    </li>
+                  </ul>
+                </section>
+                <section class="rail-widget">
+                  <div class="rail-widget__head"><h3>Trending <span class="suggest-sub">· hot now</span></h3></div>
+                  <ul class="trend-list">
+                    <li class="trend-item"><span class="trend-item__rank">1</span><div class="trend-item__body"><span class="trend-item__tag">#ErasTour</span><span class="trend-item__meta">2.4M posts</span></div></li>
+                    <li class="trend-item"><span class="trend-item__rank">2</span><div class="trend-item__body"><span class="trend-item__tag">#INRCLIQ</span><span class="trend-item__meta">3.1M posts</span></div></li>
+                  </ul>
+                </section>
+              </aside>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;aside class=&quot;right-rail&quot;&gt;
+  &lt;section class=&quot;rail-widget&quot;&gt;
+    &lt;div class=&quot;rail-widget__head&quot;&gt;
+      &lt;h3&gt;Suggested&lt;/h3&gt;
+      &lt;a class=&quot;rail-widget__link&quot; href=&quot;#&quot;&gt;See all&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;ul class=&quot;suggest-list&quot;&gt;
+      &lt;li class=&quot;suggest-item&quot;&gt;
+        &lt;div class=&quot;suggest-item__av&quot; style=&quot;--story-color: #8b5cf6&quot;&gt;JL&lt;/div&gt;
+        &lt;div class=&quot;suggest-item__body&quot;&gt;
+          &lt;span class=&quot;suggest-item__name&quot;&gt;Jennifer Lopez&lt;/span&gt;
+          &lt;span class=&quot;suggest-item__meta&quot;&gt;48.2M followers&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;button type=&quot;button&quot; class=&quot;follow-btn suggest-item__btn&quot;&gt;Follow&lt;/button&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/section&gt;
+&lt;/aside&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;aside className=&quot;right-rail&quot;&gt;
+  &lt;section className=&quot;rail-widget&quot;&gt;
+    &lt;div className=&quot;rail-widget__head&quot;&gt;
+      &lt;h3&gt;Suggested&lt;/h3&gt;
+      &lt;a className=&quot;rail-widget__link&quot; href=&quot;#&quot;&gt;See all&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;ul className=&quot;suggest-list&quot;&gt;
+      &lt;li className=&quot;suggest-item&quot;&gt;
+        &lt;div className=&quot;suggest-item__av&quot; style={{ &quot;--story-color&quot;: &quot;#8b5cf6&quot; }}&gt;JL&lt;/div&gt;
+        &lt;div className=&quot;suggest-item__body&quot;&gt;
+          &lt;span className=&quot;suggest-item__name&quot;&gt;Jennifer Lopez&lt;/span&gt;
+          &lt;span className=&quot;suggest-item__meta&quot;&gt;48.2M followers&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;button type=&quot;button&quot; className=&quot;follow-btn suggest-item__btn&quot;&gt;Follow&lt;/button&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/section&gt;
+&lt;/aside&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="loading">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Loading</h2>
+          <p class="ds-section__description">Shimmer skeleton shown while filters change or the next page loads.</p>
+        </div>
+
+        <div class="ds-subsection">
+          <h3 class="ds-subsection__title">Skeleton</h3>
+          <div class="ds-demo ds-demo--has-markup">
+            <div class="ds-feed-frame feed-path-shell" style="max-width:520px;padding:var(--space-4)">
+              <div class="feed-loading" role="status" aria-label="Loading feed">
+                <article class="feed-loading__card" aria-hidden="true">
+                  <div class="feed-loading__shimmer feed-loading__shimmer--head"></div>
+                  <div class="feed-loading__shimmer feed-loading__shimmer--line"></div>
+                  <div class="feed-loading__shimmer feed-loading__shimmer--line feed-loading__shimmer--short"></div>
+                  <div class="feed-loading__shimmer feed-loading__shimmer--media"></div>
+                  <div class="feed-loading__shimmer feed-loading__shimmer--footer"></div>
+                </article>
+              </div>
+            </div>
+          </div>
+          <div class="ds-markup" data-markup-lang="html">
+            <div class="ds-markup__header">
+              <div class="ds-markup__switch" role="tablist" aria-label="Markup language">
+                <button type="button" class="ds-markup__lang is-active" data-lang="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" class="ds-markup__lang" data-lang="next" role="tab" aria-selected="false">Next.js</button>
+              </div>
+              <button type="button" class="ds-markup__copy" aria-label="Copy markup" title="Copy markup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+            <pre class="ds-markup__code" data-lang="html"><code>&lt;div class=&quot;feed-loading&quot; role=&quot;status&quot; aria-label=&quot;Loading feed&quot;&gt;
+  &lt;article class=&quot;feed-loading__card&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;div class=&quot;feed-loading__shimmer feed-loading__shimmer--head&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;feed-loading__shimmer feed-loading__shimmer--line&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;feed-loading__shimmer feed-loading__shimmer--media&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;feed-loading__shimmer feed-loading__shimmer--footer&quot;&gt;&lt;/div&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre>
+            <pre class="ds-markup__code" data-lang="next" hidden><code>&lt;div className=&quot;feed-loading&quot; role=&quot;status&quot; aria-label=&quot;Loading feed&quot;&gt;
+  &lt;article className=&quot;feed-loading__card&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;div className=&quot;feed-loading__shimmer feed-loading__shimmer--head&quot;&gt;&lt;/div&gt;
+    &lt;div className=&quot;feed-loading__shimmer feed-loading__shimmer--line&quot;&gt;&lt;/div&gt;
+    &lt;div className=&quot;feed-loading__shimmer feed-loading__shimmer--media&quot;&gt;&lt;/div&gt;
+    &lt;div className=&quot;feed-loading__shimmer feed-loading__shimmer--footer&quot;&gt;&lt;/div&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section" id="sample-pages">
+        <div class="ds-section__header">
+          <h2 class="ds-section__title">Sample Pages</h2>
+          <p class="ds-section__description">Composed pages built with this design system.</p>
+        </div>
+        <div class="sample-grid">
+          <a href="pages/feed/home.html" class="sample-card" target="_blank" rel="noopener noreferrer">
+            <div class="sample-card__title">Home feed</div>
+            <p class="sample-card__desc">Static composition of the /feed landing shell — nav, stories, filters, posts, and rail.</p>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <button type="button" class="btn btn--secondary theme-toggle" id="theme-toggle">Toggle Light Mode</button>
+  <script src="js/platform.js"></script>
+</body>
+</html>

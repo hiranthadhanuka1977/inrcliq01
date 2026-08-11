@@ -36,6 +36,10 @@ export interface ProfileData {
   cover_url: string | null;
   bio: string;
   special_requests?: boolean;
+  /** When false, Special Requests exist but are temporarily off for fans. */
+  special_requests_enabled?: boolean;
+  /** When false, Collection exists but the storefront is temporarily off for fans. */
+  collection_enabled?: boolean;
   stats: ProfileStats;
   subscription: {
     price_label: string;
@@ -44,6 +48,8 @@ export interface ProfileData {
     following?: boolean;
     subscribed?: boolean;
   };
+  /** True when the signed-in user is viewing their own creator profile. */
+  is_own?: boolean;
   collection: ProfileCollectionItem[];
   popular_posts: ProfilePopularPost[];
   feed_posts: FeedItem[];

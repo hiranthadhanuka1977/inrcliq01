@@ -7,6 +7,8 @@ import { createPortal } from "react-dom";
 import FollowButton from "@/components/feed/FollowButton";
 import ShareIcon from "@/components/feed/ShareIcon";
 import CollectionCartDrawer from "@/components/feed/profile/CollectionCartDrawer";
+import { CollectionUnavailableModal } from "@/components/feed/profile/CollectionUnavailable";
+import { SpecialRequestsUnavailableModal } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import {
   cartItemCount,
   readCollectionCart,
@@ -54,7 +56,15 @@ function placeSubscribeMenu(anchor: DOMRect, menu: DOMRect | null): MenuCoords {
   return { top, left, width };
 }
 
-function SpecialRequestsOrb({ profileSlug }: { profileSlug: string }) {
+function SpecialRequestsOrb({
+  profileSlug,
+  profileName,
+  enabled,
+}: {
+  profileSlug: string;
+  profileName: string;
+  enabled: boolean;
+}) {
   const tipId = useId();
   const router = useRouter();
   const orbRef = useRef<HTMLDivElement>(null);
@@ -70,6 +80,15 @@ function SpecialRequestsOrb({ profileSlug }: { profileSlug: string }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [free, setFree] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [unavailableOpen, setUnavailableOpen] = useState(false);
+
+  function openSpecialRequests() {
+    if (enabled) {
+      router.push(`/feed/profile/${profileSlug}/requests`);
+      return;
+    }
+    setUnavailableOpen(true);
+  }
 
   useEffect(() => {
     function onPointerMove(event: PointerEvent) {
@@ -102,7 +121,7 @@ function SpecialRequestsOrb({ profileSlug }: { profileSlug: string }) {
         /* already released */
       }
       if (wasClick) {
-        router.push(`/feed/profile/${profileSlug}/requests`);
+        openSpecialRequests();
       }
     }
 
@@ -114,7 +133,7 @@ function SpecialRequestsOrb({ profileSlug }: { profileSlug: string }) {
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
     };
-  }, [profileSlug, router]);
+  }, [enabled, profileSlug, router]);
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (event.button !== 0 || !orbRef.current) return;
@@ -134,71 +153,89 @@ function SpecialRequestsOrb({ profileSlug }: { profileSlug: string }) {
   }
 
   return (
-    <div
-      ref={orbRef}
-      className={`profile-special-requests${free ? " is-free" : ""}${dragging ? " is-dragging" : ""}`}
-      style={free && pos ? { left: pos.x, top: pos.y } : undefined}
-      tabIndex={0}
-      role="link"
-      aria-label="Open special requests"
-      aria-describedby={tipId}
-      onPointerDown={onPointerDown}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          router.push(`/feed/profile/${profileSlug}/requests`);
-        }
-      }}
-    >
-      <span className="profile-special-requests__aura" aria-hidden="true">
-        <span className="profile-special-requests__ring profile-special-requests__ring--a" />
-        <span className="profile-special-requests__ring profile-special-requests__ring--b" />
-        <span className="profile-special-requests__glow" />
-      </span>
-      <span className="profile-special-requests__icon" aria-hidden="true">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="8" width="18" height="4" rx="1" />
-          <path d="M12 8v13" />
-          <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
-          <path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8" />
-          <path d="M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8" />
-        </svg>
-      </span>
-      <span id={tipId} className="profile-special-requests__popover" role="tooltip">
-        <span className="profile-special-requests__badge">Available now</span>
-        <strong className="profile-special-requests__title">Special Requests</strong>
-        <span className="profile-special-requests__lead">Make your next moment one-of-a-kind.</span>
-        <span className="profile-special-requests__copy">
-          Book personalized messages, private coaching, or live appearances for races and celebrations.
+    <>
+      <div
+        ref={orbRef}
+        className={`profile-special-requests${free ? " is-free" : ""}${dragging ? " is-dragging" : ""}${enabled ? "" : " is-disabled"}`}
+        style={free && pos ? { left: pos.x, top: pos.y } : undefined}
+        tabIndex={0}
+        role="button"
+        aria-label={enabled ? "Open special requests" : "Special requests temporarily unavailable"}
+        aria-describedby={tipId}
+        onPointerDown={onPointerDown}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openSpecialRequests();
+          }
+        }}
+      >
+        <span className="profile-special-requests__aura" aria-hidden="true">
+          <span className="profile-special-requests__ring profile-special-requests__ring--a" />
+          <span className="profile-special-requests__ring profile-special-requests__ring--b" />
+          <span className="profile-special-requests__glow" />
         </span>
-        <span className="profile-special-requests__perks">
-          <span className="profile-special-requests__perk">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            Messages
-          </span>
-          <span className="profile-special-requests__perk">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
-            Coaching
-          </span>
-          <span className="profile-special-requests__perk">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Events
-          </span>
+        <span className="profile-special-requests__icon" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="8" width="18" height="4" rx="1" />
+            <path d="M12 8v13" />
+            <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+            <path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8" />
+            <path d="M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8" />
+          </svg>
         </span>
-      </span>
-    </div>
+        <span id={tipId} className="profile-special-requests__popover" role="tooltip">
+          <span className="profile-special-requests__badge">
+            {enabled ? "Available now" : "Temporarily off"}
+          </span>
+          <strong className="profile-special-requests__title">Special Requests</strong>
+          <span className="profile-special-requests__lead">
+            {enabled
+              ? "Make your next moment one-of-a-kind."
+              : "Sorry — bookings are paused right now."}
+          </span>
+          <span className="profile-special-requests__copy">
+            {enabled
+              ? "Book personalized messages, private coaching, or live appearances for races and celebrations."
+              : "Tap for details, or message this creator while Special Requests are unavailable."}
+          </span>
+          {enabled ? (
+            <span className="profile-special-requests__perks">
+              <span className="profile-special-requests__perk">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Messages
+              </span>
+              <span className="profile-special-requests__perk">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+                Coaching
+              </span>
+              <span className="profile-special-requests__perk">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                Events
+              </span>
+            </span>
+          ) : null}
+        </span>
+      </div>
+      <SpecialRequestsUnavailableModal
+        open={unavailableOpen}
+        onClose={() => setUnavailableOpen(false)}
+        creatorName={profileName}
+        profileSlug={profileSlug}
+      />
+    </>
   );
 }
 
@@ -467,10 +504,14 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<CollectionCartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [collectionUnavailableOpen, setCollectionUnavailableOpen] = useState(false);
   const handle = profile.handle.startsWith("@") ? profile.handle : `@${profile.handle}`;
   const hasCover = Boolean(profile.cover_url);
+  const isOwnProfile = Boolean(profile.is_own);
   const hasSubscription = Boolean(profile.subscription);
+  const showSocialActions = !isOwnProfile;
   const hasCollection = profile.collection.length > 0;
+  const collectionEnabled = profile.collection_enabled !== false;
   const cartCount = cartItemCount(cartItems);
 
   useEffect(() => {
@@ -490,7 +531,7 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
   const isFollowing = following ?? localFollowing;
 
   useEffect(() => {
-    if (!hasSubscription) return;
+    if (!hasSubscription || !showSocialActions) return;
     let cancelled = false;
     fetch(`/api/feed/subscriptions/${profile.slug}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
@@ -514,7 +555,7 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
     return () => {
       cancelled = true;
     };
-  }, [hasSubscription, profile.slug]);
+  }, [hasSubscription, profile.slug, showSocialActions]);
 
   function updateCart(next: CollectionCartItem[]) {
     setCartItems(next);
@@ -566,16 +607,16 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
             <ProfileToolbar
               onCover
               className="profile-header__cover-nav"
-              cartCount={hasCollection ? cartCount : undefined}
-              onOpenCart={hasCollection ? () => setCartOpen(true) : undefined}
+              cartCount={hasCollection && collectionEnabled ? cartCount : undefined}
+              onOpenCart={hasCollection && collectionEnabled ? () => setCartOpen(true) : undefined}
             />
           </div>
         ) : (
           <ProfileToolbar
             onCover={false}
             className="profile-header__toolbar"
-            cartCount={hasCollection ? cartCount : undefined}
-            onOpenCart={hasCollection ? () => setCartOpen(true) : undefined}
+            cartCount={hasCollection && collectionEnabled ? cartCount : undefined}
+            onOpenCart={hasCollection && collectionEnabled ? () => setCartOpen(true) : undefined}
           />
         )}
 
@@ -644,7 +685,7 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
 
           <div className="profile-header__footer">
             <div className="profile-header__actions" aria-label="Profile actions">
-              {hasSubscription ? (
+              {showSocialActions && hasSubscription ? (
                 subscribed ? (
                   <ProfileSubscribedPill
                     creatorName={profile.name}
@@ -670,41 +711,60 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
                   </button>
                 )
               ) : null}
-              <FollowButton
-                following={isFollowing}
-                onFollowingChange={(next) => {
-                  if (onFollowingChange) {
-                    onFollowingChange(next);
-                    return;
-                  }
-                  setLocalFollowing(next);
-                }}
-                creatorSlug={profile.slug}
-                className={`btn btn--sm profile-header__follow${isFollowing ? " btn--outline-brand is-active" : " btn--secondary"}`}
-                name={profile.name}
-              />
-              {hasCollection ? (
+              {showSocialActions ? (
+                <FollowButton
+                  following={isFollowing}
+                  onFollowingChange={(next) => {
+                    if (onFollowingChange) {
+                      onFollowingChange(next);
+                      return;
+                    }
+                    setLocalFollowing(next);
+                  }}
+                  creatorSlug={profile.slug}
+                  className={`btn btn--sm profile-header__follow${isFollowing ? " btn--outline-brand is-active" : " btn--secondary"}`}
+                  name={profile.name}
+                />
+              ) : null}
+              {showSocialActions && hasCollection ? (
+                collectionEnabled ? (
+                  <Link
+                    href={`/feed/profile/${profile.slug}/collection`}
+                    className="btn btn--secondary btn--sm btn--icon profile-header__collection"
+                    aria-label="View collection"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm btn--icon profile-header__collection"
+                    aria-label="Collection temporarily unavailable"
+                    onClick={() => setCollectionUnavailableOpen(true)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                  </button>
+                )
+              ) : null}
+              {showSocialActions ? (
                 <Link
-                  href={`/feed/profile/${profile.slug}/collection`}
-                  className="btn btn--secondary btn--sm btn--icon"
-                  aria-label="View collection"
+                  href={`/feed/messages?slug=${encodeURIComponent(profile.slug)}`}
+                  className="btn btn--secondary btn--sm btn--icon profile-header__message"
+                  aria-label="Message"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </Link>
               ) : null}
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm btn--icon profile-header__message"
-                aria-label="Message"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </button>
             </div>
           </div>
 
@@ -714,11 +774,24 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
             </p>
           ) : null}
 
-          {profile.special_requests ? <SpecialRequestsOrb profileSlug={profile.slug} /> : null}
+          {profile.special_requests ? (
+            <SpecialRequestsOrb
+              profileSlug={profile.slug}
+              profileName={profile.name}
+              enabled={profile.special_requests_enabled !== false}
+            />
+          ) : null}
         </div>
       </header>
 
-      {hasCollection ? (
+      <CollectionUnavailableModal
+        open={collectionUnavailableOpen}
+        onClose={() => setCollectionUnavailableOpen(false)}
+        creatorName={profile.name}
+        profileSlug={profile.slug}
+      />
+
+      {hasCollection && collectionEnabled ? (
         <CollectionCartDrawer
           open={cartOpen}
           items={cartItems}

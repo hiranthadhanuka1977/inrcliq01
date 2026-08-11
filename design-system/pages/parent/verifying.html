@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verifying identity — InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <div class="app-shell">
+        <div class="app-frame">
+          <section class="screen parent-signup parent-signup--single parent-signup--stepper-width">
+            <header class="auth-topbar">
+              <div class="auth-topbar__actions">
+                <p class="auth-topbar__prompt-text">
+                  Already have an account? <a href="../auth/login.html" class="link-btn">Log in</a>
+                </p>
+                <button type="button" class="theme-switcher" aria-label="Switch to light theme" title="Light mode">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div class="parent-signup__progress">
+              <nav class="parent-stepper" aria-label="Parent setup progress">
+                <ol class="parent-stepper__list">
+                  <li class="parent-stepper__item is-complete" data-step="1">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 1:</span>Account</span>
+                  </li>
+                  <li class="parent-stepper__item is-complete is-complete-current" data-step="2" aria-current="step">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 2:</span>Verify</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="3">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 3:</span>Review</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="4">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 4:</span>Protection</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="5">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 5:</span>Approved</span>
+                  </li>
+                </ol>
+              </nav>
+              <hr class="parent-signup__progress-divider" />
+            </div>
+
+            <div class="parent-signup__shell">
+              <div class="parent-signup__layout parent-signup__layout--single">
+                <div class="parent-signup__main">
+                  <div class="identity-verify mt-4">
+                    <h1 class="parent-signup__title identity-verify__title">Verifying your identity</h1>
+                    <p class="subtitle mt-2">This usually takes less than a minute. Please don't close this page.</p>
+
+                    <div
+                      class="identity-verify__progress mt-8"
+                      role="progressbar"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-valuenow="66"
+                      aria-label="Identity verification progress"
+                    >
+                      <div class="identity-verify__progress-bar" style="width: 66%"></div>
+                    </div>
+
+                    <ol class="identity-verify__steps mt-6" aria-label="Verification steps">
+                      <li class="identity-verify__step is-complete">
+                        <span class="identity-verify__step-dot" aria-hidden="true"></span>
+                        <span class="identity-verify__step-text">checking your document authority</span>
+                      </li>
+                      <li class="identity-verify__step is-active">
+                        <span class="identity-verify__step-dot" aria-hidden="true"></span>
+                        <span class="identity-verify__step-text">Matching face to ID photo</span>
+                      </li>
+                      <li class="identity-verify__step is-pending">
+                        <span class="identity-verify__step-dot" aria-hidden="true"></span>
+                        <span class="identity-verify__step-text">Extracting identity details</span>
+                      </li>
+                    </ol>
+
+                    <p class="identity-verify__footer mt-8">
+                      Taking longer? We'll email you at <span>guardian@example.com</span> when its done.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

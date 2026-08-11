@@ -28,6 +28,8 @@ export type RequestService = {
   priceMin: number;
   priceMax: number;
   popular?: boolean;
+  /** When false, hidden from fans. Omitted on legacy rows = live. */
+  published?: boolean;
 };
 
 export type RequestCategory = {
@@ -39,6 +41,8 @@ export type RequestCategory = {
   image: string;
   imageAlt: string;
   popular?: boolean;
+  /** When false, hidden from fans. Omitted on legacy rows = active. */
+  active?: boolean;
   examples: string[];
   formats: string[];
   services: RequestService[];

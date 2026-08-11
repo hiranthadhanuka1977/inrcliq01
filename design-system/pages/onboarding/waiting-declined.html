@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Request declined — InrCliq Onboarding</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section class="auth-center auth-center--signup-step">
+        <div class="auth-center__card auth-center__card--step-offset parent-waiting">
+          <div class="toast-card__icon toast-card__icon--error toast-card__icon--centered">✕</div>
+          <h1>Request declined</h1>
+          <p class="subtitle mt-4">
+            Your parent or guardian declined your request. You can send a new invite to a different email address.
+          </p>
+          <div class="parent-waiting__action-buttons mt-8">
+            <a href="parent-invite.html" class="btn btn--primary parent-waiting__action-btn">Try a different parent email</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="signup-progress is-visible" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-label="Signup progress">
+        <div class="signup-progress__track">
+          <div class="signup-progress__bar" style="width: 62%"></div>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

@@ -19,6 +19,10 @@ export type SettingsBookingRow = {
   requesterEmail: string;
   createdAt: string;
   createdLabel: string;
+  /** ISO date for when the fan wants delivery / appearance. */
+  deliverBy: string | null;
+  /** ISO date for the scheduled request moment when set. */
+  requestedForAt: string | null;
 };
 
 export type SettingsCreatorBookingsGroup = {
@@ -184,6 +188,8 @@ export async function listSettingsBookingsByCreator(): Promise<SettingsCreatorBo
       requesterEmail: request.user.email,
       createdAt: request.createdAt.toISOString(),
       createdLabel: formatDate(request.createdAt),
+      deliverBy: request.deliverBy?.toISOString() ?? null,
+      requestedForAt: request.requestedForAt?.toISOString() ?? null,
     };
 
     if (existing) {

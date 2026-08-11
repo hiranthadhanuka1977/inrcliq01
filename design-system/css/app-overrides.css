@@ -1,0 +1,111 @@
+/**
+ * Next.js app overrides — replicate prototype .screen.is-active layout
+ * without the SPA screen-switching system.
+ */
+
+.auth-split {
+  display: block;
+  min-height: 100dvh;
+}
+
+.auth-center {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* Standalone parent/email pages (PAR-01, PAR-S1) — prototype uses .screen.page-centered.is-active */
+.page-centered,
+.screen.page-centered {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.parent-signup {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.screen.parent-signup {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell,
+.app-frame {
+  overflow-x: clip;
+}
+
+/* 100vw progress divider overflows when a vertical scrollbar is present (e.g. PAR-05) */
+.parent-signup__progress-divider {
+  width: auto;
+  max-width: none;
+  margin-inline: calc(-1 * var(--layout-content-padding-sm));
+}
+
+.parent-signup--stepper-width .parent-signup__main,
+.identity-review {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.identity-review__detail,
+.identity-review__detail-value,
+.identity-review__toggle-card,
+.identity-review__toggle-card-main {
+  min-width: 0;
+}
+
+.identity-review__success-banner {
+  display: flex;
+}
+
+/* SignupFlow manages step visibility via is-active; always show active step in Next.js */
+.auth-center .auth-split__step.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  position: relative;
+}
+
+.auth-center .auth-split__step:not(.is-active) {
+  display: none;
+}
+
+/* Next/Image wrapper should not break illustration layout */
+.auth-split__illustration span,
+.auth-split__illustration img,
+.logo--img span,
+.logo--img img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.auth-split__illustration > span {
+  position: static !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+.auth-split__illustration img {
+  filter: drop-shadow(0 20px 48px rgba(0, 0, 0, 0.16));
+}
+
+.logo--img img {
+  width: auto;
+  height: 27px;
+}
+
+.logo--img.logo--inverse img,
+.logo__img--inverse {
+  filter: brightness(0) invert(1);
+}
+
+.verify-email__dev-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}

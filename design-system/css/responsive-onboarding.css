@@ -1,0 +1,25 @@
+/**
+ * Responsive rules for onboarding auth pages
+ */
+
+@media (max-width: 767px) {
+  :root {
+    --auth-steps-min-height: min(480px, calc(100dvh - 8rem));
+    --auth-steps-min-height-join: min(760px, calc(100dvh - 5rem));
+    --layout-content-padding-sm: var(--space-4);
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) {
+  :root {
+    --auth-steps-min-height: auto;
+    --auth-steps-min-height-join: auto;
+    --auth-form-top: var(--space-4);
+  }
+
+  .auth-center,
+  .auth-center__card,
+  .auth-center--signup-step .auth-center__card {
+    min-height: auto;
+  }
+}

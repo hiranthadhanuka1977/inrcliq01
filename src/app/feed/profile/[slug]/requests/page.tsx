@@ -1,6 +1,10 @@
 import ProfileRequestsView from "@/components/feed/profile/ProfileRequestsView";
+import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import { getProfileData } from "@/lib/feed/profile";
+import { resolveCreatorRequestsContent } from "@/lib/seller/service-requests-store";
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 interface RequestsPageProps {
   params: Promise<{ slug: string }>;
@@ -18,5 +22,18 @@ export default async function RequestsPage({ params }: RequestsPageProps) {
   const profile = await getProfileData(slug);
   if (!profile?.special_requests) notFound();
 
-  return <ProfileRequestsView profile={profile} />;
+  if (profile.special_requests_enabled === false) {
+    return (
+      <SpecialRequestsUnavailablePage creatorName={profile.name} profileSlug={profile.slug} />
+    );
+  }
+
+  const requestsContent = await resolveCreatorRequestsContent(slug);
+  if (!requestsContent) {
+    return (
+      <SpecialRequestsUnavailablePage creatorName={profile.name} profileSlug={profile.slug} />
+    );
+  }
+
+  return <ProfileRequestsView profile={profile} requestsContent={requestsContent} />;
 }

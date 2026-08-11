@@ -11,6 +11,8 @@ const SYNC_TOKEN = process.env.FULL_SYNC_SECRET?.trim() || "";
 
 const TABLE_ORDER = [
   "User",
+  "UserProfile",
+  "SpecialRequestCatalog",
   "Account",
   "Session",
   "LoginCode",

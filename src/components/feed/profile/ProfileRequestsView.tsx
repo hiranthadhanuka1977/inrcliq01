@@ -11,8 +11,8 @@ import LocationSearchField, {
 } from "@/components/feed/profile/LocationSearchField";
 import {
   formatRequestPriceRange,
-  getCreatorRequests,
   resolveSpecialRequestReviews,
+  type CreatorRequestsContent,
   type RequestService,
   type RequestServiceDetails,
   type RequestServiceMedia,
@@ -492,9 +492,9 @@ function MoneyBackGuaranteeTag({ copy, tipId }: { copy: string; tipId: string })
   );
 }
 
-function flattenServices(categories: ReturnType<typeof getCreatorRequests>) {
-  if (!categories) return [] as RequestService[];
-  return categories.categories.flatMap((category) => category.services);
+function flattenServices(content: CreatorRequestsContent | null | undefined) {
+  if (!content) return [] as RequestService[];
+  return content.categories.flatMap((category) => category.services);
 }
 
 export default function ProfileRequestsView({
@@ -502,13 +502,17 @@ export default function ProfileRequestsView({
   variant = "start",
   initialCategoryId,
   initialServiceId,
+  requestsContent,
 }: {
   profile: ProfileData;
   variant?: "start" | "choose";
   initialCategoryId?: string;
   initialServiceId?: string;
+  requestsContent?: CreatorRequestsContent | null;
 }) {
-  const content = getCreatorRequests(profile.slug);
+  // Public pages must pass the Seller Tools catalog (or null). Never fall back to
+  // the bundled seed — that silently revives removed/outdated category blocks.
+  const content = requestsContent ?? null;
   const allServices = useMemo(() => flattenServices(content), [content]);
   const reviewsBlock = useMemo(() => resolveSpecialRequestReviews(profile.slug), [profile.slug]);
 
@@ -1621,10 +1625,11 @@ export default function ProfileRequestsView({
                   {pickerStep === 1 ? (
                     <>
                       <div className="requests-pick" role="list">
-                        {content.categories.map((category) => {
-                          const fromPrice = Math.min(
-                            ...category.services.map((service) => service.priceMin),
-                          );
+                        {content.categories
+                          .filter((category) => category.services.length > 0)
+                          .map((category) => {
+                          const prices = category.services.map((service) => service.priceMin);
+                          const fromPrice = prices.length ? Math.min(...prices) : 0;
                           const isActive = hasChosenCategory && category.id === categoryId;
                           return (
                             <button
@@ -1633,7 +1638,7 @@ export default function ProfileRequestsView({
                               role="listitem"
                               className={`requests-pick__option${isActive ? " is-selected" : ""}`}
                               aria-pressed={isActive}
-                              aria-label={`${category.intent}. From $${fromPrice}${
+                              aria-label={`${category.intent || category.title}. From $${fromPrice}${
                                 category.popular ? ". Most booked" : ""
                               }`}
                               onClick={() => chooseCategory(category.id)}
@@ -1646,12 +1651,8 @@ export default function ProfileRequestsView({
                               <span className="requests-pick__label">
                                 {category.popular ? (
                                   <span className="requests-pick__note">Most booked</span>
-                                ) : (
-                                  <span className="requests-pick__note requests-pick__note--quiet">
-                                    {category.formats[0]}
-                                  </span>
-                                )}
-                                <strong>{category.intent}</strong>
+                                ) : null}
+                                <strong>{category.intent || category.title}</strong>
                                 <span className="requests-pick__price">From ${fromPrice}</span>
                               </span>
                             </button>

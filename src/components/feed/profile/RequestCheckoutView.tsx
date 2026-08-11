@@ -1,18 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import type { ProfileData } from "@/types/feed/profile";
+
+const REDIRECT_COOLDOWN_SECONDS = 2;
 
 type RequestCheckoutData = {
   request?: string;
   category?: string;
+  delivery?: string;
+  content?: string;
+  recipient?: string;
+  when?: string;
   dayRate?: number;
   feedFee?: number;
   totalFee: number;
+  isAppearance?: boolean;
+  occasion?: string;
+  location?: string;
+  duration?: string;
+  expectation?: string;
+  reference?: string;
+  message?: string;
+  username?: string;
+  instructions?: string;
 };
 
 type CardSource = "saved" | "new";
+
+type BookingResponse = {
+  threadId?: string;
+  specialRequestId?: string;
+  reference?: string;
+  error?: string;
+};
 
 const SAVED_CARD = {
   brand: "Visa",
@@ -45,6 +68,15 @@ function formatExpiry(value: string) {
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
+function buildMessagesHref(profileSlug: string, payload: BookingResponse) {
+  const params = new URLSearchParams();
+  if (payload.threadId) params.set("thread", payload.threadId);
+  params.set("slug", profileSlug);
+  if (payload.specialRequestId) params.set("booking", payload.specialRequestId);
+  params.set("focus", "latest");
+  return `/feed/messages?${params.toString()}`;
+}
+
 export default function RequestCheckoutView({
   profile,
   data,
@@ -52,53 +84,128 @@ export default function RequestCheckoutView({
   profile: ProfileData;
   data: RequestCheckoutData;
 }) {
+  const router = useRouter();
+  const redirectStartedRef = useRef(false);
+
   const [cardSource, setCardSource] = useState<CardSource>("saved");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [country, setCountry] = useState("Sri Lanka");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [redirectCooldown, setRedirectCooldown] = useState(0);
+  const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
 
   const backHref = `/feed/profile/${profile.slug}/requests/choose`;
   const requestLabel = data.request?.trim() || "Special request";
   const dayRate = data.dayRate ?? data.totalFee;
   const feedFee = data.feedFee ?? 0;
 
+  const redirectPercent =
+    redirectCooldown > 0
+      ? Math.min(
+          100,
+          ((REDIRECT_COOLDOWN_SECONDS - redirectCooldown) / REDIRECT_COOLDOWN_SECONDS) * 100,
+        )
+      : 100;
+
   function selectCardSource(next: CardSource) {
     setCardSource(next);
     setError(null);
+    if (!submitted) return;
     setSubmitted(false);
+    setRedirectCooldown(0);
+    setRedirectTarget(null);
+    redirectStartedRef.current = false;
   }
 
-  function submitPayment() {
+  async function submitPayment() {
+    if (submitting || submitted) return;
+
     if (!country.trim()) {
       setError("Select a country of origin to continue.");
       return;
     }
 
-    if (cardSource === "saved") {
-      setError(null);
-      setSubmitted(true);
-      return;
+    if (cardSource === "new") {
+      const numberDigits = cardNumber.replace(/\D/g, "");
+      const expiryDigits = cardExpiry.replace(/\D/g, "");
+      const cvvDigits = cardCvv.replace(/\D/g, "");
+      const valid =
+        numberDigits.length >= 12 &&
+        expiryDigits.length === 4 &&
+        cvvDigits.length >= 3;
+
+      if (!valid) {
+        setError("Enter valid card details to continue.");
+        return;
+      }
     }
 
-    const numberDigits = cardNumber.replace(/\D/g, "");
-    const expiryDigits = cardExpiry.replace(/\D/g, "");
-    const cvvDigits = cardCvv.replace(/\D/g, "");
-    const valid =
-      numberDigits.length >= 12 &&
-      expiryDigits.length === 4 &&
-      cvvDigits.length >= 3;
-
-    if (!valid) {
-      setError("Enter valid card details to continue.");
-      return;
-    }
-
+    setSubmitting(true);
     setError(null);
-    setSubmitted(true);
+
+    try {
+      const response = await fetch("/api/feed/messages/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: profile.slug,
+          booking: {
+            requestLabel,
+            category: data.category,
+            contentType: data.content,
+            publishingMethod: data.delivery,
+            recipientLabel: data.recipient,
+            recipientUsername: data.username,
+            shoutoutMessage: data.message,
+            specialInstructions: data.instructions,
+            occasion: data.occasion,
+            appearanceLocation: data.location,
+            duration: data.duration,
+            appearanceExpectation: data.expectation,
+            appearanceReference: data.reference,
+            isAppearance: Boolean(data.isAppearance),
+            when: data.when,
+            dayRate: data.dayRate,
+            feedFee: data.feedFee,
+            totalFee: data.totalFee,
+            currency: "USD",
+            creatorName: profile.name,
+          },
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as BookingResponse | null;
+      if (!response.ok || !payload) {
+        throw new Error(payload?.error || "Payment could not be completed.");
+      }
+
+      setRedirectTarget(buildMessagesHref(profile.slug, payload));
+      setSubmitted(true);
+      setRedirectCooldown(REDIRECT_COOLDOWN_SECONDS);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Payment could not be completed.");
+    } finally {
+      setSubmitting(false);
+    }
   }
+
+  useEffect(() => {
+    if (redirectCooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      setRedirectCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [redirectCooldown]);
+
+  useEffect(() => {
+    if (redirectCooldown > 0 || !redirectTarget || !submitted || redirectStartedRef.current) return;
+    redirectStartedRef.current = true;
+    router.push(redirectTarget);
+  }, [redirectCooldown, redirectTarget, router, submitted]);
 
   return (
     <div className="stripe-checkout">
@@ -171,6 +278,7 @@ export default function RequestCheckoutView({
                   value="saved"
                   checked={cardSource === "saved"}
                   onChange={() => selectCardSource("saved")}
+                  disabled={submitting || submitted}
                 />
                 <span className="stripe-checkout__method-copy">
                   <strong>
@@ -190,6 +298,7 @@ export default function RequestCheckoutView({
                   value="new"
                   checked={cardSource === "new"}
                   onChange={() => selectCardSource("new")}
+                  disabled={submitting || submitted}
                 />
                 <span className="stripe-checkout__method-copy">
                   <strong>New card</strong>
@@ -214,6 +323,7 @@ export default function RequestCheckoutView({
                       setError(null);
                     }}
                     placeholder="1234 5678 9012 3456"
+                    disabled={submitting || submitted}
                   />
                 </label>
                 <div className="stripe-checkout__field-row">
@@ -228,6 +338,7 @@ export default function RequestCheckoutView({
                         setError(null);
                       }}
                       placeholder="MM / YY"
+                      disabled={submitting || submitted}
                     />
                   </label>
                   <label className="stripe-checkout__field">
@@ -241,6 +352,7 @@ export default function RequestCheckoutView({
                         setError(null);
                       }}
                       placeholder="CVV"
+                      disabled={submitting || submitted}
                     />
                   </label>
                 </div>
@@ -259,6 +371,7 @@ export default function RequestCheckoutView({
                   setCountry(event.target.value);
                   setError(null);
                 }}
+                disabled={submitting || submitted}
               >
                 {COUNTRIES.map((item) => (
                   <option key={item} value={item}>
@@ -275,14 +388,43 @@ export default function RequestCheckoutView({
             </p>
           ) : null}
           {submitted ? (
-            <p className="stripe-checkout__success" role="status">
-              Payment confirmed. Your request has been submitted.
-            </p>
+            <div className="stripe-checkout__success-wrap" role="status" aria-live="polite">
+              <p className="stripe-checkout__success">
+                Payment confirmed. Your request has been submitted.
+              </p>
+              <div
+                className="stripe-checkout__redirect-cooldown"
+                aria-label="Opening messages"
+              >
+                <div
+                  className="stripe-checkout__redirect-progress"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={REDIRECT_COOLDOWN_SECONDS}
+                  aria-valuenow={REDIRECT_COOLDOWN_SECONDS - redirectCooldown}
+                >
+                  <div
+                    className="stripe-checkout__redirect-progress-bar"
+                    style={{ width: `${redirectPercent}%` }}
+                  />
+                </div>
+                <p className="stripe-checkout__redirect-countdown">
+                  Opening messages{redirectCooldown > 0 ? ` in ${redirectCooldown}s` : "…"}
+                </p>
+              </div>
+            </div>
           ) : null}
 
-          <button type="button" className="stripe-checkout__pay" onClick={submitPayment}>
-            Pay ${data.totalFee}
-          </button>
+          {!submitted ? (
+            <button
+              type="button"
+              className="stripe-checkout__pay"
+              onClick={() => void submitPayment()}
+              disabled={submitting}
+            >
+              {submitting ? "Processing…" : `Pay $${data.totalFee}`}
+            </button>
+          ) : null}
 
           <p className="stripe-checkout__secure">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

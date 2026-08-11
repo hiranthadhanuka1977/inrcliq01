@@ -1,4 +1,5 @@
 import RequestCheckoutView from "@/components/feed/profile/RequestCheckoutView";
+import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import { getProfileData } from "@/lib/feed/profile";
 import { notFound } from "next/navigation";
 
@@ -39,6 +40,12 @@ export default async function RequestsCheckoutPage({
   const profile = await getProfileData(slug);
   if (!profile?.special_requests) notFound();
 
+  if (profile.special_requests_enabled === false) {
+    return (
+      <SpecialRequestsUnavailablePage creatorName={profile.name} profileSlug={profile.slug} />
+    );
+  }
+
   const data = {
     request: readParam(query.request, ""),
     category: readParam(query.category, ""),
@@ -57,6 +64,7 @@ export default async function RequestsCheckoutPage({
     reference: readParam(query.reference, ""),
     message: readParam(query.message, ""),
     username: readParam(query.username, ""),
+    instructions: readParam(query.instructions, ""),
   };
 
   return <RequestCheckoutView profile={profile} data={data} />;

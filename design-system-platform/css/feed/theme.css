@@ -1,0 +1,807 @@
+/**
+ * Feed-only theme overrides. Base dark/light tokens live in styles/app-theme.css.
+ */
+
+body.page-home,
+body.page-profile,
+body.page-audio,
+body.page-messages,
+body.page-bookings,
+body:has(.feed-path-shell) {
+  overflow-x: clip;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.feed-path-shell {
+  min-height: 100dvh;
+}
+
+.feed-path-shell * {
+  box-sizing: border-box;
+}
+
+.feed-path-shell a {
+  text-decoration: none;
+}
+
+.feed-path-shell a:not(.btn) {
+  color: inherit;
+}
+
+.left-nav__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ——— Light-mode contrast safety net ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium-upsell__title,
+html[data-feed-theme="light"]:has(.feed-path-shell) .right-rail .premium-card__title,
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium .premium-upsell__title {
+  color: var(--premium-title);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium-upsell__desc,
+html[data-feed-theme="light"]:has(.feed-path-shell) .right-rail .premium-card__lead,
+html[data-feed-theme="light"]:has(.feed-path-shell) .premium-upsell__perk,
+html[data-feed-theme="light"]:has(.feed-path-shell) .right-rail .premium-card__perks li {
+  color: var(--premium-body);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__banner-title,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__banner-title strong,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__top-num,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__brand-text,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__period {
+  color: var(--chart-on-header);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__banner-title span,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface .chart-board__period {
+  color: var(--chart-on-header-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .left-nav,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__sheet,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__backdrop {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__sheet {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.14);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__handle {
+  background: var(--color-neutral-300);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item.is-active {
+  background: var(--color-brand-primary-subtle);
+  color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item--danger {
+  color: #b42318;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .nav-item:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-thread:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-thread:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .nav-item.active {
+  background: var(--color-brand-primary-subtle);
+  color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--outline-brand {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--outline-brand:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--outline-brand.is-active {
+  background: var(--color-brand-primary-subtle);
+  border-color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-secondary);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item:not(.is-active) .feed-filter:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item:not(.is-active) .feed-filter:focus-visible {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter:hover {
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-800);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active .feed-filter__close {
+  background: color-mix(in srgb, var(--color-text-inverse) 18%, transparent);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active.is-clearable .feed-filter__close:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-home .feed-filters__track--audio .feed-filter-item.is-active.is-clearable .feed-filter__close:focus-visible {
+  background: color-mix(in srgb, var(--color-text-inverse) 28%, transparent);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-filters__track .feed-filter-item:not(.is-active) .feed-filter:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-filters__indicator {
+  background: var(--color-neutral-900);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-bubble--theirs {
+  background: var(--feed-card-bg);
+  border: 1px solid var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note__card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-layout {
+  border-color: var(--feed-card-border);
+}
+
+/* ——— Messages — light mode chrome ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-messages .messages-layout,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-layout {
+  background: var(--feed-card-bg);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar {
+  background: var(--feed-card-bg);
+  border-right: 1px solid var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-search {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-thread.is-active {
+  background: var(--color-brand-primary-subtle);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat {
+  background: var(--color-bg-page);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__head {
+  background: var(--feed-card-bg);
+  border-bottom: 1px solid var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer {
+  background: var(--feed-card-bg);
+  border-top: 1px solid var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer__input {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer__input:focus {
+  outline-color: color-mix(in srgb, var(--color-brand-primary) 40%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-bubble--mine {
+  background: var(--color-brand-primary);
+  color: var(--color-on-brand);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-bubble--mine time {
+  color: color-mix(in srgb, var(--color-on-brand) 78%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__empty {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__actions .btn--icon,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__back,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar__compose {
+  color: var(--color-text-secondary);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__actions .btn--icon:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__back:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar__compose:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note__card {
+  background: var(--feed-card-bg);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-confirm-card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-confirm-card:focus-visible,
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-status-note__card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) a.booking-status-note__card:focus-visible {
+  background: var(--color-neutral-50);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__details,
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-confirm-card__detail--total {
+  border-top-color: color-mix(in srgb, var(--feed-card-border) 55%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note--declined .booking-status-note__card {
+  border-color: color-mix(in srgb, var(--booking-status-declined-border) 30%, var(--feed-card-border));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown__tile {
+  background: var(--color-neutral-0);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__actions,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary h3,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--total,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--block dd,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-chips li {
+  background: var(--color-neutral-50);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__actions {
+  border-top-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary h3,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row + .my-bookings__summary-row,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--total,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-row--block dd,
+html[data-feed-theme="light"]:has(.feed-path-shell) .my-bookings__summary-chips li {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .nav-promo__card {
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .story:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .story:focus-visible {
+  --story-item-bg: var(--color-bg-muted);
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .story-nav {
+  background: var(--color-neutral-0);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .story-nav:hover:not(:disabled) {
+  background: var(--color-neutral-0);
+  box-shadow: var(--shadow-md);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .profile-header__cover-fade {
+  /* Keep dark-mode layout; lighten only the lower band so overlapping title stays readable */
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.06) 42%,
+    color-mix(in srgb, var(--color-bg-page) 55%, transparent) 72%,
+    var(--color-bg-page) 100%
+  );
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .profile-header__avatar.story-avatar {
+  box-shadow: 0 0 0 4px var(--color-bg-page);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--ghost-cover {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  backdrop-filter: blur(8px);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--ghost-cover:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .btn--ghost-cover:focus-visible {
+  background: var(--color-neutral-0);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+/* ——— Light feed cards — visual only; spacing matches dark mode ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple {
+  --post-card-bg: var(--feed-card-bg);
+  --post-band-bg: var(--feed-card-bg);
+  --post-surface: var(--color-bg-muted);
+  --post-btn: var(--color-neutral-300);
+  --post-card-border: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .post--simple {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .post--simple:hover {
+  background: var(--feed-card-bg);
+  border: 1px solid var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .creator-rail:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail:hover {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .creator-rail,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple > .snaps-rail {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .audio-top-creator-card {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .audio-top-creator-card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .audio-top-creator-card:focus-within {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .post-actions--engage {
+  border-top-color: var(--feed-divider);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-filters__chip {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-filters__chip:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-filters__chip.is-active {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product__stars svg {
+  stroke: var(--color-neutral-300);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product__stars svg.is-filled {
+  fill: #e5a100;
+  stroke: #e5a100;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .collection-product__offer-detail {
+  color: #0f7b4c;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__bundle,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-review__panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-payment {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format {
+  background: var(--color-bg-muted);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile + .requests-pz__delivery-tile,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile + .requests-pz__format-tile,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__bundle-section + .requests-pz__bundle-section,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary__breakdown,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-guide__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__block {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__input,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__file-btn,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-section-info__trigger,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-progress__num {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-mark,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-mark {
+  background: var(--color-neutral-0);
+  border: 2px solid var(--color-neutral-400);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-icon {
+  background: var(--feed-card-bg);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile.is-selected .requests-pz__delivery-mark,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile.is-selected .requests-pz__format-mark {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile.is-selected .requests-pz__delivery-mark::after,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile.is-selected .requests-pz__format-mark::after {
+  border-right-color: #fff;
+  border-bottom-color: #fff;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__delivery-tile.is-selected,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-pz__format-tile.is-selected {
+  background: var(--color-brand-primary-subtle);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-summary__total {
+  background: var(--color-bg-muted);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-section-info__popover {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: var(--shadow-md);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-section-info__popover::before {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar__cell:not(.is-disabled):hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar__cell:not(.is-disabled):focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .requests-calendar__nav {
+  background: var(--color-bg-muted);
+  border: 1px solid var(--feed-card-border);
+}
+
+/* ——— Audio landing light mode ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-search,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-continue-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .podcast-episode-card,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-live-drop-card {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-pill {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-pill:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-landing-pill.is-active {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .podcast-episode-card:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-continue-card:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__controls,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__tabs,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__item {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__segment {
+  background: var(--color-bg-muted);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-chart__item:hover {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__card {
+  background:
+    radial-gradient(ellipse 80% 70% at 10% 20%, color-mix(in srgb, var(--spotlight-a) 28%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, color-mix(in srgb, var(--spotlight-b) 22%, transparent), transparent 72%),
+    var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__glow {
+  opacity: 0.5;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__creator,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__social {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__badge {
+  background: color-mix(in srgb, var(--spotlight-a) 16%, var(--color-bg-muted));
+  border: 1px solid color-mix(in srgb, var(--spotlight-a) 28%, var(--feed-card-border));
+  color: color-mix(in srgb, var(--spotlight-a) 72%, #111827);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__media {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__avatars span {
+  border-color: var(--feed-card-bg);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__cta.btn--primary {
+  background: var(--color-neutral-900);
+  border-color: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__cta.btn--primary:hover {
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot:hover {
+  background: rgba(15, 23, 42, 0.34);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot.is-active {
+  background: rgba(15, 23, 42, 0.14);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-spotlight__dot-progress {
+  background: var(--color-neutral-900);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-for-you__pager-btn,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-for-you__pager-page {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .rail-title h3,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-section__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-section__subtitle {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-top-creator-card {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card {
+  color: var(--color-text-primary);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--challenge-a) 14%, #ffffff),
+      color-mix(in srgb, var(--challenge-b) 10%, #ffffff)
+    );
+  border: 1px solid var(--feed-card-border);
+  box-shadow: none;
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card:hover {
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--challenge-a) 20%, #ffffff),
+      color-mix(in srgb, var(--challenge-b) 14%, #ffffff)
+    );
+  border-color: var(--color-border-strong);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__hashtag {
+  background: color-mix(in srgb, var(--challenge-a) 16%, var(--color-bg-muted));
+  border: 1px solid color-mix(in srgb, var(--challenge-a) 28%, var(--feed-card-border));
+  color: color-mix(in srgb, var(--challenge-a) 72%, #111827);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__copy,
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__metric {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__cta {
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-challenge-card__cta:hover {
+  background: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .page-audio .audio-live-drop-card__countdown.is-live {
+  color: var(--chart-move-up);
+}
+
+/* Mini / dock audio player — elevated light surface (dark dock kept for dark theme) */
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--dock-a) 14%, #ffffff),
+      color-mix(in srgb, var(--dock-b) 10%, #ffffff)
+    );
+  border: 1px solid var(--feed-card-border);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock__btn--primary {
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-dock__btn--primary:hover {
+  background: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini--dock {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, rgba(var(--audio-accent-a), 1) 14%, #ffffff),
+      color-mix(in srgb, rgba(var(--audio-accent-b), 1) 10%, #ffffff)
+    );
+  border: 1px solid var(--feed-card-border);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__title {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__creator,
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__time,
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--close {
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__scrubber {
+  background: var(--color-neutral-200);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__scrubber-fill {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--audio-accent-a), 1),
+    rgba(var(--audio-accent-b), 1)
+  );
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn {
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__track-hit:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn:hover {
+  background: var(--surface-hover);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--primary {
+  background: var(--color-neutral-900);
+  color: var(--color-text-inverse);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--primary:hover {
+  background: var(--color-neutral-800);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--like.is-liked {
+  color: #e11d48;
+}

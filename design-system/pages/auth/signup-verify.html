@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify email — InrCliq Sign up</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <button type="button" class="verify-email__inbox-btn" id="btn-open-verify-email-inbox" aria-label="Open verification email" aria-expanded="false">
+      <svg class="verify-email__inbox-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+        <polyline points="22,6 12,13 2,6" />
+      </svg>
+      <span class="verify-email__inbox-badge" aria-hidden="true"></span>
+    </button>
+
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section class="auth-center auth-center--signup-step">
+        <div class="auth-center__card auth-center__card--wide auth-center__card--step-offset">
+          <div class="auth-split__auth-inner auth-split__auth-inner--wide">
+            <div class="auth-split__steps">
+              <div class="auth-split__step verify-email is-active" id="landing-step-3">
+                <h2 class="verify-email__title">Verify your email address</h2>
+                <p class="subtitle mt-2 verify-email__subtitle">We have sent an email to you with an activation link.</p>
+                <p class="verify-email__lead">Check your inbox @</p>
+                <div class="verify-email__address" id="verify-email-display">
+                  <span class="help-tip verify-email__change-tip">
+                    <a href="signup-step2.html" class="help-tip__trigger verify-email__change-btn" aria-label="Change email address">
+                      <svg class="help-tip__icon verify-email__change-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </a>
+                  </span>
+                  <span class="verify-email__address-text" id="verify-email-display-text">alex@example.com</span>
+                </div>
+
+                <p class="verify-email__resend">
+                  Didn't get it?
+                  <button type="button" class="link-btn verify-email__resend-link" id="btn-resend-verify-email" disabled>
+                    <svg class="verify-email__resend-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M23 4v6h-6" />
+                      <path d="M1 20v-6h6" />
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg>
+                    Resend email
+                  </button>
+                </p>
+
+                <div class="resend-cooldown" id="verify-resend-cooldown" aria-live="polite">
+                  <div class="resend-progress" role="progressbar" aria-valuenow="36" aria-valuemin="0" aria-valuemax="60">
+                    <div class="resend-progress-bar" style="width: 40%"></div>
+                  </div>
+                  <p class="resend-countdown" id="verify-resend-countdown">Resend available in 36s</p>
+                </div>
+
+                <div class="disclosure verify-email__info is-open mt-6" id="verify-email-info">
+                  <button type="button" class="disclosure__trigger" aria-expanded="true" aria-controls="verify-email-info-panel">
+                    <span class="disclosure__trigger-main">
+                      <svg class="disclosure__info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      <span class="disclosure__label">What to look for</span>
+                    </span>
+                    <svg class="disclosure__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  <div class="disclosure__panel" id="verify-email-info-panel">
+                    <div class="disclosure__panel-inner">
+                      <div class="disclosure__content verify-email__info-content">
+                        <p class="verify-email__info-line"><span>From :</span> hello@inrcliq.com</p>
+                        <p class="verify-email__info-line"><span>Subject :</span> Verify your InrCliq account</p>
+                        <ul class="verify-email__info-list">
+                          <li>Should arrive within 2 minutes. Check spam if you don't see it</li>
+                          <li>The link active for next 24 hours.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="verify-email__security">
+                  <span class="verify-email__shield" aria-hidden="true">🛡</span>
+                  We'll never ask for your password by email. This quick check just helps us make sure it's really you.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="signup-progress is-visible" role="progressbar" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100" aria-label="Signup progress">
+        <div class="signup-progress__track"><div class="signup-progress__bar" style="width: 55%"></div></div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

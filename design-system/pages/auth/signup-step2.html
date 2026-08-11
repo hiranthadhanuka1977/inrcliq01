@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up — Join InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section class="auth-center auth-center--signup-step">
+        <div class="auth-center__card auth-center__card--step-offset">
+          <div class="auth-split__auth-inner auth-split__auth-inner--join">
+            <div class="auth-split__steps">
+              <div class="auth-split__step is-active" id="landing-step-2">
+                <div class="auth-split__step-header">
+                  <a href="signup-step1.html" class="back-btn auth-split__back" aria-label="Back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M14 6l-6 6 6 6" />
+                    </svg>
+                  </a>
+                </div>
+                <h2>Join InrCliq</h2>
+                <p class="subtitle mt-2">Tell us a bit about yourself so we can keep the platform safe and age-appropriate.</p>
+
+                <form action="signup-verify.html" class="mt-8">
+                  <div class="field" id="landing-join-email-field">
+                    <label class="field-label" for="landing-join-email">Email address</label>
+                    <input class="input" type="email" id="landing-join-email" value="alex@example.com" placeholder="you@example.com" autocomplete="email" />
+                    <p class="field-hint" id="landing-join-email-hint">Your primary login identifier. We'll verify this email in the next step.</p>
+                  </div>
+                  <hr class="auth-join-divider" aria-hidden="true" />
+
+                  <div class="field mt-8">
+                    <span class="field-label">Name</span>
+                    <div class="name-row">
+                      <div class="field">
+                        <label class="field-label sr-only" for="landing-first-name">First name</label>
+                        <input class="input" type="text" id="landing-first-name" value="Alex" placeholder="First name" autocomplete="given-name" />
+                      </div>
+                      <div class="field">
+                        <label class="field-label sr-only" for="landing-last-name">Last name</label>
+                        <input class="input" type="text" id="landing-last-name" value="Smith" placeholder="Last name" autocomplete="family-name" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="field mt-6">
+                    <div class="field-label-row">
+                      <span class="field-label">Date of birth</span>
+                      <span class="help-tip help-tip--link">
+                        <button type="button" class="help-tip__trigger help-tip__trigger--link" aria-describedby="join-important-notice-tip">
+                          <svg class="help-tip__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                          </svg>
+                          Important notice
+                        </button>
+                        <span class="help-tip__content help-tip__content--wide" id="join-important-notice-tip" role="tooltip">
+                          We apply age rules based on your country. Users under legal age need a parent or guardian to approve their account.
+                        </span>
+                      </span>
+                    </div>
+                    <div class="dob-row">
+                      <select class="select" id="landing-dob-month" aria-label="Month">
+                        <option value="3" selected>March</option>
+                      </select>
+                      <select class="select" id="landing-dob-day" aria-label="Day">
+                        <option value="15" selected>15</option>
+                      </select>
+                      <select class="select" id="landing-dob-year" aria-label="Year">
+                        <option value="2012" selected>2012</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field mt-6">
+                    <label class="field-label" for="landing-country">Country</label>
+                    <select class="select" id="landing-country" aria-label="Country">
+                      <option value="LK" selected>🇱🇰 Sri Lanka</option>
+                      <option value="US">🇺🇸 United States</option>
+                      <option value="GB">🇬🇧 United Kingdom</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn--primary mt-8" id="btn-landing-next">
+                    <span class="btn__label">Next</span>
+                    <span class="btn__progress" aria-hidden="true"><span class="btn__progress-bar"></span></span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="signup-progress is-visible" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" aria-label="Signup progress">
+        <div class="signup-progress__track"><div class="signup-progress__bar" style="width: 25%"></div></div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

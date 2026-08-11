@@ -77,11 +77,17 @@ export interface CollectionProduct {
   offer?: CollectionProductOffer;
   ctaLabel?: string;
   detail?: CollectionProductDetail;
+  /** Seller-only: inactive products stay hidden from fans. */
+  active?: boolean;
+  /** Seller-only: unpublished drafts stay hidden from fans. */
+  published?: boolean;
 }
 
 export interface CreatorCollection {
   slug: string;
   title: string;
   subtitle: string;
+  /** Seller-only: when false, storefront is hidden from fans. */
+  enabled?: boolean;
   products: CollectionProduct[];
 }

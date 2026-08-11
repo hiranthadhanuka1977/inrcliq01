@@ -1,0 +1,165 @@
+
+/* Platform DS — feed demo frames inside the docs layout */
+
+.ds-feed-frame {
+  border-radius: var(--radius-lg);
+  overflow: auto;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.ds-feed-frame__nav.left-nav,
+.ds-feed-frame .left-nav {
+  position: relative;
+  height: 420px;
+  width: var(--nav-width, 245px);
+  flex-shrink: 0;
+}
+
+.ds-mobile-nav-demo.mobile-nav,
+.ds-feed-frame .mobile-nav.ds-mobile-nav-demo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-neutral-0);
+  box-shadow: var(--shadow-md);
+}
+
+.ds-feed-frame .right-rail {
+  position: relative;
+  top: auto;
+  height: auto;
+}
+
+/* Ensure feed theme tokens resolve inside docs demos */
+.ds-layout .feed-path-shell,
+.ds-layout .ds-feed-frame.feed-path-shell {
+  display: block;
+  /* Demo frames only need content height — app shells use 100dvh */
+  min-height: 0;
+}
+
+.ds-layout .ds-feed-frame {
+  min-height: 0;
+}
+
+html[data-feed-theme="dark"] .ds-layout .feed-path-shell,
+html:not([data-feed-theme="light"]) .ds-layout .feed-path-shell {
+  color-scheme: dark;
+}
+
+/* Stories state docs */
+
+.ds-subsection__note {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.ds-state-label {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.ds-state-label code {
+  font-size: 0.85em;
+}
+
+.ds-story-state__track {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  overflow: visible;
+  width: auto;
+}
+
+.ds-story-matrix {
+  --story-ring-size: 60px;
+  --story-item-pad-top: 0.25rem;
+  --story-track-pad-top: 5px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6) var(--space-4);
+  padding: var(--space-5);
+}
+
+@media (max-width: 900px) {
+  .ds-story-matrix {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .ds-story-matrix {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ds-story-matrix__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  text-align: center;
+}
+
+.ds-story-matrix__caption {
+  display: block;
+  width: 100%;
+  min-height: 2.4em;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text-secondary);
+}
+
+.ds-story-matrix__cell .stories {
+  width: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.ds-story-matrix__cell .stories-track {
+  justify-content: center;
+  width: auto;
+  overflow: visible;
+  padding-top: var(--story-track-pad-top);
+}
+
+.ds-demo--stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-state-pair {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ds-state-pair .post-actions {
+  padding: 0;
+}
+
+/* Collapsed stories preview inside docs (avoid zero-height demos) */
+.ds-feed-frame .feed-header.is-stories-collapsed .stories-bar {
+  opacity: 0.45;
+  transform: translateY(-0.35rem) scale(0.96);
+  transform-origin: top center;
+  pointer-events: none;
+  max-height: 4.5rem;
+  overflow: hidden;
+}

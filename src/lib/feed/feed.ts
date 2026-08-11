@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getFollowedCreatorIdsForUser } from "@/lib/feed/follow-service";
-import { getProfileSlugFromHandle } from "@/lib/feed/profile-slugs";
+import { getProfileSlugFromHandle, resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import type { FeedAuthor, FeedAudio, FeedData, FeedItem, FeedMedia } from "@/types/feed/feed";
@@ -9,6 +9,7 @@ import type { FeedAuthor, FeedAudio, FeedData, FeedItem, FeedMedia } from "@/typ
 function mapCreatorToAuthor(creator: {
   name: string;
   handle: string;
+  slug?: string | null;
   avatarInitials: string;
   avatarColor: string;
   avatarUrl: string | null;
@@ -17,6 +18,7 @@ function mapCreatorToAuthor(creator: {
   return {
     name: creator.name,
     handle: creator.handle,
+    slug: creator.slug ?? getProfileSlugFromHandle(creator.handle),
     avatar_initials: creator.avatarInitials,
     avatar_color: creator.avatarColor,
     avatar_url: creator.avatarUrl,
@@ -44,6 +46,7 @@ function mapPostToFeedItem(
       id?: string;
       name: string;
       handle: string;
+      slug?: string | null;
       avatarInitials: string;
       avatarColor: string;
       avatarUrl: string | null;
@@ -114,12 +117,17 @@ async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
 
     return items.map((item) => {
       const handle = item.author.handle.startsWith("@") ? item.author.handle : `@${item.author.handle}`;
-      const slug = getProfileSlugFromHandle(item.author.handle);
+      const slug = resolveAuthorProfileSlug(item.author.handle, item.author.slug);
       const following =
         followedHandles.has(handle.toLowerCase()) ||
-        Boolean(slug && followedSlugs.has(slug));
+        followedSlugs.has(slug) ||
+        Boolean(item.author.slug && followedSlugs.has(item.author.slug));
       return {
         ...item,
+        author: {
+          ...item.author,
+          slug: item.author.slug ?? slug,
+        },
         relationship: { ...item.relationship, following },
       };
     });
@@ -161,9 +169,39 @@ export async function getFeedData(): Promise<FeedData> {
 
     if (postCount === 0) {
       const json = getFeedDataFromJson();
+      const handles = Array.from(
+        new Set(json.items.map((item) => item.author.handle.toLowerCase())),
+      );
+      const creators = await prisma.creatorUser.findMany({
+        where: {
+          OR: handles.flatMap((handle) => {
+            const withAt = handle.startsWith("@") ? handle : `@${handle}`;
+            const bare = handle.replace(/^@/, "");
+            return [{ handle: withAt }, { handle: bare }, { handle: `@${bare}` }];
+          }),
+        },
+        select: { handle: true, slug: true, verified: true },
+      });
+      const byHandle = new Map(
+        creators.map((creator) => [creator.handle.toLowerCase(), creator]),
+      );
+      const withSlugs = json.items.map((item) => {
+        const key = item.author.handle.toLowerCase();
+        const withAt = key.startsWith("@") ? key : `@${key}`;
+        const match = byHandle.get(key) ?? byHandle.get(withAt) ?? byHandle.get(key.replace(/^@/, ""));
+        const slug = resolveAuthorProfileSlug(item.author.handle, match?.slug);
+        return {
+          ...item,
+          author: {
+            ...item.author,
+            slug,
+            verified: match ? match.verified : item.author.verified,
+          },
+        };
+      });
       return {
         ...json,
-        items: await applyFollowState(json.items),
+        items: await applyFollowState(withSlugs),
       };
     }
 
@@ -191,9 +229,16 @@ export async function getFeedData(): Promise<FeedData> {
   } catch (error) {
     console.error("getFeedData: falling back to JSON", error);
     const json = getFeedDataFromJson();
+    const withSlugs = json.items.map((item) => ({
+      ...item,
+      author: {
+        ...item.author,
+        slug: resolveAuthorProfileSlug(item.author.handle, item.author.slug),
+      },
+    }));
     return {
       ...json,
-      items: await applyFollowState(json.items),
+      items: await applyFollowState(withSlugs),
     };
   }
 }

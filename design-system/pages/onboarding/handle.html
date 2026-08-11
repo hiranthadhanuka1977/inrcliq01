@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Choose handle — InrCliq Onboarding</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section class="auth-center auth-center--signup-step">
+        <div class="auth-center__card auth-center__card--step-offset">
+          <h1>Choose your handle</h1>
+          <p class="subtitle mt-2">Your unique @name on InrCliq — how others find and mention you.</p>
+          <p class="password-alt mt-6">
+            You can skip choosing a handle and continue onboarding. You can always set your @name later in account
+            settings.
+          </p>
+
+          <form action="#" method="post">
+            <div class="field mt-8">
+              <label class="field-label" for="signup-handle">Handle</label>
+              <div class="handle-input">
+                <span class="handle-input__prefix" aria-hidden="true">@</span>
+                <input
+                  class="input handle-input__field"
+                  type="text"
+                  id="signup-handle"
+                  maxlength="24"
+                  value="alexsmith"
+                  placeholder="yourname"
+                  autocomplete="username"
+                  spellcheck="false"
+                  aria-describedby="signup-handle-requirement"
+                />
+              </div>
+              <p class="password-requirement mt-4 is-met" id="signup-handle-requirement">
+                <span class="password-requirement__mark" aria-hidden="true"></span>
+                <span>No spaces · Max 24 characters · Letters, numbers, underscores, and periods only</span>
+              </p>
+            </div>
+
+            <button type="submit" class="btn btn--primary mt-8" id="btn-handle-next">
+              <span class="btn__label">Next</span>
+              <span class="btn__progress" aria-hidden="true"><span class="btn__progress-bar"></span></span>
+            </button>
+          </form>
+
+          <div class="password-skip-row mt-4">
+            <button type="button" class="link-btn password-skip-row__action" id="btn-handle-skip">
+              Skip for now — choose handle later
+            </button>
+            <span class="help-tip">
+              <button type="button" class="help-tip__trigger" aria-label="About skipping handle setup" aria-describedby="handle-skip-tip">
+                <svg class="help-tip__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+              <span class="help-tip__content" id="handle-skip-tip" role="tooltip">
+                When you skip, others may not be able to @mention you until you choose a handle. You can add one anytime
+                in account settings.
+              </span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <div class="signup-progress is-visible" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85" aria-label="Signup progress">
+        <div class="signup-progress__track">
+          <div class="signup-progress__bar" style="width: 85%"></div>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

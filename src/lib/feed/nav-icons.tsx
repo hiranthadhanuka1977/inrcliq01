@@ -12,6 +12,7 @@ export const MOBILE_MORE_ITEMS = [
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Bookings", href: "/feed/bookings", icon: "bookings" },
+  { label: "Seller Tools", href: "/seller", icon: "seller" },
   { label: "Settings", href: "/settings", icon: "settings" },
   { label: "Profile", href: "/feed/me", icon: "profile" },
   { label: "Theme", href: "#", icon: "theme", action: "theme" },
@@ -24,7 +25,8 @@ export type NavIconName =
   | "explore"
   | "messages"
   | "purchases"
-  | "bookings";
+  | "bookings"
+  | "seller";
 
 export function NavIcon({ name }: { name: NavIconName }) {
   switch (name) {
@@ -93,6 +95,13 @@ export function NavIcon({ name }: { name: NavIconName }) {
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
           <path d="m9 16 2 2 4-4" />
+        </svg>
+      );
+    case "seller":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v18h18" />
+          <path d="M7 16l4-5 4 3 5-7" />
         </svg>
       );
     case "settings":

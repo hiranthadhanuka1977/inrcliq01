@@ -1,0 +1,13 @@
+﻿/**
+ * InrCliq platform design system — main stylesheet
+ * Foundation matches globals.css; feed matches feed/layout feed-app landing subset.
+ */
+@import "fonts.css";
+@import "tokens.css";
+@import "app-theme.css";
+@import "base.css";
+@import "layout.css";
+@import "components.css";
+@import "app-overrides.css";
+@import "responsive.css";
+@import "feed/feed-landing.css";

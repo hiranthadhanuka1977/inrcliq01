@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InrCliq — Phase 01 Onboarding Flows</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+      .ds-hub { max-width: 720px; margin: 0 auto; padding: var(--space-10) var(--layout-content-padding-sm); }
+      .ds-hub h1 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); margin-bottom: var(--space-2); }
+      .ds-hub > p { color: var(--color-text-secondary); margin-bottom: var(--space-8); }
+      .ds-hub section { margin-bottom: var(--space-10); }
+      .ds-hub h2 { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); margin-bottom: var(--space-4); }
+      .ds-hub ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+      .ds-hub a {
+        display: block; padding: var(--space-4) var(--space-5);
+        border: 1px solid var(--color-border-default); border-radius: var(--radius-lg);
+        background: var(--color-bg-page); color: var(--color-brand-primary);
+        font-weight: var(--font-weight-semibold); text-decoration: none; box-shadow: var(--shadow-sm);
+      }
+      .ds-hub a:hover { border-color: var(--color-brand-primary); }
+      .ds-hub a span { display: block; font-size: var(--font-size-sm); font-weight: var(--font-weight-normal); color: var(--color-text-secondary); margin-top: var(--space-1); }
+    </style>
+  </head>
+  <body>
+    <div class="auth-path-shell">
+      <main class="ds-hub">
+        <h1>Auth, onboarding &amp; parent approval</h1>
+        <p>Static HTML renditions of the full signup, login, child onboarding, and parent approval flows.</p>
+
+        <section>
+          <h2>Foundation</h2>
+          <ul>
+            <li>
+              <a href="index.html">
+                Design system
+                <span>Tokens and components for login, signup, onboarding, and parent approval</span>
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Login &amp; signup</h2>
+          <ul>
+            <li><a href="pages/auth/login.html">Log in — email code<span>/ — ONB-01</span></a></li>
+            <li><a href="pages/auth/login-otp.html">Log in — enter code<span>OTP step</span></a></li>
+            <li><a href="pages/auth/login-password.html">Log in — password<span>Password method</span></a></li>
+            <li><a href="pages/auth/forgot-login.html">Forgot login<span>/forgot-login</span></a></li>
+            <li><a href="pages/auth/signup-step1.html">Sign up — choose method<span>/signup step 1</span></a></li>
+            <li><a href="pages/auth/signup-step2.html">Sign up — join form<span>/signup step 2 · 25%</span></a></li>
+            <li><a href="pages/auth/signup-verify.html">Sign up — verify email<span>/signup step 3 · 55%</span></a></li>
+            <li><a href="pages/auth/verify-email-invalid.html">Verify email — link expired<span>/verify-email?error=invalid</span></a></li>
+            <li><a href="pages/auth/verify-email-missing.html">Verify email — missing token<span>/verify-email</span></a></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Child onboarding</h2>
+          <ul>
+            <li><a href="pages/onboarding/parent-invite.html">Parent invite<span>/onboarding/parent · step 4</span></a></li>
+            <li><a href="pages/onboarding/waiting.html">Waiting for approval<span>/onboarding/waiting</span></a></li>
+            <li><a href="pages/onboarding/waiting-declined.html">Request declined (child)<span>/onboarding/waiting</span></a></li>
+            <li><a href="pages/onboarding/approved.html">Parent approved (child)<span>/onboarding/approved</span></a></li>
+            <li><a href="pages/onboarding/password.html">Create password<span>/onboarding/password · step 5</span></a></li>
+            <li><a href="pages/onboarding/handle.html">Choose handle<span>/onboarding/handle · step 6</span></a></li>
+            <li><a href="pages/onboarding/interests.html">Pick interests<span>/onboarding/interests · step 7</span></a></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Parent approval (guardian)</h2>
+          <ul>
+            <li><a href="pages/parent/consent.html">Consent intro<span>PAR-01 · /guardian/approve</span></a></li>
+            <li><a href="pages/parent/account.html">Create parent account<span>PAR-02</span></a></li>
+            <li><a href="pages/parent/verify-intro.html">Verify identity intro<span>PAR-V1</span></a></li>
+            <li><a href="pages/parent/id-capture.html">ID capture<span>PAR-V1</span></a></li>
+            <li><a href="pages/parent/face-scan.html">Face scan<span>PAR-V1</span></a></li>
+            <li><a href="pages/parent/verifying.html">Verifying identity<span>Processing</span></a></li>
+            <li><a href="pages/parent/review.html">Identity review<span>PAR-04</span></a></li>
+            <li><a href="pages/parent/protection.html">Protection level<span>PAR-06</span></a></li>
+            <li><a href="pages/parent/approved.html">Account activated<span>PAR-07</span></a></li>
+            <li><a href="pages/parent/declined.html">Request declined (parent)<span>Declined state</span></a></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="js/onboarding.js"></script>
+  </body>
+</html>

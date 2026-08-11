@@ -6,6 +6,8 @@
 @import "./feed-spotify.css";
 @import "./feed-simple.css";
 @import "./feed-fb-post.css";
+@import "./feed-reactions.css";
+@import "./feed-video-viewer.css";
 @import "./feed-audio.css";
 @import "./audio-skip-glyphs.css";
 @import "./profile.css";

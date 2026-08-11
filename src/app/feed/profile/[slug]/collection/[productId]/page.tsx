@@ -1,5 +1,6 @@
 import CollectionProductDetailView from "@/components/feed/profile/CollectionProductDetailView";
-import { getCollectionProduct } from "@/lib/feed/collection";
+import { CollectionUnavailablePage } from "@/components/feed/profile/CollectionUnavailable";
+import { getCollectionProduct, getCreatorCollectionRaw } from "@/lib/feed/collection";
 import { getProfileData } from "@/lib/feed/profile";
 import { notFound } from "next/navigation";
 
@@ -16,11 +17,20 @@ export async function generateMetadata({ params }: ProductDetailPageProps) {
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { slug, productId } = await params;
-  const [profile, result] = await Promise.all([
+  const [profile, rawCollection, result] = await Promise.all([
     getProfileData(slug),
+    getCreatorCollectionRaw(slug),
     getCollectionProduct(slug, productId),
   ]);
-  if (!profile || !result) notFound();
+  if (!profile) notFound();
+
+  if (rawCollection && rawCollection.enabled === false) {
+    return (
+      <CollectionUnavailablePage creatorName={profile.name} profileSlug={profile.slug} />
+    );
+  }
+
+  if (!result) notFound();
 
   return <CollectionProductDetailView profile={profile} product={result.product} />;
 }

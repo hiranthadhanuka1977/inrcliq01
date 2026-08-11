@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ID verification — InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <div class="app-shell">
+        <div class="app-frame">
+          <section class="screen parent-signup parent-signup--single parent-signup--stepper-width">
+            <header class="auth-topbar">
+              <div class="auth-topbar__actions">
+                <p class="auth-topbar__prompt-text">
+                  Already have an account? <a href="../auth/login.html" class="link-btn">Log in</a>
+                </p>
+                <button type="button" class="theme-switcher" aria-label="Switch to light theme" title="Light mode">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div class="parent-signup__progress">
+              <nav class="parent-stepper" aria-label="Parent setup progress">
+                <ol class="parent-stepper__list">
+                  <li class="parent-stepper__item is-complete" data-step="1">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 1:</span>Account</span>
+                  </li>
+                  <li class="parent-stepper__item is-active" data-step="2" aria-current="step">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 2:</span>Verify</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="3">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 3:</span>Review</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="4">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 4:</span>Protection</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="5">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 5:</span>Approved</span>
+                  </li>
+                </ol>
+              </nav>
+              <hr class="parent-signup__progress-divider" />
+            </div>
+
+            <div class="parent-signup__shell">
+              <div class="parent-signup__layout parent-signup__layout--single">
+                <div class="parent-signup__main">
+                  <div class="id-verify__toolbar">
+                    <button type="button" class="back-btn" aria-label="Back" onclick="window.location.href='verify-intro.html'">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 6l-6 6 6 6" />
+                      </svg>
+                    </button>
+                    <nav class="id-verify__flow" aria-label="Identity verification progress">
+                      <ol class="id-verify__flow-steps">
+                        <li class="id-verify__flow-step is-active" aria-current="step">
+                          <span class="id-verify__flow-num" aria-hidden="true">
+                            <span class="id-verify__flow-index">1</span>
+                            <svg class="id-verify__flow-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                          <span class="id-verify__flow-label">Hold up your ID</span>
+                        </li>
+                        <li class="id-verify__flow-step">
+                          <span class="id-verify__flow-num" aria-hidden="true">
+                            <span class="id-verify__flow-index">2</span>
+                            <svg class="id-verify__flow-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                          <span class="id-verify__flow-label">Face scan</span>
+                        </li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <h1 class="parent-signup__title id-verify__title">ID Verification</h1>
+
+                  <div class="id-verify__doc-type mt-6">
+                    <span class="field-label" id="id-verify-doc-label">Document type</span>
+                    <div class="id-verify__doc-options" role="radiogroup" aria-labelledby="id-verify-doc-label">
+                      <button type="button" class="id-verify__doc-option is-selected" role="radio" aria-checked="true">Passport</button>
+                      <button type="button" class="id-verify__doc-option" role="radio" aria-checked="false">National ID</button>
+                      <button type="button" class="id-verify__doc-option" role="radio" aria-checked="false">Driving license</button>
+                    </div>
+                  </div>
+
+                  <div class="id-verify__capture mt-6">
+                    <div class="id-verify__frame">
+                      <div class="id-verify__viewport-wrap">
+                        <div class="id-verify__viewport">
+                          <div class="id-verify__frame-placeholder" aria-hidden="true">
+                            <svg class="id-verify__frame-icon" viewBox="0 0 64 48" fill="none" aria-hidden="true">
+                              <rect x="4" y="8" width="56" height="32" rx="4" stroke="currentColor" stroke-width="2" />
+                              <circle cx="22" cy="24" r="7" stroke="currentColor" stroke-width="2" />
+                              <path d="M12 38c2.5-5 7-7 10-7s7.5 2 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                              <line x1="36" y1="18" x2="52" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                              <line x1="36" y1="26" x2="48" y2="26" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                          </div>
+                          <div class="id-verify__frame-corners" aria-hidden="true">
+                            <span class="id-verify__corner id-verify__corner--tl"></span>
+                            <span class="id-verify__corner id-verify__corner--tr"></span>
+                            <span class="id-verify__corner id-verify__corner--bl"></span>
+                            <span class="id-verify__corner id-verify__corner--br"></span>
+                          </div>
+                        </div>
+                        <span class="id-verify__frame-hint">Position your ID inside the frame</span>
+                      </div>
+                    </div>
+
+                    <div class="id-verify__capture-action">
+                      <a href="face-scan.html" class="btn btn--primary id-verify__capture-btn">Capture ID</a>
+                      <div class="id-verify__capture-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Capturing ID" aria-hidden="true">
+                        <div class="id-verify__capture-progress-bar" style="width: 0%"></div>
+                      </div>
+                    </div>
+
+                    <p class="parent-verify__secure-note id-verify__secure-note">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <polyline points="9 12 11 14 15 10" />
+                      </svg>
+                      Data processed securely · Not stored after verification
+                    </p>
+
+                    <p class="parent-verify__encrypt-note id-verify__encrypt-note">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      Your information is encrypted end-to-end
+                    </p>
+                  </div>
+
+                  <div class="disclosure id-verify__tips mt-6 is-open">
+                    <button type="button" class="disclosure__trigger" aria-expanded="true">
+                      <span class="disclosure__trigger-main">
+                        <svg class="disclosure__info-icon disclosure__info-icon--warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                          <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                        <span class="disclosure__label">Tips for a clear capture</span>
+                      </span>
+                      <svg class="disclosure__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    <div class="disclosure__panel">
+                      <div class="disclosure__panel-inner">
+                        <div class="disclosure__content id-verify__tips-content">
+                          <ul class="id-verify__tips-list">
+                            <li>All four corners of your ID must be visible</li>
+                            <li>Hold it flat and steady, avoid tilting</li>
+                            <li>Make sure text is sharp and readable</li>
+                            <li>Avoid glare or shadows across the document</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

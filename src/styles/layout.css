@@ -186,6 +186,10 @@ html:has(.verify-email__inbox-btn) .auth-topbar {
   pointer-events: auto;
 }
 
+.auth-topbar .btn {
+  width: auto;
+}
+
 .auth-topbar__prompt-text {
   margin: 0;
   font-size: var(--font-size-sm);
@@ -1231,6 +1235,10 @@ html:has(.verify-email__inbox-btn) .auth-topbar {
   max-width: 520px;
 }
 
+.parent-signup__main > .back-btn {
+  margin-bottom: var(--space-6);
+}
+
 .parent-signup__back {
   display: inline-flex;
   align-items: center;
@@ -1602,6 +1610,7 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__status
   margin-bottom: var(--space-6);
 }
 
+.id-verify__toolbar .back-btn,
 .id-verify__toolbar .parent-signup__back {
   margin-bottom: 0;
   flex-shrink: 0;
@@ -2378,6 +2387,7 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__status
     align-items: center;
   }
 
+  .id-verify__toolbar .back-btn,
   .id-verify__toolbar .parent-signup__back {
     margin-top: 0;
   }

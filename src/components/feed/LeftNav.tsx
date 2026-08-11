@@ -23,11 +23,16 @@ const navItems: {
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Bookings", href: "/feed/bookings", icon: "bookings" },
+  { label: "Seller Tools", href: "/seller", icon: "seller" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/feed") {
     return pathname === "/feed" || pathname === "/feed/";
+  }
+
+  if (href === "/seller") {
+    return pathname === "/seller" || pathname.startsWith("/seller/");
   }
 
   if (href === "#") {
@@ -165,18 +170,18 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
       </div>
 
       <div className="nav-promo">
-        <div className="nav-promo__card" role="region" aria-label="Creator tools">
+        <div className="nav-promo__card" role="region" aria-label="Seller tools">
           <div className="nav-promo__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 3v18h18" />
               <path d="M7 16l4-5 4 3 5-7" />
             </svg>
           </div>
-          <h3 className="nav-promo__title">Go Premium</h3>
-          <p className="nav-promo__text">Turn your followers into paying subscribers today.</p>
-          <button type="button" className="btn btn--outline-brand btn--sm btn--block nav-promo__btn">
-            Unlock Premium Tools
-          </button>
+          <h3 className="nav-promo__title">Seller Tools</h3>
+          <p className="nav-promo__text">Manage your collection and service request setup.</p>
+          <Link href="/seller" className="btn btn--outline-brand btn--sm btn--block nav-promo__btn">
+            Open Seller Tools
+          </Link>
         </div>
       </div>
 

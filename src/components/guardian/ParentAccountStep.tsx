@@ -52,11 +52,24 @@ export function ParentAccountStep({
 
   return (
     <>
-      <button type="button" className="parent-signup__back link-btn" id="btn-parent-back" onClick={onBack}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <polyline points="15 18 9 12 15 6" />
+      <button
+        type="button"
+        className="back-btn"
+        id="btn-parent-back"
+        aria-label="Back"
+        onClick={onBack}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M14 6l-6 6 6 6" />
         </svg>
-        Back
       </button>
 
       <h1 className="parent-signup__title">Create your parent account</h1>

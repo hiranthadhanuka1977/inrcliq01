@@ -33,7 +33,12 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
 
           <div className="profile-page__inner">
             {profile.collection.length > 0 ? (
-              <ProfileCollection slug={profile.slug} items={profile.collection} />
+              <ProfileCollection
+                slug={profile.slug}
+                creatorName={profile.name}
+                items={profile.collection}
+                enabled={profile.collection_enabled !== false}
+              />
             ) : null}
             <ProfilePopularPosts posts={profile.popular_posts} />
 
@@ -48,6 +53,7 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                     item={item}
                     following={following}
                     onFollowingChange={(next) => setFollowing(profile.handle, next)}
+                    hideFollow={Boolean(profile.is_own)}
                   />
                 ))}
               </div>

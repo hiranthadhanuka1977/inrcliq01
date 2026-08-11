@@ -1,0 +1,13 @@
+/**
+ * InrCliq design system — main stylesheet bundle
+ * Import order matches src/app/globals.css so cascade matches production.
+ */
+
+@import "fonts.css";
+@import "tokens.css";
+@import "app-theme.css";
+@import "base.css";
+@import "layout.css";
+@import "components.css";
+@import "app-overrides.css";
+@import "responsive.css";

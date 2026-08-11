@@ -3,7 +3,7 @@
 import Link from "next/link";
 import FollowButton from "@/components/feed/FollowButton";
 import { useFeedFollowState } from "@/context/feed/FollowStateContext";
-import { getProfileSlugFromHandle } from "@/lib/feed/profile-slugs";
+import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 export interface AudioCreatorCardProps {
   name: string;
@@ -19,10 +19,7 @@ export interface AudioCreatorCardProps {
 }
 
 function profileHrefFromHandle(handle: string): string {
-  const mapped = getProfileSlugFromHandle(handle);
-  if (mapped) return `/feed/profile/${mapped}`;
-  const slug = handle.replace(/^@/, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  return `/feed/profile/${slug}`;
+  return `/feed/profile/${resolveAuthorProfileSlug(handle)}`;
 }
 
 export default function AudioCreatorCard({
@@ -38,7 +35,7 @@ export default function AudioCreatorCard({
 }: AudioCreatorCardProps) {
   const { getFollowing, setFollowing } = useFeedFollowState();
   const following = getFollowing(handle, false);
-  const creatorSlug = getProfileSlugFromHandle(handle) ?? handle.replace(/^@/, "");
+  const creatorSlug = resolveAuthorProfileSlug(handle);
   const profileHref = href ?? profileHrefFromHandle(handle);
 
   return (

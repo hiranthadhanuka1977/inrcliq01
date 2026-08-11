@@ -1,0 +1,850 @@
+{
+  "enabled": true,
+  "content": {
+    "intro": [
+      "A finish-line shout-out, birthday pep talk, coaching session, or club appearance — personalized by Mia Chen for the moments that matter."
+    ],
+    "gallery": [
+      {
+        "id": "g1",
+        "alt": "Mia running at sunrise",
+        "src": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=960&h=600&fit=crop&q=80&auto=format",
+        "quote": "Booked a race-day pep talk before Mumbai Marathon — exactly the boost I needed at the start line.",
+        "teaser": "A pre-race pep talk they can replay at the start line.",
+        "caption": "Race-day energy",
+        "hasPlay": true,
+        "quoteBy": "Rohan Silva",
+        "serviceId": "race-pep",
+        "categoryId": "shout-outs",
+        "quoteRating": 5
+      },
+      {
+        "id": "g2",
+        "alt": "Runner crossing finish line",
+        "src": "https://images.unsplash.com/photo-1502904550040-7534597429ae?w=960&h=600&fit=crop&q=80&auto=format",
+        "quote": "Finish-line congratulations video was the highlight of my race weekend album.",
+        "teaser": "Celebrate the PR, the finish, or just showing up.",
+        "caption": "Finish-line shout-outs",
+        "hasPlay": true,
+        "quoteBy": "James Cole",
+        "serviceId": "finish-congrats",
+        "categoryId": "shout-outs",
+        "quoteRating": 5
+      },
+      {
+        "id": "g3",
+        "alt": "Group training session",
+        "src": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=960&h=600&fit=crop&q=80&auto=format",
+        "quote": "She joined our run club as a guest and stayed to chat with everyone. Absolute pro.",
+        "teaser": "Bring Mia to your run club for a live guest moment.",
+        "caption": "Club appearances",
+        "hasPlay": true,
+        "quoteBy": "Kavish Fernando",
+        "serviceId": "club-guest",
+        "categoryId": "appearances",
+        "quoteRating": 5
+      },
+      {
+        "id": "g4",
+        "alt": "Trail running through hills",
+        "src": "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=960&h=600&fit=crop&q=80&auto=format",
+        "quote": "Message for my fiancé after his first 10K was perfect — funny, warm, and on-brand Mia.",
+        "teaser": "A personal message with trail-tested heart.",
+        "caption": "Trail stories",
+        "quoteBy": "Nina Okoye",
+        "serviceId": "loved-one",
+        "categoryId": "shout-outs",
+        "quoteRating": 5
+      },
+      {
+        "id": "g6",
+        "alt": "Runner training outdoors",
+        "src": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=960&h=600&fit=crop&q=80&auto=format",
+        "quote": "Panel appearance at our charity expo was inspiring. Crowd loved her stories.",
+        "teaser": "Stage energy for your next community event.",
+        "caption": "Event hosting",
+        "hasPlay": true,
+        "quoteBy": "Priya Nair",
+        "serviceId": "mc",
+        "categoryId": "appearances",
+        "quoteRating": 5
+      }
+    ],
+    "guarantee": "You won’t be charged until Mia accepts your request. If she can’t fulfill it, you get a full refund — no questions asked.",
+    "categories": [
+      {
+        "id": "shout-outs",
+        "icon": "gift",
+        "blurb": "A personal message for birthdays, race days, and the people you love.",
+        "image": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=480&h=480&fit=crop&q=80&auto=format",
+        "title": "Special occasion shout outs",
+        "intent": "Celebrate someone",
+        "formats": [
+          "Video",
+          "Audio",
+          "Text"
+        ],
+        "popular": true,
+        "examples": [
+          "Birthday",
+          "Race day",
+          "Loved one"
+        ],
+        "imageAlt": "Celebration moment with confetti and lights",
+        "services": [
+          {
+            "id": "birthday",
+            "blurb": "A warm, high-energy video they can replay all day.",
+            "label": "Birthday greeting",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "Watch a sample birthday greeting"
+            },
+            "details": {
+              "about": "Celebrate their birthday with a custom message — short, fun, and personal — to make the day unforgettable. Add names, notes, or inside jokes so it feels uniquely theirs.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "Personalized birthday video with the recipient’s name and vibe.",
+                "Choose Text, Audio, or Video delivery.",
+                "Add a short message, nickname, or personal note.",
+                "Option to feature the shoutout on Mia’s profile for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": true,
+            "priceMax": 120,
+            "priceMin": 80
+          },
+          {
+            "id": "race-pep",
+            "blurb": "Motivation delivered before the gun goes off.",
+            "label": "Race-day pep talk",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1502904550040-7534597429ae?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "See a race-day pep talk example"
+            },
+            "details": {
+              "about": "Get a focused pre-race pep talk tailored to the distance, course, and nerves. Mia keeps it short, personal, and easy to replay while you’re pinning your bib or lining up in the corral.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "Custom pep talk for your race distance and goal.",
+                "Video or audio format you can replay on race morning.",
+                "Add course notes, splits, or a mantra you want included.",
+                "Option to feature the pep talk on Mia’s profile for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 140,
+            "priceMin": 90
+          },
+          {
+            "id": "finish-congrats",
+            "blurb": "Celebrate the PR, the finish, or just showing up.",
+            "label": "Finish-line congratulations",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "Watch a finish-line congrats sample"
+            },
+            "details": {
+              "about": "Celebrate the finish — PR, first race, or tough course conquered. Mia calls out the achievement and the story behind it so the video feels like a keepsake, not a generic congrats.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "Congrats message built around the race and result you share.",
+                "Downloadable video ready for chat, parties, or race albums.",
+                "Add finishing time, course name, or a personal shout-out.",
+                "Option to feature the congrats video on Mia’s profile for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 130,
+            "priceMin": 80
+          },
+          {
+            "id": "loved-one",
+            "blurb": "Make it personal with names, inside jokes, and heart.",
+            "label": "Message for a loved one",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "Watch a loved-one message sample"
+            },
+            "details": {
+              "about": "Send something thoughtful for a partner, parent, teammate, or friend. Share names, nicknames, and the moment you want honored — Mia weaves them into a warm, shareable message.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "Custom message for anniversaries, milestones, or just-because moments.",
+                "Choose Text, Audio, or Video formats.",
+                "Add recipient’s name, short message, or personal note.",
+                "Option to feature the shoutout on Mia’s profile for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 135,
+            "priceMin": 85
+          },
+          {
+            "id": "new-service-2",
+            "blurb": "New service 2",
+            "label": "New service 2",
+            "media": {
+              "kind": "video",
+              "poster": "/uploads/seller-service-requests/1786161976211-2c4cdec036b5.webp",
+              "caption": "Sample for New service"
+            },
+            "details": {
+              "about": "New service 2",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "New service 2"
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": false,
+            "priceMax": 120,
+            "priceMin": 80,
+            "published": false
+          },
+          {
+            "id": "new-service",
+            "blurb": "New service",
+            "label": "New service",
+            "media": {
+              "kind": "video",
+              "poster": "/uploads/seller-service-requests/1786162251467-d9d751712e7f.webp",
+              "caption": "Sample for New service"
+            },
+            "details": {
+              "about": "New service",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "New service"
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": true,
+            "priceMax": 120,
+            "priceMin": 80,
+            "published": false
+          },
+          {
+            "id": "new-service-1-ust-added",
+            "blurb": "New service 1",
+            "label": "New service 1 ust added",
+            "media": {
+              "kind": "video",
+              "poster": "/uploads/seller-service-requests/1786323409557-5473d4928d5d.webp",
+              "caption": "Sample for New service"
+            },
+            "details": {
+              "about": "New service 1",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "New service 1",
+                "New service 1",
+                "New service 1"
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": true,
+            "priceMax": 120,
+            "priceMin": 80,
+            "published": false
+          }
+        ]
+      },
+      {
+        "id": "training",
+        "icon": "coach",
+        "blurb": "One-to-one guidance for plans, pacing, recovery, and race strategy.",
+        "image": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=480&h=480&fit=crop&q=80&auto=format",
+        "title": "Training & coaching",
+        "intent": "Train with Mia",
+        "formats": [
+          "Live",
+          "Audio",
+          "Written"
+        ],
+        "examples": [
+          "Plan review",
+          "Coached run",
+          "Recovery"
+        ],
+        "imageAlt": "Athlete training outdoors with a coach",
+        "services": [
+          {
+            "id": "plan-review",
+            "blurb": "Honest feedback on your current plan and where to adjust.",
+            "label": "Training plan review",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "See how a plan review works"
+            },
+            "details": {
+              "about": "Share your current plan, recent workouts, and goal race. Mia reviews volume, intensity, and recovery gaps, then sends clear notes on what to keep, cut, or reshape before peak weeks.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Mia sends the review notes by your selected date."
+              ],
+              "onOffer": [
+                "Written review of your current training plan and recent weeks.",
+                "Clear notes on volume, intensity, and recovery adjustments.",
+                "Share workouts, goal race, and schedule constraints.",
+                "Optional follow-up clarification after you receive the review."
+              ],
+              "licensing": [
+                "You can download & keep the review notes for personal use.",
+                "You cannot alter, remix or use materials in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": true,
+            "priceMax": 200,
+            "priceMin": 120
+          },
+          {
+            "id": "virtual-run",
+            "blurb": "Live session energy — cues, pacing, and accountability.",
+            "label": "Virtual coached run",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "Preview a virtual coached run"
+            },
+            "details": {
+              "about": "Join Mia for a live coached run with pacing cues, form reminders, and real-time encouragement. Ideal when you want accountability and trail-tested guidance without waiting for race week.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Live session on the date and time you select."
+              ],
+              "onOffer": [
+                "Live virtual coached run with pacing and form cues.",
+                "Session tailored to your distance and effort target.",
+                "Share recent training load and any niggles before you start.",
+                "Short post-run notes you can keep for the next week."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 180,
+            "priceMin": 100
+          },
+          {
+            "id": "pre-race",
+            "blurb": "Fueling, splits, and mindset locked in before race week.",
+            "label": "Pre-race strategy call",
+            "media": {
+              "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+              "kind": "audio",
+              "title": "Hear a strategy sample",
+              "duration": "0:50"
+            },
+            "details": {
+              "about": "A one-to-one strategy call covering splits, fueling, weather contingencies, and mindset. You’ll leave race week with a simple plan you can execute under pressure.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Live call on the date and time you select."
+              ],
+              "onOffer": [
+                "Live strategy call focused on your goal race.",
+                "Splits, fueling, and weather contingencies covered.",
+                "Share course profile, goal time, and open questions.",
+                "Summary notes after the call so nothing gets lost."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 190,
+            "priceMin": 110
+          },
+          {
+            "id": "weekly-checkin",
+            "blurb": "Stay accountable through peak training with regular touchpoints.",
+            "label": "Weekly check-in session",
+            "media": {
+              "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+              "kind": "audio",
+              "title": "Listen to a check-in clip",
+              "duration": "0:43"
+            },
+            "details": {
+              "about": "Stay accountable through peak training with a recurring check-in. Review the week, adjust the next one, and keep momentum without overthinking every workout.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Session and notes delivered on your selected cadence."
+              ],
+              "onOffer": [
+                "Weekly check-in to review training and set the next week.",
+                "Adjustments for fatigue, schedule changes, and goal races.",
+                "Share the week’s workouts and how you felt completing them.",
+                "Short written plan for the following seven days."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 220,
+            "priceMin": 140
+          },
+          {
+            "id": "new-service-3",
+            "blurb": "New service",
+            "label": "New service",
+            "media": {
+              "kind": "video",
+              "poster": "/uploads/seller-service-requests/1786162407781-84ff995fa486.webp",
+              "caption": "Sample for New service"
+            },
+            "details": {
+              "about": "New service",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "New service"
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": false,
+            "priceMax": 120,
+            "priceMin": 80,
+            "published": false
+          }
+        ]
+      },
+      {
+        "id": "appearances",
+        "icon": "stage",
+        "blurb": "Bring Mia to your club, stage, expo, or podcast.",
+        "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=480&h=480&fit=crop&q=80&auto=format",
+        "title": "Appearances & events",
+        "intent": "Book an appearance",
+        "formats": [
+          "Live",
+          "In person",
+          "Remote"
+        ],
+        "examples": [
+          "Run club",
+          "Panel",
+          "Podcast"
+        ],
+        "imageAlt": "Group training session and community event energy",
+        "services": [
+          {
+            "id": "club-guest",
+            "blurb": "Join a group run and stick around to chat with members.",
+            "label": "Guest at your run club",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "See a run-club guest appearance"
+            },
+            "details": {
+              "about": "Mia joins your club run, brings energy to the group, and stays to chat with members afterward. Great for community nights, milestone runs, or kicking off a new training season.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Mia appears on the agreed date and format you selected."
+              ],
+              "onOffer": [
+                "Guest appearance at your run club meet-up.",
+                "Group run energy plus post-run conversation time.",
+                "Share club size, route, and any special occasion notes.",
+                "Optional social mention after the appearance for an extra fee."
+              ],
+              "licensing": [
+                "You can share photos or clips from the appearance for personal and event use.",
+                "You cannot alter, remix or use materials in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": true,
+            "priceMax": 320,
+            "priceMin": 180
+          },
+          {
+            "id": "panel",
+            "blurb": "Trail stories and Q&A that keep an audience leaning in.",
+            "label": "Panel appearance",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "Watch a panel appearance sample"
+            },
+            "details": {
+              "about": "A panel appearance built around trail stories, endurance lessons, and audience Q&A. Mia keeps the conversation grounded, practical, and engaging for runners at every level.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Mia appears on the agreed date and format you selected."
+              ],
+              "onOffer": [
+                "Live panel segment with stories and audience Q&A.",
+                "In-person or remote format depending on your event.",
+                "Share themes, co-panelists, and audience profile in advance.",
+                "Optional highlight clip for your event channels for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 280,
+            "priceMin": 160
+          },
+          {
+            "id": "speech",
+            "blurb": "A keynote-style talk built around grit, community, and finishing.",
+            "label": "Inspirational speech",
+            "media": {
+              "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+              "kind": "audio",
+              "title": "Hear a speech excerpt",
+              "duration": "0:52"
+            },
+            "details": {
+              "about": "A keynote-style talk on grit, community, and finishing strong. Share your event theme and audience, and Mia shapes a speech that fits the room — from club nights to brand activations.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Mia appears on the agreed date and format you selected."
+              ],
+              "onOffer": [
+                "Custom inspirational speech matched to your event theme.",
+                "Keynote-style delivery for clubs, brands, or community nights.",
+                "Share audience details, runtime, and preferred talking points.",
+                "Optional recording rights for internal event use for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 360,
+            "priceMin": 200
+          },
+          {
+            "id": "mc",
+            "blurb": "Stage presence that keeps the expo floor energized.",
+            "label": "MC a race expo",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "See race-expo MC energy"
+            },
+            "details": {
+              "about": "Mia MCs your race expo with clear stage presence, athlete intros, and crowd energy that keeps the floor moving. Includes timing coordination notes so the program stays on track.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Mia appears on the agreed date and format you selected."
+              ],
+              "onOffer": [
+                "Full MC coverage for your race expo stage program.",
+                "Athlete intros, announcements, and crowd engagement.",
+                "Share run-of-show, brand partners, and key timings.",
+                "Optional post-event highlight clip for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 400,
+            "priceMin": 220
+          },
+          {
+            "id": "charity",
+            "blurb": "Show up for a cause and help rally participants.",
+            "label": "Charity run appearance",
+            "media": {
+              "kind": "video",
+              "poster": "https://images.unsplash.com/photo-1502904550040-7534597429ae?w=640&h=360&fit=crop&q=80&auto=format",
+              "caption": "Watch a charity appearance sample"
+            },
+            "details": {
+              "about": "Book Mia for a charity run appearance to rally participants, support your cause message, and help the day feel memorable for volunteers and runners alike.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Mia appears on the agreed date and format you selected."
+              ],
+              "onOffer": [
+                "On-site appearance for your charity run or fundraiser.",
+                "Participant rally moments and cause-aligned messaging.",
+                "Share cause details, schedule, and any speaking notes.",
+                "Optional social shoutout supporting the charity for an extra fee."
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 300,
+            "priceMin": 150
+          },
+          {
+            "id": "podcast",
+            "blurb": "An engaging conversation for your listeners and community.",
+            "label": "Podcast guest spot",
+            "media": {
+              "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+              "kind": "audio",
+              "title": "Listen to a podcast sample",
+              "duration": "0:55"
+            },
+            "details": {
+              "about": "Invite Mia as a podcast guest for an engaging conversation on training, mindset, and community. Share your episode angle in advance so the talk fits your audience and format.",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: Recording session on the date and format you selected."
+              ],
+              "onOffer": [
+                "Remote or in-studio podcast guest appearance.",
+                "Conversation tailored to your show’s audience and episode angle.",
+                "Share questions, runtime, and preferred topics in advance.",
+                "You keep standard episode distribution rights for the show."
+              ],
+              "licensing": [
+                "You can publish the episode across your usual podcast channels.",
+                "You cannot alter, remix or use materials in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "priceMax": 180,
+            "priceMin": 100
+          }
+        ]
+      },
+      {
+        "id": "test-cat-01",
+        "icon": "gift",
+        "blurb": "Test Cat 01",
+        "image": "/uploads/seller-service-requests/1786163073446-0928c84226bf.webp",
+        "title": "Test Cat 01",
+        "active": true,
+        "intent": "Test Cat 01",
+        "formats": [
+          "Video",
+          "Audio",
+          "Text"
+        ],
+        "popular": true,
+        "examples": [],
+        "imageAlt": "Test Cat 01",
+        "services": [
+          {
+            "id": "new-service-4",
+            "blurb": "New service",
+            "label": "New service",
+            "media": {
+              "kind": "video",
+              "poster": "/uploads/seller-service-requests/1786163116750-a78fb6d3bf7c.webp",
+              "caption": "Sample for New service"
+            },
+            "details": {
+              "about": "New service",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "New service"
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": false,
+            "priceMax": 120,
+            "priceMin": 80,
+            "published": true
+          }
+        ]
+      },
+      {
+        "id": "category-1",
+        "icon": "gift",
+        "blurb": "Category 1",
+        "image": "/uploads/seller-service-requests/1786323506816-fee1c8ae930e.webp",
+        "title": "Category 1",
+        "active": true,
+        "intent": "Category 1",
+        "formats": [
+          "Video",
+          "Audio",
+          "Text"
+        ],
+        "popular": true,
+        "examples": [],
+        "imageAlt": "Category 1",
+        "services": [
+          {
+            "id": "new-service-1",
+            "blurb": "New service 1",
+            "label": "New service 1",
+            "media": {
+              "kind": "video",
+              "poster": "/uploads/seller-service-requests/1786323532671-d5d1e5a90b63.webp",
+              "caption": "Sample for New service"
+            },
+            "details": {
+              "about": "New service 1",
+              "booking": [
+                "Direct booking: Pay in full to confirm your request instantly.",
+                "No approval needed: Your booking is auto-confirmed upon payment.",
+                "Delivery: The creator will send the completed message by your selected date."
+              ],
+              "onOffer": [
+                "New service 1"
+              ],
+              "licensing": [
+                "You can download & share your delivery for personal use.",
+                "You cannot alter, remix or use it in defamatory/illegal ways.",
+                "The Creator retains rights of integrity and attribution."
+              ],
+              "termsHref": "#"
+            },
+            "popular": false,
+            "priceMax": 120,
+            "priceMin": 80,
+            "published": true
+          }
+        ]
+      }
+    ],
+    "howItWorks": [
+      {
+        "copy": "Choose the service that fits your occasion and lock in Mia’s availability.",
+        "title": "Select & Secure"
+      },
+      {
+        "copy": "Share names, race details, or talking points so the request feels truly yours.",
+        "title": "Personalize & Confirm"
+      },
+      {
+        "copy": "Complete payment once Mia accepts — then sit back and enjoy the moment.",
+        "title": "Pay & Enjoy"
+      }
+    ],
+    "responseTime": "24 hours",
+    "nextAvailable": "Jul 22, 2026",
+    "startingRange": "$80 – $400",
+    "guaranteePoints": [
+      {
+        "copy": "You won’t be charged until Mia accepts your request.",
+        "title": "Pay only when accepted"
+      },
+      {
+        "copy": "If she can’t deliver, you get a full refund — no questions asked.",
+        "title": "Full refund if unfulfilled"
+      }
+    ]
+  },
+  "updatedAt": "2026-08-10T00:59:06.215Z"
+}

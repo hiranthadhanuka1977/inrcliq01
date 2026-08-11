@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pick interests — InrCliq Onboarding</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section class="auth-center auth-center--signup-step">
+        <div class="auth-center__card auth-center__card--step-offset">
+          <h1>Pick your interests</h1>
+          <p class="subtitle mt-2">Choose topics you care about so we can personalize your InrCliq experience.</p>
+
+          <section class="chips-section mt-8" aria-labelledby="interests-heading">
+            <div class="chips-header">
+              <span id="interests-heading">Select all that apply</span>
+            </div>
+            <div class="chips-row" role="group" aria-describedby="interests-help">
+              <button type="button" class="chip is-selected" aria-pressed="true">Music</button>
+              <button type="button" class="chip" aria-pressed="false">Sports</button>
+              <button type="button" class="chip is-selected" aria-pressed="true">Gaming</button>
+              <button type="button" class="chip" aria-pressed="false">Fitness</button>
+              <button type="button" class="chip" aria-pressed="false">Food</button>
+              <button type="button" class="chip" aria-pressed="false">Travel</button>
+              <button type="button" class="chip" aria-pressed="false">Fashion</button>
+              <button type="button" class="chip is-selected" aria-pressed="true">Technology</button>
+              <button type="button" class="chip" aria-pressed="false">Finance</button>
+              <button type="button" class="chip" aria-pressed="false">Art</button>
+              <button type="button" class="chip" aria-pressed="false">Lifestyle</button>
+              <button type="button" class="chip" aria-pressed="false">Education</button>
+            </div>
+            <p class="form-hint mt-4" id="interests-help">You can update these later from your profile settings.</p>
+          </section>
+
+          <button type="button" class="btn btn--primary mt-8">
+            <span class="btn__label">Continue</span>
+          </button>
+          <div class="password-skip-row mt-4">
+            <button type="button" class="link-btn password-skip-row__action">Skip for now — choose interests later</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="signup-progress is-visible" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="Signup progress">
+        <div class="signup-progress__track">
+          <div class="signup-progress__bar" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

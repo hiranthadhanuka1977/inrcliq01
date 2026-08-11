@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face scan — InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+
+      <div class="app-shell">
+        <div class="app-frame">
+          <section class="screen parent-signup parent-signup--single parent-signup--stepper-width">
+            <header class="auth-topbar">
+              <div class="auth-topbar__actions">
+                <p class="auth-topbar__prompt-text">
+                  Already have an account? <a href="../auth/login.html" class="link-btn">Log in</a>
+                </p>
+                <button type="button" class="theme-switcher" aria-label="Switch to light theme" title="Light mode">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div class="parent-signup__progress">
+              <nav class="parent-stepper" aria-label="Parent setup progress">
+                <ol class="parent-stepper__list">
+                  <li class="parent-stepper__item is-complete" data-step="1">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 1:</span>Account</span>
+                  </li>
+                  <li class="parent-stepper__item is-active" data-step="2" aria-current="step">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 2:</span>Verify</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="3">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 3:</span>Review</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="4">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 4:</span>Protection</span>
+                  </li>
+                  <li class="parent-stepper__item" data-step="5">
+                    <span class="parent-stepper__bar" aria-hidden="true"></span>
+                    <span class="parent-stepper__label"><span class="sr-only">Step 5:</span>Approved</span>
+                  </li>
+                </ol>
+              </nav>
+              <hr class="parent-signup__progress-divider" />
+            </div>
+
+            <div class="parent-signup__shell">
+              <div class="parent-signup__layout parent-signup__layout--single">
+                <div class="parent-signup__main">
+                  <div class="id-verify__toolbar">
+                    <button type="button" class="back-btn" aria-label="Back" onclick="window.location.href='id-capture.html'">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 6l-6 6 6 6" />
+                      </svg>
+                    </button>
+                    <nav class="id-verify__flow" aria-label="Identity verification progress">
+                      <ol class="id-verify__flow-steps">
+                        <li class="id-verify__flow-step is-complete">
+                          <span class="id-verify__flow-num" aria-hidden="true">
+                            <span class="id-verify__flow-index">1</span>
+                            <svg class="id-verify__flow-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                          <span class="id-verify__flow-label">Hold up your ID</span>
+                        </li>
+                        <li class="id-verify__flow-step is-active" aria-current="step">
+                          <span class="id-verify__flow-num" aria-hidden="true">
+                            <span class="id-verify__flow-index">2</span>
+                            <svg class="id-verify__flow-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                          <span class="id-verify__flow-label">Face scan</span>
+                        </li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <h1 class="parent-signup__title id-verify__title">Now take a quick selfie</h1>
+                  <p class="subtitle mt-2">
+                    Lower your ID. Position your face in the oval and hold still, we will match it to your ID.
+                  </p>
+
+                  <div class="id-verify__capture mt-8">
+                    <div class="id-verify__frame id-verify__frame--face">
+                      <div class="id-verify__viewport-wrap id-verify__viewport-wrap--face">
+                        <div class="id-verify__viewport id-verify__viewport--face">
+                          <div class="id-verify__frame-placeholder" aria-hidden="true">
+                            <svg class="id-verify__face-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                              <rect x="12" y="12" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2" />
+                              <circle cx="32" cy="28" r="8" stroke="currentColor" stroke-width="2" />
+                              <path d="M20 46c3-6 8-9 12-9s9 3 12 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                          </div>
+                          <span class="id-verify__face-oval-ring" aria-hidden="true"></span>
+                        </div>
+                        <span class="id-verify__frame-hint id-verify__face-hint">
+                          Move your camera so that your face is within the Oval frame
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="id-verify__capture-action">
+                      <a href="verifying.html" class="btn btn--primary id-verify__capture-btn">Capture selfie</a>
+                      <div class="id-verify__capture-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Capturing selfie" aria-hidden="true">
+                        <div class="id-verify__capture-progress-bar" style="width: 0%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

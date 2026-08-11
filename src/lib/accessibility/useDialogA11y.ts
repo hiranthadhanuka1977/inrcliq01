@@ -5,9 +5,14 @@ import { useEffect, useRef } from "react";
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function useDialogA11y(open: boolean, onClose: () => void) {
+export function useDialogA11y(
+  open: boolean,
+  onClose: () => void,
+  options?: { restoreFocus?: boolean },
+) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const restoreFocus = options?.restoreFocus ?? true;
 
   useEffect(() => {
     if (!open) return;
@@ -52,9 +57,11 @@ export function useDialogA11y(open: boolean, onClose: () => void) {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      lastFocusedRef.current?.focus();
+      if (restoreFocus) {
+        lastFocusedRef.current?.focus();
+      }
     };
-  }, [open, onClose]);
+  }, [open, onClose, restoreFocus]);
 
   return { dialogRef };
 }

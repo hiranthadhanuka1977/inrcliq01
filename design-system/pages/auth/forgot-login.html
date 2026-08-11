@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-feed-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forgot login — InrCliq</title>
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <div class="auth-path-shell auth-path-shell--top-logo">
+      <a href="../../index.html" class="auth-top-logo logo logo--img" aria-label="InrCliq home">
+        <img src="../../assets/logo-InrCliq.svg" alt="InrCliq" class="logo__img" width="114" height="27" />
+      </a>
+      <button type="button" class="theme-switcher theme-switcher--auth-fixed" aria-label="Switch to light theme" title="Light mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+
+      <section class="auth-center">
+        <div class="auth-center__card">
+          <a href="login.html" class="back-btn auth-split__back" aria-label="Back to log in">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 6l-6 6 6 6" />
+            </svg>
+          </a>
+          <h1>Forgot your login details?</h1>
+          <p class="subtitle mt-2">Enter the email on your account and we'll send you a login code so you can get back in.</p>
+
+          <form class="gap-3 mt-8" action="#">
+            <div class="field">
+              <label class="field-label" for="forgot-login-email">Email</label>
+              <input class="input" type="email" id="forgot-login-email" value="alex@example.com" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <button type="submit" class="btn btn--primary">
+              <span class="btn__label">Send login code</span>
+            </button>
+          </form>
+
+          <p class="auth-switch mt-8">
+            Remember your details? <a href="login.html" class="link-btn">Back to log in</a>
+          </p>
+        </div>
+      </section>
+    </div>
+    <script src="../../js/onboarding.js"></script>
+  </body>
+</html>

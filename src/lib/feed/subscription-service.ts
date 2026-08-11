@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { hashPassword } from "@/lib/auth/credentials";
+import { ensureCreatorLinkedToUser } from "@/lib/feed/creator-user-bridge";
 import { prisma } from "@/lib/prisma";
 
 const VALID_NOTIFY_LEVELS = new Set(["all", "personalized", "none"]);
@@ -64,7 +65,10 @@ export async function resolveCreatorIdBySlug(slug: string) {
     where: { slug },
     select: { id: true, slug: true, name: true },
   });
-  if (existing) return existing;
+  if (existing) {
+    await ensureCreatorLinkedToUser(existing.id);
+    return existing;
+  }
 
   const profile = readProfileSeed(slug);
   if (!profile?.handle || !profile.name) return null;
@@ -82,18 +86,19 @@ export async function resolveCreatorIdBySlug(slug: string) {
     select: { id: true, slug: true, name: true },
   });
   if (byHandle) {
-    if (!byHandle.slug) {
-      return prisma.creatorUser.update({
-        where: { id: byHandle.id },
-        data: { slug },
-        select: { id: true, slug: true, name: true },
-      });
-    }
-    return byHandle;
+    const resolved = !byHandle.slug
+      ? await prisma.creatorUser.update({
+          where: { id: byHandle.id },
+          data: { slug },
+          select: { id: true, slug: true, name: true },
+        })
+      : byHandle;
+    await ensureCreatorLinkedToUser(resolved.id);
+    return resolved;
   }
 
   try {
-    return await prisma.creatorUser.create({
+    const created = await prisma.creatorUser.create({
       data: {
         email,
         passwordHash,
@@ -112,13 +117,18 @@ export async function resolveCreatorIdBySlug(slug: string) {
       },
       select: { id: true, slug: true, name: true },
     });
+    await ensureCreatorLinkedToUser(created.id);
+    return created;
   } catch (error) {
     // Race: another request created the same creator.
     const raced = await prisma.creatorUser.findFirst({
       where: { OR: [{ slug }, { handle }, { email }] },
       select: { id: true, slug: true, name: true },
     });
-    if (raced) return raced;
+    if (raced) {
+      await ensureCreatorLinkedToUser(raced.id);
+      return raced;
+    }
     throw error;
   }
 }

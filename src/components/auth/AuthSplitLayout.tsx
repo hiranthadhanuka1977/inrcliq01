@@ -18,7 +18,7 @@ export function AuthSplitLayout({
         <AuthTopbar>
           <div className="auth-topbar__prompt">
             <span className="auth-topbar__prompt-text">New here?</span>
-            <Link href="/signup" className="btn btn--outline-brand btn--xs">
+            <Link href="/signup" className="btn btn--outline-brand">
               Create a free account
             </Link>
           </div>

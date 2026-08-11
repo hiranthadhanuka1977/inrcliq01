@@ -1,0 +1,195 @@
+.post-reaction {
+  position: relative;
+  display: inline-flex;
+}
+
+.post-reaction__picker {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.55rem);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--post-card-border, var(--color-neutral-200));
+  border-radius: 999px;
+  background: var(--color-neutral-0);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
+  animation: post-reaction-picker-in 0.16s ease;
+}
+
+@keyframes post-reaction-picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes post-reaction-picker-portal-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.post-reaction__option {
+  display: grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.14s ease, background 0.14s ease;
+}
+
+.post-reaction__option:hover,
+.post-reaction__option:focus-visible {
+  transform: scale(1.18);
+  background: var(--color-bg-muted);
+}
+
+.post-reaction__option.is-selected {
+  background: var(--color-brand-primary-subtle);
+}
+
+.post-reaction__emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.post-reaction__picker--portal {
+  position: fixed;
+  z-index: 1300;
+  bottom: auto;
+  /* Keep above the like button; do not animate transform — it fights positioning. */
+  transform: translateY(-100%);
+  animation: post-reaction-picker-portal-in 0.12s ease;
+}
+
+/* Invisible bridge so the pointer can move from button → picker without flicker. */
+.post-reaction__picker--portal::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 0.75rem;
+}
+
+.post-reaction--comment {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.post-reaction--comment .post-reaction__emoji {
+  width: 0.85rem;
+  height: 0.85rem;
+  font-size: 0.85rem;
+}
+
+.feed-video-viewer__comment-like.is-love,
+.feed-video-viewer__comment-like.is-love:hover,
+.feed-video-viewer__comment-like.is-love:focus-visible {
+  color: #e74c3c;
+}
+
+.feed-video-viewer__comment-like.is-like,
+.feed-video-viewer__comment-like.is-like:hover,
+.feed-video-viewer__comment-like.is-like:focus-visible {
+  color: #1877f2;
+}
+
+.feed-video-viewer__comment-like.is-care,
+.feed-video-viewer__comment-like.is-care:hover,
+.feed-video-viewer__comment-like.is-care:focus-visible,
+.feed-video-viewer__comment-like.is-haha,
+.feed-video-viewer__comment-like.is-haha:hover,
+.feed-video-viewer__comment-like.is-haha:focus-visible,
+.feed-video-viewer__comment-like.is-wow,
+.feed-video-viewer__comment-like.is-wow:hover,
+.feed-video-viewer__comment-like.is-wow:focus-visible,
+.feed-video-viewer__comment-like.is-sad,
+.feed-video-viewer__comment-like.is-sad:hover,
+.feed-video-viewer__comment-like.is-sad:focus-visible {
+  color: #c98700;
+}
+
+.feed-video-viewer__comment-like.is-angry,
+.feed-video-viewer__comment-like.is-angry:hover,
+.feed-video-viewer__comment-like.is-angry:focus-visible {
+  color: #e9710f;
+}
+
+.feed-video-viewer__comment-meta .post-reaction--comment .feed-video-viewer__comment-like:hover,
+.feed-video-viewer__comment-meta .post-reaction--comment .feed-video-viewer__comment-like:focus-visible {
+  color: var(--color-brand-primary);
+}
+
+.feed-video-viewer__comment-meta .post-reaction--comment .feed-video-viewer__comment-like.is-liked:hover,
+.feed-video-viewer__comment-meta .post-reaction--comment .feed-video-viewer__comment-like.is-liked:focus-visible {
+  color: inherit;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-love,
+.feed-surface--simple .post-actions--engage .post-action--like.is-love:hover {
+  background: rgba(192, 57, 43, 0.14);
+  color: #e74c3c;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-like,
+.feed-surface--simple .post-actions--engage .post-action--like.is-like:hover {
+  background: rgba(24, 119, 242, 0.14);
+  color: #1877f2;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-care,
+.feed-surface--simple .post-actions--engage .post-action--like.is-care:hover {
+  background: rgba(247, 181, 0, 0.16);
+  color: #c98700;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-haha,
+.feed-surface--simple .post-actions--engage .post-action--like.is-haha:hover {
+  background: rgba(247, 181, 0, 0.16);
+  color: #c98700;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-wow,
+.feed-surface--simple .post-actions--engage .post-action--like.is-wow:hover {
+  background: rgba(247, 181, 0, 0.16);
+  color: #c98700;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-sad,
+.feed-surface--simple .post-actions--engage .post-action--like.is-sad:hover {
+  background: rgba(247, 181, 0, 0.16);
+  color: #c98700;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like.is-angry,
+.feed-surface--simple .post-actions--engage .post-action--like.is-angry:hover {
+  background: rgba(233, 113, 15, 0.16);
+  color: #e9710f;
+}
+
+.feed-surface--simple .post-actions--engage .post-action--like[class*=" is-"] .post-action__count {
+  color: inherit;
+}

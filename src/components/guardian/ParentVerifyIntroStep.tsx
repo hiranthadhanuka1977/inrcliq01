@@ -11,11 +11,18 @@ export function ParentVerifyIntroStep({
 }) {
   return (
     <>
-      <button type="button" className="parent-signup__back link-btn" onClick={onBack}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <polyline points="15 18 9 12 15 6" />
+      <button type="button" className="back-btn" aria-label="Back" onClick={onBack}>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M14 6l-6 6 6 6" />
         </svg>
-        Back
       </button>
 
       <h1 className="parent-signup__title">Eligibility verification</h1>
