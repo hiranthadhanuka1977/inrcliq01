@@ -144,12 +144,8 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
       if (event.key === "Escape") clearSelection();
     }
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
-
     return () => {
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open, clearSelection]);
@@ -273,17 +269,11 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
         className={`my-bookings-drawer${open ? " is-open" : ""}`}
         aria-hidden={!open}
       >
-        <button
-          type="button"
-          className="my-bookings-drawer__backdrop"
-          aria-label="Close booking details"
-          tabIndex={open ? 0 : -1}
-          onClick={clearSelection}
-        />
+        <div className="my-bookings-drawer__backdrop" aria-hidden="true" />
         <aside
           className="my-bookings-drawer__panel"
           role="dialog"
-          aria-modal="true"
+          aria-modal="false"
           aria-labelledby={panelTitleId}
         >
           {selected ? (
