@@ -10,9 +10,15 @@ import {
 import type {
   CreatorRequestsContent,
   RequestCategory,
+  RequestDeliveryFormatKind,
   RequestService,
 } from "@/lib/feed/special-requests";
 import { formatRequestPriceRange } from "@/lib/feed/special-requests";
+import {
+  enabledDeliveryFormatKinds,
+  newLengthOption,
+  resolveServiceDeliveryFormats,
+} from "@/lib/feed/delivery-formats";
 import {
   categoryHasRequiredImage,
   createEmptyService,
@@ -25,6 +31,12 @@ import {
   withServicePoster,
   type SellerServiceRequestsConfig,
 } from "@/lib/seller/service-requests-helpers";
+
+const DELIVERY_FORMAT_LABELS: Record<RequestDeliveryFormatKind, string> = {
+  text: "Text",
+  audio: "Audio",
+  video: "Video",
+};
 
 const CATEGORY_ICONS = ["gift", "coach", "stage"] as const;
 const BACK_HREF = "/seller/service-requests?tab=offerings";
@@ -745,18 +757,56 @@ function ServiceEditorModal({
   onClose: () => void;
   onSave: (service: RequestService) => void | Promise<void>;
 }) {
-  const [service, setService] = useState(initial);
+  const [service, setService] = useState<RequestService>(() => ({
+    ...initial,
+    deliveryFormats: resolveServiceDeliveryFormats(initial),
+  }));
   const [onOfferText, setOnOfferText] = useState(linesToText(initial.details.onOffer));
   const [imageError, setImageError] = useState("");
+  const [formatError, setFormatError] = useState("");
+  const deliveryFormats = resolveServiceDeliveryFormats(service);
+
+  function patchFormat(
+    kind: RequestDeliveryFormatKind,
+    patch: Partial<(typeof deliveryFormats)[RequestDeliveryFormatKind]>,
+  ) {
+    setFormatError("");
+    setService((current) => {
+      const formats = resolveServiceDeliveryFormats(current);
+      return {
+        ...current,
+        deliveryFormats: {
+          ...formats,
+          [kind]: {
+            ...formats[kind],
+            ...patch,
+          },
+        },
+      };
+    });
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    const formats = resolveServiceDeliveryFormats(service);
+    if (!enabledDeliveryFormatKinds(formats).length) {
+      setFormatError("Enable at least one delivery format (Text, Audio, or Video).");
+      return;
+    }
+    for (const kind of enabledDeliveryFormatKinds(formats)) {
+      const config = formats[kind];
+      if (config.lengthEnabled && !config.lengthOptions.length) {
+        setFormatError(`Add at least one length option for ${DELIVERY_FORMAT_LABELS[kind]}.`);
+        return;
+      }
+    }
     const next: RequestService = {
       ...service,
       label: service.label.trim(),
       blurb: service.blurb.trim(),
       priceMin: Number(service.priceMin) || 0,
       priceMax: Number(service.priceMax) || 0,
+      deliveryFormats: formats,
       details: {
         ...service.details,
         about: service.details.about.trim(),
@@ -772,6 +822,7 @@ function ServiceEditorModal({
       return;
     }
     setImageError("");
+    setFormatError("");
     void onSave(next);
   }
 
@@ -793,7 +844,10 @@ function ServiceEditorModal({
             disabled={saving}
             onChange={(url) => {
               setImageError("");
-              setService(withServicePoster(service, url));
+              setService({
+                ...withServicePoster(service, url),
+                deliveryFormats: resolveServiceDeliveryFormats(service),
+              });
             }}
             onError={setImageError}
           />
@@ -874,6 +928,148 @@ function ServiceEditorModal({
               />
             </label>
           </div>
+
+          <fieldset className="seller-delivery-formats">
+            <legend className="seller-delivery-formats__legend">Delivery formats</legend>
+            <p className="seller-delivery-formats__hint">
+              Choose which formats fans can request. For each enabled format, decide which options
+              they pick — and set length add-ons on top of the base price.
+            </p>
+            {(Object.keys(DELIVERY_FORMAT_LABELS) as RequestDeliveryFormatKind[]).map((kind) => {
+              const config = deliveryFormats[kind];
+              return (
+                <div
+                  key={kind}
+                  className={`seller-delivery-format${config.enabled ? " is-enabled" : ""}`}
+                >
+                  <label className="seller-toggle seller-toggle--compact">
+                    <input
+                      type="checkbox"
+                      checked={config.enabled}
+                      disabled={saving}
+                      onChange={(event) => patchFormat(kind, { enabled: event.target.checked })}
+                    />
+                    <span>
+                      <strong>{DELIVERY_FORMAT_LABELS[kind]}</strong>
+                    </span>
+                  </label>
+
+                  {config.enabled ? (
+                    <div className="seller-delivery-format__body">
+                      <div className="seller-delivery-format__options" role="group" aria-label={`${DELIVERY_FORMAT_LABELS[kind]} options`}>
+                        {(
+                          [
+                            ["lengthEnabled", "Length"],
+                            ["toneEnabled", "Tone"],
+                            ["framingEnabled", "Framing"],
+                            ["captionsEnabled", "Captions"],
+                          ] as const
+                        ).map(([key, label]) => (
+                          <label key={key} className="seller-toggle seller-toggle--compact">
+                            <input
+                              type="checkbox"
+                              checked={config[key]}
+                              disabled={saving}
+                              onChange={(event) => patchFormat(kind, { [key]: event.target.checked })}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      {config.lengthEnabled ? (
+                        <div className="seller-length-options">
+                          <div className="seller-length-options__head">
+                            <p className="seller-length-options__title">Length pricing</p>
+                            <p className="seller-length-options__hint">
+                              Add-on amounts are charged on top of the base (price min).
+                            </p>
+                          </div>
+                          <div className="seller-length-options__rows">
+                            {config.lengthOptions.map((option, index) => (
+                              <div key={option.id} className="seller-length-options__row">
+                                <label className="field">
+                                  <span className="field-label">Label</span>
+                                  <input
+                                    className="input"
+                                    value={option.label}
+                                    disabled={saving}
+                                    onChange={(event) => {
+                                      const lengthOptions = config.lengthOptions.map((row, rowIndex) =>
+                                        rowIndex === index
+                                          ? { ...row, label: event.target.value }
+                                          : row,
+                                      );
+                                      patchFormat(kind, { lengthOptions });
+                                    }}
+                                  />
+                                </label>
+                                <label className="field">
+                                  <span className="field-label">Add-on ($)</span>
+                                  <input
+                                    className="input"
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={option.priceAddon}
+                                    disabled={saving}
+                                    onChange={(event) => {
+                                      const lengthOptions = config.lengthOptions.map((row, rowIndex) =>
+                                        rowIndex === index
+                                          ? {
+                                              ...row,
+                                              priceAddon: Math.max(0, Number(event.target.value) || 0),
+                                            }
+                                          : row,
+                                      );
+                                      patchFormat(kind, { lengthOptions });
+                                    }}
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  className="btn btn--secondary seller-length-options__remove"
+                                  disabled={saving || config.lengthOptions.length <= 1}
+                                  onClick={() => {
+                                    patchFormat(kind, {
+                                      lengthOptions: config.lengthOptions.filter((_, rowIndex) => rowIndex !== index),
+                                    });
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn--secondary seller-length-options__add"
+                            disabled={saving}
+                            onClick={() => {
+                              patchFormat(kind, {
+                                lengthOptions: [
+                                  ...config.lengthOptions,
+                                  newLengthOption(kind, config.lengthOptions.length + 1),
+                                ],
+                              });
+                            }}
+                          >
+                            Add length option
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+            {formatError ? (
+              <p className="field-error" role="alert">
+                {formatError}
+              </p>
+            ) : null}
+          </fieldset>
+
           <label className="field">
             <span className="field-label">About</span>
             <textarea

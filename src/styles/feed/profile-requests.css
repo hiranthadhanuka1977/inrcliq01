@@ -1586,6 +1586,13 @@ a.requests-gallery__book:focus-visible {
   border-color: color-mix(in srgb, #ef4444 70%, var(--color-border-default));
 }
 
+.requests-pz__empty-formats {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .requests-pz__format-details {
   display: flex;
   flex-direction: column;

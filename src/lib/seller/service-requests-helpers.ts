@@ -5,6 +5,7 @@ import type {
   RequestServiceDetails,
   RequestServiceMedia,
 } from "@/lib/feed/special-requests";
+import { createDefaultDeliveryFormats } from "@/lib/feed/delivery-formats";
 
 export type SellerServiceRequestsConfig = {
   enabled: boolean;
@@ -67,6 +68,7 @@ export function createEmptyService(label: string, usedIds: Set<string>): Request
     priceMax: 120,
     popular: false,
     published: false,
+    deliveryFormats: createDefaultDeliveryFormats(),
   };
 }
 

@@ -19,6 +19,30 @@ export type RequestServiceMedia =
       duration: string;
     };
 
+export type RequestDeliveryFormatKind = "text" | "audio" | "video";
+
+export type RequestFormatLengthOption = {
+  id: string;
+  label: string;
+  /** Extra fee on top of the offering base (priceMin). */
+  priceAddon: number;
+};
+
+export type RequestDeliveryFormatConfig = {
+  enabled: boolean;
+  lengthEnabled: boolean;
+  toneEnabled: boolean;
+  framingEnabled: boolean;
+  captionsEnabled: boolean;
+  lengthOptions: RequestFormatLengthOption[];
+};
+
+export type RequestServiceDeliveryFormats = {
+  text: RequestDeliveryFormatConfig;
+  audio: RequestDeliveryFormatConfig;
+  video: RequestDeliveryFormatConfig;
+};
+
 export type RequestService = {
   id: string;
   label: string;
@@ -30,6 +54,8 @@ export type RequestService = {
   popular?: boolean;
   /** When false, hidden from fans. Omitted on legacy rows = live. */
   published?: boolean;
+  /** Fan-selectable delivery formats and option pricing for this offering. */
+  deliveryFormats?: RequestServiceDeliveryFormats;
 };
 
 export type RequestCategory = {

@@ -13,21 +13,26 @@ import {
   formatRequestPriceRange,
   resolveSpecialRequestReviews,
   type CreatorRequestsContent,
+  type RequestDeliveryFormatKind,
   type RequestService,
   type RequestServiceDetails,
   type RequestServiceMedia,
 } from "@/lib/feed/special-requests";
+import {
+  DEFAULT_CAPTION_OPTIONS,
+  DEFAULT_FRAMING_OPTIONS,
+  DEFAULT_TONE_OPTIONS,
+  enabledDeliveryFormatKinds,
+  formatLengthOptionLabel,
+  lengthAddonForLabel,
+  resolveServiceDeliveryFormats,
+} from "@/lib/feed/delivery-formats";
 import type { ProfileData } from "@/types/feed/profile";
 
 const REVIEW_INITIAL_COUNT = 6;
 const REVIEW_PAGE_SIZE = 18;
 const FEED_SURCHARGE = 15;
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-const DURATION_OPTIONS = ["15 seconds", "30 seconds", "60 seconds", "90 seconds", "2 minutes"] as const;
-const TONE_OPTIONS = ["Heartfelt", "Funny", "Motivational", "Casual"] as const;
-const TEXT_LENGTH_OPTIONS = ["Short note", "Medium message", "Long message"] as const;
-const VIDEO_STYLE_OPTIONS = ["Talking head", "On the move / outdoor", "Lifestyle setting"] as const;
-const VIDEO_CAPTION_OPTIONS = ["No captions", "Burned-in captions", "Captions optional"] as const;
 const TIME_OPTIONS = ["9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"] as const;
 const APPEARANCE_DURATION_HOURS = Array.from({ length: 13 }, (_, index) => String(index));
 const APPEARANCE_DURATION_MINUTES = ["0", "15", "30", "45"] as const;
@@ -62,9 +67,20 @@ function formatAppearanceDuration(hours: string, minutes: string) {
 
 type DeliveryMethod = "dm" | "feed";
 type DeliverySelection = Record<DeliveryMethod, boolean>;
-type ContentKind = "text" | "audio" | "video";
+type ContentKind = RequestDeliveryFormatKind;
 type FormatSelection = Record<ContentKind, boolean>;
 type RecipientTarget = "self" | "other";
+
+function defaultFormatSelection(service: RequestService | null | undefined): FormatSelection {
+  const kinds = enabledDeliveryFormatKinds(resolveServiceDeliveryFormats(service));
+  const preferred: ContentKind =
+    kinds.includes("video") ? "video" : kinds[0] ?? "video";
+  return {
+    text: preferred === "text",
+    audio: preferred === "audio",
+    video: preferred === "video",
+  };
+}
 
 function formatDeliverySelection(
   methods: DeliverySelection,
@@ -81,7 +97,11 @@ function formatContentSelection(
   details: {
     tone: string;
     textLength: string;
+    textFraming: string;
+    textCaptions: string;
     audioDuration: string;
+    audioFraming: string;
+    audioCaptions: string;
     videoDuration: string;
     videoStyle: string;
     videoCaptions: string;
@@ -90,15 +110,19 @@ function formatContentSelection(
   const parts: string[] = [];
   if (details.tone) parts.push(details.tone);
   if (formats.text) {
-    const bits = ["Text", details.textLength].filter(Boolean);
+    const bits = ["Text", details.textLength, details.textFraming, details.textCaptions].filter(Boolean);
     parts.push(bits.join(" · "));
   }
   if (formats.audio) {
-    const bits = ["Audio", details.audioDuration].filter(Boolean);
+    const bits = ["Audio", details.audioDuration, details.audioFraming, details.audioCaptions].filter(
+      Boolean,
+    );
     parts.push(bits.join(" · "));
   }
   if (formats.video) {
-    const bits = ["Video", details.videoDuration, details.videoStyle, details.videoCaptions].filter(Boolean);
+    const bits = ["Video", details.videoDuration, details.videoStyle, details.videoCaptions].filter(
+      Boolean,
+    );
     parts.push(bits.join(" · "));
   }
   return parts.join(" + ");
@@ -573,7 +597,11 @@ export default function ProfileRequestsView({
   });
   const [tone, setTone] = useState("");
   const [textLength, setTextLength] = useState("");
+  const [textFraming, setTextFraming] = useState("");
+  const [textCaptions, setTextCaptions] = useState("");
   const [audioDuration, setAudioDuration] = useState("");
+  const [audioFraming, setAudioFraming] = useState("");
+  const [audioCaptions, setAudioCaptions] = useState("");
   const [videoDuration, setVideoDuration] = useState("");
   const [videoStyle, setVideoStyle] = useState("");
   const [videoCaptions, setVideoCaptions] = useState("");
@@ -598,7 +626,11 @@ export default function ProfileRequestsView({
   const contentTypeRefs = useRef<Partial<Record<ContentKind, HTMLButtonElement | null>>>({});
   const toneRef = useRef<HTMLSelectElement>(null);
   const textLengthRef = useRef<HTMLSelectElement>(null);
+  const textFramingRef = useRef<HTMLSelectElement>(null);
+  const textCaptionsRef = useRef<HTMLSelectElement>(null);
   const audioDurationRef = useRef<HTMLSelectElement>(null);
+  const audioFramingRef = useRef<HTMLSelectElement>(null);
+  const audioCaptionsRef = useRef<HTMLSelectElement>(null);
   const videoDurationRef = useRef<HTMLSelectElement>(null);
   const videoStyleRef = useRef<HTMLSelectElement>(null);
   const videoCaptionsRef = useRef<HTMLSelectElement>(null);
@@ -729,6 +761,23 @@ export default function ProfileRequestsView({
     return sorted;
   }, [reviewsBlock.reviews, reviewRatingFilter, reviewSort]);
 
+  useEffect(() => {
+    if (!content || categoryId === "appearances") return;
+    const service =
+      allServices.find((item) => item.id === selectedId) ?? allServices[0] ?? null;
+    setFormats(defaultFormatSelection(service));
+    setTone("");
+    setTextLength("");
+    setTextFraming("");
+    setTextCaptions("");
+    setAudioDuration("");
+    setAudioFraming("");
+    setAudioCaptions("");
+    setVideoDuration("");
+    setVideoStyle("");
+    setVideoCaptions("");
+  }, [allServices, categoryId, content, selectedId]);
+
   const reviewSortLabel =
     REVIEW_SORT_OPTIONS.find((option) => option.id === reviewSort)?.label ?? "Most Relevant";
   const reviewFilterLabel =
@@ -764,13 +813,22 @@ export default function ProfileRequestsView({
     activeCategory?.services.find((service) => service.id === selectedId) ??
     allServices.find((service) => service.id === selectedId) ??
     allServices[0];
+  const deliveryFormats = resolveServiceDeliveryFormats(selected);
+  const availableFormatKinds = enabledDeliveryFormatKinds(deliveryFormats);
   const priceRange = selected
     ? formatRequestPriceRange(selected.priceMin, selected.priceMax)
     : content.startingRange;
   const dayRate = selected?.priceMin ?? 80;
   const feedFee =
     !isAppearanceCategory && deliveryMethods.feed ? FEED_SURCHARGE : 0;
-  const totalFee = dayRate + feedFee;
+  const textLengthFee =
+    formats.text ? lengthAddonForLabel(deliveryFormats.text, textLength) : 0;
+  const audioLengthFee =
+    formats.audio ? lengthAddonForLabel(deliveryFormats.audio, audioDuration) : 0;
+  const videoLengthFee =
+    formats.video ? lengthAddonForLabel(deliveryFormats.video, videoDuration) : 0;
+  const lengthAddons = textLengthFee + audioLengthFee + videoLengthFee;
+  const totalFee = dayRate + lengthAddons + feedFee;
   const deliveryLabel = formatDeliverySelection(deliveryMethods, {
     dm: "Direct message",
     feed: `Tagged feed (+$${FEED_SURCHARGE})`,
@@ -784,19 +842,39 @@ export default function ProfileRequestsView({
     feed: `Feed post (+$${FEED_SURCHARGE})`,
   });
   const hasDeliveryMethod = deliveryMethods.dm || deliveryMethods.feed;
-  const hasFormat = formats.text || formats.audio || formats.video;
-  const textDetailsReady = Boolean(textLength);
-  const audioDetailsReady = Boolean(audioDuration);
-  const videoDetailsReady = Boolean(videoDuration && videoStyle && videoCaptions);
+  const hasFormat =
+    (formats.text && deliveryFormats.text.enabled) ||
+    (formats.audio && deliveryFormats.audio.enabled) ||
+    (formats.video && deliveryFormats.video.enabled);
+  const toneRequired =
+    (formats.text && deliveryFormats.text.toneEnabled) ||
+    (formats.audio && deliveryFormats.audio.toneEnabled) ||
+    (formats.video && deliveryFormats.video.toneEnabled);
+  const textDetailsReady =
+    (!deliveryFormats.text.lengthEnabled || Boolean(textLength)) &&
+    (!deliveryFormats.text.framingEnabled || Boolean(textFraming)) &&
+    (!deliveryFormats.text.captionsEnabled || Boolean(textCaptions));
+  const audioDetailsReady =
+    (!deliveryFormats.audio.lengthEnabled || Boolean(audioDuration)) &&
+    (!deliveryFormats.audio.framingEnabled || Boolean(audioFraming)) &&
+    (!deliveryFormats.audio.captionsEnabled || Boolean(audioCaptions));
+  const videoDetailsReady =
+    (!deliveryFormats.video.lengthEnabled || Boolean(videoDuration)) &&
+    (!deliveryFormats.video.framingEnabled || Boolean(videoStyle)) &&
+    (!deliveryFormats.video.captionsEnabled || Boolean(videoCaptions));
   const formatDetailsReady =
-    Boolean(tone) &&
+    (!toneRequired || Boolean(tone)) &&
     (!formats.text || textDetailsReady) &&
     (!formats.audio || audioDetailsReady) &&
     (!formats.video || videoDetailsReady);
   const contentLabel = formatContentSelection(formats, {
     tone,
     textLength,
+    textFraming,
+    textCaptions,
     audioDuration,
+    audioFraming,
+    audioCaptions,
     videoDuration,
     videoStyle,
     videoCaptions,
@@ -866,40 +944,66 @@ export default function ProfileRequestsView({
   }
 
   function toggleFormat(kind: ContentKind) {
+    if (!deliveryFormats[kind].enabled) return;
     setFormats((prev) => {
       const next = { ...prev, [kind]: !prev[kind] };
-      // Keep at least one format selected.
-      if (!next.text && !next.audio && !next.video) return prev;
+      const stillSelected =
+        (next.text && deliveryFormats.text.enabled) ||
+        (next.audio && deliveryFormats.audio.enabled) ||
+        (next.video && deliveryFormats.video.enabled);
+      if (!stillSelected) return prev;
       return next;
     });
   }
 
   function focusFirstMissingFormatDetail() {
     if (!hasFormat) {
-      focusPersonalizeControl(contentTypeRefs.current.video ?? contentTypeRefs.current.text ?? null);
+      const firstKind = availableFormatKinds[0];
+      focusPersonalizeControl(
+        (firstKind ? contentTypeRefs.current[firstKind] : null) ??
+          contentTypeRefs.current.video ??
+          contentTypeRefs.current.text ??
+          null,
+      );
       return;
     }
-    if (!tone) {
+    if (toneRequired && !tone) {
       focusPersonalizeControl(toneRef.current);
       return;
     }
-    if (formats.text && !textLength) {
+    if (formats.text && deliveryFormats.text.lengthEnabled && !textLength) {
       focusPersonalizeControl(textLengthRef.current);
       return;
     }
-    if (formats.audio && !audioDuration) {
+    if (formats.text && deliveryFormats.text.framingEnabled && !textFraming) {
+      focusPersonalizeControl(textFramingRef.current);
+      return;
+    }
+    if (formats.text && deliveryFormats.text.captionsEnabled && !textCaptions) {
+      focusPersonalizeControl(textCaptionsRef.current);
+      return;
+    }
+    if (formats.audio && deliveryFormats.audio.lengthEnabled && !audioDuration) {
       focusPersonalizeControl(audioDurationRef.current);
       return;
     }
-    if (formats.video && !videoDuration) {
+    if (formats.audio && deliveryFormats.audio.framingEnabled && !audioFraming) {
+      focusPersonalizeControl(audioFramingRef.current);
+      return;
+    }
+    if (formats.audio && deliveryFormats.audio.captionsEnabled && !audioCaptions) {
+      focusPersonalizeControl(audioCaptionsRef.current);
+      return;
+    }
+    if (formats.video && deliveryFormats.video.lengthEnabled && !videoDuration) {
       focusPersonalizeControl(videoDurationRef.current);
       return;
     }
-    if (formats.video && !videoStyle) {
+    if (formats.video && deliveryFormats.video.framingEnabled && !videoStyle) {
       focusPersonalizeControl(videoStyleRef.current);
       return;
     }
-    if (formats.video && !videoCaptions) {
+    if (formats.video && deliveryFormats.video.captionsEnabled && !videoCaptions) {
       focusPersonalizeControl(videoCaptionsRef.current);
     }
   }
@@ -976,12 +1080,25 @@ export default function ProfileRequestsView({
   }
 
   const formatInvalid = personalizeTried && !isAppearanceCategory && (!hasFormat || !formatDetailsReady);
-  const toneInvalid = personalizeTried && hasFormat && !tone;
-  const textLengthInvalid = personalizeTried && formats.text && !textLength;
-  const audioDurationInvalid = personalizeTried && formats.audio && !audioDuration;
-  const videoDurationInvalid = personalizeTried && formats.video && !videoDuration;
-  const videoStyleInvalid = personalizeTried && formats.video && !videoStyle;
-  const videoCaptionsInvalid = personalizeTried && formats.video && !videoCaptions;
+  const toneInvalid = personalizeTried && hasFormat && toneRequired && !tone;
+  const textLengthInvalid =
+    personalizeTried && formats.text && deliveryFormats.text.lengthEnabled && !textLength;
+  const textFramingInvalid =
+    personalizeTried && formats.text && deliveryFormats.text.framingEnabled && !textFraming;
+  const textCaptionsInvalid =
+    personalizeTried && formats.text && deliveryFormats.text.captionsEnabled && !textCaptions;
+  const audioDurationInvalid =
+    personalizeTried && formats.audio && deliveryFormats.audio.lengthEnabled && !audioDuration;
+  const audioFramingInvalid =
+    personalizeTried && formats.audio && deliveryFormats.audio.framingEnabled && !audioFraming;
+  const audioCaptionsInvalid =
+    personalizeTried && formats.audio && deliveryFormats.audio.captionsEnabled && !audioCaptions;
+  const videoDurationInvalid =
+    personalizeTried && formats.video && deliveryFormats.video.lengthEnabled && !videoDuration;
+  const videoStyleInvalid =
+    personalizeTried && formats.video && deliveryFormats.video.framingEnabled && !videoStyle;
+  const videoCaptionsInvalid =
+    personalizeTried && formats.video && deliveryFormats.video.captionsEnabled && !videoCaptions;
   const dateInvalid = personalizeTried && !deliveryDate;
   const timeInvalid = personalizeTried && !deliveryTime;
   const recipientNameInvalid =
@@ -1865,188 +1982,296 @@ export default function ProfileRequestsView({
                                   <SectionInfoTip
                                     tipId="requests-pz-format-tip"
                                     title="Format"
-                                    copy="Select one or more formats — text, audio, and/or video. Tone applies to all selected formats; extra options appear for each one."
+                                    copy="Select one or more formats the creator offers. Extra options and length pricing appear based on what they enabled for each format."
                                   />
                                 </div>
-                                <div
-                                  className={`requests-pz__format${formatInvalid && !hasFormat ? " is-invalid" : ""}`}
-                                  role="group"
-                                  aria-label="Content formats"
-                                >
-                                  {(
-                                    [
-                                      {
-                                        id: "text" as const,
-                                        label: "Text",
-                                        icon: (
-                                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                            <path d="M4 7h16M4 12h10M4 17h13" />
-                                          </svg>
-                                        ),
-                                      },
-                                      {
-                                        id: "audio" as const,
-                                        label: "Audio",
-                                        icon: (
-                                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                            <path d="M12 3v11" />
-                                            <path d="M8 14a4 4 0 0 0 8 0" />
-                                            <path d="M5 10v2a7 7 0 0 0 14 0v-2" />
-                                          </svg>
-                                        ),
-                                      },
-                                      {
-                                        id: "video" as const,
-                                        label: "Video",
-                                        icon: (
-                                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                            <rect x="3" y="6" width="13" height="12" rx="2" />
-                                            <path d="m16 10 5-3v10l-5-3z" />
-                                          </svg>
-                                        ),
-                                      },
-                                    ] as const
-                                  ).map((option) => (
-                                    <button
-                                      key={option.id}
-                                      type="button"
-                                      role="checkbox"
-                                      ref={(node) => {
-                                        contentTypeRefs.current[option.id] = node;
-                                      }}
-                                      className={`requests-pz__format-tile${formats[option.id] ? " is-selected" : ""}`}
-                                      aria-checked={formats[option.id]}
-                                      onClick={() => toggleFormat(option.id)}
-                                    >
-                                      <span className="requests-pz__format-mark" aria-hidden="true" />
-                                      <span className="requests-pz__format-icon">{option.icon}</span>
-                                      <strong>{option.label}</strong>
-                                    </button>
-                                  ))}
-                                </div>
+                                {availableFormatKinds.length ? (
+                                  <div
+                                    className={`requests-pz__format${formatInvalid && !hasFormat ? " is-invalid" : ""}`}
+                                    role="group"
+                                    aria-label="Content formats"
+                                  >
+                                    {(
+                                      [
+                                        {
+                                          id: "text" as const,
+                                          label: "Text",
+                                          icon: (
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                              <path d="M4 7h16M4 12h10M4 17h13" />
+                                            </svg>
+                                          ),
+                                        },
+                                        {
+                                          id: "audio" as const,
+                                          label: "Audio",
+                                          icon: (
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                              <path d="M12 3v11" />
+                                              <path d="M8 14a4 4 0 0 0 8 0" />
+                                              <path d="M5 10v2a7 7 0 0 0 14 0v-2" />
+                                            </svg>
+                                          ),
+                                        },
+                                        {
+                                          id: "video" as const,
+                                          label: "Video",
+                                          icon: (
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                              <rect x="3" y="6" width="13" height="12" rx="2" />
+                                              <path d="m16 10 5-3v10l-5-3z" />
+                                            </svg>
+                                          ),
+                                        },
+                                      ] as const
+                                    )
+                                      .filter((option) => deliveryFormats[option.id].enabled)
+                                      .map((option) => (
+                                        <button
+                                          key={option.id}
+                                          type="button"
+                                          role="checkbox"
+                                          ref={(node) => {
+                                            contentTypeRefs.current[option.id] = node;
+                                          }}
+                                          className={`requests-pz__format-tile${formats[option.id] ? " is-selected" : ""}`}
+                                          aria-checked={formats[option.id]}
+                                          onClick={() => toggleFormat(option.id)}
+                                        >
+                                          <span className="requests-pz__format-mark" aria-hidden="true" />
+                                          <span className="requests-pz__format-icon">{option.icon}</span>
+                                          <strong>{option.label}</strong>
+                                        </button>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <p className="requests-pz__empty-formats" role="status">
+                                    This offering has no delivery formats enabled yet.
+                                  </p>
+                                )}
 
-                                {formats.text || formats.audio || formats.video ? (
+                                {hasFormat ? (
                                   <div className="requests-pz__format-details">
-                                    <label className={`requests-pz__field${toneInvalid ? " is-invalid" : ""}`}>
-                                      <span className="requests-pz__label">Tone</span>
-                                      <select
-                                        ref={toneRef}
-                                        className={`requests-pz__input${toneInvalid ? " is-invalid" : ""}`}
-                                        value={tone}
-                                        aria-invalid={toneInvalid || undefined}
-                                        onChange={(event) => setTone(event.target.value)}
-                                      >
-                                        <option value="">Select</option>
-                                        {TONE_OPTIONS.map((option) => (
-                                          <option key={option} value={option}>
-                                            {option}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </label>
+                                    {toneRequired ? (
+                                      <label className={`requests-pz__field${toneInvalid ? " is-invalid" : ""}`}>
+                                        <span className="requests-pz__label">Tone</span>
+                                        <select
+                                          ref={toneRef}
+                                          className={`requests-pz__input${toneInvalid ? " is-invalid" : ""}`}
+                                          value={tone}
+                                          aria-invalid={toneInvalid || undefined}
+                                          onChange={(event) => setTone(event.target.value)}
+                                        >
+                                          <option value="">Select</option>
+                                          {DEFAULT_TONE_OPTIONS.map((option) => (
+                                            <option key={option} value={option}>
+                                              {option}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </label>
+                                    ) : null}
 
-                                    {formats.text ? (
+                                    {formats.text &&
+                                    deliveryFormats.text.enabled &&
+                                    (deliveryFormats.text.lengthEnabled ||
+                                      deliveryFormats.text.framingEnabled ||
+                                      deliveryFormats.text.captionsEnabled) ? (
                                       <div className="requests-pz__format-panel">
                                         <p className="requests-pz__format-panel-title">Text details</p>
-                                        <label className={`requests-pz__field${textLengthInvalid ? " is-invalid" : ""}`}>
-                                          <span className="requests-pz__label">Length</span>
-                                          <select
-                                            ref={textLengthRef}
-                                            className={`requests-pz__input${textLengthInvalid ? " is-invalid" : ""}`}
-                                            value={textLength}
-                                            aria-invalid={textLengthInvalid || undefined}
-                                            onChange={(event) => setTextLength(event.target.value)}
-                                          >
-                                            <option value="">Select</option>
-                                            {TEXT_LENGTH_OPTIONS.map((option) => (
-                                              <option key={option} value={option}>
-                                                {option}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </label>
+                                        {deliveryFormats.text.lengthEnabled ? (
+                                          <label className={`requests-pz__field${textLengthInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Length</span>
+                                            <select
+                                              ref={textLengthRef}
+                                              className={`requests-pz__input${textLengthInvalid ? " is-invalid" : ""}`}
+                                              value={textLength}
+                                              aria-invalid={textLengthInvalid || undefined}
+                                              onChange={(event) => setTextLength(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {deliveryFormats.text.lengthOptions.map((option) => (
+                                                <option key={option.id} value={option.label}>
+                                                  {formatLengthOptionLabel(option)}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
+                                        {deliveryFormats.text.framingEnabled ? (
+                                          <label className={`requests-pz__field${textFramingInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Framing</span>
+                                            <select
+                                              ref={textFramingRef}
+                                              className={`requests-pz__input${textFramingInvalid ? " is-invalid" : ""}`}
+                                              value={textFraming}
+                                              aria-invalid={textFramingInvalid || undefined}
+                                              onChange={(event) => setTextFraming(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {DEFAULT_FRAMING_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
+                                        {deliveryFormats.text.captionsEnabled ? (
+                                          <label className={`requests-pz__field${textCaptionsInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Captions</span>
+                                            <select
+                                              ref={textCaptionsRef}
+                                              className={`requests-pz__input${textCaptionsInvalid ? " is-invalid" : ""}`}
+                                              value={textCaptions}
+                                              aria-invalid={textCaptionsInvalid || undefined}
+                                              onChange={(event) => setTextCaptions(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {DEFAULT_CAPTION_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
                                       </div>
                                     ) : null}
 
-                                    {formats.audio ? (
+                                    {formats.audio &&
+                                    deliveryFormats.audio.enabled &&
+                                    (deliveryFormats.audio.lengthEnabled ||
+                                      deliveryFormats.audio.framingEnabled ||
+                                      deliveryFormats.audio.captionsEnabled) ? (
                                       <div className="requests-pz__format-panel">
                                         <p className="requests-pz__format-panel-title">Audio details</p>
-                                        <label className={`requests-pz__field${audioDurationInvalid ? " is-invalid" : ""}`}>
-                                          <span className="requests-pz__label">Length</span>
-                                          <select
-                                            ref={audioDurationRef}
-                                            className={`requests-pz__input${audioDurationInvalid ? " is-invalid" : ""}`}
-                                            value={audioDuration}
-                                            aria-invalid={audioDurationInvalid || undefined}
-                                            onChange={(event) => setAudioDuration(event.target.value)}
-                                          >
-                                            <option value="">Select</option>
-                                            {DURATION_OPTIONS.map((option) => (
-                                              <option key={option} value={option}>
-                                                {option}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </label>
+                                        {deliveryFormats.audio.lengthEnabled ? (
+                                          <label className={`requests-pz__field${audioDurationInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Length</span>
+                                            <select
+                                              ref={audioDurationRef}
+                                              className={`requests-pz__input${audioDurationInvalid ? " is-invalid" : ""}`}
+                                              value={audioDuration}
+                                              aria-invalid={audioDurationInvalid || undefined}
+                                              onChange={(event) => setAudioDuration(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {deliveryFormats.audio.lengthOptions.map((option) => (
+                                                <option key={option.id} value={option.label}>
+                                                  {formatLengthOptionLabel(option)}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
+                                        {deliveryFormats.audio.framingEnabled ? (
+                                          <label className={`requests-pz__field${audioFramingInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Framing</span>
+                                            <select
+                                              ref={audioFramingRef}
+                                              className={`requests-pz__input${audioFramingInvalid ? " is-invalid" : ""}`}
+                                              value={audioFraming}
+                                              aria-invalid={audioFramingInvalid || undefined}
+                                              onChange={(event) => setAudioFraming(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {DEFAULT_FRAMING_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
+                                        {deliveryFormats.audio.captionsEnabled ? (
+                                          <label className={`requests-pz__field${audioCaptionsInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Captions</span>
+                                            <select
+                                              ref={audioCaptionsRef}
+                                              className={`requests-pz__input${audioCaptionsInvalid ? " is-invalid" : ""}`}
+                                              value={audioCaptions}
+                                              aria-invalid={audioCaptionsInvalid || undefined}
+                                              onChange={(event) => setAudioCaptions(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {DEFAULT_CAPTION_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
                                       </div>
                                     ) : null}
 
-                                    {formats.video ? (
+                                    {formats.video &&
+                                    deliveryFormats.video.enabled &&
+                                    (deliveryFormats.video.lengthEnabled ||
+                                      deliveryFormats.video.framingEnabled ||
+                                      deliveryFormats.video.captionsEnabled) ? (
                                       <div className="requests-pz__format-panel">
                                         <p className="requests-pz__format-panel-title">Video details</p>
                                         <div className="requests-pz__pair">
-                                          <label className={`requests-pz__field${videoDurationInvalid ? " is-invalid" : ""}`}>
-                                            <span className="requests-pz__label">Length</span>
-                                            <select
-                                              ref={videoDurationRef}
-                                              className={`requests-pz__input${videoDurationInvalid ? " is-invalid" : ""}`}
-                                              value={videoDuration}
-                                              aria-invalid={videoDurationInvalid || undefined}
-                                              onChange={(event) => setVideoDuration(event.target.value)}
-                                            >
-                                              <option value="">Select</option>
-                                              {DURATION_OPTIONS.map((option) => (
-                                                <option key={option} value={option}>
-                                                  {option}
-                                                </option>
-                                              ))}
-                                            </select>
-                                          </label>
-                                          <label className={`requests-pz__field${videoStyleInvalid ? " is-invalid" : ""}`}>
-                                            <span className="requests-pz__label">Framing</span>
-                                            <select
-                                              ref={videoStyleRef}
-                                              className={`requests-pz__input${videoStyleInvalid ? " is-invalid" : ""}`}
-                                              value={videoStyle}
-                                              aria-invalid={videoStyleInvalid || undefined}
-                                              onChange={(event) => setVideoStyle(event.target.value)}
-                                            >
-                                              <option value="">Select</option>
-                                              {VIDEO_STYLE_OPTIONS.map((option) => (
-                                                <option key={option} value={option}>
-                                                  {option}
-                                                </option>
-                                              ))}
-                                            </select>
-                                          </label>
+                                          {deliveryFormats.video.lengthEnabled ? (
+                                            <label className={`requests-pz__field${videoDurationInvalid ? " is-invalid" : ""}`}>
+                                              <span className="requests-pz__label">Length</span>
+                                              <select
+                                                ref={videoDurationRef}
+                                                className={`requests-pz__input${videoDurationInvalid ? " is-invalid" : ""}`}
+                                                value={videoDuration}
+                                                aria-invalid={videoDurationInvalid || undefined}
+                                                onChange={(event) => setVideoDuration(event.target.value)}
+                                              >
+                                                <option value="">Select</option>
+                                                {deliveryFormats.video.lengthOptions.map((option) => (
+                                                  <option key={option.id} value={option.label}>
+                                                    {formatLengthOptionLabel(option)}
+                                                  </option>
+                                                ))}
+                                              </select>
+                                            </label>
+                                          ) : null}
+                                          {deliveryFormats.video.framingEnabled ? (
+                                            <label className={`requests-pz__field${videoStyleInvalid ? " is-invalid" : ""}`}>
+                                              <span className="requests-pz__label">Framing</span>
+                                              <select
+                                                ref={videoStyleRef}
+                                                className={`requests-pz__input${videoStyleInvalid ? " is-invalid" : ""}`}
+                                                value={videoStyle}
+                                                aria-invalid={videoStyleInvalid || undefined}
+                                                onChange={(event) => setVideoStyle(event.target.value)}
+                                              >
+                                                <option value="">Select</option>
+                                                {DEFAULT_FRAMING_OPTIONS.map((option) => (
+                                                  <option key={option} value={option}>
+                                                    {option}
+                                                  </option>
+                                                ))}
+                                              </select>
+                                            </label>
+                                          ) : null}
                                         </div>
-                                        <label className={`requests-pz__field${videoCaptionsInvalid ? " is-invalid" : ""}`}>
-                                          <span className="requests-pz__label">Captions</span>
-                                          <select
-                                            ref={videoCaptionsRef}
-                                            className={`requests-pz__input${videoCaptionsInvalid ? " is-invalid" : ""}`}
-                                            value={videoCaptions}
-                                            aria-invalid={videoCaptionsInvalid || undefined}
-                                            onChange={(event) => setVideoCaptions(event.target.value)}
-                                          >
-                                            <option value="">Select</option>
-                                            {VIDEO_CAPTION_OPTIONS.map((option) => (
-                                              <option key={option} value={option}>
-                                                {option}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </label>
+                                        {deliveryFormats.video.captionsEnabled ? (
+                                          <label className={`requests-pz__field${videoCaptionsInvalid ? " is-invalid" : ""}`}>
+                                            <span className="requests-pz__label">Captions</span>
+                                            <select
+                                              ref={videoCaptionsRef}
+                                              className={`requests-pz__input${videoCaptionsInvalid ? " is-invalid" : ""}`}
+                                              value={videoCaptions}
+                                              aria-invalid={videoCaptionsInvalid || undefined}
+                                              onChange={(event) => setVideoCaptions(event.target.value)}
+                                            >
+                                              <option value="">Select</option>
+                                              {DEFAULT_CAPTION_OPTIONS.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </label>
+                                        ) : null}
                                       </div>
                                     ) : null}
                                   </div>
@@ -2131,11 +2356,7 @@ export default function ProfileRequestsView({
                                   const key = toDateKey(cell.date);
                                   const disabled = cell.date < earliestDate;
                                   const selectedDay = deliveryDate === key;
-                                  const shownPrice =
-                                    dayRate +
-                                    (!isAppearanceCategory && deliveryMethods.feed
-                                      ? FEED_SURCHARGE
-                                      : 0);
+                                  const shownPrice = dayRate + lengthAddons + feedFee;
                                   const isFirstAvailable = !disabled && !firstAvailableAssigned;
                                   if (isFirstAvailable) firstAvailableAssigned = true;
                                   return (
@@ -2487,6 +2708,12 @@ export default function ProfileRequestsView({
                                 <dt>Request fee</dt>
                                 <dd>${dayRate}</dd>
                               </div>
+                              {lengthAddons > 0 ? (
+                                <div>
+                                  <dt>Length add-ons</dt>
+                                  <dd>+${lengthAddons}</dd>
+                                </div>
+                              ) : null}
                               {feedFee > 0 ? (
                                 <div>
                                   <dt>Feed post</dt>
@@ -2769,6 +2996,12 @@ export default function ProfileRequestsView({
                                 <dt>Request fee</dt>
                                 <dd>${dayRate}</dd>
                               </div>
+                              {lengthAddons > 0 ? (
+                                <div>
+                                  <dt>Length add-ons</dt>
+                                  <dd>+${lengthAddons}</dd>
+                                </div>
+                              ) : null}
                               {feedFee > 0 ? (
                                 <div>
                                   <dt>Feed post</dt>
