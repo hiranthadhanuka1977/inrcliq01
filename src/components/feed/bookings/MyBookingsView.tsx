@@ -6,8 +6,16 @@ import { useCallback, useEffect, useId, useState, type CSSProperties } from "rea
 import type { MyBookingItem } from "@/lib/feed/user-bookings";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
 import BookingDeliveryCountdown from "@/components/feed/bookings/BookingDeliveryCountdown";
+import MyBookingsCalendar from "@/components/feed/bookings/MyBookingsCalendar";
 import LeftNav from "@/components/feed/LeftNav";
 import MobileNav from "@/components/feed/MobileNav";
+
+type BookingsTab = "calendar" | "inbound" | "outbound";
+
+function parseBookingsTab(value: string | null): BookingsTab {
+  if (value === "inbound" || value === "outbound" || value === "calendar") return value;
+  return "calendar";
+}
 
 function showsCountdown(booking: MyBookingItem) {
   if (!booking.deliverBy) return false;
@@ -93,11 +101,13 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
   const bookingParam = searchParams.get("booking")?.trim() || "";
   const refParam = searchParams.get("ref")?.trim() || "";
   const paramMatch = findBookingFromParams(bookings, bookingParam, refParam);
-  const urlTab = searchParams.get("tab") === "inbound" ? "inbound" : "outbound";
-  const activeTab = paramMatch?.direction ?? urlTab;
-  const visibleBookings = bookings.filter((booking) => booking.direction === activeTab);
+  const activeTab = parseBookingsTab(searchParams.get("tab"));
+  const visibleBookings =
+    activeTab === "calendar"
+      ? bookings
+      : bookings.filter((booking) => booking.direction === activeTab);
   const manualSelected = selectedId
-    ? visibleBookings.find((booking) => booking.id === selectedId) ?? null
+    ? bookings.find((booking) => booking.id === selectedId) ?? null
     : null;
   const selected =
     manualSelected ?? (bookingParam || refParam ? paramMatch : null) ?? null;
@@ -107,12 +117,12 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
     (booking: MyBookingItem) => {
       setSelectedId(booking.id);
       const next = new URLSearchParams(searchParams.toString());
-      next.set("tab", booking.direction);
+      next.set("tab", activeTab === "calendar" ? "calendar" : booking.direction);
       next.set("booking", booking.id);
       next.delete("ref");
       router.replace(`${pathname}?${next.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams],
+    [activeTab, pathname, router, searchParams],
   );
 
   const clearSelection = useCallback(() => {
@@ -121,21 +131,11 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
       const next = new URLSearchParams(searchParams.toString());
       next.delete("booking");
       next.delete("ref");
-      if (activeTab === "inbound" || activeTab === "outbound") {
-        next.set("tab", activeTab);
-      }
+      next.set("tab", activeTab);
       const query = next.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     }
   }, [activeTab, pathname, router, searchParams]);
-
-  useEffect(() => {
-    if (!paramMatch) return;
-    if (searchParams.get("tab") === paramMatch.direction) return;
-    const next = new URLSearchParams(searchParams.toString());
-    next.set("tab", paramMatch.direction);
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-  }, [paramMatch, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!open) return;
@@ -159,7 +159,15 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
           <p className="my-bookings__subtitle">
             Track requests you initiated and requests assigned to you.
           </p>
-          <div className="my-bookings__tabs" role="tablist" aria-label="Booking direction">
+          <div className="my-bookings__tabs" role="tablist" aria-label="Booking views">
+            <Link
+              href="/feed/bookings?tab=calendar"
+              className={`my-bookings__tab${activeTab === "calendar" ? " is-active" : ""}`}
+              role="tab"
+              aria-selected={activeTab === "calendar"}
+            >
+              Calendar
+            </Link>
             <Link
               href="/feed/bookings?tab=outbound"
               className={`my-bookings__tab${activeTab === "outbound" ? " is-active" : ""}`}
@@ -179,12 +187,35 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
           </div>
         </header>
 
-        {visibleBookings.length === 0 ? (
-          <p className="my-bookings__empty">
-            {activeTab === "inbound"
-              ? "No inbound bookings yet. Incoming service requests will appear here."
-              : "No outbound bookings yet. When you pay for a special request, it will show up here."}
-          </p>
+        {activeTab === "calendar" ? (
+          <MyBookingsCalendar bookings={bookings} onSelectBooking={openBookingDetails} />
+        ) : visibleBookings.length === 0 ? (
+          <div className="my-bookings__empty" role="status">
+            <span className="my-bookings__empty-icon" aria-hidden="true">
+              {activeTab === "inbound" ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+                  <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 2 11 13" />
+                  <path d="M22 2 15 22 11 13 2 9z" />
+                </svg>
+              )}
+            </span>
+            {activeTab === "inbound" ? (
+              <>
+                <strong>No inbound bookings yet</strong>
+                <p>Incoming service requests will appear here.</p>
+              </>
+            ) : (
+              <>
+                <strong>No outbound bookings yet</strong>
+                <p>When you pay for a special request, it will show up here.</p>
+              </>
+            )}
+          </div>
         ) : (
           <ul className="my-bookings__list">
             {visibleBookings.map((booking) => (

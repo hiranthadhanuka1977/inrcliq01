@@ -24,6 +24,14 @@
 @import "./feed-audio-landing.css";
 
 /* Messages fills the main column edge-to-edge */
+body.page-bookings .main-content.bookings-page,
+.page-bookings .main-content.bookings-page {
+  width: min(100%, 64rem);
+  max-width: 64rem;
+  margin-inline: auto;
+  align-self: center;
+}
+
 body.page-messages .main-content.messages-page,
 .page-messages .main-content.messages-page {
   max-width: none;

@@ -16,7 +16,9 @@ export type MyBookingItem = {
   category: string | null;
   contentType: string | null;
   totalLabel: string;
+  createdAt: string;
   createdLabel: string;
+  requestedForAt: string | null;
   deliverBy: string | null;
   deliverByLabel: string | null;
   acceptedAtLabel: string | null;
@@ -199,7 +201,9 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       category: request.category,
       contentType: request.contentType,
       totalLabel: `${request.totalFee} ${request.currency}`,
+      createdAt: request.createdAt.toISOString(),
       createdLabel: formatDate(request.createdAt),
+      requestedForAt: request.requestedForAt?.toISOString() ?? null,
       deliverBy: request.deliverBy?.toISOString() ?? null,
       deliverByLabel: formatDateTime(request.deliverBy),
       acceptedAtLabel: formatDateTime(request.acceptedAt),
@@ -291,7 +295,9 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       category: request.category,
       contentType: request.contentType,
       totalLabel: `${request.totalFee} ${request.currency}`,
+      createdAt: request.createdAt.toISOString(),
       createdLabel: formatDate(request.createdAt),
+      requestedForAt: request.requestedForAt?.toISOString() ?? null,
       deliverBy: request.deliverBy?.toISOString() ?? null,
       deliverByLabel: formatDateTime(request.deliverBy),
       acceptedAtLabel: formatDateTime(request.acceptedAt),
