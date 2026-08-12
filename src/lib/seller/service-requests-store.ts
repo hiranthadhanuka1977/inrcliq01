@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import {
   pruneOrphanGalleryItems,
   toPublicCreatorRequestsContent,
+  createBlankCreatorRequestsContent,
   type SellerServiceRequestsConfig,
 } from "@/lib/seller/service-requests-helpers";
 
@@ -145,7 +146,10 @@ export async function resolveSpecialRequestsAvailable(slug: string): Promise<boo
   const userId = await findOwnerUserIdBySlug(slug);
   if (userId) {
     const catalog = await getSpecialRequestCatalogByUserId(userId);
-    return Boolean(catalog);
+    if (!catalog?.enabled) return false;
+    // Provisioned blank catalogs stay off the public profile until offerings exist.
+    const publicContent = toPublicCreatorRequestsContent(cloneContent(catalog.content));
+    return publicContent.categories.length > 0;
   }
 
   if (readFileFallback(slug)) return true;
@@ -223,4 +227,66 @@ export async function writeSellerServiceRequestsConfigForUser(
   }
 
   return result;
+}
+
+/**
+ * Create a hidden blank Special Requests catalog when missing.
+ * Used to provision verified creators for Seller Tools.
+ */
+export async function ensureSpecialRequestCatalogForUser(
+  userId: string,
+  options?: { displayName?: string },
+): Promise<SellerServiceRequestsConfig> {
+  const existing = await getSpecialRequestCatalogByUserId(userId);
+  if (existing) return existing;
+
+  return writeSellerServiceRequestsConfigForUser(userId, {
+    enabled: false,
+    content: createBlankCreatorRequestsContent(options?.displayName),
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Provision blank catalogs for every verified profile / verified linked creator. */
+export async function provisionSpecialRequestCatalogsForVerifiedUsers(): Promise<{
+  provisioned: number;
+  skipped: number;
+  userIds: string[];
+}> {
+  const verifiedProfiles = await prisma.userProfile.findMany({
+    where: { verified: true },
+    select: { userId: true, displayName: true },
+  });
+  const verifiedCreators = await prisma.creatorUser.findMany({
+    where: { verified: true, userId: { not: null } },
+    select: { userId: true, name: true },
+  });
+
+  const candidates = new Map<string, string>();
+  for (const row of verifiedProfiles) {
+    candidates.set(row.userId, row.displayName);
+  }
+  for (const row of verifiedCreators) {
+    if (!row.userId) continue;
+    if (!candidates.has(row.userId)) {
+      candidates.set(row.userId, row.name);
+    }
+  }
+
+  let provisioned = 0;
+  let skipped = 0;
+  const userIds: string[] = [];
+
+  for (const [userId, displayName] of candidates) {
+    const existing = await getSpecialRequestCatalogByUserId(userId);
+    if (existing) {
+      skipped += 1;
+      continue;
+    }
+    await ensureSpecialRequestCatalogForUser(userId, { displayName });
+    provisioned += 1;
+    userIds.push(userId);
+  }
+
+  return { provisioned, skipped, userIds };
 }

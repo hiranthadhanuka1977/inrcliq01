@@ -79,15 +79,6 @@ async function main() {
     data: { specialRequests: enabled },
   });
 
-  const removed = await prisma.specialRequestCatalog.deleteMany({
-    where: { userId: { not: owner.userId } },
-  });
-
-  await prisma.userProfile.updateMany({
-    where: { userId: { not: owner.userId }, specialRequests: true },
-    data: { specialRequests: false },
-  });
-
   console.log(
     JSON.stringify(
       {
@@ -96,7 +87,6 @@ async function main() {
         email: owner.user?.email,
         slug: SPECIAL_REQUESTS_OWNER_SLUG,
         enabled: saved.enabled,
-        removedOtherCatalogs: removed.count,
       },
       null,
       2,

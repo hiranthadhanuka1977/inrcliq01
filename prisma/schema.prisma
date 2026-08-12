@@ -180,7 +180,7 @@ model UserProfile {
 }
 
 /// Seller-owned Special Requests catalog (offerings fans can book).
-/// Only creators with a row here (currently Mia Chen) expose service requests.
+/// Verified creators are provisioned a row (often blank/hidden until configured).
 model SpecialRequestCatalog {
   id        String   @id @default(cuid())
   userId    String   @unique

@@ -39,12 +39,14 @@ export function SellerCollectionView({
   const [menuProductId, setMenuProductId] = useState<string | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<CollectionProduct | null>(null);
   const [activateTarget, setActivateTarget] = useState<CollectionProduct | null>(null);
+  const [introDismissed, setIntroDismissed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const readyCount = useMemo(
     () => products.filter((product) => getProductReadiness(product).status === "ready").length,
     [products],
   );
+  const needsSetupIntro = products.length === 0 && !introDismissed;
 
   useEffect(() => {
     if (!menuProductId) return;
@@ -155,16 +157,67 @@ export function SellerCollectionView({
             Collection
           </h1>
           <p className="seller-panel__subtitle">
-            Configure the same products fans see on your profile storefront for @{slug}.
+            {needsSetupIntro
+              ? "Sell merch and digital downloads from your profile with a storefront you control."
+              : `Configure the same products fans see on your profile storefront for @${slug}.`}
           </p>
         </div>
-        <div className="seller-requests-head__actions">
-          <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
-            Preview storefront
-          </Link>
-        </div>
+        {!needsSetupIntro ? (
+          <div className="seller-requests-head__actions">
+            <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
+              Preview storefront
+            </Link>
+          </div>
+        ) : null}
       </div>
 
+      {needsSetupIntro ? (
+        <div className="seller-sr-intro">
+          <div className="seller-sr-intro__copy">
+            <p className="seller-sr-intro__eyebrow">Getting started</p>
+            <h2 className="seller-sr-intro__title">Introduce your Collection to fans</h2>
+            <p className="seller-sr-intro__lead">
+              Build a storefront for physical merch and digital downloads. Add products, set pricing,
+              and go live on your profile when you&apos;re ready.
+            </p>
+            <ul className="seller-sr-intro__points">
+              <li>Add physical products or digital downloads fans can buy</li>
+              <li>Upload images, pricing, and product details</li>
+              <li>Keep the storefront hidden until your first product is ready</li>
+            </ul>
+            <div className="seller-sr-intro__actions">
+              <Link href="/seller/collection/products/new" className="btn btn--primary">
+                Add your first product
+              </Link>
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={() => {
+                  setIntroDismissed(true);
+                  setTab("setup");
+                }}
+              >
+                Review page setup
+              </button>
+            </div>
+          </div>
+
+          <div className="seller-sr-intro__media" aria-label="Collection overview video">
+            <div className="seller-sr-intro__video" role="img" aria-label="Video placeholder">
+              <span className="seller-sr-intro__play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                  <path d="M8 5.14v13.72L19 12 8 5.14z" />
+                </svg>
+              </span>
+              <div className="seller-sr-intro__video-copy">
+                <strong>Watch how Collection works</strong>
+                <span>Video coming soon</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="seller-requests-summary" aria-label="Collection summary">
         <div className="seller-requests-summary__item">
           <span className="seller-requests-summary__label">Storefront</span>
@@ -471,6 +524,8 @@ export function SellerCollectionView({
           </div>
         </div>
       ) : null}
+        </>
+      )}
     </section>
   );
 }

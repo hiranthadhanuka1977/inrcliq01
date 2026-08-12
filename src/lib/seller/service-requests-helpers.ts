@@ -90,6 +90,55 @@ export function createEmptyCategory(title: string, usedIds: Set<string>): Reques
   };
 }
 
+/** Blank Seller Tools catalog for newly provisioned verified creators. */
+export function createBlankCreatorRequestsContent(
+  displayName = "your fans",
+): CreatorRequestsContent {
+  return {
+    intro: [
+      `Offer personalized text, audio, and video requests for ${displayName}.`,
+      "Add categories and offerings to go live on your profile.",
+    ],
+    gallery: [],
+    categories: [],
+    howItWorks: [
+      {
+        title: "Fans request",
+        copy: "They choose a category, offering, format, and delivery date.",
+      },
+      {
+        title: "You create",
+        copy: "Fulfill the booking and deliver by the agreed time.",
+      },
+      {
+        title: "Get paid",
+        copy: "Payment is captured when the fan books the request.",
+      },
+    ],
+    startingRange: "Set your pricing",
+    responseTime: "Set your response time",
+    nextAvailable: new Date().toISOString().slice(0, 10),
+    guarantee: "Money-back guarantee when delivery terms are not met.",
+    guaranteePoints: [
+      {
+        title: "You set the rules",
+        copy: "Choose formats, length options, and pricing per offering.",
+      },
+      {
+        title: "Go live when ready",
+        copy: "Keep Special Requests hidden until your first category is ready.",
+      },
+    ],
+  };
+}
+
+/** True when the seller has not created any categories yet. */
+export function isServiceRequestsCatalogEmpty(
+  content: CreatorRequestsContent | null | undefined,
+): boolean {
+  return !content?.categories?.length;
+}
+
 export function getServicePoster(service: RequestService): string {
   return service.media.kind === "video" ? service.media.poster : "";
 }

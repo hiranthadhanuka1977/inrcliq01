@@ -17,6 +17,7 @@ import {
   getCategoryOfferingStats,
   getCategoryReadiness,
   isCategoryActive,
+  isServiceRequestsCatalogEmpty,
   slugifyServiceId,
   type SellerServiceRequestsConfig,
 } from "@/lib/seller/service-requests-helpers";
@@ -73,12 +74,15 @@ export function SellerServiceRequestsView({
   const [menuCategoryId, setMenuCategoryId] = useState<string | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<RequestCategory | null>(null);
   const [activateTarget, setActivateTarget] = useState<RequestCategory | null>(null);
+  const [introDismissed, setIntroDismissed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const offeringCount = useMemo(
     () => content.categories.reduce((sum, category) => sum + category.services.length, 0),
     [content.categories],
   );
+
+  const needsSetupIntro = isServiceRequestsCatalogEmpty(content) && !introDismissed;
 
   const receivedCount = useMemo(
     () => bookings.filter((booking) => booking.status === "RECEIVED").length,
@@ -336,17 +340,72 @@ export function SellerServiceRequestsView({
             Service requests
           </h1>
           <p className="seller-panel__subtitle">
-            Configure the same catalog fans see on your profile — offerings, availability, and
-            incoming bookings for @{slug}.
+            {needsSetupIntro
+              ? "Turn personalized fan requests into bookings with categories, offerings, and delivery formats."
+              : "Configure the same catalog fans see on your profile — offerings, availability, and incoming bookings for @" +
+                slug +
+                "."}
           </p>
         </div>
-        <div className="seller-requests-head__actions">
-          <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
-            Preview page
-          </Link>
-        </div>
+        {!needsSetupIntro ? (
+          <div className="seller-requests-head__actions">
+            <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
+              Preview page
+            </Link>
+          </div>
+        ) : null}
       </div>
 
+      {needsSetupIntro ? (
+        <div className="seller-sr-intro">
+          <div className="seller-sr-intro__copy">
+            <p className="seller-sr-intro__eyebrow">Getting started</p>
+            <h2 className="seller-sr-intro__title">Introduce Service Requests to your fans</h2>
+            <p className="seller-sr-intro__lead">
+              Let fans book personalized text, audio, or video from you. Set up categories and
+              offerings, choose which formats they can request, and go live when you&apos;re ready.
+            </p>
+            <ul className="seller-sr-intro__points">
+              <li>Create categories like shout-outs, coaching, or appearances</li>
+              <li>Price each offering and optional length add-ons</li>
+              <li>Keep the storefront hidden until your first offering is ready</li>
+            </ul>
+            <div className="seller-sr-intro__actions">
+              <Link
+                href="/seller/service-requests/categories/new"
+                className="btn btn--primary"
+              >
+                Create your first category
+              </Link>
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={() => {
+                  setIntroDismissed(true);
+                  setTab("setup");
+                }}
+              >
+                Review page setup
+              </button>
+            </div>
+          </div>
+
+          <div className="seller-sr-intro__media" aria-label="Service Requests overview video">
+            <div className="seller-sr-intro__video" role="img" aria-label="Video placeholder">
+              <span className="seller-sr-intro__play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                  <path d="M8 5.14v13.72L19 12 8 5.14z" />
+                </svg>
+              </span>
+              <div className="seller-sr-intro__video-copy">
+                <strong>Watch how Service Requests work</strong>
+                <span>Video coming soon</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="seller-requests-summary" aria-label="Service request summary">
         <div className="seller-requests-summary__item">
           <span className="seller-requests-summary__label">Storefront</span>
@@ -956,6 +1015,8 @@ export function SellerServiceRequestsView({
           </div>
         </div>
       ) : null}
+        </>
+      )}
     </section>
   );
 }

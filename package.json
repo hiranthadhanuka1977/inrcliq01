@@ -15,6 +15,7 @@
     "db:link-creators": "node scripts/link-creators-to-users.mjs",
     "db:migrate-profiles": "node scripts/migrate-profiles-to-db.mjs",
     "db:seed-special-requests": "npx tsx scripts/seed-special-requests-mia.ts",
+    "db:provision-special-requests-verified": "npx tsx scripts/provision-special-requests-verified.ts",
     "db:migrate-collection": "node scripts/migrate-collection-to-db.mjs",
     "db:seed-good-guy": "node scripts/seed-good-guy-podcast.mjs",
     "db:seed-bns": "node scripts/seed-bathiya-santhush.mjs",

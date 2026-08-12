@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { Prisma } from "@/generated/prisma/client";
+import { ensureCreatorUserForAuthUser } from "@/lib/feed/creator-user-bridge";
 import { prisma } from "@/lib/prisma";
 import {
   normalizeSellerProduct,
@@ -97,10 +98,21 @@ async function findCreatorForUser(userId: string, slug: string) {
   });
   if (byUser) return byUser;
 
-  return prisma.creatorUser.findFirst({
+  const bySlug = await prisma.creatorUser.findFirst({
     where: { slug },
-    select: { id: true, slug: true, name: true },
+    select: { id: true, slug: true, name: true, userId: true },
   });
+  if (bySlug) {
+    if (!bySlug.userId) {
+      await prisma.creatorUser.update({
+        where: { id: bySlug.id },
+        data: { userId },
+      });
+    }
+    return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name };
+  }
+
+  return ensureCreatorUserForAuthUser(userId);
 }
 
 /**
@@ -150,7 +162,7 @@ export async function ensureSellerCollectionForUser(
       slug,
       title,
       subtitle,
-      enabled: true,
+      enabled: seedProducts.length > 0,
       source: seed ? "collection-json" : "seller",
       creatorId: creator.id,
       products: {
