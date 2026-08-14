@@ -151,12 +151,40 @@ export default function AccountProfileView({
             )}
           </span>
           <div className="account-profile__hero-copy">
-            <h1 className="account-profile__name">{profile.fullName}</h1>
+            <h1 className="account-profile__name">
+              {profile.fullName}
+              {profile.verified ? (
+                <svg
+                  className="account-profile__verified-star"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-label="Verified creator"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              ) : null}
+            </h1>
             <p className="account-profile__handle">
               {profile.handle ? `@${profile.handle}` : "No handle set"}
             </p>
             <div className="account-profile__chips">
               <span className="account-profile__chip">{profile.accountTypeLabel}</span>
+              {profile.verified ? (
+                <span className="account-profile__chip account-profile__chip--verified">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  Verified
+                </span>
+              ) : null}
               <span className="account-profile__chip account-profile__chip--privacy">
                 Privacy: {profile.privacyTierLabel}
               </span>

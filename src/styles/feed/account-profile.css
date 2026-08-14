@@ -54,9 +54,17 @@
 
 .account-profile__name {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 1.5rem;
   line-height: 1.2;
   letter-spacing: -0.02em;
+}
+
+.account-profile__verified-star {
+  color: var(--color-brand-primary);
+  flex-shrink: 0;
 }
 
 .account-profile__handle {
@@ -270,6 +278,12 @@ a.account-profile__person-main:focus-visible {
 
 .account-profile__chip--privacy {
   background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  color: var(--color-brand-primary);
+}
+
+.account-profile__chip--verified {
+  gap: 0.3rem;
+  background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
   color: var(--color-brand-primary);
 }
 

@@ -17,7 +17,7 @@ function parseTab(value: string | undefined): "products" | "setup" | undefined {
 export default async function SellerCollectionPage({ searchParams }: PageProps) {
   const identity = await requireSellerCollectionIdentity();
   if (!identity) {
-    redirect("/");
+    redirect("/seller");
   }
 
   const config = await getSellerCollectionForUser(

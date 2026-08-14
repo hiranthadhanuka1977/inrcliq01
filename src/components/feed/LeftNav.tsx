@@ -179,7 +179,7 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
             </svg>
           </div>
           <h3 className="nav-promo__title">Seller Tools</h3>
-          <p className="nav-promo__text">Manage your collection and service request setup.</p>
+          <p className="nav-promo__text">Open Seller Tools to manage your storefront — or learn how to get verified.</p>
           <Link href="/seller" className="btn btn--outline-brand btn--sm btn--block nav-promo__btn">
             Open Seller Tools
           </Link>

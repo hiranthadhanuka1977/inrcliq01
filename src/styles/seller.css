@@ -90,6 +90,11 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
   gap: var(--space-8);
 }
 
+.seller-shell--marketing {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 56rem;
+}
+
 .seller-nav {
   align-self: start;
   position: sticky;
@@ -177,6 +182,198 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
   font-size: var(--font-size-md);
   line-height: 1.45;
   max-width: 40rem;
+}
+
+.seller-verify {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.seller-verify__hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.seller-verify__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-brand-primary);
+}
+
+.seller-verify__title {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.seller-verify__star {
+  color: var(--color-brand-primary);
+  flex-shrink: 0;
+}
+
+.seller-verify__lead {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+}
+
+.seller-verify__paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.seller-verify__path {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-neutral-0);
+}
+
+.seller-verify__path--featured {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-border-default));
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--color-brand-primary) 14%, transparent),
+      transparent 58%
+    ),
+    var(--color-neutral-0);
+}
+
+.seller-verify__path-kicker {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.seller-verify__path-title {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.seller-verify__path-copy {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.seller-verify__progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seller-verify__progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.seller-verify__progress-meta span {
+  color: var(--color-text-secondary);
+}
+
+.seller-verify__bar {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--color-bg-muted);
+  overflow: hidden;
+}
+
+.seller-verify__bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: var(--color-brand-primary);
+}
+
+.seller-verify__price {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.seller-verify__price strong {
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+}
+
+.seller-verify__price span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.seller-verify__benefits-title {
+  margin: 0 0 var(--space-4);
+  font-size: 1.15rem;
+}
+
+.seller-verify__benefit-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.seller-verify__benefit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-subtle);
+}
+
+.seller-verify__benefit-icon {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-brand-primary);
+}
+
+.seller-verify__benefit-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.seller-verify__benefit h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.seller-verify__benefit p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
 }
 
 .seller-panel__eyebrow {
@@ -1847,6 +2044,11 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
     grid-template-columns: 1fr;
     gap: var(--space-5);
     padding-top: var(--space-5);
+  }
+
+  .seller-verify__paths,
+  .seller-verify__benefit-grid {
+    grid-template-columns: 1fr;
   }
 
   .seller-nav {

@@ -55,6 +55,8 @@ export type AccountProfile = {
   avatarInitial: string;
   avatarUrl: string | null;
   avatarColor: string | null;
+  /** Monetized / creator verified badge — not email verification. */
+  verified: boolean;
   social: {
     followersCount: number;
     followingCount: number;
@@ -134,6 +136,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
         avatarUrl: true,
         avatarColor: true,
         avatarInitials: true,
+        verified: true,
       },
     }),
     prisma.creatorUser.findFirst({
@@ -143,6 +146,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
         avatarUrl: true,
         avatarColor: true,
         avatarInitials: true,
+        verified: true,
       },
     }),
   ]);
@@ -241,6 +245,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     avatarInitial: resolvedAvatarInitial,
     avatarUrl,
     avatarColor,
+    verified: Boolean(profileRow?.verified) || Boolean(creatorRow?.verified),
     social: {
       followersCount: followers.length,
       followingCount,

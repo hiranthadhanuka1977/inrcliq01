@@ -67,13 +67,15 @@ export async function getSellerIdentity(): Promise<SellerIdentity | null> {
 
 export async function requireSellerSpecialRequestsIdentity(): Promise<SellerIdentity | null> {
   const identity = await getSellerIdentity();
-  if (!identity?.hasSpecialRequests) return null;
+  if (!identity?.verified || !identity.hasSpecialRequests) return null;
   return identity;
 }
 
-/** Any seller with a linked profile/creator can manage Collection. */
+/** Verified creators with a linked profile/creator can manage Collection. */
 export async function requireSellerCollectionIdentity(): Promise<SellerIdentity | null> {
-  return getSellerIdentity();
+  const identity = await getSellerIdentity();
+  if (!identity?.verified) return null;
+  return identity;
 }
 
 export function isSpecialRequestsOwnerSlug(slug: string) {

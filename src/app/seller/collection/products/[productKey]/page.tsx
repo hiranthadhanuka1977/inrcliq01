@@ -12,7 +12,7 @@ type PageProps = {
 export default async function SellerProductManagePage({ params }: PageProps) {
   const identity = await requireSellerCollectionIdentity();
   if (!identity) {
-    redirect("/");
+    redirect("/seller");
   }
 
   const { productKey } = await params;

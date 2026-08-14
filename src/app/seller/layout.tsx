@@ -21,6 +21,7 @@ export default async function SellerLayout({
   ]);
   const firstName =
     navProfile.firstName || identity?.displayName?.split(" ")[0] || null;
+  const verified = Boolean(identity?.verified);
 
   return (
     <FeedSessionProvider
@@ -30,8 +31,10 @@ export default async function SellerLayout({
     >
       <div className="seller-path-shell feed-path-shell">
         <SellerHeader />
-        <div className="seller-shell">
-          <SellerNav hasSpecialRequests={Boolean(identity?.hasSpecialRequests)} />
+        <div className={`seller-shell${verified ? "" : " seller-shell--marketing"}`}>
+          {verified ? (
+            <SellerNav hasSpecialRequests={Boolean(identity?.hasSpecialRequests)} />
+          ) : null}
           <div className="seller-content">{children}</div>
         </div>
       </div>

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function SellerProductCreatePage() {
   const identity = await requireSellerCollectionIdentity();
   if (!identity) {
-    redirect("/");
+    redirect("/seller");
   }
 
   const config = await getSellerCollectionForUser(
