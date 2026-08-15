@@ -26,6 +26,11 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) {
   --color-bg-page: #0c0e14;
   --color-bg-subtle: var(--color-neutral-50);
   --color-bg-muted: var(--color-neutral-100);
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
+  --color-on-overlay: var(--color-on-brand);
+  --color-success: var(--color-online);
+  --color-error: var(--chart-move-down);
+  --color-info: var(--color-brand-primary);
   --color-border-default: var(--color-neutral-200);
   --color-border-strong: var(--color-neutral-300);
   --color-icon-badge-bg: #e8ecf4;
@@ -120,6 +125,11 @@ html[data-feed-theme="light"]:has(.auth-path-shell) {
   --color-bg-page: #f0f2f5;
   --color-bg-subtle: #f5f6f8;
   --color-bg-muted: #e4e6eb;
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
+  --color-on-overlay: var(--color-on-brand);
+  --color-success: var(--color-online);
+  --color-error: var(--chart-move-down);
+  --color-info: var(--color-brand-primary);
   --color-border-default: #ced0d4;
   --color-border-strong: #bec3c9;
   --color-icon-badge-bg: #1f2937;

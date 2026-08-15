@@ -529,6 +529,7 @@ export const AUDIO_TOP_CREATORS: AudioTopCreator[] = [
     handle: "@inrcliq",
     category: "Podcast",
     listeners: "640K monthly",
+    verified: true,
     initials: "IO",
     color: "#b45309",
   },

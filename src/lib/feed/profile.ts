@@ -21,6 +21,11 @@ const PROFILE_FILES: Record<string, string> = {
   "planet-unfolded": "planet-unfolded.json",
   "good-guy-podcast": "good-guy-podcast.json",
   "bathiya-santhush": "bathiya-santhush.json",
+  "billie-eilish": "billie-eilish.json",
+  "hard-fork": "hard-fork.json",
+  "james-clear": "james-clear.json",
+  "taylor-swift": "taylor-swift.json",
+  "inrcliq-originals": "inrcliq-originals.json",
 };
 
 function normalizeHandle(handle: string | null | undefined) {
@@ -338,6 +343,8 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
             }));
           feedPosts = [...feedPosts, ...leftovers];
         }
+      } else {
+        feedPosts = await getFeedPostsForUser(dbProfile.userId, { following, subscribed });
       }
 
       const base = profileFromDbRow(dbProfile, feedPosts);

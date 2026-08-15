@@ -36,6 +36,23 @@ export interface FeedMedia {
   images: FeedImage[];
   /** Optional clip URL; feed falls back to the shared sample video when omitted. */
   video_url?: string | null;
+  /** When false, image posts are photos — not sample-video cards. */
+  use_sample_video?: boolean;
+  location?: {
+    label: string;
+    lat?: number;
+    lng?: number;
+  };
+  feeling?: {
+    kind: "feeling" | "activity";
+    emoji: string;
+    label: string;
+  };
+  tagged?: {
+    name: string;
+    handle: string;
+    slug: string | null;
+  }[];
 }
 
 export interface FeedEngagement {

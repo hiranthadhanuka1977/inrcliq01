@@ -60,4 +60,6 @@ next-env.d.ts
 # seller-uploaded images (keep folder via .gitkeep)
 /public/uploads/seller-service-requests/*
 !/public/uploads/seller-service-requests/.gitkeep
+/public/uploads/feed-posts/*
+!/public/uploads/feed-posts/.gitkeep
 

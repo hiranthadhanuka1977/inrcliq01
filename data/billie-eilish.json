@@ -1,0 +1,21 @@
+{
+  "slug": "billie-eilish",
+  "name": "Billie Eilish",
+  "handle": "@billieeilish",
+  "avatar_initials": "BE",
+  "avatar_color": "#0369a1",
+  "avatar_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=240&q=80&auto=format&fit=crop",
+  "verified": true,
+  "cover_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1400&h=400&fit=crop",
+  "bio": "Grammy-winning artist. Dark-pop, whisper-vocal anthems, and a generation of listeners who grew up on her records.",
+  "stats": {
+    "followers": "12.4M",
+    "following": 0,
+    "subscribers": 0,
+    "posts": 0
+  },
+  "subscription": null,
+  "collection": [],
+  "popular_posts": [],
+  "feed_posts": []
+}

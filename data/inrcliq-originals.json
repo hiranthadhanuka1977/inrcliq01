@@ -1,0 +1,21 @@
+{
+  "slug": "inrcliq-originals",
+  "name": "INRCLIQ Originals",
+  "handle": "@inrcliq",
+  "avatar_initials": "IO",
+  "avatar_color": "#b45309",
+  "avatar_url": null,
+  "verified": true,
+  "cover_url": "https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=1400&h=400&fit=crop",
+  "bio": "Original podcasts from INRCLIQ — conversations with builders, creators, and the people shaping culture.",
+  "stats": {
+    "followers": "640K",
+    "following": 0,
+    "subscribers": 0,
+    "posts": 0
+  },
+  "subscription": null,
+  "collection": [],
+  "popular_posts": [],
+  "feed_posts": []
+}

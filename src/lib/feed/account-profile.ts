@@ -57,6 +57,8 @@ export type AccountProfile = {
   avatarColor: string | null;
   /** Monetized / creator verified badge — not email verification. */
   verified: boolean;
+  postCount: number;
+  profileHref: string | null;
   social: {
     followersCount: number;
     followingCount: number;
@@ -137,6 +139,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
         avatarColor: true,
         avatarInitials: true,
         verified: true,
+        slug: true,
       },
     }),
     prisma.creatorUser.findFirst({
@@ -147,6 +150,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
         avatarColor: true,
         avatarInitials: true,
         verified: true,
+        slug: true,
       },
     }),
   ]);
@@ -179,12 +183,14 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
   const region = user.region?.trim() || null;
   const locationLabel = [region, countryLabel].filter(Boolean).join(", ") || null;
 
-  const [subscriptionRows, subscriptionsCount, followRows, followingCount] = await Promise.all([
-    listActiveSubscriptionsForUser(user.id),
-    countActiveSubscriptionsForUser(user.id),
-    listFollowedCreatorsForUser(user.id),
-    countFollowedCreatorsForUser(user.id),
-  ]);
+  const [subscriptionRows, subscriptionsCount, followRows, followingCount, postCount] =
+    await Promise.all([
+      listActiveSubscriptionsForUser(user.id),
+      countActiveSubscriptionsForUser(user.id),
+      listFollowedCreatorsForUser(user.id),
+      countFollowedCreatorsForUser(user.id),
+      prisma.feedPost.count({ where: { userId: user.id } }),
+    ]);
 
   const subscriptions: AccountSocialPerson[] = subscriptionRows.map((row) => ({
     id: row.creator.id,
@@ -246,6 +252,12 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     avatarUrl,
     avatarColor,
     verified: Boolean(profileRow?.verified) || Boolean(creatorRow?.verified),
+    postCount,
+    profileHref: profileRow?.slug
+      ? `/feed/profile/${profileRow.slug}`
+      : creatorRow?.slug
+        ? `/feed/profile/${creatorRow.slug}`
+        : null,
     social: {
       followersCount: followers.length,
       followingCount,

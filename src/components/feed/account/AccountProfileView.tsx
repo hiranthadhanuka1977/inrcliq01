@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type CSSProperties } from "react";
 import FollowButton from "@/components/feed/FollowButton";
+import FirstPostPrompt from "@/components/feed/account/FirstPostPrompt";
 import type {
   AccountProfile,
   AccountSocialPerson,
@@ -194,6 +195,10 @@ export default function AccountProfileView({
             Edit Profile
           </Link>
         </div>
+
+        {profile.postCount === 0 ? (
+          <FirstPostPrompt firstName={profile.firstName} profileHref={profile.profileHref} />
+        ) : null}
 
         <div className="account-profile__stats" role="tablist" aria-label="Your network">
           {(

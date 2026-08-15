@@ -19,6 +19,7 @@
     "db:migrate-collection": "node scripts/migrate-collection-to-db.mjs",
     "db:seed-good-guy": "node scripts/seed-good-guy-podcast.mjs",
     "db:seed-bns": "node scripts/seed-bathiya-santhush.mjs",
+    "db:seed-top-creators": "node scripts/seed-top-creators.mjs",
     "db:seed-chat": "node scripts/seed-chat-inboxes.mjs",
     "postinstall": "prisma generate"
   },

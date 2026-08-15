@@ -23,6 +23,11 @@ const RICH_PROFILES = {
   "planet-unfolded": "planet-unfolded.json",
   "good-guy-podcast": "good-guy-podcast.json",
   "bathiya-santhush": "bathiya-santhush.json",
+  "billie-eilish": "billie-eilish.json",
+  "hard-fork": "hard-fork.json",
+  "james-clear": "james-clear.json",
+  "taylor-swift": "taylor-swift.json",
+  "inrcliq-originals": "inrcliq-originals.json",
 };
 
 function cuid() {

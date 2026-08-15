@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
+import CreatePostModal from "@/components/feed/account/CreatePostModal";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
 import { useFeedTheme } from "@/context/feed/FeedThemeContext";
 import { NavIcon, type NavIconName } from "@/lib/feed/nav-icons";
@@ -51,6 +52,7 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
   const avatarAccent = avatarColor?.trim() || "#0d9488";
   const [messagesUnread, setMessagesUnread] = useState(0);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -187,7 +189,13 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
       </div>
 
       <div className="nav-create">
-        <button type="button" className="nav-create__btn">
+        <button
+          type="button"
+          className="nav-create__btn"
+          aria-haspopup="dialog"
+          aria-expanded={createOpen}
+          onClick={() => setCreateOpen(true)}
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
@@ -195,6 +203,12 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
           Create
         </button>
       </div>
+
+      <CreatePostModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        firstName={firstName?.trim() || sessionFirstName?.trim() || null}
+      />
 
       <div className="nav-profile" ref={profileMenuRef}>
         <Link href="/feed/me?tab=subscriptions" className="nav-profile__link">

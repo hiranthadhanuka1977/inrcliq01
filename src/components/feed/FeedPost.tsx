@@ -21,6 +21,8 @@ const muteSvg = (
 
 function isVideoFeedMedia(media: NonNullable<FeedItem["media"]>, membersOnly?: boolean): boolean {
   if (membersOnly) return false;
+  if (media.video_url) return true;
+  if (media.use_sample_video === false) return false;
   if (media.type === "video") return true;
   if (media.type === "collage" && media.images.length > 1) return true;
   return media.type === "image" && media.images.length === 1;
@@ -46,6 +48,31 @@ const lockSvg = (
 
 const subscriberPopoverText =
   "You need to activate a subscription with this creator to access exclusive content.";
+
+function formatPostContext(media: FeedItem["media"]) {
+  if (!media) return null;
+  const parts: string[] = [];
+  if (media.feeling) {
+    parts.push(
+      media.feeling.kind === "activity"
+        ? `is ${media.feeling.label} ${media.feeling.emoji}`
+        : `is feeling ${media.feeling.label} ${media.feeling.emoji}`,
+    );
+  }
+  if (media.location?.label) {
+    parts.push(`at ${media.location.label.split(",")[0]}`);
+  }
+  const tagged = media.tagged ?? [];
+  if (tagged.length === 1) {
+    parts.push(`with ${tagged[0].name}`);
+  } else if (tagged.length === 2) {
+    parts.push(`with ${tagged[0].name} and ${tagged[1].name}`);
+  } else if (tagged.length > 2) {
+    parts.push(`with ${tagged[0].name} and ${tagged.length - 1} others`);
+  }
+  if (!parts.length) return null;
+  return <span className="post-head__context">{parts.join(" · ")}</span>;
+}
 
 function SubscriberMediaLock() {
   return (
@@ -76,6 +103,7 @@ function PostMedia({
   const showVideo = isVideoFeedMedia(media, membersOnly);
   const poster = media.images[0] ?? null;
   const videoSrc = media.video_url || SAMPLE_FEED_VIDEO_URL;
+  const hasVisual = media.images.length > 0 || Boolean(media.video_url);
 
   useEffect(() => {
     if (!showVideo || media.type === "collage") return;
@@ -89,6 +117,8 @@ function PostMedia({
 
     void video.play().then(() => setPreviewing(true)).catch(() => setPreviewing(false));
   }, [showVideo, videoSrc, previewPaused, media.type]);
+
+  if (!hasVisual) return null;
 
   if (media.type === "collage" && media.images.length > 1) {
     const collageClass =
@@ -257,6 +287,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   );
 
   const name = <strong className="post-head__name">{author.name}</strong>;
+  const context = formatPostContext(item.media);
 
   return (
     <article className="post post--simple">
@@ -278,6 +309,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
               ) : (
                 name
               )}
+              {context}
               {item.relationship.subscribed ? (
                 <span
                   className="post-head__badge post-head__badge--subscribed post-head__badge--icon-only"
@@ -356,7 +388,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             ))}
           </div>
         ) : null}
-        <p>{item.text}</p>
+        {item.text ? <p>{item.text}</p> : null}
         {item.audio ? (
           <AudioFeedPlayer
             itemId={item.id}

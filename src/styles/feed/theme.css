@@ -805,3 +805,69 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--primary:ho
 html[data-feed-theme="light"]:has(.feed-path-shell) .audio-mini__btn--like.is-liked {
   color: #e11d48;
 }
+
+/* ——— Account profile / first-post composer — light surfaces ——— */
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__card {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  box-shadow: var(--shadow-xs);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__hero,
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__info-header,
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__stats,
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__actions {
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__person,
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__empty {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__privacy {
+  background: var(--color-neutral-50);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__chip {
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__stat:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .account-profile__stat:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .first-post-prompt {
+  background: color-mix(in srgb, var(--color-brand-primary) 8%, var(--feed-card-bg));
+  border-color: color-mix(in srgb, var(--color-brand-primary) 28%, var(--feed-card-border));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .first-post-prompt__input,
+html[data-feed-theme="light"]:has(.feed-path-shell) .add-to-post,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-panel,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-panel__search,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-feeling,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-chip,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-previews {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+  color: var(--color-text-primary);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .add-to-post__icon:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .add-to-post__icon:focus-visible,
+html[data-feed-theme="light"]:has(.feed-path-shell) .add-to-post__icon.is-active,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-person:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-person.is-selected,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-more__item:hover {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-previews__item,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-gifs__item {
+  background: var(--color-bg-muted);
+}

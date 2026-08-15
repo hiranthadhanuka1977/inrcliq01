@@ -4,6 +4,8 @@ import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
 import type { ProfilePopularPost } from "@/types/feed/profile";
 
 export default function ProfilePopularPosts({ posts }: { posts: ProfilePopularPost[] }) {
+  if (posts.length === 0) return null;
+
   return (
     <section className="profile-section" aria-labelledby="popular-posts-heading">
       <div className="profile-section__head">

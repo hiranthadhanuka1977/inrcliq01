@@ -11,6 +11,16 @@ const HANDLE_TO_SLUG: Record<string, string> = {
   goodguypod: "good-guy-podcast",
   "@bnsofficial": "bathiya-santhush",
   bnsofficial: "bathiya-santhush",
+  "@billieeilish": "billie-eilish",
+  billieeilish: "billie-eilish",
+  "@hardfork": "hard-fork",
+  hardfork: "hard-fork",
+  "@jamesclear": "james-clear",
+  jamesclear: "james-clear",
+  "@taylorswift": "taylor-swift",
+  taylorswift: "taylor-swift",
+  "@inrcliq": "inrcliq-originals",
+  inrcliq: "inrcliq-originals",
 };
 
 /** Known curated profile slugs (rich migrated profiles). */

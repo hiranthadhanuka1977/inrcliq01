@@ -1,0 +1,21 @@
+{
+  "slug": "james-clear",
+  "name": "James Clear",
+  "handle": "@jamesclear",
+  "avatar_initials": "JC",
+  "avatar_color": "#4338ca",
+  "avatar_url": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=240&q=80&auto=format&fit=crop",
+  "verified": true,
+  "cover_url": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1400&h=400&fit=crop",
+  "bio": "Author of Atomic Habits. Practical systems for getting 1% better every day — in writing, audio, and the habits behind both.",
+  "stats": {
+    "followers": "890K",
+    "following": 0,
+    "subscribers": 0,
+    "posts": 0
+  },
+  "subscription": null,
+  "collection": [],
+  "popular_posts": [],
+  "feed_posts": []
+}

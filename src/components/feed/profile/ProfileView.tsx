@@ -18,6 +18,9 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
   const { showMiniPlayer } = useAudioPlayback();
   const { getFollowing, setFollowing } = useFeedFollowState();
   const following = getFollowing(profile.handle, profile.relationship?.following ?? false);
+  const hasPopular = profile.popular_posts.length > 0;
+  const hasFeed = profile.feed_posts.length > 0;
+  const hasPosts = hasPopular || hasFeed;
 
   return (
     <>
@@ -40,29 +43,54 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                 enabled={profile.collection_enabled !== false}
               />
             ) : null}
-            <ProfilePopularPosts posts={profile.popular_posts} />
 
-            <section className="profile-feed" id="profile-feed" aria-labelledby="profile-feed-heading">
-              <div className="profile-section__head profile-feed__head">
-                <h2 id="profile-feed-heading">Feed</h2>
-              </div>
-              <div className="profile-feed__list feed-main feed-surface feed-surface--simple">
-                {profile.feed_posts.map((item) => (
-                  <FeedPost
-                    key={item.id}
-                    item={item}
-                    following={following}
-                    onFollowingChange={(next) => setFollowing(profile.handle, next)}
-                    hideFollow={Boolean(profile.is_own)}
-                  />
-                ))}
-              </div>
-            </section>
+            {hasPosts ? (
+              <>
+                {hasPopular ? <ProfilePopularPosts posts={profile.popular_posts} /> : null}
+
+                {hasFeed ? (
+                  <section className="profile-feed" id="profile-feed" aria-labelledby="profile-feed-heading">
+                    <div className="profile-section__head profile-feed__head">
+                      <h2 id="profile-feed-heading">Feed</h2>
+                    </div>
+                    <div className="profile-feed__list feed-main feed-surface feed-surface--simple">
+                      {profile.feed_posts.map((item) => (
+                        <FeedPost
+                          key={item.id}
+                          item={item}
+                          following={following}
+                          onFollowingChange={(next) => setFollowing(profile.handle, next)}
+                          hideFollow={Boolean(profile.is_own)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </>
+            ) : (
+              <section className="profile-feed-empty" aria-labelledby="profile-feed-empty-heading">
+                <span className="profile-feed-empty__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 5h16v14H4z" />
+                    <path d="M8 9h8" />
+                    <path d="M8 13h5" />
+                  </svg>
+                </span>
+                <h2 id="profile-feed-empty-heading">No posts yet</h2>
+                <p>
+                  {profile.is_own
+                    ? "Share your first update when you’re ready. It will show up here."
+                    : `${profile.name} hasn’t posted yet. Check back later.`}
+                </p>
+              </section>
+            )}
           </div>
         </main>
         <AudioMiniPlayer />
         <FeedAudioFullscreenPlayer />
-        <FeedScrollButton variant="profile" topTargetId="profile-top" feedTargetId="profile-feed" />
+        {hasFeed ? (
+          <FeedScrollButton variant="profile" topTargetId="profile-top" feedTargetId="profile-feed" />
+        ) : null}
       </div>
       <MobileNav />
     </>
