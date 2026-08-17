@@ -43,6 +43,41 @@ async function uniqueCreatorEmail(preferred: string) {
   return email;
 }
 
+function slugify(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/^@/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+}
+
+async function uniquePublicSlug(preferred: string) {
+  let slug = slugify(preferred) || `user-${randomBytes(3).toString("hex")}`;
+  const base = slug;
+  let suffix = 0;
+  while (
+    (await prisma.userProfile.findFirst({ where: { slug }, select: { id: true } })) ||
+    (await prisma.creatorUser.findFirst({ where: { slug }, select: { id: true } }))
+  ) {
+    suffix += 1;
+    slug = `${base.slice(0, 56)}-${suffix}`;
+  }
+  return slug;
+}
+
+async function uniqueProfileHandle(preferred: string) {
+  const bare = bareHandle(preferred) || `user-${randomBytes(3).toString("hex")}`;
+  let handle = `@${bare}`;
+  let suffix = 0;
+  while (await prisma.userProfile.findFirst({ where: { handle }, select: { id: true } })) {
+    suffix += 1;
+    handle = `@${bare.slice(0, 40)}-${suffix}`;
+  }
+  return handle;
+}
+
 /**
  * Ensure a CreatorUser has a linked auth User, and that creator's FeedPosts
  * point at that User. Safe to call repeatedly.
@@ -128,8 +163,9 @@ export async function ensureCreatorLinkedToUser(creatorId: string): Promise<stri
 }
 
 /**
- * Ensure an auth seller has a linked CreatorUser (needed for Collection FK).
- * Creates one from UserProfile when missing. Safe to call repeatedly.
+ * Ensure an auth user has a linked CreatorUser (needed for FeedPost / Collection FK).
+ * Creates a stub UserProfile + CreatorUser when missing so first posts can publish.
+ * Safe to call repeatedly.
  */
 export async function ensureCreatorUserForAuthUser(
   userId: string,
@@ -164,30 +200,81 @@ export async function ensureCreatorUserForAuthUser(
       },
     },
   });
+  if (!user) return null;
 
-  const profile = user?.profile;
-  if (!user || !profile?.slug) return null;
+  const fallbackName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+    user.handle?.replace(/^@/, "") ||
+    user.email.split("@")[0] ||
+    "Creator";
+  const preferredSlugSource =
+    user.profile?.slug?.trim() ||
+    user.profile?.handle ||
+    user.handle ||
+    user.email.split("@")[0] ||
+    `user-${user.id.slice(-6)}`;
+  const slug = user.profile?.slug?.trim() || (await uniquePublicSlug(preferredSlugSource));
+
+  if (!user.profile) {
+    const handle = await uniqueProfileHandle(user.handle || user.email.split("@")[0] || slug);
+    await prisma.userProfile.create({
+      data: {
+        userId: user.id,
+        slug,
+        displayName: fallbackName,
+        handle,
+        avatarInitials: initialsFromName(fallbackName),
+        avatarColor: "#6b9fff",
+        source: "stub",
+      },
+    });
+  } else if (!user.profile.slug?.trim()) {
+    await prisma.userProfile.update({
+      where: { userId: user.id },
+      data: { slug },
+    });
+  }
+
+  const profile = user.profile
+    ? { ...user.profile, slug: user.profile.slug?.trim() || slug }
+    : {
+        slug,
+        displayName: fallbackName,
+        handle: user.handle,
+        avatarInitials: initialsFromName(fallbackName),
+        avatarColor: "#6b9fff",
+        avatarUrl: null,
+        verified: false,
+        bio: "",
+        coverUrl: null,
+      };
 
   const bySlug = await prisma.creatorUser.findFirst({
-    where: { slug: profile.slug },
+    where: { slug: profile.slug! },
     select: { id: true, slug: true, name: true, userId: true },
   });
   if (bySlug) {
-    if (!bySlug.userId) {
-      await prisma.creatorUser.update({
-        where: { id: bySlug.id },
-        data: { userId: user.id },
-      });
+    if (!bySlug.userId || bySlug.userId === user.id) {
+      if (!bySlug.userId) {
+        await prisma.creatorUser.update({
+          where: { id: bySlug.id },
+          data: { userId: user.id },
+        });
+      }
+      return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name };
     }
-    return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name };
+    const nextSlug = await uniquePublicSlug(`${profile.slug}-user`);
+    profile.slug = nextSlug;
+    await prisma.userProfile.update({
+      where: { userId: user.id },
+      data: { slug: nextSlug },
+    });
   }
 
   const displayName =
-    profile.displayName.trim() ||
-    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-    profile.handle ||
-    "Creator";
-  const preferredHandle = bareHandle(profile.handle || user.handle || profile.slug) || profile.slug;
+    profile.displayName?.trim() ||
+    fallbackName;
+  const preferredHandle = bareHandle(profile.handle || user.handle || profile.slug || "") || profile.slug!;
   const handle = await uniqueCreatorHandle(preferredHandle);
   const preferredEmail = user.email?.includes("@")
     ? user.email
@@ -209,10 +296,10 @@ export async function ensureCreatorUserForAuthUser(
         avatarInitials: profile.avatarInitials || initialsFromName(displayName),
         avatarColor: profile.avatarColor || "#6b9fff",
         avatarUrl: profile.avatarUrl,
-        verified: profile.verified,
+        verified: Boolean(profile.verified),
         bio: profile.bio || null,
         coverUrl: profile.coverUrl,
-        source: "seller-tools-auto",
+        source: user.profile ? "seller-tools-auto" : "first-post-auto",
         userId: user.id,
       },
       select: { id: true, slug: true, name: true },
@@ -220,7 +307,7 @@ export async function ensureCreatorUserForAuthUser(
   } catch {
     const raced = await prisma.creatorUser.findFirst({
       where: {
-        OR: [{ userId: user.id }, { slug: profile.slug }, { handle }, { email }],
+        OR: [{ userId: user.id }, { slug: profile.slug! }, { handle }, { email }],
       },
       select: { id: true, slug: true, name: true, userId: true },
     });

@@ -211,7 +211,8 @@ html:has(body.feed-video-viewer-open) {
   right: var(--space-4);
 }
 
-.feed-video-viewer__video {
+.feed-video-viewer__video,
+.feed-video-viewer__image {
   display: block;
   width: 100%;
   height: 100%;
@@ -763,7 +764,8 @@ a.feed-video-viewer__name:focus-visible {
 
 /* In-feed video preview */
 .feed-surface--simple .post-media--video,
-.feed-surface--simple .post-media--collage-video .post-media__cell {
+.feed-surface--simple .post-media--collage-video .post-media__cell,
+.feed-surface--simple .post-media--photo {
   cursor: pointer;
 }
 

@@ -14,7 +14,6 @@ import {
   type CommentSortMode,
   type SampleComment,
 } from "@/lib/feed/sample-comments";
-import { SAMPLE_FEED_VIDEO_URL } from "@/lib/feed/sample-video";
 import type { FeedImage, FeedItem } from "@/types/feed/feed";
 
 type FeedVideoViewerProps = {
@@ -24,6 +23,8 @@ type FeedVideoViewerProps = {
   open: boolean;
   /** Full media theater vs comments-focused popup. */
   mode?: "media" | "comments";
+  /** When set, the stage plays this clip; otherwise photos are shown. */
+  videoSrc?: string | null;
   onClose: () => void;
 };
 
@@ -77,6 +78,7 @@ export default function FeedVideoViewer({
   initialIndex = 0,
   open,
   mode = "media",
+  videoSrc = null,
   onClose,
 }: FeedVideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -167,7 +169,7 @@ export default function FeedVideoViewer({
   }, [open]);
 
   useEffect(() => {
-    if (!open || isCommentsMode) return;
+    if (!open || isCommentsMode || !videoSrc) return;
     const video = videoRef.current;
     if (!video) return;
     video.muted = false;
@@ -175,7 +177,7 @@ export default function FeedVideoViewer({
     void video.play().catch(() => {
       /* autoplay may be blocked until user interacts */
     });
-  }, [open, safeIndex, isCommentsMode]);
+  }, [open, safeIndex, isCommentsMode, videoSrc]);
 
   const goPrev = useCallback(() => {
     setActiveIndex((current) => Math.max(current - 1, 0));
@@ -257,7 +259,7 @@ export default function FeedVideoViewer({
       className={`feed-video-viewer${isCommentsMode ? " feed-video-viewer--comments" : ""}`}
       role="dialog"
       aria-modal="true"
-      aria-label={isCommentsMode ? "Comments" : "Video viewer"}
+      aria-label={isCommentsMode ? "Comments" : videoSrc ? "Video viewer" : "Photo viewer"}
       tabIndex={-1}
     >
       {isCommentsMode ? (
@@ -294,7 +296,7 @@ export default function FeedVideoViewer({
               <button
                 type="button"
                 className="feed-video-viewer__nav feed-video-viewer__nav--prev"
-                aria-label="Previous video"
+                aria-label={videoSrc ? "Previous video" : "Previous photo"}
                 onClick={goPrev}
               >
                 {chevronLeft}
@@ -305,23 +307,31 @@ export default function FeedVideoViewer({
               <button
                 type="button"
                 className="feed-video-viewer__nav feed-video-viewer__nav--next"
-                aria-label="Next video"
+                aria-label={videoSrc ? "Next video" : "Next photo"}
                 onClick={goNext}
               >
                 {chevronRight}
               </button>
             ) : null}
 
-            {activeSlide ? (
+            {videoSrc ? (
               <video
                 key={`${item.id}-${safeIndex}-${mode}`}
                 ref={videoRef}
                 className="feed-video-viewer__video"
-                src={SAMPLE_FEED_VIDEO_URL}
-                poster={activeSlide.url}
+                src={videoSrc}
+                poster={activeSlide?.url}
                 controls
                 playsInline
                 autoPlay
+              />
+            ) : activeSlide ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${item.id}-${safeIndex}-${mode}`}
+                className="feed-video-viewer__image"
+                src={activeSlide.url}
+                alt={activeSlide.alt}
               />
             ) : (
               <div className="feed-video-viewer__empty-media">

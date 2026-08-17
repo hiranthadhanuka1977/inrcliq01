@@ -19,13 +19,18 @@ const muteSvg = (
   </svg>
 );
 
-function isVideoFeedMedia(media: NonNullable<FeedItem["media"]>, membersOnly?: boolean): boolean {
+function isPlayableVideoMedia(media: NonNullable<FeedItem["media"]>, membersOnly?: boolean): boolean {
   if (membersOnly) return false;
   if (media.video_url) return true;
   if (media.use_sample_video === false) return false;
   if (media.type === "video") return true;
   if (media.type === "collage" && media.images.length > 1) return true;
   return media.type === "image" && media.images.length === 1;
+}
+
+function canOpenMediaViewer(media: NonNullable<FeedItem["media"]>, membersOnly?: boolean): boolean {
+  if (membersOnly) return false;
+  return media.images.length > 0 || Boolean(media.video_url);
 }
 
 const globeSvg = (
@@ -90,17 +95,18 @@ function SubscriberMediaLock() {
 function PostMedia({
   media,
   membersOnly,
-  onOpenVideo,
+  onOpenMedia,
   previewPaused = false,
 }: {
   media: NonNullable<FeedItem["media"]>;
   membersOnly?: boolean;
-  onOpenVideo?: (index?: number) => void;
+  onOpenMedia?: (index?: number) => void;
   previewPaused?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [previewing, setPreviewing] = useState(false);
-  const showVideo = isVideoFeedMedia(media, membersOnly);
+  const showVideo = isPlayableVideoMedia(media, membersOnly);
+  const canOpen = Boolean(onOpenMedia);
   const poster = media.images[0] ?? null;
   const videoSrc = media.video_url || SAMPLE_FEED_VIDEO_URL;
   const hasVisual = media.images.length > 0 || Boolean(media.video_url);
@@ -129,29 +135,35 @@ function PostMedia({
     return (
       <div
         className={`${collageClass}${membersOnly ? " post-media--subscriber-locked" : ""}${
-          !membersOnly && onOpenVideo ? " post-media--collage-video" : ""
+          !membersOnly && canOpen ? " post-media--collage-video" : ""
         }`}
       >
         {media.images.map((image, index) => (
           <div
             key={image.url}
             className={`post-media__cell${index === 0 ? " post-media__cell--main" : ""}`}
-            role={!membersOnly && onOpenVideo ? "button" : undefined}
-            tabIndex={!membersOnly && onOpenVideo ? 0 : undefined}
-            aria-label={!membersOnly && onOpenVideo ? `Play video ${index + 1}` : undefined}
+            role={!membersOnly && canOpen ? "button" : undefined}
+            tabIndex={!membersOnly && canOpen ? 0 : undefined}
+            aria-label={
+              !membersOnly && canOpen
+                ? showVideo
+                  ? `Play video ${index + 1}`
+                  : `View photo ${index + 1}`
+                : undefined
+            }
             onClick={
-              !membersOnly && onOpenVideo
+              !membersOnly && onOpenMedia
                 ? () => {
-                    onOpenVideo(index);
+                    onOpenMedia(index);
                   }
                 : undefined
             }
             onKeyDown={
-              !membersOnly && onOpenVideo
+              !membersOnly && onOpenMedia
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      onOpenVideo(index);
+                      onOpenMedia(index);
                     }
                   }
                 : undefined
@@ -159,7 +171,7 @@ function PostMedia({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={image.url} alt={image.alt} />
-            {!membersOnly ? <MediaPlayOverlay /> : null}
+            {!membersOnly && showVideo ? <MediaPlayOverlay /> : null}
           </div>
         ))}
         {membersOnly ? <SubscriberMediaLock /> : null}
@@ -169,7 +181,7 @@ function PostMedia({
 
   if (!poster) return null;
 
-  if (showVideo && onOpenVideo) {
+  if (showVideo && onOpenMedia) {
     return (
       <div
         className={`post-media post-media--video${previewing ? " is-previewing" : ""}`}
@@ -178,13 +190,13 @@ function PostMedia({
         aria-label="Play video"
         onClick={() => {
           videoRef.current?.pause();
-          onOpenVideo(0);
+          onOpenMedia(0);
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             videoRef.current?.pause();
-            onOpenVideo(0);
+            onOpenMedia(0);
           }
         }}
       >
@@ -208,7 +220,31 @@ function PostMedia({
   }
 
   return (
-    <div className={`post-media${membersOnly ? " post-media--subscriber-locked" : ""}`}>
+    <div
+      className={`post-media${membersOnly ? " post-media--subscriber-locked" : ""}${
+        !membersOnly && canOpen ? " post-media--photo" : ""
+      }`}
+      role={!membersOnly && canOpen ? "button" : undefined}
+      tabIndex={!membersOnly && canOpen ? 0 : undefined}
+      aria-label={!membersOnly && canOpen ? "View photo" : undefined}
+      onClick={
+        !membersOnly && onOpenMedia
+          ? () => {
+              onOpenMedia(0);
+            }
+          : undefined
+      }
+      onKeyDown={
+        !membersOnly && onOpenMedia
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpenMedia(0);
+              }
+            }
+          : undefined
+      }
+    >
       {membersOnly ? (
         <div className="post-media__inner">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -218,7 +254,6 @@ function PostMedia({
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={poster.url} alt={poster.alt} />
-          <MediaPlayOverlay />
         </>
       )}
       {membersOnly ? <SubscriberMediaLock /> : null}
@@ -258,9 +293,10 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const profileSlug = resolveAuthorProfileSlug(author.handle, author.slug);
   const creatorSlug = profileSlug;
   const isFollowing = following ?? localFollowing;
-  const canOpenVideo = item.media ? isVideoFeedMedia(item.media, item.members_only) : false;
+  const canOpenMedia = item.media ? canOpenMediaViewer(item.media, item.members_only) : false;
+  const playableVideo = item.media ? isPlayableVideoMedia(item.media, item.members_only) : false;
   const canOpenComments = !item.members_only;
-  const openVideo = (index = 0) => {
+  const openMedia = (index = 0) => {
     setVideoIndex(index);
     setViewerMode("media");
     setViewerOpen(true);
@@ -401,7 +437,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
           <PostMedia
             media={item.media}
             membersOnly={item.members_only}
-            onOpenVideo={canOpenVideo ? openVideo : undefined}
+            onOpenMedia={canOpenMedia ? openMedia : undefined}
             previewPaused={viewerOpen}
           />
         ) : null}
@@ -450,13 +486,16 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
         </div>
       </div>
 
-      {canOpenComments ? (
+      {canOpenComments || canOpenMedia ? (
         <FeedVideoViewer
           item={item}
           slides={item.media?.images ?? []}
           initialIndex={videoIndex}
           open={viewerOpen}
           mode={viewerMode}
+          videoSrc={
+            playableVideo ? item.media?.video_url || SAMPLE_FEED_VIDEO_URL : null
+          }
           onClose={() => setViewerOpen(false)}
         />
       ) : null}

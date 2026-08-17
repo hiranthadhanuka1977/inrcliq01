@@ -64,6 +64,51 @@ export async function countFollowedCreatorsForUser(userId: string) {
   return prisma.creatorFollow.count({ where: { userId } });
 }
 
+export async function listInboundFollowersForUser(userId: string) {
+  const creator = await prisma.creatorUser.findFirst({
+    where: { userId },
+    select: { id: true },
+  });
+  if (!creator) return [];
+
+  return prisma.creatorFollow.findMany({
+    where: { creatorId: creator.id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          handle: true,
+          email: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+              avatarInitials: true,
+              avatarColor: true,
+              avatarUrl: true,
+              verified: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function countInboundFollowersForUser(userId: string) {
+  const creator = await prisma.creatorUser.findFirst({
+    where: { userId },
+    select: { id: true },
+  });
+  if (!creator) return 0;
+
+  return prisma.creatorFollow.count({ where: { creatorId: creator.id } });
+}
+
 export async function getFollowedCreatorIdsForUser(userId: string) {
   if (typeof prisma.creatorFollow?.findMany !== "function") {
     return new Set<string>();

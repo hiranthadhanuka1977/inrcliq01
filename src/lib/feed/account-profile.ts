@@ -11,7 +11,9 @@ import {
 } from "@/lib/feed/subscription-service";
 import {
   countFollowedCreatorsForUser,
+  countInboundFollowersForUser,
   listFollowedCreatorsForUser,
+  listInboundFollowersForUser,
 } from "@/lib/feed/follow-service";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
@@ -99,6 +101,42 @@ function privacyDescription(tier: ProtectionTier | null, accountType: AccountTyp
   return "DMs limited to approved contacts. Comment filters on. Safety alerts to guardian.";
 }
 
+function displayHandle(handle: string | null | undefined, fallbackEmail?: string | null) {
+  const trimmed = handle?.trim();
+  if (trimmed) {
+    return trimmed.startsWith("@") ? trimmed : `@${trimmed}`;
+  }
+  if (fallbackEmail) {
+    const local = fallbackEmail.split("@")[0]?.trim();
+    if (local) return `@${local}`;
+  }
+  return "@user";
+}
+
+function followerDisplayName(
+  firstName: string | null,
+  lastName: string | null,
+  displayName: string | null | undefined,
+  email: string,
+) {
+  const fromProfile = displayName?.trim();
+  if (fromProfile) return fromProfile;
+  const fullName = [firstName?.trim(), lastName?.trim()].filter(Boolean).join(" ");
+  if (fullName) return fullName;
+  const local = email.split("@")[0]?.trim();
+  return local || "User";
+}
+
+function followerInitials(name: string, avatarInitials: string | null | undefined) {
+  const fromProfile = avatarInitials?.trim();
+  if (fromProfile) return fromProfile;
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
+  }
+  return name.trim().slice(0, 2).toUpperCase() || "U";
+}
+
 function notifyLevelLabel(level: string) {
   switch (level) {
     case "all":
@@ -183,12 +221,14 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
   const region = user.region?.trim() || null;
   const locationLabel = [region, countryLabel].filter(Boolean).join(", ") || null;
 
-  const [subscriptionRows, subscriptionsCount, followRows, followingCount, postCount] =
+  const [subscriptionRows, subscriptionsCount, followRows, followingCount, followerRows, followersCount, postCount] =
     await Promise.all([
       listActiveSubscriptionsForUser(user.id),
       countActiveSubscriptionsForUser(user.id),
       listFollowedCreatorsForUser(user.id),
       countFollowedCreatorsForUser(user.id),
+      listInboundFollowersForUser(user.id),
+      countInboundFollowersForUser(user.id),
       prisma.feedPost.count({ where: { userId: user.id } }),
     ]);
 
@@ -218,8 +258,30 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     meta: "Following",
   }));
 
-  // Fan accounts don't currently have inbound User→User follows.
-  const followers: AccountSocialPerson[] = [];
+  const followers: AccountSocialPerson[] = followerRows.map((row) => {
+    const profile = row.user.profile;
+    const name = followerDisplayName(
+      row.user.firstName,
+      row.user.lastName,
+      profile?.displayName,
+      row.user.email,
+    );
+    const slug = profile?.slug?.trim() || null;
+    return {
+      id: row.user.id,
+      name,
+      handle: displayHandle(profile?.handle ?? row.user.handle, row.user.email),
+      slug,
+      href: slug ? `/feed/profile/${slug}` : null,
+      avatarInitials: followerInitials(name, profile?.avatarInitials),
+      avatarColor: profile?.avatarColor?.trim() || "#6b9fff",
+      avatarUrl: profile?.avatarUrl?.trim() || null,
+      verified: Boolean(profile?.verified),
+      meta: "Follower",
+    };
+  });
+
+  // Fan-only accounts (no linked CreatorUser) have no inbound follows in this model.
 
   return {
     id: user.id,
@@ -259,7 +321,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
         ? `/feed/profile/${creatorRow.slug}`
         : null,
     social: {
-      followersCount: followers.length,
+      followersCount,
       followingCount,
       subscriptionsCount,
       followers,
