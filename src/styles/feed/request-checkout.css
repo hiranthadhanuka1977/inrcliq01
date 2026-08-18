@@ -178,6 +178,53 @@
   color: #ffffff;
 }
 
+.stripe-checkout__estimate {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.stripe-checkout__estimate .booking-fee-notice__label {
+  color: #ffffff;
+}
+
+.stripe-checkout__estimate .booking-fee-notice__amount {
+  color: rgba(245, 247, 251, 0.78);
+}
+
+.stripe-checkout__estimate .booking-fee-notice__callout {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.stripe-checkout__estimate .booking-fee-notice__callout p {
+  color: rgba(245, 247, 251, 0.88);
+}
+
+.stripe-checkout__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--sc-text);
+  cursor: pointer;
+}
+
+.stripe-checkout__terms input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.stripe-checkout__terms a {
+  color: var(--sc-accent);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.stripe-checkout__terms a:hover,
+.stripe-checkout__terms a:focus-visible {
+  text-decoration: underline;
+}
+
 .stripe-checkout__panel {
   display: flex;
   justify-content: flex-start;

@@ -56,6 +56,7 @@ export default async function RequestsCheckoutPage({
     dayRate: readNumber(query.dayRate, 0),
     feedFee: readNumber(query.feedFee, 0),
     totalFee: readNumber(query.totalFee, 0),
+    instantBooking: readParam(query.instantBooking, "0") === "1",
     isAppearance: readParam(query.isAppearance, "0") === "1",
     occasion: readParam(query.occasion, ""),
     location: readParam(query.location, ""),

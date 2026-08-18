@@ -19,6 +19,7 @@ import { getSessionUser } from "@/lib/session";
 import { acceptSettingsBooking } from "@/lib/settings/bookings";
 import { getSpecialRequestCatalogBySlug } from "@/lib/seller/service-requests-store";
 import { resolveCategoryInstantBooking } from "@/lib/seller/service-requests-helpers";
+import { BOOKING_FEE_PERCENT, bookingFeeDueNow } from "@/lib/feed/booking-fee";
 
 type BookingRequestBody = {
   slug?: string;
@@ -134,6 +135,8 @@ export async function POST(request: Request) {
     const instantBooking = catalog
       ? resolveCategoryInstantBooking(catalog.content, booking.category)
       : false;
+    const estimatedTotal = Number(booking.totalFee) || 0;
+    const bookingFee = instantBooking ? estimatedTotal : bookingFeeDueNow(estimatedTotal);
 
     const specialRequest = await createSpecialRequest({
       userId: user.id,
@@ -166,6 +169,9 @@ export async function POST(request: Request) {
         creatorSlug: slug,
         contentSummary: booking.contentSummary?.trim() || null,
         tone: booking.tone?.trim() || null,
+        estimatedTotal,
+        bookingFee,
+        bookingFeePercent: instantBooking ? 100 : BOOKING_FEE_PERCENT,
       },
     });
 

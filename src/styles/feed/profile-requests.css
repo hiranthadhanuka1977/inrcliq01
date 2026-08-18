@@ -2585,6 +2585,99 @@ select.requests-pz__input {
   color: var(--color-text-secondary);
 }
 
+.booking-fee-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.booking-fee-notice__estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.booking-fee-notice__label {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.booking-fee-notice__amount {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.booking-fee-notice__callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-0);
+}
+
+.booking-fee-notice__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.1rem;
+  border-radius: var(--radius-full);
+  background: var(--color-warning);
+  color: var(--color-on-warning);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.booking-fee-notice__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.booking-fee-notice__callout p {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+
+.requests-summary__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0.15rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.requests-summary__terms input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.requests-summary__terms a {
+  color: var(--color-brand-primary);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.requests-summary__terms a:hover,
+.requests-summary__terms a:focus-visible {
+  text-decoration: underline;
+}
+
 .requests-guarantee-tag {
   position: relative;
   display: inline-flex;

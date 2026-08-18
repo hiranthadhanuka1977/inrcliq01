@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ProfileData } from "@/types/feed/profile";
+import { BookingFeeNotice } from "@/components/feed/profile/BookingFeeNotice";
+import { bookingFeeDueNow } from "@/lib/feed/booking-fee";
 
 const REDIRECT_COOLDOWN_SECONDS = 2;
 
@@ -17,6 +19,7 @@ type RequestCheckoutData = {
   dayRate?: number;
   feedFee?: number;
   totalFee: number;
+  instantBooking?: boolean;
   isAppearance?: boolean;
   occasion?: string;
   location?: string;
@@ -97,11 +100,14 @@ export default function RequestCheckoutView({
   const [submitted, setSubmitted] = useState(false);
   const [redirectCooldown, setRedirectCooldown] = useState(0);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const backHref = `/feed/profile/${profile.slug}/requests/choose`;
   const requestLabel = data.request?.trim() || "Special request";
   const dayRate = data.dayRate ?? data.totalFee;
   const feedFee = data.feedFee ?? 0;
+  const instantBooking = Boolean(data.instantBooking);
+  const dueNow = instantBooking ? data.totalFee : bookingFeeDueNow(data.totalFee);
 
   const redirectPercent =
     redirectCooldown > 0
@@ -123,6 +129,11 @@ export default function RequestCheckoutView({
 
   async function submitPayment() {
     if (submitting || submitted) return;
+
+    if (!instantBooking && !acceptedTerms) {
+      setError("Accept the Terms & Conditions to continue.");
+      return;
+    }
 
     if (!country.trim()) {
       setError("Select a country of origin to continue.");
@@ -230,10 +241,16 @@ export default function RequestCheckoutView({
           </Link>
 
           <p className="stripe-checkout__merchant">Pay {profile.name}</p>
-          <p className="stripe-checkout__amount" id="stripe-checkout-amount">
-            <span className="stripe-checkout__currency">$</span>
-            {data.totalFee}
-          </p>
+          {instantBooking ? (
+            <p className="stripe-checkout__amount" id="stripe-checkout-amount">
+              <span className="stripe-checkout__currency">$</span>
+              {data.totalFee}
+            </p>
+          ) : (
+            <div className="stripe-checkout__estimate" id="stripe-checkout-amount">
+              <BookingFeeNotice estimatedTotal={data.totalFee} />
+            </div>
+          )}
 
           <ul className="stripe-checkout__lines">
             <li>
@@ -255,8 +272,17 @@ export default function RequestCheckoutView({
           </ul>
 
           <div className="stripe-checkout__summary-total">
-            <span>Total due</span>
-            <strong>${data.totalFee}</strong>
+            {instantBooking ? (
+              <>
+                <span>Total due</span>
+                <strong>${data.totalFee}</strong>
+              </>
+            ) : (
+              <>
+                <span>Due now (5% booking fee)</span>
+                <strong>${dueNow}</strong>
+              </>
+            )}
           </div>
         </div>
       </aside>
@@ -387,6 +413,26 @@ export default function RequestCheckoutView({
               {error}
             </p>
           ) : null}
+          {!instantBooking && !submitted ? (
+            <label className="stripe-checkout__terms">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(event) => {
+                  setAcceptedTerms(event.target.checked);
+                  setError(null);
+                }}
+                disabled={submitting}
+              />
+              <span>
+                I accept the{" "}
+                <a href="#terms" onClick={(event) => event.preventDefault()}>
+                  Terms &amp; Conditions
+                </a>
+                .
+              </span>
+            </label>
+          ) : null}
           {submitted ? (
             <div className="stripe-checkout__success-wrap" role="status" aria-live="polite">
               <p className="stripe-checkout__success">
@@ -420,9 +466,9 @@ export default function RequestCheckoutView({
               type="button"
               className="stripe-checkout__pay"
               onClick={() => void submitPayment()}
-              disabled={submitting}
+              disabled={submitting || (!instantBooking && !acceptedTerms)}
             >
-              {submitting ? "Processing…" : `Pay $${data.totalFee}`}
+              {submitting ? "Processing…" : instantBooking ? `Pay $${data.totalFee}` : `Pay $${dueNow} booking fee`}
             </button>
           ) : null}
 

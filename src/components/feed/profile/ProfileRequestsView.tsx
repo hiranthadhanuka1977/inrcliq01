@@ -9,6 +9,7 @@ import PageBodyClass from "@/components/feed/PageBodyClass";
 import LocationSearchField, {
   type SelectedPlace,
 } from "@/components/feed/profile/LocationSearchField";
+import { BookingFeeNotice } from "@/components/feed/profile/BookingFeeNotice";
 import {
   formatRequestPriceRange,
   resolveSpecialRequestReviews,
@@ -586,6 +587,7 @@ export default function ProfileRequestsView({
   const [pickerStep, setPickerStep] = useState<1 | 2 | 3 | 4>(
     resolvedInitialCategoryId ? 2 : 1,
   );
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [deliveryMethods, setDeliveryMethods] = useState<DeliverySelection>({
     dm: true,
     feed: false,
@@ -819,15 +821,20 @@ export default function ProfileRequestsView({
     ? formatRequestPriceRange(selected.priceMin, selected.priceMax)
     : content.startingRange;
   const dayRate = selected?.priceMin ?? 80;
+  const isInstantCategory = Boolean(activeCategory?.instantBooking);
+  const requiresDeliveryChoice = isInstantCategory && !isAppearanceCategory;
+  const usesEventPersonalize = !requiresDeliveryChoice;
   const feedFee =
-    !isAppearanceCategory && deliveryMethods.feed ? FEED_SURCHARGE : 0;
+    requiresDeliveryChoice && deliveryMethods.feed ? FEED_SURCHARGE : 0;
   const textLengthFee =
     formats.text ? lengthAddonForLabel(deliveryFormats.text, textLength) : 0;
   const audioLengthFee =
     formats.audio ? lengthAddonForLabel(deliveryFormats.audio, audioDuration) : 0;
   const videoLengthFee =
     formats.video ? lengthAddonForLabel(deliveryFormats.video, videoDuration) : 0;
-  const lengthAddons = textLengthFee + audioLengthFee + videoLengthFee;
+  const lengthAddons = requiresDeliveryChoice
+    ? textLengthFee + audioLengthFee + videoLengthFee
+    : 0;
   const totalFee = dayRate + lengthAddons + feedFee;
   const deliveryLabel = formatDeliverySelection(deliveryMethods, {
     dm: "Direct message",
@@ -892,7 +899,7 @@ export default function ProfileRequestsView({
       (Number(appearanceDurationHours) > 0 || Number(appearanceDurationMins) > 0) &&
       appearanceExpectation.trim(),
   );
-  const personalizedReady = isAppearanceCategory
+  const personalizedReady = usesEventPersonalize
     ? Boolean(deliveryDate && appearanceReady)
     : Boolean(
         hasDeliveryMethod &&
@@ -1011,7 +1018,7 @@ export default function ProfileRequestsView({
   function tryContinueFromPersonalize() {
     setPersonalizeTried(true);
 
-    if (isAppearanceCategory) {
+    if (usesEventPersonalize) {
       if (!deliveryDate) {
         focusPersonalizeControl(firstDateRef.current);
         return false;
@@ -1045,11 +1052,11 @@ export default function ProfileRequestsView({
         return false;
       }
     } else {
-      if (!hasDeliveryMethod) {
+      if (requiresDeliveryChoice && !hasDeliveryMethod) {
         focusPersonalizeControl(deliveryDmRef.current);
         return false;
       }
-      if (!hasFormat || !formatDetailsReady) {
+      if (requiresDeliveryChoice && (!hasFormat || !formatDetailsReady)) {
         focusFirstMissingFormatDetail();
         return false;
       }
@@ -1079,8 +1086,9 @@ export default function ProfileRequestsView({
     return true;
   }
 
-  const formatInvalid = personalizeTried && !isAppearanceCategory && (!hasFormat || !formatDetailsReady);
-  const toneInvalid = personalizeTried && hasFormat && toneRequired && !tone;
+  const formatInvalid =
+    personalizeTried && requiresDeliveryChoice && (!hasFormat || !formatDetailsReady);
+  const toneInvalid = personalizeTried && requiresDeliveryChoice && hasFormat && toneRequired && !tone;
   const textLengthInvalid =
     personalizeTried && formats.text && deliveryFormats.text.lengthEnabled && !textLength;
   const textFramingInvalid =
@@ -1102,48 +1110,49 @@ export default function ProfileRequestsView({
   const dateInvalid = personalizeTried && !deliveryDate;
   const timeInvalid = personalizeTried && !deliveryTime;
   const recipientNameInvalid =
-    personalizeTried && !isAppearanceCategory && recipientTarget === "other" && !recipientName.trim();
+    personalizeTried && requiresDeliveryChoice && recipientTarget === "other" && !recipientName.trim();
   const recipientUsernameInvalid =
     personalizeTried &&
-    !isAppearanceCategory &&
+    requiresDeliveryChoice &&
     recipientTarget === "other" &&
     !recipientUsername.trim();
   const messageInvalid =
-    personalizeTried && !isAppearanceCategory && !shoutoutMessage.trim();
+    personalizeTried && requiresDeliveryChoice && !shoutoutMessage.trim();
   const occasionInvalid =
-    personalizeTried && isAppearanceCategory && !appearanceOccasion.trim();
+    personalizeTried && usesEventPersonalize && !appearanceOccasion.trim();
   const locationInvalid =
-    personalizeTried && isAppearanceCategory && !appearanceLocation?.label.trim();
+    personalizeTried && usesEventPersonalize && !appearanceLocation?.label.trim();
   const appearanceDurationEmpty =
     personalizeTried &&
-    isAppearanceCategory &&
+    usesEventPersonalize &&
     (appearanceDurationHours === "" || appearanceDurationMins === "");
   const appearanceDurationZero =
     personalizeTried &&
-    isAppearanceCategory &&
+    usesEventPersonalize &&
     appearanceDurationHours !== "" &&
     appearanceDurationMins !== "" &&
     !(Number(appearanceDurationHours) > 0 || Number(appearanceDurationMins) > 0);
   const durationHoursInvalid = appearanceDurationEmpty || appearanceDurationZero;
   const durationMinsInvalid = appearanceDurationEmpty || appearanceDurationZero;
   const expectationInvalid =
-    personalizeTried && isAppearanceCategory && !appearanceExpectation.trim();
+    personalizeTried && usesEventPersonalize && !appearanceExpectation.trim();
   const checkoutHref = (() => {
     const params = new URLSearchParams();
     params.set("request", selected?.label ?? "");
     params.set("category", activeCategory?.title ?? "");
-    params.set("delivery", isAppearanceCategory ? "Appearance event" : deliverySummaryLabel || "Select delivery");
-    params.set("content", isAppearanceCategory ? "Live appearance" : contentLabel || "Select format");
+    params.set("delivery", usesEventPersonalize ? (isAppearanceCategory ? "Appearance event" : "To be confirmed") : requiresDeliveryChoice ? deliverySummaryLabel || "Select delivery" : "To be confirmed");
+    params.set("content", usesEventPersonalize ? (isAppearanceCategory ? "Live appearance" : "To be confirmed") : requiresDeliveryChoice ? contentLabel || "Select format" : "To be confirmed");
     params.set(
       "recipient",
-      isAppearanceCategory ? "Event audience" : recipientTarget === "self" ? "For me" : recipientName.trim() || "Someone else",
+      usesEventPersonalize ? "Event audience" : recipientTarget === "self" ? "For me" : recipientName.trim() || "Someone else",
     );
     params.set("when", `${formatDisplayDate(deliveryDate)}${deliveryTime ? ` · ${deliveryTime}` : ""}`);
     params.set("dayRate", String(dayRate));
     params.set("feedFee", String(feedFee));
     params.set("totalFee", String(totalFee));
+    params.set("instantBooking", isInstantCategory ? "1" : "0");
     params.set("isAppearance", isAppearanceCategory ? "1" : "0");
-    if (isAppearanceCategory) {
+    if (usesEventPersonalize) {
       params.set("occasion", appearanceOccasion.trim() || "—");
       params.set("location", appearanceLocation?.label || "—");
       params.set("duration", appearanceDurationLabel || "—");
@@ -1921,11 +1930,19 @@ export default function ProfileRequestsView({
                             </dl>
 
                             <div className="requests-summary__total">
-                              <div className="requests-summary__total-copy">
-                                <span>Total fee</span>
-                                <strong>${dayRate}</strong>
-                              </div>
-                              <p className="requests-summary__total-note">Starting price for this request</p>
+                              {isInstantCategory ? (
+                                <>
+                                  <div className="requests-summary__total-copy">
+                                    <span>Total fee</span>
+                                    <strong>${dayRate}</strong>
+                                  </div>
+                                  <p className="requests-summary__total-note">
+                                    Starting price for this request
+                                  </p>
+                                </>
+                              ) : (
+                                <BookingFeeNotice estimatedTotal={dayRate} />
+                              )}
                               <MoneyBackGuaranteeTag copy={content.guarantee} tipId="requests-guarantee-tip-step2" />
                             </div>
 
@@ -1962,9 +1979,10 @@ export default function ProfileRequestsView({
                           tryContinueFromPersonalize();
                         }}
                       >
-                        {!isAppearanceCategory ? (
+                        {requiresDeliveryChoice ? (
                           <section className="requests-pz__block">
                             <div className="requests-pz__bundle">
+                              {requiresDeliveryChoice ? (
                               <div className="requests-pz__bundle-section">
                                 <div className="requests-pz__head">
                                   <p className="requests-pz__eyebrow">Delivery</p>
@@ -2004,6 +2022,7 @@ export default function ProfileRequestsView({
                                   </button>
                                 </div>
                               </div>
+                              ) : null}
 
                               <div className="requests-pz__bundle-section">
                                 <div className="requests-pz__head">
@@ -2313,13 +2332,13 @@ export default function ProfileRequestsView({
                         <section className="requests-pz__block">
                           <div className="requests-pz__head">
                             <p className="requests-pz__eyebrow">
-                              {isAppearanceCategory ? "When" : "Schedule"}
+                              {usesEventPersonalize ? "When" : "Schedule"}
                             </p>
                             <SectionInfoTip
                               tipId="requests-pz-schedule-tip"
-                              title={isAppearanceCategory ? "When" : "Schedule"}
+                              title={usesEventPersonalize ? "When" : "Schedule"}
                               copy={
-                                isAppearanceCategory
+                                usesEventPersonalize
                                   ? "Pick the appearance date and start time. Available days show the request fee so you can plan ahead."
                                   : "Pick the delivery date and time. Available days show pricing so you can choose what works best."
                               }
@@ -2414,7 +2433,7 @@ export default function ProfileRequestsView({
                           </div>
                           <label className={`requests-pz__field${timeInvalid ? " is-invalid" : ""}`}>
                             <span className="requests-pz__label">
-                              {isAppearanceCategory ? "Start time" : "Delivery time"}
+                              {usesEventPersonalize ? "Start time" : "Delivery time"}
                             </span>
                             <select
                               ref={deliveryTimeRef}
@@ -2425,7 +2444,7 @@ export default function ProfileRequestsView({
                                 setDeliveryTime(event.target.value);
                                 if (event.target.value) {
                                   focusPersonalizeControl(
-                                    isAppearanceCategory
+                                    usesEventPersonalize
                                       ? appearanceOccasionRef.current
                                       : recipientTarget === "self"
                                         ? shoutoutMessageRef.current
@@ -2444,7 +2463,7 @@ export default function ProfileRequestsView({
                           </label>
                         </section>
 
-                        {isAppearanceCategory ? (
+                        {usesEventPersonalize ? (
                           <section className="requests-pz__block">
                             <p className="requests-pz__eyebrow">Event</p>
                             <label className={`requests-pz__field${occasionInvalid ? " is-invalid" : ""}`}>
@@ -2686,26 +2705,7 @@ export default function ProfileRequestsView({
                           </header>
 
                           <dl className="requests-summary__facts">
-                            {!isAppearanceCategory ? (
-                              <>
-                                <div className="requests-summary__fact">
-                                  <dt>Delivery</dt>
-                                  <dd>{deliveryLabel || "Select delivery"}</dd>
-                                </div>
-                                <div className="requests-summary__fact">
-                                  <dt>Format</dt>
-                                  <dd>{contentLabel || "Select format"}</dd>
-                                </div>
-                                <div className="requests-summary__fact">
-                                  <dt>Recipient</dt>
-                                  <dd>
-                                    {recipientTarget === "self"
-                                      ? "For me"
-                                      : recipientName.trim() || "Someone else"}
-                                  </dd>
-                                </div>
-                              </>
-                            ) : (
+                            {usesEventPersonalize ? (
                               <>
                                 <div className="requests-summary__fact">
                                   <dt>Occasion</dt>
@@ -2718,6 +2718,29 @@ export default function ProfileRequestsView({
                                 <div className="requests-summary__fact">
                                   <dt>Duration</dt>
                                   <dd>{appearanceDurationLabel || "Select duration"}</dd>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                {requiresDeliveryChoice ? (
+                                <div className="requests-summary__fact">
+                                  <dt>Delivery</dt>
+                                  <dd>{deliveryLabel || "Select delivery"}</dd>
+                                </div>
+                                ) : null}
+                                {requiresDeliveryChoice ? (
+                                <div className="requests-summary__fact">
+                                  <dt>Format</dt>
+                                  <dd>{contentLabel || "Select format"}</dd>
+                                </div>
+                                ) : null}
+                                <div className="requests-summary__fact">
+                                  <dt>Recipient</dt>
+                                  <dd>
+                                    {recipientTarget === "self"
+                                      ? "For me"
+                                      : recipientName.trim() || "Someone else"}
+                                  </dd>
                                 </div>
                               </>
                             )}
@@ -2750,10 +2773,14 @@ export default function ProfileRequestsView({
                                 </div>
                               ) : null}
                             </dl>
-                            <div className="requests-summary__total-copy">
-                              <span>Total fee</span>
-                              <strong>${totalFee}</strong>
-                            </div>
+                            {isInstantCategory ? (
+                              <div className="requests-summary__total-copy">
+                                <span>Total fee</span>
+                                <strong>${totalFee}</strong>
+                              </div>
+                            ) : (
+                              <BookingFeeNotice estimatedTotal={totalFee} />
+                            )}
                             <MoneyBackGuaranteeTag copy={content.guarantee} tipId="requests-guarantee-tip-step3" />
                           </div>
 
@@ -2824,7 +2851,7 @@ export default function ProfileRequestsView({
                           <div
                             className="requests-review__section"
                             aria-labelledby={
-                              isAppearanceCategory
+                              usesEventPersonalize
                                 ? "requests-review-schedule-heading"
                                 : "requests-review-delivery-heading"
                             }
@@ -2832,10 +2859,12 @@ export default function ProfileRequestsView({
                             <header className="requests-review__head">
                               <div>
                                 <p className="requests-review__eyebrow">Personalize</p>
-                                {isAppearanceCategory ? (
+                                {usesEventPersonalize ? (
                                   <h2 id="requests-review-schedule-heading">Schedule</h2>
                                 ) : (
-                                  <h2 id="requests-review-delivery-heading">Delivery, format &amp; schedule</h2>
+                                  <h2 id="requests-review-delivery-heading">
+                                    Delivery, format &amp; schedule
+                                  </h2>
                                 )}
                               </div>
                               <button type="button" className="requests-review__edit" onClick={() => setPickerStep(3)}>
@@ -2843,7 +2872,7 @@ export default function ProfileRequestsView({
                               </button>
                             </header>
                             <dl className="requests-review__facts">
-                              {!isAppearanceCategory ? (
+                              {requiresDeliveryChoice ? (
                                 <>
                                   <div className="requests-review__fact requests-review__fact--wide">
                                     <dt>Delivery</dt>
@@ -2866,7 +2895,7 @@ export default function ProfileRequestsView({
                             </dl>
                           </div>
 
-                          {isAppearanceCategory ? (
+                          {usesEventPersonalize ? (
                             <>
                               <hr className="requests-review__rule" />
                               <div className="requests-review__section" aria-labelledby="requests-review-event-heading">
@@ -2889,8 +2918,8 @@ export default function ProfileRequestsView({
                                     <dd>{appearanceOccasion.trim() || "—"}</dd>
                                   </div>
                                   <div className="requests-review__fact">
-                                    <dt>Duration</dt>
-                                    <dd>{appearanceDurationLabel || "—"}</dd>
+                                  <dt>Duration</dt>
+                                  <dd>{appearanceDurationLabel || "—"}</dd>
                                   </div>
                                   <div className="requests-review__fact requests-review__fact--wide">
                                     <dt>Location</dt>
@@ -2975,7 +3004,22 @@ export default function ProfileRequestsView({
                           </header>
 
                           <dl className="requests-summary__facts">
-                            {!isAppearanceCategory ? (
+                            {usesEventPersonalize ? (
+                              <>
+                                <div className="requests-summary__fact">
+                                  <dt>Occasion</dt>
+                                  <dd>{appearanceOccasion.trim() || "—"}</dd>
+                                </div>
+                                <div className="requests-summary__fact">
+                                  <dt>Location</dt>
+                                  <dd>{appearanceLocation?.label.split(",")[0] || "—"}</dd>
+                                </div>
+                                <div className="requests-summary__fact">
+                                  <dt>Duration</dt>
+                                  <dd>{appearanceDurationLabel || "—"}</dd>
+                                </div>
+                              </>
+                            ) : (
                               <>
                                 <div className="requests-summary__fact">
                                   <dt>Delivery</dt>
@@ -2992,21 +3036,6 @@ export default function ProfileRequestsView({
                                       ? "For me"
                                       : recipientName.trim() || "Someone else"}
                                   </dd>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="requests-summary__fact">
-                                  <dt>Occasion</dt>
-                                  <dd>{appearanceOccasion.trim() || "—"}</dd>
-                                </div>
-                                <div className="requests-summary__fact">
-                                  <dt>Location</dt>
-                                  <dd>{appearanceLocation?.label.split(",")[0] || "—"}</dd>
-                                </div>
-                                <div className="requests-summary__fact">
-                                  <dt>Duration</dt>
-                                  <dd>{appearanceDurationLabel || "—"}</dd>
                                 </div>
                               </>
                             )}
@@ -3038,12 +3067,33 @@ export default function ProfileRequestsView({
                                 </div>
                               ) : null}
                             </dl>
-                            <div className="requests-summary__total-copy">
-                              <span>Total due</span>
-                              <strong>${totalFee}</strong>
-                            </div>
+                            {isInstantCategory ? (
+                              <div className="requests-summary__total-copy">
+                                <span>Total due</span>
+                                <strong>${totalFee}</strong>
+                              </div>
+                            ) : (
+                              <BookingFeeNotice estimatedTotal={totalFee} />
+                            )}
                             <MoneyBackGuaranteeTag copy={content.guarantee} tipId="requests-guarantee-tip-step4" />
                           </div>
+
+                          {!isInstantCategory ? (
+                            <label className="requests-summary__terms">
+                              <input
+                                type="checkbox"
+                                checked={acceptedTerms}
+                                onChange={(event) => setAcceptedTerms(event.target.checked)}
+                              />
+                              <span>
+                                I accept the{" "}
+                                <a href={selected?.details.termsHref || "#"} onClick={(event) => event.stopPropagation()}>
+                                  Terms &amp; Conditions
+                                </a>
+                                .
+                              </span>
+                            </label>
+                          ) : null}
 
                           <div className="requests-review__pay">
                             <p className="requests-review__pay-label">Accepted payments</p>
@@ -3060,15 +3110,19 @@ export default function ProfileRequestsView({
                             <div className="requests-summary__cta-shell">
                               <Link
                                 href={checkoutHref}
-                                className={`btn btn--primary requests-summary__cta${!personalizedReady ? " is-disabled" : ""}`}
-                                aria-disabled={!personalizedReady}
+                                className={`btn btn--primary requests-summary__cta${
+                                  !personalizedReady || (!isInstantCategory && !acceptedTerms)
+                                    ? " is-disabled"
+                                    : ""
+                                }`}
+                                aria-disabled={!personalizedReady || (!isInstantCategory && !acceptedTerms)}
                                 onClick={(event) => {
-                                  if (!personalizedReady) {
+                                  if (!personalizedReady || (!isInstantCategory && !acceptedTerms)) {
                                     event.preventDefault();
                                   }
                                 }}
                               >
-                                Pay ${totalFee}
+                                {isInstantCategory ? `Pay $${totalFee}` : "Proceed to payment"}
                               </Link>
                               <span className="requests-summary__cta-tip">
                                 <SummaryInfoTip
