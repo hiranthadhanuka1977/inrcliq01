@@ -520,6 +520,51 @@ export function SellerCategoryManageView({
             <span>Mark category as popular</span>
           </label>
 
+          <div className="seller-toggle seller-toggle--switch">
+            <span>
+              <strong id="instant-booking-label" className="seller-toggle__label-row">
+                Instant booking
+                <span className="help-tip">
+                  <button
+                    type="button"
+                    className="help-tip__trigger"
+                    aria-label="About instant booking"
+                    aria-describedby="instant-booking-tip"
+                  >
+                    <svg
+                      className="help-tip__icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                  </button>
+                  <span className="help-tip__content" id="instant-booking-tip" role="tooltip">
+                    Instant bookings are approved automatically after payment. Other bookings stay
+                    pending until you and the fan agree on the details and conditions.
+                  </span>
+                </span>
+              </strong>
+            </span>
+            <label className={`toggle-switch${saving ? " is-disabled" : ""}`}>
+              <input
+                type="checkbox"
+                checked={Boolean(category.instantBooking)}
+                disabled={saving}
+                onChange={(event) => updateCategory({ instantBooking: event.target.checked })}
+                aria-labelledby="instant-booking-label"
+              />
+              <span className="toggle-switch__track" aria-hidden="true">
+                <span className="toggle-switch__thumb" />
+              </span>
+            </label>
+          </div>
+
           <div className="seller-form-actions">
             <button
               type="button"

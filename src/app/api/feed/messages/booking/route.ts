@@ -16,6 +16,9 @@ import {
 } from "@/lib/feed/special-request-service";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { acceptSettingsBooking } from "@/lib/settings/bookings";
+import { getSpecialRequestCatalogBySlug } from "@/lib/seller/service-requests-store";
+import { resolveCategoryInstantBooking } from "@/lib/seller/service-requests-helpers";
 
 type BookingRequestBody = {
   slug?: string;
@@ -127,6 +130,11 @@ export async function POST(request: Request) {
     const deliverBy =
       parseOptionalDate(booking.deliverBy) ?? new Date(parseDeliveryDeadline(booking.when));
 
+    const catalog = await getSpecialRequestCatalogBySlug(slug);
+    const instantBooking = catalog
+      ? resolveCategoryInstantBooking(catalog.content, booking.category)
+      : false;
+
     const specialRequest = await createSpecialRequest({
       userId: user.id,
       creatorId,
@@ -143,6 +151,7 @@ export async function POST(request: Request) {
       shoutoutMessage: booking.shoutoutMessage,
       specialInstructions: booking.specialInstructions,
       isAppearance: Boolean(booking.isAppearance),
+      instantBooking,
       appearanceLocation: booking.appearanceLocation,
       appearanceExpectation: booking.appearanceExpectation,
       appearanceReference: booking.appearanceReference,
@@ -160,8 +169,17 @@ export async function POST(request: Request) {
       },
     });
 
+    if (instantBooking) {
+      await acceptSettingsBooking(specialRequest.id);
+    }
+
+    const requestForPayload =
+      instantBooking
+        ? await prisma.specialRequest.findUniqueOrThrow({ where: { id: specialRequest.id } })
+        : specialRequest;
+
     const chatPayload = {
-      ...specialRequestToBookingPayload(specialRequest, creatorName),
+      ...specialRequestToBookingPayload(requestForPayload, creatorName),
       specialRequestId: specialRequest.id,
     };
 

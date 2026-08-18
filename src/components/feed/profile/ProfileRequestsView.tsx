@@ -1748,6 +1748,7 @@ export default function ProfileRequestsView({
                           const prices = category.services.map((service) => service.priceMin);
                           const fromPrice = prices.length ? Math.min(...prices) : 0;
                           const isActive = hasChosenCategory && category.id === categoryId;
+                          const instant = Boolean(category.instantBooking);
                           return (
                             <button
                               key={category.id}
@@ -1757,7 +1758,7 @@ export default function ProfileRequestsView({
                               aria-pressed={isActive}
                               aria-label={`${category.intent || category.title}. From $${fromPrice}${
                                 category.popular ? ". Most booked" : ""
-                              }`}
+                              }${instant ? ". Instant booking" : ". Needs approval"}`}
                               onClick={() => chooseCategory(category.id)}
                             >
                               <span className="requests-pick__media" aria-hidden="true">
@@ -1769,6 +1770,34 @@ export default function ProfileRequestsView({
                                 {category.popular ? (
                                   <span className="requests-pick__note">Most booked</span>
                                 ) : null}
+                                <span
+                                  className={`requests-pick__booking${
+                                    instant
+                                      ? " requests-pick__booking--instant"
+                                      : " requests-pick__booking--approval"
+                                  }`}
+                                >
+                                  <span className="requests-pick__booking-text">
+                                    {instant ? "Instant" : "Needs approval"}
+                                    <svg
+                                      className="requests-pick__booking-icon"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      aria-hidden="true"
+                                    >
+                                      <circle cx="12" cy="12" r="10" />
+                                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                  </span>
+                                  <span className="requests-pick__booking-tip" role="tooltip">
+                                    {instant
+                                      ? "Instant bookings are approved automatically after you pay."
+                                      : "This booking stays pending until you and the creator agree on the details."}
+                                  </span>
+                                </span>
                                 <strong>{category.intent || category.title}</strong>
                                 <span className="requests-pick__price">From ${fromPrice}</span>
                               </span>

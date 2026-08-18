@@ -2194,6 +2194,8 @@ select.requests-pz__input {
 
 .requests-pick__option:hover,
 .requests-pick__option:focus-visible {
+  z-index: 4;
+  overflow: visible;
   transform: translateY(-4px);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
 }
@@ -2214,6 +2216,7 @@ select.requests-pz__input {
 .requests-pick__veil {
   position: absolute;
   inset: 0;
+  border-radius: inherit;
 }
 
 .requests-pick__media {
@@ -2274,6 +2277,77 @@ select.requests-pz__input {
 
 .requests-pick__note--quiet {
   color: rgba(255, 255, 255, 0.62);
+}
+
+.requests-pick__booking {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.requests-pick__booking-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.requests-pick__booking--instant .requests-pick__booking-text {
+  color: var(--color-warning);
+}
+
+.requests-pick__booking--approval .requests-pick__booking-text {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.requests-pick__booking-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.requests-pick__booking-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: max-content;
+  max-width: min(16.5rem, 70vw);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-tooltip-bg);
+  color: var(--color-tooltip-fg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: var(--line-height-relaxed);
+  text-align: left;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--duration-fast), visibility var(--duration-fast);
+}
+
+.requests-pick__booking-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 1rem;
+  border: 6px solid transparent;
+  border-top-color: var(--color-tooltip-bg);
+}
+
+.requests-pick__booking:hover .requests-pick__booking-tip,
+.requests-pick__option:focus-visible .requests-pick__booking-tip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .requests-pick__label strong {

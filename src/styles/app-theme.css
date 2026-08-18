@@ -28,6 +28,8 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) {
   --color-bg-muted: var(--color-neutral-100);
   --color-bg-overlay: rgba(0, 0, 0, 0.55);
   --color-on-overlay: var(--color-on-brand);
+  --color-tooltip-bg: var(--color-neutral-200);
+  --color-tooltip-fg: var(--color-text-primary);
   --color-success: var(--color-online);
   --color-error: var(--chart-move-down);
   --color-info: var(--color-brand-primary);
@@ -127,6 +129,8 @@ html[data-feed-theme="light"]:has(.auth-path-shell) {
   --color-bg-muted: #e4e6eb;
   --color-bg-overlay: rgba(0, 0, 0, 0.55);
   --color-on-overlay: var(--color-on-brand);
+  --color-tooltip-bg: var(--color-neutral-700);
+  --color-tooltip-fg: var(--color-text-inverse);
   --color-success: var(--color-online);
   --color-error: var(--chart-move-down);
   --color-info: var(--color-brand-primary);

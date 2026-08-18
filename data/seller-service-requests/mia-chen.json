@@ -316,7 +316,8 @@
             "priceMin": 80,
             "published": false
           }
-        ]
+        ],
+        "instantBooking": true
       },
       {
         "id": "training",
@@ -846,5 +847,5 @@
       }
     ]
   },
-  "updatedAt": "2026-08-10T00:59:06.215Z"
+  "updatedAt": "2026-08-18T03:17:00.122Z"
 }

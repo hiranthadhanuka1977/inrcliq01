@@ -83,6 +83,7 @@ export function createEmptyCategory(title: string, usedIds: Set<string>): Reques
     image: "",
     imageAlt: title,
     popular: false,
+    instantBooking: false,
     active: true,
     examples: [],
     formats: ["Video", "Audio", "Text"],
@@ -295,6 +296,29 @@ function hashString(value: string): number {
 
 function normalizeKey(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/** Whether a category title/id/intent matches a stored booking category label. */
+export function categoryLabelMatches(
+  category: RequestCategory,
+  bookingCategory: string | null | undefined,
+): boolean {
+  const normalized = normalizeKey(bookingCategory ?? "");
+  if (!normalized) return false;
+  return [category.title, category.id, category.intent]
+    .map(normalizeKey)
+    .filter(Boolean)
+    .includes(normalized);
+}
+
+export function resolveCategoryInstantBooking(
+  content: CreatorRequestsContent,
+  bookingCategory: string | null | undefined,
+): boolean {
+  const category = content.categories.find((item) =>
+    categoryLabelMatches(item, bookingCategory),
+  );
+  return Boolean(category?.instantBooking);
 }
 
 function isCompletedBookingStatus(status: string): boolean {

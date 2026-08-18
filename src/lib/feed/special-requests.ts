@@ -67,6 +67,8 @@ export type RequestCategory = {
   image: string;
   imageAlt: string;
   popular?: boolean;
+  /** When true, bookings in this category are auto-approved after payment. */
+  instantBooking?: boolean;
   /** When false, hidden from fans. Omitted on legacy rows = active. */
   active?: boolean;
   examples: string[];

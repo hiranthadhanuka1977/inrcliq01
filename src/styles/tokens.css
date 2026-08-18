@@ -42,6 +42,8 @@
   --color-bg-inverse: var(--color-neutral-700);
   --color-icon-badge-bg: var(--color-neutral-700);
   --color-icon-badge-fg: var(--color-neutral-0);
+  --color-tooltip-bg: var(--color-neutral-700);
+  --color-tooltip-fg: var(--color-neutral-0);
 
   /* ——— Semantic: borders ——— */
   --color-border-default: var(--color-neutral-200);

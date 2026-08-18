@@ -18,6 +18,7 @@ export type CreateSpecialRequestInput = {
   shoutoutMessage?: string | null;
   specialInstructions?: string | null;
   isAppearance?: boolean;
+  instantBooking?: boolean;
   appearanceLocation?: string | null;
   appearanceExpectation?: string | null;
   appearanceReference?: string | null;
@@ -54,6 +55,7 @@ export async function createSpecialRequest(input: CreateSpecialRequestInput) {
       shoutoutMessage: input.shoutoutMessage ?? null,
       specialInstructions: input.specialInstructions ?? null,
       isAppearance: Boolean(input.isAppearance),
+      instantBooking: Boolean(input.instantBooking),
       appearanceLocation: input.appearanceLocation ?? null,
       appearanceExpectation: input.appearanceExpectation ?? null,
       appearanceReference: input.appearanceReference ?? null,

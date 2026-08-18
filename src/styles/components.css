@@ -1028,14 +1028,14 @@ a.btn--ghost:hover {
   width: max-content;
   max-width: 260px;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-neutral-700);
-  color: var(--color-text-inverse);
+  background: var(--color-tooltip-bg);
+  color: var(--color-tooltip-fg);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-relaxed);
   text-align: left;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-md);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1050,7 +1050,7 @@ a.btn--ghost:hover {
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: var(--color-neutral-700);
+  border-top-color: var(--color-tooltip-bg);
 }
 
 .help-tip:hover .help-tip__content,

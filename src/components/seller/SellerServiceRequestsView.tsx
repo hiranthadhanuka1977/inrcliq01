@@ -669,6 +669,15 @@ export function SellerServiceRequestsView({
                           <span className={`seller-status seller-status--${readiness.status}`}>
                             {readiness.label}
                           </span>
+                          <span
+                            className={`seller-status ${
+                              category.instantBooking
+                                ? "seller-status--instant"
+                                : "seller-status--approval"
+                            }`}
+                          >
+                            {category.instantBooking ? "Instant" : "Approval"}
+                          </span>
                         </div>
                         <p className="seller-category__intent">
                           {category.intent.trim() || "Add a short intent fans will see on the tile"}
