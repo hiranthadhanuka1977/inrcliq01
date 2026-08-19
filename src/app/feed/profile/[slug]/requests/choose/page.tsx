@@ -2,6 +2,7 @@ import ProfileRequestsView from "@/components/feed/profile/ProfileRequestsView";
 import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import { getProfileData } from "@/lib/feed/profile";
 import { resolveCreatorRequestsContent } from "@/lib/seller/service-requests-store";
+import { listUnavailableDateKeysBySlug } from "@/lib/seller/unavailable-dates";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,8 @@ export default async function RequestsChoosePage({
     );
   }
 
+  const unavailableDateKeys = await listUnavailableDateKeysBySlug(profile.slug || slug);
+
   return (
     <ProfileRequestsView
       profile={profile}
@@ -47,6 +50,7 @@ export default async function RequestsChoosePage({
       initialCategoryId={category}
       initialServiceId={service}
       requestsContent={requestsContent}
+      unavailableDateKeys={unavailableDateKeys}
     />
   );
 }

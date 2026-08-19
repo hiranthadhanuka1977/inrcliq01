@@ -1,7 +1,9 @@
 import RequestCheckoutView from "@/components/feed/profile/RequestCheckoutView";
 import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
+import { isDateKey } from "@/lib/calendar-date";
 import { getProfileData } from "@/lib/feed/profile";
-import { notFound } from "next/navigation";
+import { isSlugDateUnavailable } from "@/lib/seller/unavailable-dates";
+import { notFound, redirect } from "next/navigation";
 
 interface RequestsCheckoutPageProps {
   params: Promise<{ slug: string }>;
@@ -46,6 +48,11 @@ export default async function RequestsCheckoutPage({
     );
   }
 
+  const date = readParam(query.date, "");
+  if (date && isDateKey(date) && (await isSlugDateUnavailable(slug, date))) {
+    redirect(`/feed/profile/${slug}/requests/choose`);
+  }
+
   const data = {
     request: readParam(query.request, ""),
     category: readParam(query.category, ""),
@@ -53,6 +60,7 @@ export default async function RequestsCheckoutPage({
     content: readParam(query.content, ""),
     recipient: readParam(query.recipient, ""),
     when: readParam(query.when, ""),
+    date: readParam(query.date, ""),
     dayRate: readNumber(query.dayRate, 0),
     feedFee: readNumber(query.feedFee, 0),
     totalFee: readNumber(query.totalFee, 0),

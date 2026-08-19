@@ -197,7 +197,11 @@ export default function AccountProfileView({
         </div>
 
         {profile.postCount === 0 ? (
-          <FirstPostPrompt firstName={profile.firstName} profileHref={profile.profileHref} />
+          <FirstPostPrompt
+            firstName={profile.firstName}
+            profileHref={profile.profileHref}
+            dismissKey={profile.id}
+          />
         ) : null}
 
         <div className="account-profile__stats" role="tablist" aria-label="Your network">

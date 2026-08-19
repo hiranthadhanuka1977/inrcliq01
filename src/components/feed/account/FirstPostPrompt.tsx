@@ -129,11 +129,14 @@ export default function FirstPostPrompt({
   firstName,
   profileHref = null,
   variant = "prompt",
+  dismissKey = null,
   onClose,
 }: {
   firstName: string | null;
   profileHref?: string | null;
   variant?: "prompt" | "modal";
+  /** Scopes dismiss storage to this account so a prior user cannot hide the prompt. */
+  dismissKey?: string | null;
   onClose?: () => void;
 }) {
   const router = useRouter();
@@ -174,18 +177,22 @@ export default function FirstPostPrompt({
   const hasAttachment = media.length > 0 || Boolean(gif) || Boolean(feeling) || Boolean(location) || tagged.length > 0;
   const canPost = Boolean(text.trim() || media.length || gif);
 
+  const storageKey = dismissKey
+    ? `${STORAGE_KEY}:${dismissKey}`
+    : STORAGE_KEY;
+
   useEffect(() => {
     if (isModal) {
       setVisible(true);
       return;
     }
     try {
-      if (window.localStorage.getItem(STORAGE_KEY) === "1") return;
+      if (window.localStorage.getItem(storageKey) === "1") return;
     } catch {
       /* ignore */
     }
     setVisible(true);
-  }, [isModal]);
+  }, [isModal, storageKey]);
 
   useEffect(() => {
     if (!panel) return;
@@ -283,7 +290,7 @@ export default function FirstPostPrompt({
     setVisible(false);
     if (!persist) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, "1");
+      window.localStorage.setItem(storageKey, "1");
     } catch {
       /* ignore */
     }
@@ -381,7 +388,7 @@ export default function FirstPostPrompt({
         return;
       }
       try {
-        window.localStorage.setItem(STORAGE_KEY, "1");
+        window.localStorage.setItem(storageKey, "1");
       } catch {
         /* ignore */
       }

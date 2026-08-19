@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump whenever Prisma models change so the Next.js global singleton is discarded. */
-const PRISMA_SCHEMA_VERSION = "20260809090000_collection_seller_flags";
+const PRISMA_SCHEMA_VERSION = "20260819083000_creator_unavailable_dates";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -33,7 +33,8 @@ function hasRequiredModels(client: PrismaClient | undefined): client is PrismaCl
       typeof client.creatorSubscription?.findUnique === "function" &&
       typeof client.creatorFollow?.findMany === "function" &&
       typeof client.userProfile?.findFirst === "function" &&
-      typeof client.specialRequestCatalog?.findUnique === "function",
+      typeof client.specialRequestCatalog?.findUnique === "function" &&
+      typeof client.creatorUnavailableDate?.findMany === "function",
   );
 }
 

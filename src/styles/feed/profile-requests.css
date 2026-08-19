@@ -2140,6 +2140,23 @@ select.requests-pz__input {
   cursor: not-allowed;
 }
 
+.requests-calendar__cell.is-unavailable {
+  position: relative;
+  text-decoration: line-through;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--color-text-tertiary) 14%, transparent),
+      color-mix(in srgb, var(--color-text-tertiary) 14%, transparent) 4px,
+      color-mix(in srgb, var(--color-bg-muted, #f3f4f6) 92%, transparent) 4px,
+      color-mix(in srgb, var(--color-bg-muted, #f3f4f6) 92%, transparent) 8px
+    ) !important;
+}
+
+.requests-calendar__cell.is-unavailable .requests-calendar__price {
+  display: none;
+}
+
 .requests-calendar__cell:not(.is-disabled):hover,
 .requests-calendar__cell:not(.is-disabled):focus-visible {
   background: var(--color-neutral-0);

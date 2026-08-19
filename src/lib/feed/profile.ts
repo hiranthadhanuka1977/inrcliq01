@@ -329,7 +329,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         });
 
         const jsonFallback = getProfileDataFromJson(slug);
-        if (jsonFallback?.feed_posts?.length) {
+        if (!isOwn && jsonFallback?.feed_posts?.length) {
           const fromDbIds = new Set(feedPosts.map((post) => post.id));
           const leftovers = jsonFallback.feed_posts
             .filter((post) => !fromDbIds.has(post.id))
@@ -455,7 +455,9 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     }
 
     const dbFeed = await getCreatorFeedPosts(slug, preferredIds, { following, subscribed });
-    if (dbFeed.length) {
+    if (isOwn) {
+      feedPosts = dbFeed;
+    } else if (dbFeed.length) {
       const fromDbIds = new Set(dbFeed.map((post) => post.id));
       const leftovers = profile.feed_posts
         .filter((post) => !fromDbIds.has(post.id))
@@ -494,6 +496,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     collection_enabled: collectionEnabled,
     is_own: isOwn || undefined,
     collection,
+    popular_posts: isOwn ? [] : profile.popular_posts,
     feed_posts: feedPosts,
     relationship: {
       ...profile.relationship,

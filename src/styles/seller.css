@@ -763,15 +763,24 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
 
 .seller-calendar__nav {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   border: 1px solid var(--color-border-default);
   background: var(--color-bg-page);
   color: var(--color-text-primary);
   width: 2.25rem;
   height: 2.25rem;
+  padding: 0;
   border-radius: var(--radius-md);
-  font-size: 1.25rem;
-  line-height: 1;
   cursor: pointer;
+}
+
+.seller-calendar__nav svg {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .seller-calendar__nav:hover,
@@ -848,6 +857,138 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
 
 .seller-calendar__cell.has-bookings {
   background: var(--color-bg-page);
+}
+
+.seller-calendar__cell.is-unavailable {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--color-text-tertiary) 10%, transparent),
+      color-mix(in srgb, var(--color-text-tertiary) 10%, transparent) 6px,
+      color-mix(in srgb, var(--color-bg-subtle) 88%, var(--color-bg-page)) 6px,
+      color-mix(in srgb, var(--color-bg-subtle) 88%, var(--color-bg-page)) 12px
+    );
+}
+
+.seller-calendar__cell.is-picked {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 70%, var(--color-border-default));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, var(--color-bg-page));
+}
+
+.seller-calendar__cell.is-locked,
+.seller-calendar__cell.is-past {
+  cursor: not-allowed;
+}
+
+.seller-calendar__board.is-blocking .seller-calendar__cell.is-locked,
+.seller-calendar__board.is-blocking .seller-calendar__cell.is-past {
+  opacity: 0.55;
+}
+
+.seller-calendar__day-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+.seller-calendar__badge {
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-text-tertiary) 16%, transparent);
+  border-radius: 999px;
+  padding: 0.1rem 0.35rem;
+  line-height: 1.3;
+}
+
+.seller-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.seller-calendar__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.seller-calendar__swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.2rem;
+  border: 1px solid var(--color-border-default);
+  display: inline-block;
+}
+
+.seller-calendar__swatch--picked {
+  background: color-mix(in srgb, var(--color-brand-primary) 22%, var(--color-bg-page));
+  border-color: color-mix(in srgb, var(--color-brand-primary) 55%, var(--color-border-default));
+}
+
+.seller-calendar__swatch--unavailable {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--color-text-tertiary) 18%, transparent),
+      color-mix(in srgb, var(--color-text-tertiary) 18%, transparent) 3px,
+      var(--color-bg-subtle) 3px,
+      var(--color-bg-subtle) 6px
+    );
+}
+
+.seller-calendar__swatch--booked {
+  background: var(--color-bg-page);
+}
+
+.seller-calendar__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-subtle);
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 12;
+  scroll-margin-bottom: var(--space-4);
+}
+
+.seller-calendar__actions:focus {
+  outline: none;
+}
+
+.seller-calendar__actions:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+}
+
+.seller-calendar__actions-copy {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 36rem;
+  line-height: 1.45;
+}
+
+.seller-calendar__actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.seller-calendar__detail-note {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
 }
 
 .seller-calendar__day {
@@ -1134,6 +1275,23 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
 
 .seller-context-menu {
   position: relative;
+}
+
+.seller-calendar__manage {
+  flex-shrink: 0;
+}
+
+.seller-calendar__manage-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding-inline: var(--space-3);
+}
+
+.seller-calendar__manage-trigger svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .seller-context-menu__trigger {
@@ -2143,6 +2301,10 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
     margin-top: auto;
     align-self: center;
     background: var(--color-brand-primary);
+  }
+
+  .seller-calendar__actions-buttons {
+    justify-content: flex-start;
   }
 
   .seller-calendar__detail-item {

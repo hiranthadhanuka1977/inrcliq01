@@ -7,6 +7,7 @@ import PageBodyClass from "@/components/feed/PageBodyClass";
 import FeedPost from "@/components/feed/FeedPost";
 import FeedScrollButton from "@/components/feed/FeedScrollButton";
 import LeftNav from "@/components/feed/LeftNav";
+import FirstPostPrompt from "@/components/feed/account/FirstPostPrompt";
 import ProfileCollection from "@/components/feed/profile/ProfileCollection";
 import ProfileHeader from "@/components/feed/profile/ProfileHeader";
 import ProfilePopularPosts from "@/components/feed/profile/ProfilePopularPosts";
@@ -67,6 +68,14 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                   </section>
                 ) : null}
               </>
+            ) : profile.is_own ? (
+              <section className="profile-feed" aria-label="Create your first post">
+                <FirstPostPrompt
+                  firstName={profile.name.split(/\s+/)[0] || null}
+                  profileHref={`/feed/profile/${profile.slug}`}
+                  dismissKey={profile.slug}
+                />
+              </section>
             ) : (
               <section className="profile-feed-empty" aria-labelledby="profile-feed-empty-heading">
                 <span className="profile-feed-empty__icon" aria-hidden="true">
@@ -77,11 +86,7 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                   </svg>
                 </span>
                 <h2 id="profile-feed-empty-heading">No posts yet</h2>
-                <p>
-                  {profile.is_own
-                    ? "Share your first update when you’re ready. It will show up here."
-                    : `${profile.name} hasn’t posted yet. Check back later.`}
-                </p>
+                <p>{`${profile.name} hasn’t posted yet. Check back later.`}</p>
               </section>
             )}
           </div>

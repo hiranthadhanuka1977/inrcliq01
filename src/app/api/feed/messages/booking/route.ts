@@ -20,6 +20,8 @@ import { acceptSettingsBooking } from "@/lib/settings/bookings";
 import { getSpecialRequestCatalogBySlug } from "@/lib/seller/service-requests-store";
 import { resolveCategoryInstantBooking } from "@/lib/seller/service-requests-helpers";
 import { BOOKING_FEE_PERCENT, bookingFeeDueNow } from "@/lib/feed/booking-fee";
+import { isCreatorDateUnavailable, resolveBookingDateKey } from "@/lib/seller/unavailable-dates";
+import { isDateKey } from "@/lib/calendar-date";
 
 type BookingRequestBody = {
   slug?: string;
@@ -47,6 +49,7 @@ type BookingRequestBody = {
     currency?: string;
     when?: string;
     deliverBy?: string;
+    date?: string;
     creatorName?: string;
   };
 };
@@ -128,8 +131,28 @@ export async function POST(request: Request) {
       creatorName = booking.creatorName?.trim() || creator?.name || thread.peerName;
     }
 
+    if (!creatorId) {
+      return NextResponse.json({ error: "Creator not found." }, { status: 404 });
+    }
+
     const deliverBy =
       parseOptionalDate(booking.deliverBy) ?? new Date(parseDeliveryDeadline(booking.when));
+    const requestedForAt = parseOptionalDate(booking.when);
+    const explicitDateKey =
+      booking.date?.trim() && isDateKey(booking.date.trim()) ? booking.date.trim() : null;
+    const bookingDateKey =
+      explicitDateKey ??
+      resolveBookingDateKey({
+        when: booking.when,
+        deliverBy,
+        requestedForAt,
+      });
+    if (bookingDateKey && (await isCreatorDateUnavailable(creatorId, bookingDateKey))) {
+      return NextResponse.json(
+        { error: "This date is not available for bookings." },
+        { status: 409 },
+      );
+    }
 
     const catalog = await getSpecialRequestCatalogBySlug(slug);
     const instantBooking = catalog
@@ -162,7 +185,7 @@ export async function POST(request: Request) {
       feedFee: booking.feedFee,
       totalFee: booking.totalFee,
       currency: booking.currency,
-      requestedForAt: parseOptionalDate(booking.when),
+      requestedForAt,
       deliverBy,
       detailsJson: {
         source: "requests-checkout",

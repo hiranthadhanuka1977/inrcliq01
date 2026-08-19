@@ -2,6 +2,7 @@ import { SellerServiceRequestsView } from "@/components/seller/SellerServiceRequ
 import { listSellerBookings } from "@/lib/seller/bookings";
 import { requireSellerSpecialRequestsIdentity } from "@/lib/seller/identity";
 import { getSellerServiceRequestsConfigForUser } from "@/lib/seller/service-requests-store";
+import { findCreatorIdForSeller, listUnavailableDateKeys } from "@/lib/seller/unavailable-dates";
 import { notFound, redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,8 @@ export default async function SellerServiceRequestsPage({ searchParams }: PagePr
   if (!config) notFound();
 
   const bookings = await listSellerBookings(identity.slug);
+  const creatorId = await findCreatorIdForSeller(identity.userId, identity.slug);
+  const unavailableDates = creatorId ? await listUnavailableDateKeys(creatorId) : [];
   const { tab } = await searchParams;
 
   return (
@@ -42,6 +45,7 @@ export default async function SellerServiceRequestsPage({ searchParams }: PagePr
       previewHref={`/feed/profile/${identity.slug}/requests`}
       initialConfig={config}
       initialBookings={bookings}
+      initialUnavailableDates={unavailableDates}
       initialTab={parseTab(tab)}
     />
   );

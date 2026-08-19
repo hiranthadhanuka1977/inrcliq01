@@ -221,9 +221,22 @@ model CreatorUser {
   chatThreads     ChatThread[]
   subscriptions   CreatorSubscription[]
   follows         CreatorFollow[]
-  specialRequests SpecialRequest[]
+  specialRequests   SpecialRequest[]
+  unavailableDates  CreatorUnavailableDate[]
 
   @@index([name])
+}
+
+/// Calendar dates a creator has marked unavailable for new bookings.
+model CreatorUnavailableDate {
+  id        String   @id @default(cuid())
+  creatorId String
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorId, date])
 }
 
 /// Feed posts imported from `data/my_feed.json`.

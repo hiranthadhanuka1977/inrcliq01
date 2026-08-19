@@ -528,12 +528,14 @@ export default function ProfileRequestsView({
   initialCategoryId,
   initialServiceId,
   requestsContent,
+  unavailableDateKeys = [],
 }: {
   profile: ProfileData;
   variant?: "start" | "choose";
   initialCategoryId?: string;
   initialServiceId?: string;
   requestsContent?: CreatorRequestsContent | null;
+  unavailableDateKeys?: string[];
 }) {
   // Public pages must pass the Seller Tools catalog (or null). Never fall back to
   // the bundled seed — that silently revives removed/outdated category blocks.
@@ -621,6 +623,7 @@ export default function ProfileRequestsView({
   const [appearanceExpectation, setAppearanceExpectation] = useState("");
   const [appearanceReference, setAppearanceReference] = useState<File | null>(null);
   const [personalizeTried, setPersonalizeTried] = useState(false);
+  const [blockedDateKeys, setBlockedDateKeys] = useState<string[]>(unavailableDateKeys);
   const [calendarCursor, setCalendarCursor] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -653,10 +656,18 @@ export default function ProfileRequestsView({
   const appearanceReferenceRef = useRef<HTMLInputElement>(null);
 
   const earliestDate = useMemo(() => {
+    const today = startOfDay(new Date());
     const parsed = Date.parse(content?.nextAvailable ?? "");
-    const base = Number.isNaN(parsed) ? new Date() : new Date(parsed);
-    return startOfDay(base);
+    if (Number.isNaN(parsed)) return today;
+    const nextAvailable = startOfDay(new Date(parsed));
+    return nextAvailable > today ? nextAvailable : today;
   }, [content?.nextAvailable]);
+
+  const unavailableDates = useMemo(
+    () => new Set(blockedDateKeys),
+    [blockedDateKeys],
+  );
+  const deliveryDateBlocked = deliveryDate ? unavailableDates.has(deliveryDate) : false;
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarCursor;
@@ -674,12 +685,46 @@ export default function ProfileRequestsView({
   }, [calendarCursor]);
 
   useEffect(() => {
+    setBlockedDateKeys(unavailableDateKeys);
+  }, [unavailableDateKeys]);
+
+  useEffect(() => {
     if (pickerStep !== 3) return;
+
+    let cancelled = false;
+    const slug = profile.slug?.trim();
+    if (!slug) return;
+
+    fetch(`/api/feed/profile/${encodeURIComponent(slug)}/availability`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { dates?: string[] } | null) => {
+        if (!cancelled && Array.isArray(payload?.dates)) {
+          setBlockedDateKeys(payload.dates);
+        }
+      })
+      .catch(() => {
+        // Keep server-rendered dates when the refresh fails.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pickerStep, profile.slug]);
+
+  useEffect(() => {
+    if (pickerStep !== 3) return;
+    const now = new Date();
     setCalendarCursor({
-      year: earliestDate.getFullYear(),
-      month: earliestDate.getMonth(),
+      year: now.getFullYear(),
+      month: now.getMonth(),
     });
-  }, [pickerStep, earliestDate]);
+  }, [pickerStep]);
+
+  useEffect(() => {
+    if (deliveryDate && unavailableDates.has(deliveryDate)) {
+      setDeliveryDate("");
+    }
+  }, [deliveryDate, unavailableDates]);
 
   useEffect(() => {
     if (!reviewSortOpen && !reviewFilterOpen) return;
@@ -900,12 +945,13 @@ export default function ProfileRequestsView({
       appearanceExpectation.trim(),
   );
   const personalizedReady = usesEventPersonalize
-    ? Boolean(deliveryDate && appearanceReady)
+    ? Boolean(deliveryDate && !deliveryDateBlocked && appearanceReady)
     : Boolean(
         hasDeliveryMethod &&
           hasFormat &&
           formatDetailsReady &&
           deliveryDate &&
+          !deliveryDateBlocked &&
           deliveryTime &&
           shoutoutMessage.trim() &&
           (recipientTarget === "self" ||
@@ -1019,7 +1065,7 @@ export default function ProfileRequestsView({
     setPersonalizeTried(true);
 
     if (usesEventPersonalize) {
-      if (!deliveryDate) {
+      if (!deliveryDate || deliveryDateBlocked) {
         focusPersonalizeControl(firstDateRef.current);
         return false;
       }
@@ -1060,7 +1106,7 @@ export default function ProfileRequestsView({
         focusFirstMissingFormatDetail();
         return false;
       }
-      if (!deliveryDate) {
+      if (!deliveryDate || deliveryDateBlocked) {
         focusPersonalizeControl(firstDateRef.current);
         return false;
       }
@@ -1107,7 +1153,7 @@ export default function ProfileRequestsView({
     personalizeTried && formats.video && deliveryFormats.video.framingEnabled && !videoStyle;
   const videoCaptionsInvalid =
     personalizeTried && formats.video && deliveryFormats.video.captionsEnabled && !videoCaptions;
-  const dateInvalid = personalizeTried && !deliveryDate;
+  const dateInvalid = personalizeTried && (!deliveryDate || deliveryDateBlocked);
   const timeInvalid = personalizeTried && !deliveryTime;
   const recipientNameInvalid =
     personalizeTried && requiresDeliveryChoice && recipientTarget === "other" && !recipientName.trim();
@@ -1147,6 +1193,7 @@ export default function ProfileRequestsView({
       usesEventPersonalize ? "Event audience" : recipientTarget === "self" ? "For me" : recipientName.trim() || "Someone else",
     );
     params.set("when", `${formatDisplayDate(deliveryDate)}${deliveryTime ? ` · ${deliveryTime}` : ""}`);
+    if (deliveryDate) params.set("date", deliveryDate);
     params.set("dayRate", String(dayRate));
     params.set("feedFee", String(feedFee));
     params.set("totalFee", String(totalFee));
@@ -2339,8 +2386,8 @@ export default function ProfileRequestsView({
                               title={usesEventPersonalize ? "When" : "Schedule"}
                               copy={
                                 usesEventPersonalize
-                                  ? "Pick the appearance date and start time. Available days show the request fee so you can plan ahead."
-                                  : "Pick the delivery date and time. Available days show pricing so you can choose what works best."
+                                  ? "Pick the appearance date and start time. Available days show the request fee so you can plan ahead. Greyed-out days are in the past or marked unavailable."
+                                  : "Pick the delivery date and time. Available days show pricing so you can choose what works best. Greyed-out days are in the past or marked unavailable."
                               }
                             />
                           </div>
@@ -2402,8 +2449,9 @@ export default function ProfileRequestsView({
                                     return <span key={cell.key} className="requests-calendar__cell is-empty" />;
                                   }
                                   const key = toDateKey(cell.date);
-                                  const disabled = cell.date < earliestDate;
-                                  const selectedDay = deliveryDate === key;
+                                  const blocked = unavailableDates.has(key);
+                                  const disabled = cell.date < earliestDate || blocked;
+                                  const selectedDay = deliveryDate === key && !blocked;
                                   const shownPrice = dayRate + lengthAddons + feedFee;
                                   const isFirstAvailable = !disabled && !firstAvailableAssigned;
                                   if (isFirstAvailable) firstAvailableAssigned = true;
@@ -2413,10 +2461,16 @@ export default function ProfileRequestsView({
                                       type="button"
                                       role="gridcell"
                                       ref={isFirstAvailable ? firstDateRef : undefined}
-                                      className={`requests-calendar__cell${selectedDay ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
+                                      className={`requests-calendar__cell${selectedDay ? " is-selected" : ""}${disabled ? " is-disabled" : ""}${blocked ? " is-unavailable" : ""}`}
                                       disabled={disabled}
                                       aria-pressed={selectedDay}
+                                      aria-label={
+                                        blocked
+                                          ? `${cell.date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}, unavailable`
+                                          : undefined
+                                      }
                                       onClick={() => {
+                                        if (blocked) return;
                                         setDeliveryDate(key);
                                         focusPersonalizeControl(deliveryTimeRef.current);
                                       }}

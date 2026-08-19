@@ -29,6 +29,7 @@ type SellerServiceRequestsViewProps = {
   previewHref: string;
   initialConfig: SellerServiceRequestsConfig;
   initialBookings: SettingsBookingRow[];
+  initialUnavailableDates?: string[];
   initialTab?: TabId;
 };
 
@@ -60,6 +61,7 @@ export function SellerServiceRequestsView({
   previewHref,
   initialConfig,
   initialBookings,
+  initialUnavailableDates = [],
   initialTab,
 }: SellerServiceRequestsViewProps) {
   const [tab, setTab] = useState<TabId>(parseInitialTab(initialTab));
@@ -458,7 +460,12 @@ export function SellerServiceRequestsView({
         </p>
       ) : null}
 
-      {tab === "calendar" ? <SellerBookingsCalendar bookings={bookings} /> : null}
+      {tab === "calendar" ? (
+        <SellerBookingsCalendar
+          bookings={bookings}
+          initialUnavailableDates={initialUnavailableDates}
+        />
+      ) : null}
 
       {tab === "setup" ? (
         <form className="seller-requests-form" onSubmit={handleSaveSetup}>

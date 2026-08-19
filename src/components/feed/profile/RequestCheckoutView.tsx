@@ -16,6 +16,7 @@ type RequestCheckoutData = {
   content?: string;
   recipient?: string;
   when?: string;
+  date?: string;
   dayRate?: number;
   feedFee?: number;
   totalFee: number;
@@ -180,6 +181,8 @@ export default function RequestCheckoutView({
             appearanceReference: data.reference,
             isAppearance: Boolean(data.isAppearance),
             when: data.when,
+            date: data.date,
+            deliverBy: data.date ? `${data.date}T12:00:00.000Z` : undefined,
             dayRate: data.dayRate,
             feedFee: data.feedFee,
             totalFee: data.totalFee,
