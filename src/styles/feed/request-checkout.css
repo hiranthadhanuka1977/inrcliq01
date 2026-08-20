@@ -190,6 +190,20 @@
   color: rgba(245, 247, 251, 0.78);
 }
 
+.stripe-checkout__estimate .booking-fee-notice__fee {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.stripe-checkout__estimate .booking-fee-notice__fee-label,
+.stripe-checkout__estimate .booking-fee-notice__fee-amount {
+  color: #ffffff;
+}
+
+.stripe-checkout__estimate .booking-fee-notice__fee-note {
+  color: rgba(245, 247, 251, 0.72);
+}
+
 .stripe-checkout__estimate .booking-fee-notice__callout {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.16);

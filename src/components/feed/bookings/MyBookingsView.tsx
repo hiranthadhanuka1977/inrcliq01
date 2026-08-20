@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useId, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import type { MyBookingItem } from "@/lib/feed/user-bookings";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
 import BookingDeliveryCountdown from "@/components/feed/bookings/BookingDeliveryCountdown";
@@ -17,9 +24,14 @@ function parseBookingsTab(value: string | null): BookingsTab {
   return "calendar";
 }
 
+/** Delivery countdown only after the provider has accepted (or work is in progress). */
 function showsCountdown(booking: MyBookingItem) {
   if (!booking.deliverBy) return false;
-  return !["DELIVERED", "DECLINED", "CANCELLED"].includes(booking.status);
+  return booking.status === "ACCEPTED" || booking.status === "IN_PROGRESS";
+}
+
+function canRespondToBooking(booking: MyBookingItem) {
+  return booking.direction === "inbound" && booking.status === "RECEIVED";
 }
 
 function CreatorBlock({
@@ -92,16 +104,270 @@ function findBookingFromParams(
   return null;
 }
 
-export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[] }) {
+function DeclineReasonModal({
+  open,
+  reference,
+  reason,
+  error,
+  submitting,
+  onReasonChange,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  reference: string;
+  reason: string;
+  error: string;
+  submitting: boolean;
+  onReasonChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close decline dialog"
+        onClick={onClose}
+        disabled={submitting}
+      />
+      <div
+        className="my-bookings-decline__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-decline-title"
+      >
+        <h2 id="my-bookings-decline-title">Decline booking?</h2>
+        <p>
+          Tell the requester why you are declining <code>{reference}</code>.
+        </p>
+        <form onSubmit={onSubmit}>
+          <label className="my-bookings-decline__field">
+            <span>Reason</span>
+            <textarea
+              value={reason}
+              onChange={(event) => onReasonChange(event.target.value)}
+              rows={4}
+              required
+              disabled={submitting}
+              placeholder="Share a short reason…"
+            />
+          </label>
+          {error ? (
+            <p className="my-bookings-decline__error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="my-bookings-decline__actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+              disabled={submitting}
+            >
+              {submitting ? "Declining…" : "Decline"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+type AcceptOfferDraft = {
+  id: string;
+  offerPrice: string;
+  note: string;
+  attachmentUrl: string;
+  attachmentName: string;
+};
+
+function AcceptOfferModal({
+  open,
+  booking,
+  draft,
+  error,
+  submitting,
+  uploading,
+  onDraftChange,
+  onPickFile,
+  onClearFile,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  draft: AcceptOfferDraft | null;
+  error: string;
+  submitting: boolean;
+  uploading: boolean;
+  onDraftChange: (patch: Partial<AcceptOfferDraft>) => void;
+  onPickFile: (file: File | null) => void;
+  onClearFile: () => void;
+  onClose: () => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  const fileInputId = useId();
+  if (!open || !booking || !draft) return null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close accept dialog"
+        onClick={onClose}
+        disabled={submitting || uploading}
+      />
+      <div
+        className="my-bookings-decline__panel my-bookings-accept__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-accept-title"
+      >
+        <h2 id="my-bookings-accept-title">Accept booking</h2>
+        <p>
+          Accept <code>{booking.reference}</code>. You can keep the current total (
+          {booking.totalLabel}) or send a new offer with an optional note and file.
+        </p>
+        <form onSubmit={onSubmit}>
+          <label className="my-bookings-decline__field">
+            <span>New offer price (optional)</span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              value={draft.offerPrice}
+              onChange={(event) => onDraftChange({ offerPrice: event.target.value })}
+              disabled={submitting || uploading}
+              placeholder={booking.totalLabel.replace(/[^\d.]/g, "") || "e.g. 150"}
+            />
+          </label>
+          <label className="my-bookings-decline__field">
+            <span>Note to requester (optional)</span>
+            <textarea
+              value={draft.note}
+              onChange={(event) => onDraftChange({ note: event.target.value })}
+              rows={3}
+              disabled={submitting || uploading}
+              placeholder="Share schedule details, expectations, or terms…"
+            />
+          </label>
+          <div className="my-bookings-decline__field">
+            <span>Attachment (optional)</span>
+            <div className="my-bookings-accept__file-row">
+              <input
+                id={fileInputId}
+                type="file"
+                className="sr-only"
+                accept=".pdf,.doc,.docx,.txt,image/*"
+                disabled={submitting || uploading}
+                onChange={(event) => onPickFile(event.target.files?.[0] ?? null)}
+              />
+              <label
+                htmlFor={fileInputId}
+                className="btn btn--secondary btn--xs my-bookings__respond-btn"
+              >
+                {uploading ? "Uploading…" : draft.attachmentName ? "Replace file" : "Attach file"}
+              </label>
+              {draft.attachmentName ? (
+                <span className="my-bookings-accept__file-name">
+                  {draft.attachmentName}
+                  <button
+                    type="button"
+                    className="my-bookings-accept__file-clear"
+                    onClick={onClearFile}
+                    disabled={submitting || uploading}
+                    aria-label="Remove attachment"
+                  >
+                    ×
+                  </button>
+                </span>
+              ) : (
+                <span className="my-bookings-accept__file-hint">PDF, Word, text, or image</span>
+              )}
+            </div>
+          </div>
+          {error ? (
+            <p className="my-bookings-decline__error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="my-bookings-decline__actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn"
+              onClick={onClose}
+              disabled={submitting || uploading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={submitting || uploading}
+            >
+              {submitting ? "Accepting…" : "Accept"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function MyBookingsView({
+  bookings: initialBookings,
+  inboundEnabled = false,
+}: {
+  bookings: MyBookingItem[];
+  /** Verified creators can receive inbound service requests. */
+  inboundEnabled?: boolean;
+}) {
   const panelTitleId = useId();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [bookings, setBookings] = useState(initialBookings);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<"accept" | "decline" | null>(null);
+  const [actionError, setActionError] = useState("");
+  const [declineDraft, setDeclineDraft] = useState<{ id: string; reason: string } | null>(null);
+  const [declineModalError, setDeclineModalError] = useState("");
+  const [acceptDraft, setAcceptDraft] = useState<AcceptOfferDraft | null>(null);
+  const [acceptModalError, setAcceptModalError] = useState("");
+  const [acceptUploading, setAcceptUploading] = useState(false);
+
+  useEffect(() => {
+    setBookings(initialBookings);
+  }, [initialBookings]);
+
   const bookingParam = searchParams.get("booking")?.trim() || "";
   const refParam = searchParams.get("ref")?.trim() || "";
   const paramMatch = findBookingFromParams(bookings, bookingParam, refParam);
-  const activeTab = parseBookingsTab(searchParams.get("tab"));
+  const requestedTab = parseBookingsTab(searchParams.get("tab"));
+  const activeTab =
+    !inboundEnabled && requestedTab === "inbound" ? "calendar" : requestedTab;
+
+  useEffect(() => {
+    if (inboundEnabled || searchParams.get("tab") !== "inbound") return;
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("tab", "calendar");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [inboundEnabled, pathname, router, searchParams]);
+
   const visibleBookings =
     activeTab === "calendar"
       ? bookings
@@ -116,17 +382,27 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
   const openBookingDetails = useCallback(
     (booking: MyBookingItem) => {
       setSelectedId(booking.id);
+      setActionError("");
       const next = new URLSearchParams(searchParams.toString());
-      next.set("tab", activeTab === "calendar" ? "calendar" : booking.direction);
+      const detailTab =
+        booking.direction === "inbound" && !inboundEnabled
+          ? activeTab === "calendar"
+            ? "calendar"
+            : "outbound"
+          : activeTab === "calendar"
+            ? "calendar"
+            : booking.direction;
+      next.set("tab", detailTab);
       next.set("booking", booking.id);
       next.delete("ref");
       router.replace(`${pathname}?${next.toString()}`, { scroll: false });
     },
-    [activeTab, pathname, router, searchParams],
+    [activeTab, inboundEnabled, pathname, router, searchParams],
   );
 
   const clearSelection = useCallback(() => {
     setSelectedId(null);
+    setActionError("");
     if (searchParams.get("booking") || searchParams.get("ref")) {
       const next = new URLSearchParams(searchParams.toString());
       next.delete("booking");
@@ -149,6 +425,160 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open, clearSelection]);
+
+  function patchBooking(id: string, patch: Partial<MyBookingItem>) {
+    setBookings((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    );
+  }
+
+  async function handleAccept(booking: MyBookingItem) {
+    setAcceptDraft({
+      id: booking.id,
+      offerPrice: "",
+      note: "",
+      attachmentUrl: "",
+      attachmentName: "",
+    });
+    setAcceptModalError("");
+    setActionError("");
+  }
+
+  async function handleAcceptFilePick(file: File | null) {
+    if (!file || !acceptDraft) return;
+    setAcceptUploading(true);
+    setAcceptModalError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/feed/bookings/uploads", {
+        method: "POST",
+        body,
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setAcceptModalError(data?.error ?? "Unable to upload that file.");
+        return;
+      }
+      setAcceptDraft((current) =>
+        current
+          ? {
+              ...current,
+              attachmentUrl: data?.url ?? "",
+              attachmentName: data?.name || file.name,
+            }
+          : current,
+      );
+    } catch {
+      setAcceptModalError("Unable to upload that file.");
+    } finally {
+      setAcceptUploading(false);
+    }
+  }
+
+  async function handleAcceptSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!acceptDraft) return;
+
+    const offerRaw = acceptDraft.offerPrice.trim();
+    const offerPrice = offerRaw ? Number(offerRaw) : null;
+    if (offerRaw && (!Number.isFinite(offerPrice) || (offerPrice ?? 0) <= 0)) {
+      setAcceptModalError("Enter a valid offer price, or leave it blank.");
+      return;
+    }
+
+    setPendingAction("accept");
+    setAcceptModalError("");
+
+    try {
+      const response = await fetch(`/api/feed/bookings/${acceptDraft.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "accept",
+          offerPrice,
+          note: acceptDraft.note.trim() || null,
+          attachmentUrl: acceptDraft.attachmentUrl || null,
+          attachmentName: acceptDraft.attachmentName || null,
+        }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setAcceptModalError(data?.error ?? "Unable to accept booking.");
+        setPendingAction(null);
+        return;
+      }
+
+      const booking = bookings.find((item) => item.id === acceptDraft.id);
+      patchBooking(acceptDraft.id, {
+        status: data?.status ?? "ACCEPTED",
+        statusLabel: data?.statusLabel ?? "Accepted",
+        acceptedAtLabel: data?.acceptedAtLabel ?? booking?.acceptedAtLabel ?? null,
+        deliverBy: data?.deliverBy ?? booking?.deliverBy ?? null,
+        totalLabel: data?.totalLabel ?? booking?.totalLabel,
+      });
+      setAcceptDraft(null);
+      setPendingAction(null);
+      router.refresh();
+    } catch {
+      setAcceptModalError("Unable to accept booking.");
+      setPendingAction(null);
+    }
+  }
+
+  function openDeclineModal(booking: MyBookingItem) {
+    setDeclineDraft({ id: booking.id, reason: "" });
+    setDeclineModalError("");
+    setActionError("");
+  }
+
+  async function handleDeclineSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!declineDraft) return;
+    const reason = declineDraft.reason.trim();
+    if (!reason) {
+      setDeclineModalError("Please enter a reason for declining.");
+      return;
+    }
+
+    setPendingAction("decline");
+    setDeclineModalError("");
+
+    try {
+      const response = await fetch(`/api/feed/bookings/${declineDraft.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "decline", reason }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setDeclineModalError(data?.error ?? "Unable to decline booking.");
+        setPendingAction(null);
+        return;
+      }
+
+      patchBooking(declineDraft.id, {
+        status: data?.status ?? "DECLINED",
+        statusLabel: data?.statusLabel ?? "Declined",
+        declinedAtLabel: data?.declinedAtLabel ?? null,
+        declineReason: data?.declineReason ?? reason,
+      });
+      setDeclineDraft(null);
+      setPendingAction(null);
+      router.refresh();
+    } catch {
+      setDeclineModalError("Unable to decline booking.");
+      setPendingAction(null);
+    }
+  }
+
+  const busy = pendingAction !== null;
+  const declineTarget = declineDraft
+    ? bookings.find((item) => item.id === declineDraft.id) ?? null
+    : null;
+  const acceptTarget = acceptDraft
+    ? bookings.find((item) => item.id === acceptDraft.id) ?? null
+    : null;
 
   return (
     <div className="app-shell page-bookings">
@@ -176,14 +606,26 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
             >
               Outbound
             </Link>
-            <Link
-              href="/feed/bookings?tab=inbound"
-              className={`my-bookings__tab${activeTab === "inbound" ? " is-active" : ""}`}
-              role="tab"
-              aria-selected={activeTab === "inbound"}
-            >
-              Inbound
-            </Link>
+            {inboundEnabled ? (
+              <Link
+                href="/feed/bookings?tab=inbound"
+                className={`my-bookings__tab${activeTab === "inbound" ? " is-active" : ""}`}
+                role="tab"
+                aria-selected={activeTab === "inbound"}
+              >
+                Inbound
+              </Link>
+            ) : (
+              <span
+                className="my-bookings__tab is-disabled"
+                role="tab"
+                aria-selected={false}
+                aria-disabled="true"
+                title="Inbound bookings are available after you get verified"
+              >
+                Inbound
+              </span>
+            )}
           </div>
         </header>
 
@@ -269,6 +711,32 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                       {booking.contentType ? <li>{booking.contentType}</li> : null}
                     </ul>
 
+                    {canRespondToBooking(booking) ? (
+                      <div className="my-bookings__respond my-bookings__respond--inline">
+                        <p className="my-bookings__respond-copy">
+                          Accept or decline this request to continue.
+                        </p>
+                        <div className="my-bookings__respond-actions">
+                          <button
+                            type="button"
+                            className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+                            disabled={busy}
+                            onClick={() => handleAccept(booking)}
+                          >
+                            {pendingAction === "accept" ? "Accepting…" : "Accept"}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+                            disabled={busy}
+                            onClick={() => openDeclineModal(booking)}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
                     {showsCountdown(booking) && booking.deliverBy ? (
                       <BookingDeliveryCountdown deliverBy={booking.deliverBy} compact />
                     ) : null}
@@ -342,6 +810,38 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                   </span>
                 </div>
 
+                {canRespondToBooking(selected) ? (
+                  <div className="my-bookings__respond">
+                    <p className="my-bookings__respond-copy">
+                      This request is waiting for your decision. Accept to start the delivery
+                      countdown, or decline with a reason.
+                    </p>
+                    <div className="my-bookings__respond-actions">
+                      <button
+                        type="button"
+                        className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+                        disabled={busy}
+                        onClick={() => handleAccept(selected)}
+                      >
+                        {pendingAction === "accept" ? "Accepting…" : "Accept"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+                        disabled={busy}
+                        onClick={() => openDeclineModal(selected)}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                    {actionError ? (
+                      <p className="my-bookings__respond-error" role="alert">
+                        {actionError}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {showsCountdown(selected) && selected.deliverBy ? (
                   <BookingDeliveryCountdown deliverBy={selected.deliverBy} />
                 ) : null}
@@ -400,7 +900,10 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
                     <dt>Created</dt>
                     <dd>{selected.createdLabel}</dd>
                   </div>
-                  {selected.deliverByLabel ? (
+                  {selected.deliverByLabel &&
+                  (selected.status === "ACCEPTED" ||
+                    selected.status === "IN_PROGRESS" ||
+                    selected.status === "DELIVERED") ? (
                     <div>
                       <dt>Deliver by</dt>
                       <dd>{selected.deliverByLabel}</dd>
@@ -442,6 +945,47 @@ export default function MyBookingsView({ bookings }: { bookings: MyBookingItem[]
           ) : null}
         </aside>
       </div>
+
+      <DeclineReasonModal
+        open={Boolean(declineDraft)}
+        reference={declineTarget?.reference ?? ""}
+        reason={declineDraft?.reason ?? ""}
+        error={declineModalError}
+        submitting={pendingAction === "decline"}
+        onReasonChange={(value) =>
+          setDeclineDraft((current) => (current ? { ...current, reason: value } : current))
+        }
+        onClose={() => {
+          if (pendingAction === "decline") return;
+          setDeclineDraft(null);
+          setDeclineModalError("");
+        }}
+        onSubmit={handleDeclineSubmit}
+      />
+
+      <AcceptOfferModal
+        open={Boolean(acceptDraft)}
+        booking={acceptTarget}
+        draft={acceptDraft}
+        error={acceptModalError}
+        submitting={pendingAction === "accept"}
+        uploading={acceptUploading}
+        onDraftChange={(patch) =>
+          setAcceptDraft((current) => (current ? { ...current, ...patch } : current))
+        }
+        onPickFile={handleAcceptFilePick}
+        onClearFile={() =>
+          setAcceptDraft((current) =>
+            current ? { ...current, attachmentUrl: "", attachmentName: "" } : current,
+          )
+        }
+        onClose={() => {
+          if (pendingAction === "accept" || acceptUploading) return;
+          setAcceptDraft(null);
+          setAcceptModalError("");
+        }}
+        onSubmit={handleAcceptSubmit}
+      />
     </div>
   );
 }

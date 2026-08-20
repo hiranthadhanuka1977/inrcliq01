@@ -332,7 +332,14 @@ export async function deleteSettingsBooking(id: string) {
   return { ok: true as const, reference: booking.reference };
 }
 
-export async function acceptSettingsBooking(id: string) {
+export type AcceptBookingOptions = {
+  offerPrice?: number | null;
+  note?: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+};
+
+export async function acceptSettingsBooking(id: string, options: AcceptBookingOptions = {}) {
   const booking = await prisma.specialRequest.findUnique({
     where: { id },
     select: {
@@ -342,9 +349,27 @@ export async function acceptSettingsBooking(id: string) {
       userId: true,
       threadId: true,
       deliverBy: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
       creator: {
         select: {
           name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
         },
       },
     },
@@ -362,6 +387,12 @@ export async function acceptSettingsBooking(id: string) {
       status: "ACCEPTED" as const,
       statusLabel: statusLabel("ACCEPTED"),
       acceptedAtLabel: null as string | null,
+      deliverBy: booking.deliverBy?.toISOString() ?? null,
+      totalLabel: `${booking.totalFee} ${booking.currency}`,
+      offerPrice: null as number | null,
+      note: null as string | null,
+      attachmentUrl: null as string | null,
+      attachmentName: null as string | null,
     };
   }
 
@@ -372,58 +403,97 @@ export async function acceptSettingsBooking(id: string) {
     };
   }
 
+  const offerPriceRaw = options.offerPrice;
+  const offerPrice =
+    typeof offerPriceRaw === "number" && Number.isFinite(offerPriceRaw) && offerPriceRaw > 0
+      ? Math.round(offerPriceRaw)
+      : null;
+  const note = options.note?.trim() || "";
+  const attachmentUrl = options.attachmentUrl?.trim() || "";
+  const attachmentName = options.attachmentName?.trim() || "";
+  if (attachmentUrl && !/^\/uploads\//.test(attachmentUrl)) {
+    return { ok: false as const, error: "Invalid attachment." };
+  }
+
   const acceptedAt = new Date();
   const creatorName = booking.creator.name?.trim() || "the creator";
+  const firstName = creatorName.split(" ")[0] || creatorName;
+  const currency = booking.currency || "USD";
   const deliverBy =
     booking.deliverBy?.toISOString() ??
     new Date(acceptedAt.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const bodyParts = [`Booking ${booking.reference} has been accepted.`];
+  if (offerPrice != null) {
+    bodyParts.push(`New offer: ${offerPrice} ${currency}.`);
+  }
+  if (note) {
+    bodyParts.push(`Note: ${note}`);
+  }
+  if (attachmentUrl) {
+    bodyParts.push(`Attachment: ${attachmentName || "File attached"}.`);
+  }
+  if (!offerPrice && !note && !attachmentUrl) {
+    bodyParts.push("Delivery will follow the agreed schedule.");
+  }
+
   const notePayload = {
     kind: "accepted" as const,
     reference: booking.reference,
     creatorName,
     specialRequestId: booking.id,
-    title: `Accepted by ${creatorName.split(" ")[0]}`,
-    body: `Booking ${booking.reference} has been accepted. Delivery will follow the agreed schedule.`,
+    title: `Accepted by ${firstName}`,
+    body: bodyParts.join(" "),
     deliverBy,
+    ...(offerPrice != null ? { offerPrice, currency } : {}),
+    ...(note ? { note } : {}),
+    ...(attachmentUrl
+      ? { attachmentUrl, attachmentName: attachmentName || "Attachment" }
+      : {}),
   };
   const noteBody = encodeBookingNote(notePayload);
   const notePreview = bookingNotePreview(notePayload);
 
-  if (booking.threadId) {
-    const threadId = booking.threadId;
-    await prisma.$transaction([
-      prisma.specialRequest.update({
-        where: { id },
-        data: {
-          status: "ACCEPTED",
-          acceptedAt,
-        },
-      }),
-      prisma.chatMessage.create({
-        data: {
-          threadId,
-          body: noteBody,
-          fromMe: false,
-          specialRequestId: booking.id,
-        },
-      }),
-      prisma.chatThread.update({
-        where: { id: threadId },
-        data: {
-          preview: notePreview,
-          lastMessageAt: acceptedAt,
-        },
-      }),
-    ]);
-  } else {
-    await prisma.specialRequest.update({
-      where: { id },
-      data: {
-        status: "ACCEPTED",
-        acceptedAt,
-      },
-    });
-  }
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const detailsJson = {
+    ...existingDetails,
+    acceptance: {
+      offerPrice,
+      currency,
+      note: note || null,
+      attachmentUrl: attachmentUrl || null,
+      attachmentName: attachmentName || null,
+      acceptedAt: acceptedAt.toISOString(),
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "ACCEPTED",
+      acceptedAt,
+      ...(offerPrice != null ? { totalFee: offerPrice } : {}),
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: acceptedAt,
+  });
+
+  const finalTotal = offerPrice ?? booking.totalFee;
 
   return {
     ok: true as const,
@@ -432,6 +502,12 @@ export async function acceptSettingsBooking(id: string) {
     status: "ACCEPTED" as const,
     statusLabel: statusLabel("ACCEPTED"),
     acceptedAtLabel: formatDateTime(acceptedAt),
+    deliverBy,
+    totalLabel: `${finalTotal} ${currency}`,
+    offerPrice,
+    note: note || null,
+    attachmentUrl: attachmentUrl || null,
+    attachmentName: attachmentName || null,
   };
 }
 
@@ -447,11 +523,27 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
       id: true,
       reference: true,
       status: true,
+      userId: true,
       threadId: true,
       detailsJson: true,
       creator: {
         select: {
           name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
         },
       },
     },
@@ -506,43 +598,25 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
     declineReason: reason,
   };
 
-  if (booking.threadId) {
-    const threadId = booking.threadId;
-    await prisma.$transaction([
-      prisma.specialRequest.update({
-        where: { id },
-        data: {
-          status: "DECLINED",
-          declinedAt,
-          detailsJson,
-        },
-      }),
-      prisma.chatMessage.create({
-        data: {
-          threadId,
-          body: noteBody,
-          fromMe: false,
-          specialRequestId: booking.id,
-        },
-      }),
-      prisma.chatThread.update({
-        where: { id: threadId },
-        data: {
-          preview: notePreview,
-          lastMessageAt: declinedAt,
-        },
-      }),
-    ]);
-  } else {
-    await prisma.specialRequest.update({
-      where: { id },
-      data: {
-        status: "DECLINED",
-        declinedAt,
-        detailsJson,
-      },
-    });
-  }
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "DECLINED",
+      declinedAt,
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: declinedAt,
+  });
 
   return {
     ok: true as const,
@@ -553,4 +627,105 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
     declinedAtLabel: formatDateTime(declinedAt),
     declineReason: reason,
   };
+}
+
+async function postBookingNoteToBothParties(input: {
+  bookingId: string;
+  requesterUserId: string;
+  requesterThreadId: string | null;
+  creatorOwnerUserId: string | null;
+  requester: {
+    firstName: string | null;
+    lastName: string | null;
+    handle: string | null;
+    profile: {
+      displayName: string | null;
+      handle: string | null;
+      slug: string | null;
+    } | null;
+  };
+  noteBody: string;
+  notePreview: string;
+  at: Date;
+}) {
+  const {
+    bookingId,
+    requesterUserId,
+    requesterThreadId,
+    creatorOwnerUserId,
+    requester,
+    noteBody,
+    notePreview,
+    at,
+  } = input;
+
+  if (requesterThreadId) {
+    await prisma.$transaction([
+      prisma.chatMessage.create({
+        data: {
+          threadId: requesterThreadId,
+          body: noteBody,
+          fromMe: false,
+          specialRequestId: bookingId,
+        },
+      }),
+      prisma.chatThread.update({
+        where: { id: requesterThreadId },
+        data: {
+          preview: notePreview,
+          lastMessageAt: at,
+          unreadCount: { increment: 1 },
+        },
+      }),
+    ]);
+  }
+
+  if (!creatorOwnerUserId || creatorOwnerUserId === requesterUserId) return;
+
+  const requesterName =
+    requester.profile?.displayName?.trim() ||
+    `${requester.firstName?.trim() || ""} ${requester.lastName?.trim() || ""}`.trim() ||
+    "Fan";
+  const requesterHandle =
+    requester.profile?.handle?.trim() ||
+    requester.handle?.trim() ||
+    `@${requesterName.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 24) || "fan"}`;
+  const requesterSlug = requester.profile?.slug?.trim() || null;
+
+  const ownerThread =
+    (await prisma.chatThread.findFirst({
+      where: {
+        userId: creatorOwnerUserId,
+        OR: [
+          requesterSlug
+            ? { peerSlug: { equals: requesterSlug, mode: "insensitive" as const } }
+            : undefined,
+          { peerHandle: { equals: requesterHandle, mode: "insensitive" as const } },
+        ].filter(Boolean) as Array<
+          | { peerSlug: { equals: string; mode: "insensitive" } }
+          | { peerHandle: { equals: string; mode: "insensitive" } }
+        >,
+      },
+      select: { id: true },
+    })) || null;
+
+  if (!ownerThread) return;
+
+  await prisma.$transaction([
+    prisma.chatMessage.create({
+      data: {
+        threadId: ownerThread.id,
+        body: noteBody,
+        fromMe: true,
+        specialRequestId: bookingId,
+      },
+    }),
+    prisma.chatThread.update({
+      where: { id: ownerThread.id },
+      data: {
+        preview: notePreview,
+        lastMessageAt: at,
+      },
+    }),
+  ]);
 }

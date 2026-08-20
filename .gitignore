@@ -62,4 +62,8 @@ next-env.d.ts
 !/public/uploads/seller-service-requests/.gitkeep
 /public/uploads/feed-posts/*
 !/public/uploads/feed-posts/.gitkeep
+/public/uploads/avatars/*
+!/public/uploads/avatars/.gitkeep
+/public/uploads/booking-accept/*
+!/public/uploads/booking-accept/.gitkeep
 

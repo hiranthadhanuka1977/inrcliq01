@@ -12,6 +12,7 @@ import {
 } from "react";
 import { COMPOSER_ACTIVITIES, COMPOSER_FEELINGS } from "@/data/feed/composer-feelings";
 import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
+import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
 
 const STORAGE_KEY = "inrcliq:first-post-prompt-dismissed";
 
@@ -406,14 +407,23 @@ export default function FirstPostPrompt({
   }
 
   if (publishedHref) {
+    if (isModal) {
+      return (
+        <aside className="first-post-prompt first-post-prompt--done" aria-live="polite">
+          <strong className="first-post-prompt__title">Your first post is live</strong>
+          <p className="first-post-prompt__text">People will see it on your public profile.</p>
+          <Link href={publishedHref} className="btn btn--primary btn--sm first-post-prompt__cta">
+            View profile
+          </Link>
+        </aside>
+      );
+    }
     return (
-      <aside className="first-post-prompt first-post-prompt--done" aria-live="polite">
-        <strong className="first-post-prompt__title">Your first post is live</strong>
-        <p className="first-post-prompt__text">People will see it on your public profile.</p>
-        <Link href={publishedHref} className="btn btn--primary btn--sm first-post-prompt__cta">
-          View profile
-        </Link>
-      </aside>
+      <ShareOnSocialPrompt
+        firstName={firstName}
+        profileHref={publishedHref}
+        dismissKey={dismissKey}
+      />
     );
   }
 

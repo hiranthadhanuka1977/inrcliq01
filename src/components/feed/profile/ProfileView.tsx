@@ -8,6 +8,7 @@ import FeedPost from "@/components/feed/FeedPost";
 import FeedScrollButton from "@/components/feed/FeedScrollButton";
 import LeftNav from "@/components/feed/LeftNav";
 import FirstPostPrompt from "@/components/feed/account/FirstPostPrompt";
+import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
 import ProfileCollection from "@/components/feed/profile/ProfileCollection";
 import ProfileHeader from "@/components/feed/profile/ProfileHeader";
 import ProfilePopularPosts from "@/components/feed/profile/ProfilePopularPosts";
@@ -36,6 +37,15 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
           />
 
           <div className="profile-page__inner">
+            {profile.is_own && hasPosts ? (
+              <ShareOnSocialPrompt
+                firstName={profile.name.split(/\s+/)[0] || null}
+                handle={profile.handle}
+                profileHref={`/feed/profile/${profile.slug}`}
+                dismissKey={profile.slug}
+              />
+            ) : null}
+
             {profile.collection.length > 0 ? (
               <ProfileCollection
                 slug={profile.slug}

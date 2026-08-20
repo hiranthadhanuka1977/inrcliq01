@@ -24,6 +24,7 @@ export type MyBookingItem = {
   acceptedAtLabel: string | null;
   declinedAtLabel: string | null;
   declineReason: string | null;
+  instantBooking: boolean;
   summary: MyBookingSummaryRow[];
   creator: {
     id: string;
@@ -37,10 +38,10 @@ export type MyBookingItem = {
   messagesHref: string | null;
 };
 
-function statusLabel(status: string) {
+function statusLabel(status: string, direction?: "outbound" | "inbound") {
   switch (status) {
     case "RECEIVED":
-      return "Received";
+      return direction === "outbound" ? "Requested" : "Received";
     case "ACCEPTED":
       return "Accepted";
     case "IN_PROGRESS":
@@ -144,6 +145,34 @@ function buildSummary(request: {
 
   rows.push(["Total charge", `${request.totalFee} ${request.currency}`]);
 
+  const acceptance =
+    details?.acceptance &&
+    typeof details.acceptance === "object" &&
+    !Array.isArray(details.acceptance)
+      ? (details.acceptance as Record<string, unknown>)
+      : null;
+  if (acceptance) {
+    const offerPrice =
+      typeof acceptance.offerPrice === "number" && Number.isFinite(acceptance.offerPrice)
+        ? acceptance.offerPrice
+        : null;
+    const currency =
+      typeof acceptance.currency === "string" && acceptance.currency.trim()
+        ? acceptance.currency.trim()
+        : request.currency;
+    const note =
+      typeof acceptance.note === "string" ? readable(acceptance.note) : null;
+    const attachmentName =
+      typeof acceptance.attachmentName === "string"
+        ? readable(acceptance.attachmentName)
+        : null;
+    if (offerPrice != null) {
+      rows.push(["Accepted offer", `${offerPrice} ${currency}`]);
+    }
+    if (note) rows.push(["Provider note", note]);
+    if (attachmentName) rows.push(["Provider attachment", attachmentName]);
+  }
+
   return rows
     .filter((entry): entry is [string, string] => Boolean(entry[1]))
     .map(([label, value]) => ({ label, value }));
@@ -193,10 +222,10 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
 
     return {
       id: request.id,
-      direction: "outbound",
+      direction: "outbound" as const,
       reference: request.reference,
       status: request.status,
-      statusLabel: statusLabel(request.status),
+      statusLabel: statusLabel(request.status, "outbound"),
       requestLabel: request.requestLabel,
       category: request.category,
       contentType: request.contentType,
@@ -209,6 +238,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       acceptedAtLabel: formatDateTime(request.acceptedAt),
       declinedAtLabel: formatDateTime(request.declinedAt),
       declineReason,
+      instantBooking: Boolean(request.instantBooking),
       summary: buildSummary(request),
       creator: {
         id: request.creator.id,
@@ -290,7 +320,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       direction: "inbound" as const,
       reference: request.reference,
       status: request.status,
-      statusLabel: statusLabel(request.status),
+      statusLabel: statusLabel(request.status, "inbound"),
       requestLabel: request.requestLabel,
       category: request.category,
       contentType: request.contentType,
@@ -303,6 +333,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       acceptedAtLabel: formatDateTime(request.acceptedAt),
       declinedAtLabel: formatDateTime(request.declinedAt),
       declineReason,
+      instantBooking: Boolean(request.instantBooking),
       summary: buildSummary(request),
       creator: {
         id: request.user.id,

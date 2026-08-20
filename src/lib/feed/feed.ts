@@ -92,14 +92,59 @@ async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
     items.map((item) => ({
       ...item,
       relationship: { ...item.relationship, following: false },
+      is_own: false,
     }));
 
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser) return clearFollowing();
 
-    const followedIds = await getFollowedCreatorIdsForUser(sessionUser.id);
-    if (followedIds.size === 0) return clearFollowing();
+    const [profile, linkedCreator, followedIds] = await Promise.all([
+      prisma.userProfile.findUnique({
+        where: { userId: sessionUser.id },
+        select: { handle: true, slug: true },
+      }),
+      prisma.creatorUser.findFirst({
+        where: { userId: sessionUser.id },
+        select: { handle: true, slug: true },
+      }),
+      getFollowedCreatorIdsForUser(sessionUser.id),
+    ]);
+
+    const ownHandles = new Set<string>();
+    const ownSlugs = new Set<string>();
+    for (const handle of [sessionUser.handle, profile?.handle, linkedCreator?.handle]) {
+      if (!handle?.trim()) continue;
+      const normalized = handle.trim().toLowerCase();
+      ownHandles.add(normalized.startsWith("@") ? normalized : `@${normalized}`);
+      ownHandles.add(normalized.replace(/^@/, ""));
+    }
+    for (const slug of [profile?.slug, linkedCreator?.slug]) {
+      if (slug?.trim()) ownSlugs.add(slug.trim().toLowerCase());
+    }
+
+    const isOwnItem = (item: FeedItem) => {
+      const handle = item.author.handle.trim().toLowerCase();
+      const withAt = handle.startsWith("@") ? handle : `@${handle}`;
+      const bare = handle.replace(/^@/, "");
+      const slug = (item.author.slug ?? resolveAuthorProfileSlug(item.author.handle, item.author.slug))
+        .trim()
+        .toLowerCase();
+      return (
+        ownHandles.has(handle) ||
+        ownHandles.has(withAt) ||
+        ownHandles.has(bare) ||
+        (slug ? ownSlugs.has(slug) : false)
+      );
+    };
+
+    if (followedIds.size === 0) {
+      return items.map((item) => ({
+        ...item,
+        relationship: { ...item.relationship, following: false },
+        is_own: isOwnItem(item) || undefined,
+      }));
+    }
 
     const creators = await prisma.creatorUser.findMany({
       where: { id: { in: Array.from(followedIds) } },
@@ -118,10 +163,12 @@ async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
     return items.map((item) => {
       const handle = item.author.handle.startsWith("@") ? item.author.handle : `@${item.author.handle}`;
       const slug = resolveAuthorProfileSlug(item.author.handle, item.author.slug);
+      const own = isOwnItem(item);
       const following =
-        followedHandles.has(handle.toLowerCase()) ||
-        followedSlugs.has(slug) ||
-        Boolean(item.author.slug && followedSlugs.has(item.author.slug));
+        !own &&
+        (followedHandles.has(handle.toLowerCase()) ||
+          followedSlugs.has(slug) ||
+          Boolean(item.author.slug && followedSlugs.has(item.author.slug)));
       return {
         ...item,
         author: {
@@ -129,6 +176,7 @@ async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
           slug: item.author.slug ?? slug,
         },
         relationship: { ...item.relationship, following },
+        is_own: own || undefined,
       };
     });
   } catch (error) {

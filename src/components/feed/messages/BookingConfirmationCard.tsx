@@ -11,26 +11,37 @@ function statusTone(status: string) {
   return "received";
 }
 
+function displayStatus(status: string, requesterView: boolean) {
+  const key = status.trim().toLowerCase();
+  if (requesterView && (key === "received" || key === "")) return "Requested";
+  return status;
+}
+
 export default function BookingConfirmationCard({
   booking,
   time,
   creatorName,
   detailsTab,
+  fromMe,
 }: {
   booking: BookingConfirmationPayload;
   time: string;
   creatorName?: string;
   detailsTab?: "inbound" | "outbound";
+  /** True when this message sits in the requester's conversation (they submitted the request). */
+  fromMe?: boolean;
 }) {
-  const creator = resolveCreatorName(booking, creatorName);
-  const firstName = creator.split(" ")[0] || creator;
   const tone = statusTone(booking.status);
-  const viewerName = creatorName?.trim() || "";
-  const creatorInboxView =
-    detailsTab === "inbound" ||
-    (detailsTab !== "outbound" &&
-      Boolean(viewerName) &&
-      viewerName.toLowerCase() !== creator.trim().toLowerCase());
+  const providerView = detailsTab === "inbound" || (detailsTab !== "outbound" && fromMe === false);
+  const requesterView = !providerView;
+  // Requester thread peer is the provider; provider thread peer is the requester.
+  const provider = requesterView
+    ? creatorName?.trim() || resolveCreatorName(booking)
+    : resolveCreatorName(booking);
+  const requesterName = providerView
+    ? creatorName?.trim() || "a fan"
+    : "";
+  const firstName = provider.split(" ")[0] || provider;
   const rows = [
     { label: "Type", value: booking.bookingType },
     { label: "Occasion", value: booking.occasion },
@@ -41,12 +52,15 @@ export default function BookingConfirmationCard({
   ].filter((row) => Boolean(row.value?.trim()));
 
   const bookingId = booking.specialRequestId?.trim();
-  const detailTab = creatorInboxView ? "inbound" : "outbound";
+  const detailTab = providerView ? "inbound" : "outbound";
   const detailsHref = bookingId
     ? `/feed/bookings?tab=${detailTab}&booking=${encodeURIComponent(bookingId)}`
     : `/feed/bookings?tab=${detailTab}&ref=${encodeURIComponent(booking.reference)}`;
-  const title = creatorInboxView ? "Service request received" : `Received by ${creator}`;
-  const note = creatorInboxView
+  const statusLabel = displayStatus(booking.status, requesterView);
+  const title = providerView
+    ? `Requested by ${requesterName}`
+    : `Requested from ${provider}`;
+  const note = providerView
     ? "Review this request and accept or decline it from your inbound bookings."
     : `Waiting for ${firstName} to accept. Delivery timing appears after acceptance.`;
 
@@ -58,7 +72,7 @@ export default function BookingConfirmationCard({
       <div className={`booking-confirm-card booking-confirm-card--${tone}`}>
         <p className="booking-confirm-card__status">
           <span className="booking-confirm-card__status-dot" aria-hidden="true" />
-          {booking.status}
+          {statusLabel}
         </p>
         <h3>{title}</h3>
         <p className="booking-confirm-card__ref">{booking.reference}</p>

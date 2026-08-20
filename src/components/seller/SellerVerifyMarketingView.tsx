@@ -135,9 +135,9 @@ export function SellerVerifyMarketingView({
             <strong>{VERIFIED_MEMBERSHIP_PRICE_LABEL}</strong>
             <span> / {VERIFIED_MEMBERSHIP_PERIOD_LABEL}</span>
           </p>
-          <button type="button" className="btn btn--primary" disabled>
-            Membership checkout coming soon
-          </button>
+          <Link href="/seller/membership/checkout" className="btn btn--primary">
+            Subscribe
+          </Link>
         </article>
       </div>
 

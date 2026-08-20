@@ -634,6 +634,48 @@ a.booking-status-note__card:focus-visible {
   line-height: 1.45;
 }
 
+.booking-status-note__offer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+  padding: 0.65rem 0.75rem;
+  list-style: none;
+  border: 1px solid color-mix(in srgb, var(--color-neutral-200) 70%, transparent);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--color-neutral-100) 55%, transparent);
+}
+
+.booking-status-note__offer li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.booking-status-note__offer span {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.booking-status-note__offer strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  text-align: right;
+}
+
+.booking-status-note__attachment {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--color-brand-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
 .booking-confirm-card__details {
   display: flex;
   flex-direction: column;

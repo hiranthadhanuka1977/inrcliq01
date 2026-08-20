@@ -6,5 +6,6 @@
 @import "../styles/app-overrides.css";
 @import "../styles/settings.css";
 @import "../styles/seller.css";
+@import "../styles/feed/request-checkout.css";
 @import "../styles/booking-shared.css";
 @import "../styles/responsive.css";

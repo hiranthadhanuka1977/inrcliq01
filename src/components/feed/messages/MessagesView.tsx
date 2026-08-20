@@ -52,7 +52,18 @@ function messageBookingId(message: Conversation["messages"][number]) {
 function bookingDetailsTab(
   actorName: string | undefined,
   participantName: string,
+  fromMe?: boolean,
 ): "inbound" | "outbound" {
+  if (fromMe === true) return "outbound";
+  if (fromMe === false) {
+    const actor = actorName?.trim().toLowerCase() || "";
+    const participant = participantName.trim().toLowerCase();
+    // Provider inbox: peer is the fan, so provider name ≠ participant.
+    if (actor && participant && actor !== participant) return "inbound";
+    // Legacy rows marked fromMe=false on the requester thread still match names.
+    if (actor && participant && actor === participant) return "outbound";
+    return "inbound";
+  }
   const actor = actorName?.trim().toLowerCase() || "";
   const participant = participantName.trim().toLowerCase();
   if (!actor || !participant) return "outbound";
@@ -433,9 +444,11 @@ export default function MessagesView({
                             booking={message.booking}
                             time={message.time}
                             creatorName={participantName}
+                            fromMe={message.sender === "me"}
                             detailsTab={bookingDetailsTab(
                               message.booking.creatorName,
                               participantName,
+                              message.sender === "me",
                             )}
                           />
                         );
@@ -451,6 +464,7 @@ export default function MessagesView({
                             detailsTab={bookingDetailsTab(
                               message.bookingNote.creatorName,
                               participantName,
+                              message.sender === "me",
                             )}
                           />
                         );

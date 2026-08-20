@@ -2627,6 +2627,45 @@ select.requests-pz__input {
   color: var(--color-text-secondary);
 }
 
+.booking-fee-notice__fee {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-neutral-0) 88%, var(--color-text-primary) 12%);
+}
+
+.booking-fee-notice__fee-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.booking-fee-notice__fee-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.booking-fee-notice__fee-amount {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.booking-fee-notice__fee-note {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
 .booking-fee-notice__callout {
   display: flex;
   align-items: flex-start;

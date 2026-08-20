@@ -846,6 +846,11 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .first-post-prompt {
   border-color: color-mix(in srgb, var(--color-brand-primary) 28%, var(--feed-card-border));
 }
 
+html[data-feed-theme="light"]:has(.feed-path-shell) .share-social-prompt__platform {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
 html[data-feed-theme="light"]:has(.feed-path-shell) .first-post-prompt__input,
 html[data-feed-theme="light"]:has(.feed-path-shell) .add-to-post,
 html[data-feed-theme="light"]:has(.feed-path-shell) .composer-panel,

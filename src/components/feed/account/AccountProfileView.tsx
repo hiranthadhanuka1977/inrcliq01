@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import FollowButton from "@/components/feed/FollowButton";
+import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
 import FirstPostPrompt from "@/components/feed/account/FirstPostPrompt";
+import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
 import type {
   AccountProfile,
   AccountSocialPerson,
@@ -115,9 +118,18 @@ export default function AccountProfileView({
   profile: AccountProfile;
   initialTab?: AccountSocialTab;
 }) {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<AccountSocialTab>(initialTab);
   const [followingPeople, setFollowingPeople] = useState(profile.social.following);
   const [followingCount, setFollowingCount] = useState(profile.social.followingCount);
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
+  const [editorSrc, setEditorSrc] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState("");
+
+  useEffect(() => {
+    setAvatarUrl(profile.avatarUrl);
+  }, [profile.avatarUrl]);
 
   const people = useMemo(() => {
     if (tab === "followers") return profile.social.followers;
@@ -131,26 +143,97 @@ export default function AccountProfileView({
     subscriptions: profile.social.subscriptionsCount,
   };
 
+  function openAvatarPicker() {
+    setAvatarError("");
+    fileInputRef.current?.click();
+  }
+
+  function handleAvatarFile(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Choose an image file.");
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setEditorSrc(objectUrl);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function closeAvatarEditor() {
+    if (editorSrc?.startsWith("blob:")) {
+      URL.revokeObjectURL(editorSrc);
+    }
+    setEditorSrc(null);
+  }
+
+  async function saveAvatar(file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    const response = await fetch("/api/feed/me/avatar", { method: "POST", body });
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      avatarUrl?: string;
+    };
+    if (!response.ok || !data.avatarUrl) {
+      throw new Error(data.error ?? "Unable to update profile photo.");
+    }
+    setAvatarUrl(data.avatarUrl);
+    closeAvatarEditor();
+    router.refresh();
+  }
+
   return (
     <main className="main-content account-profile" id="main">
       <div className="account-profile__card">
         <div className="account-profile__hero">
-          <span
-            className="account-profile__avatar"
-            style={
-              profile.avatarColor
-                ? ({ "--story-color": profile.avatarColor } as CSSProperties)
-                : undefined
-            }
-            aria-hidden="true"
-          >
-            {profile.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatarUrl} alt="" width={72} height={72} />
-            ) : (
-              profile.avatarInitial
-            )}
-          </span>
+          <div className="account-profile__avatar-wrap">
+            <span
+              className="account-profile__avatar"
+              style={
+                profile.avatarColor
+                  ? ({ "--story-color": profile.avatarColor } as CSSProperties)
+                  : undefined
+              }
+              aria-hidden="true"
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="" width={72} height={72} />
+              ) : (
+                profile.avatarInitial
+              )}
+            </span>
+            <button
+              type="button"
+              className="account-profile__avatar-edit"
+              aria-label="Edit profile photo"
+              title="Edit profile photo"
+              onClick={openAvatarPicker}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 20h9"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="sr-only"
+              onChange={(event) => handleAvatarFile(event.target.files)}
+            />
+          </div>
           <div className="account-profile__hero-copy">
             <h1 className="account-profile__name">
               {profile.fullName}
@@ -190,6 +273,11 @@ export default function AccountProfileView({
                 Privacy: {profile.privacyTierLabel}
               </span>
             </div>
+            {avatarError ? (
+              <p className="account-profile__avatar-error" role="alert">
+                {avatarError}
+              </p>
+            ) : null}
           </div>
           <Link href="/feed/me/edit" className="btn btn--secondary btn--sm account-profile__edit">
             Edit Profile
@@ -202,7 +290,14 @@ export default function AccountProfileView({
             profileHref={profile.profileHref}
             dismissKey={profile.id}
           />
-        ) : null}
+        ) : (
+          <ShareOnSocialPrompt
+            firstName={profile.firstName}
+            handle={profile.handle}
+            profileHref={profile.profileHref}
+            dismissKey={profile.id}
+          />
+        )}
 
         <div className="account-profile__stats" role="tablist" aria-label="Your network">
           {(
@@ -259,6 +354,16 @@ export default function AccountProfileView({
           </Link>
         </div>
       </div>
+
+      {editorSrc ? (
+        <ComposerImageEditor
+          src={editorSrc}
+          title="Edit profile photo"
+          defaultAspectId="1:1"
+          onCancel={closeAvatarEditor}
+          onSave={saveAvatar}
+        />
+      ) : null}
     </main>
   );
 }

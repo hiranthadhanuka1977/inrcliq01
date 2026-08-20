@@ -347,6 +347,10 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         feedPosts = await getFeedPostsForUser(dbProfile.userId, { following, subscribed });
       }
 
+      if (isOwn) {
+        feedPosts = feedPosts.map((post) => ({ ...post, is_own: true }));
+      }
+
       const base = profileFromDbRow(dbProfile, feedPosts);
       if (dbProfile.source === "stub") {
         base.stats.posts = feedPosts.length || postCount;
@@ -497,7 +501,9 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     is_own: isOwn || undefined,
     collection,
     popular_posts: isOwn ? [] : profile.popular_posts,
-    feed_posts: feedPosts,
+    feed_posts: isOwn
+      ? feedPosts.map((post) => ({ ...post, is_own: true }))
+      : feedPosts,
     relationship: {
       ...profile.relationship,
       subscribed,

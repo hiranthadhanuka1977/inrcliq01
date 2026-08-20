@@ -124,13 +124,15 @@ export default function LocationSearchField({
     setOpen(false);
   }
 
-  function syncTypedLocation(nextQuery: string) {
-    const trimmed = nextQuery.trim();
-    if (trimmed.length >= 2) {
-      onChange(toCustomPlace(trimmed));
-    } else {
+  function commitTypedLocation() {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
       onChange(null);
+      setOpen(false);
+      return;
     }
+    onChange(toCustomPlace(trimmed));
+    setOpen(false);
   }
 
   const mapsHref = value
@@ -172,7 +174,9 @@ export default function LocationSearchField({
             onChange={(event) => {
               const next = event.target.value;
               setQuery(next);
-              syncTypedLocation(next);
+              // Keep focus in the search field while typing. Only commit a location
+              // when the user picks a suggestion or explicitly uses the typed value.
+              if (value) onChange(null);
             }}
             onFocus={() => {
               if (query.trim().length >= 2 && !(value && !isCustomPlace(value))) {
@@ -185,8 +189,7 @@ export default function LocationSearchField({
                 if (results[0]) {
                   selectPlace(results[0]);
                 } else {
-                  syncTypedLocation(query);
-                  setOpen(false);
+                  commitTypedLocation();
                 }
               }
             }}
@@ -226,10 +229,7 @@ export default function LocationSearchField({
               <button
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
-                onClick={() => {
-                  syncTypedLocation(query);
-                  setOpen(false);
-                }}
+                onClick={commitTypedLocation}
               >
                 <strong>Use “{query.trim()}”</strong>
                 <span>Save this location as entered</span>

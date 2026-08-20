@@ -16,7 +16,6 @@ import {
 } from "@/lib/feed/special-request-service";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { acceptSettingsBooking } from "@/lib/settings/bookings";
 import { getSpecialRequestCatalogBySlug } from "@/lib/seller/service-requests-store";
 import { resolveCategoryInstantBooking } from "@/lib/seller/service-requests-helpers";
 import { BOOKING_FEE_PERCENT, bookingFeeDueNow } from "@/lib/feed/booking-fee";
@@ -96,7 +95,7 @@ export async function POST(request: Request) {
     }
 
     let creatorId = thread.peerCreatorId;
-    let creatorName = booking.creatorName?.trim() || thread.peerName;
+    let creatorName = thread.peerName;
 
     if (!creatorId) {
       const creator = await prisma.creatorUser.findFirst({
@@ -113,7 +112,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Creator not found." }, { status: 404 });
       }
       creatorId = creator.id;
-      creatorName = booking.creatorName?.trim() || creator.name || thread.peerName;
+      creatorName = creator.name?.trim() || thread.peerName;
       try {
         thread = await prisma.chatThread.update({
           where: { id: thread.id },
@@ -128,7 +127,7 @@ export async function POST(request: Request) {
         where: { id: creatorId },
         select: { name: true },
       });
-      creatorName = booking.creatorName?.trim() || creator?.name || thread.peerName;
+      creatorName = creator?.name?.trim() || thread.peerName;
     }
 
     if (!creatorId) {
@@ -198,28 +197,20 @@ export async function POST(request: Request) {
       },
     });
 
-    if (instantBooking) {
-      await acceptSettingsBooking(specialRequest.id);
-    }
-
-    const requestForPayload =
-      instantBooking
-        ? await prisma.specialRequest.findUniqueOrThrow({ where: { id: specialRequest.id } })
-        : specialRequest;
-
     const chatPayload = {
-      ...specialRequestToBookingPayload(requestForPayload, creatorName),
+      ...specialRequestToBookingPayload(specialRequest, creatorName),
       specialRequestId: specialRequest.id,
     };
 
     const encoded = encodeBookingMessage(chatPayload);
-    const preview = bookingMessagePreview(chatPayload);
+    const requesterPreview = bookingMessagePreview(chatPayload, "requester");
     const fresh = await sendBookingConfirmationMessage(
       user.id,
       thread.id,
       encoded,
-      preview,
+      requesterPreview,
       specialRequest.id,
+      { fromMe: true },
     );
     if (!fresh) {
       return NextResponse.json({ error: "Could not save booking message." }, { status: 500 });
@@ -305,7 +296,7 @@ export async function POST(request: Request) {
         ownerUserId,
         ownerThread.id,
         encoded,
-        preview,
+        bookingMessagePreview(chatPayload, "provider", requesterName),
         specialRequest.id,
         { fromMe: false, incrementUnread: true },
       );

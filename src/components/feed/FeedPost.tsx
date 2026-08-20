@@ -293,6 +293,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const profileSlug = resolveAuthorProfileSlug(author.handle, author.slug);
   const creatorSlug = profileSlug;
   const isFollowing = following ?? localFollowing;
+  const showFollow = !hideFollow && !item.is_own;
   const canOpenMedia = item.media ? canOpenMediaViewer(item.media, item.members_only) : false;
   const playableVideo = item.media ? isPlayableVideoMedia(item.media, item.members_only) : false;
   const canOpenComments = !item.members_only;
@@ -363,7 +364,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
                   Verified
                 </span>
               ) : null}
-              {!hideFollow ? (
+              {showFollow ? (
                 <FollowButton
                   following={isFollowing}
                   onFollowingChange={(next) => {

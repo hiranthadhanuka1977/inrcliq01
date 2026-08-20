@@ -66,10 +66,14 @@ export default function ComposerImageEditor({
   src,
   onCancel,
   onSave,
+  title = "Edit photo",
+  defaultAspectId = "free",
 }: {
   src: string;
   onCancel: () => void;
   onSave: (file: File) => Promise<void>;
+  title?: string;
+  defaultAspectId?: string;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -85,8 +89,11 @@ export default function ComposerImageEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [rotation, setRotation] = useState(0);
-  const [aspectId, setAspectId] = useState("free");
-  const [crop, setCrop] = useState<CropRect>({ x: 0.04, y: 0.04, w: 0.92, h: 0.92 });
+  const [aspectId, setAspectId] = useState(defaultAspectId);
+  const [crop, setCrop] = useState<CropRect>(() => {
+    const preset = ASPECTS.find((item) => item.id === defaultAspectId)?.ratio ?? null;
+    return cropForRatio(preset && preset > 0 ? preset : null);
+  });
   const [stage, setStage] = useState({ w: 480, h: 360 });
 
   const aspectRatio = (() => {
@@ -300,7 +307,7 @@ export default function ComposerImageEditor({
         <button type="button" className="btn btn--secondary btn--sm" onClick={onCancel} disabled={saving}>
           Cancel
         </button>
-        <h2 id="image-editor-title">Edit photo</h2>
+        <h2 id="image-editor-title">{title}</h2>
         <button type="button" className="btn btn--primary btn--sm" onClick={() => void save()} disabled={!ready || saving}>
           {saving ? "Saving…" : "Save"}
         </button>

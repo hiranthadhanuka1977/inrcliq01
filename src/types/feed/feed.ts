@@ -79,6 +79,8 @@ export interface FeedItem {
   posted_at: string;
   posted_ago: string;
   members_only?: boolean;
+  /** True when the logged-in user authored this post. */
+  is_own?: boolean;
 }
 
 export interface FeedData {

@@ -81,7 +81,11 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
       id: message.id,
       sender: message.fromMe ? "me" : "them",
       body: booking
-        ? bookingMessagePreview(booking)
+        ? bookingMessagePreview(
+            booking,
+            message.fromMe ? "requester" : "provider",
+            message.fromMe ? undefined : thread.peerName,
+          )
         : bookingNote
           ? bookingNotePreview(bookingNote)
           : message.body,
@@ -118,14 +122,22 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
     id: thread.id,
     participant,
     preview: previewBooking
-      ? bookingMessagePreview(previewBooking)
+      ? bookingMessagePreview(
+          previewBooking,
+          last?.sender === "me" ? "requester" : "provider",
+          last?.sender === "me" ? undefined : thread.peerName,
+        )
       : previewNote
         ? bookingNotePreview({
             ...previewNote,
             creatorName: previewNote.creatorName?.trim() || thread.peerName,
           })
         : last?.booking
-          ? bookingMessagePreview(last.booking)
+          ? bookingMessagePreview(
+              last.booking,
+              last.sender === "me" ? "requester" : "provider",
+              last.sender === "me" ? undefined : thread.peerName,
+            )
           : last?.bookingNote
             ? bookingNotePreview(last.bookingNote)
             : previewSource,

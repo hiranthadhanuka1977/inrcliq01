@@ -24,6 +24,12 @@ export type BookingNotePayload = {
   body?: string;
   reason?: string;
   deliverBy?: string;
+  /** Optional counter-offer when accepting a non-instant request. */
+  offerPrice?: number;
+  currency?: string;
+  note?: string;
+  attachmentUrl?: string;
+  attachmentName?: string;
 };
 
 export function generateBookingReference() {
@@ -63,9 +69,17 @@ export function parseBookingNote(body: string): BookingNotePayload | null {
   }
 }
 
-export function bookingMessagePreview(payload: BookingConfirmationPayload) {
+export function bookingMessagePreview(
+  payload: BookingConfirmationPayload,
+  viewer: "requester" | "provider" = "requester",
+  requesterName?: string,
+) {
   const name = resolveCreatorName(payload);
-  return `Received by ${name} · ${payload.reference}`;
+  if (viewer === "provider") {
+    const by = requesterName?.trim() || "a fan";
+    return `Requested by ${by} · ${payload.reference}`;
+  }
+  return `Requested · ${name} · ${payload.reference}`;
 }
 
 export function bookingNotePreview(payload: BookingNotePayload) {
@@ -78,7 +92,7 @@ export function bookingNotePreview(payload: BookingNotePayload) {
 }
 
 export function bookingReceivedTitle(payload: BookingConfirmationPayload) {
-  return `Received by ${resolveCreatorName(payload)}`;
+  return `Requested from ${resolveCreatorName(payload)}`;
 }
 
 export function resolveCreatorName(
@@ -94,11 +108,15 @@ export function resolveCreatorName(
 
 export function withCreatorName(
   payload: BookingConfirmationPayload,
-  creatorName: string,
+  fallbackName: string,
 ): BookingConfirmationPayload {
+  const existing = payload.creatorName?.trim();
+  if (existing && existing.toLowerCase() !== "creator") {
+    return payload;
+  }
   return {
     ...payload,
-    creatorName: creatorName.trim() || payload.creatorName || "the creator",
+    creatorName: fallbackName.trim() || existing || "the creator",
   };
 }
 
