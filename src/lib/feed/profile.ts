@@ -354,7 +354,6 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
       const base = profileFromDbRow(dbProfile, feedPosts);
       if (dbProfile.source === "stub") {
         base.stats.posts = feedPosts.length || postCount;
-        base.verified = false;
       } else if (dbProfile.postsCountLabel == null) {
         base.stats.posts = Math.max(postCount, feedPosts.length);
       }

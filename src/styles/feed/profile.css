@@ -66,6 +66,41 @@
   background: var(--color-neutral-100);
 }
 
+.profile-header__cover--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-neutral-100) 70%, transparent) 0%,
+      color-mix(in srgb, var(--color-bg-page) 35%, var(--color-neutral-100)) 100%
+    ),
+    repeating-linear-gradient(
+      -12deg,
+      transparent,
+      transparent 10px,
+      color-mix(in srgb, var(--color-text-primary) 4%, transparent) 10px,
+      color-mix(in srgb, var(--color-text-primary) 4%, transparent) 11px
+    );
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-border-default) 80%, transparent);
+}
+
+.profile-header__banner-add {
+  position: relative;
+  z-index: 2;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.profile-header__banner-add svg {
+  display: block;
+}
+
 .profile-header__cover img {
   display: block;
   width: 100%;

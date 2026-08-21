@@ -20,6 +20,7 @@ export function SellerPublicProfileCustomiseView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [coverUrl, setCoverUrl] = useState(initialCoverUrl);
   const [editorSrc, setEditorSrc] = useState<string | null>(null);
+  const [removeOpen, setRemoveOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -71,10 +72,18 @@ export function SellerPublicProfileCustomiseView({
     router.refresh();
   }
 
-  async function removeCover() {
-    const confirmed = window.confirm("Remove the top banner from your public profile?");
-    if (!confirmed) return;
+  function openRemoveConfirm() {
+    setError("");
+    setMessage("");
+    setRemoveOpen(true);
+  }
 
+  function closeRemoveConfirm() {
+    if (busy) return;
+    setRemoveOpen(false);
+  }
+
+  async function confirmRemoveCover() {
     setBusy(true);
     setError("");
     setMessage("");
@@ -83,13 +92,16 @@ export function SellerPublicProfileCustomiseView({
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
         setError(data.error ?? "Unable to remove profile banner.");
+        setRemoveOpen(false);
         return;
       }
       setCoverUrl(null);
       setMessage("Banner removed.");
+      setRemoveOpen(false);
       router.refresh();
     } catch {
       setError("Unable to remove profile banner.");
+      setRemoveOpen(false);
     } finally {
       setBusy(false);
     }
@@ -133,10 +145,10 @@ export function SellerPublicProfileCustomiseView({
             <button
               type="button"
               className="btn btn--secondary btn--sm"
-              onClick={() => void removeCover()}
+              onClick={openRemoveConfirm}
               disabled={busy}
             >
-              {busy ? "Removing…" : "Remove banner"}
+              Remove banner
             </button>
           ) : null}
           <Link href={profileHref} className="btn btn--secondary btn--sm">
@@ -167,6 +179,41 @@ export function SellerPublicProfileCustomiseView({
           Use JPG, PNG, WebP, or GIF up to 12MB. After you pick a photo you can crop and save it.
         </p>
       </section>
+
+      {removeOpen ? (
+        <div
+          className="modal-backdrop is-open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="remove-banner-title"
+        >
+          <div className="modal seller-delete-modal">
+            <h2 id="remove-banner-title">Remove banner?</h2>
+            <p className="seller-delete-modal__copy">
+              This removes the top background banner from your public profile. You can upload a new
+              one anytime.
+            </p>
+            <div className="seller-form-actions">
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={closeRemoveConfirm}
+                disabled={busy}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => void confirmRemoveCover()}
+                disabled={busy}
+              >
+                {busy ? "Removing…" : "Remove banner"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {editorSrc ? (
         <ComposerImageEditor

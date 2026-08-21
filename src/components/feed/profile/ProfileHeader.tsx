@@ -508,6 +508,9 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
   const handle = profile.handle.startsWith("@") ? profile.handle : `@${profile.handle}`;
   const hasCover = Boolean(profile.cover_url);
   const isOwnProfile = Boolean(profile.is_own);
+  const canEditBanner = isOwnProfile && Boolean(profile.verified);
+  const showEmptyBannerSlot = canEditBanner && !hasCover;
+  const headerHasCoverSlot = hasCover || showEmptyBannerSlot;
   const hasSubscription = Boolean(profile.subscription);
   const showSocialActions = !isOwnProfile;
   const hasCollection = profile.collection.length > 0;
@@ -598,7 +601,7 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
 
   return (
     <>
-      <header className={`profile-header${hasCover ? "" : " profile-header--no-cover"}`} id="profile-top">
+      <header className={`profile-header${headerHasCoverSlot ? "" : " profile-header--no-cover"}`} id="profile-top">
         {hasCover ? (
           <div className="profile-header__cover">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -610,6 +613,27 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
               cartCount={hasCollection && collectionEnabled ? cartCount : undefined}
               onOpenCart={hasCollection && collectionEnabled ? () => setCartOpen(true) : undefined}
             />
+          </div>
+        ) : showEmptyBannerSlot ? (
+          <div className="profile-header__cover profile-header__cover--empty">
+            <ProfileToolbar
+              onCover
+              className="profile-header__cover-nav"
+              cartCount={hasCollection && collectionEnabled ? cartCount : undefined}
+              onOpenCart={hasCollection && collectionEnabled ? () => setCartOpen(true) : undefined}
+            />
+            <Link
+              href="/seller/settings/public-profile"
+              className="profile-header__banner-add btn btn--sm btn--icon btn--ghost-cover"
+              aria-label="Upload profile banner"
+              title="Upload banner"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <circle cx="8.5" cy="11.5" r="1.5" />
+                <path d="m21 15-4.5-4.5L9 18" />
+              </svg>
+            </Link>
           </div>
         ) : (
           <ProfileToolbar
