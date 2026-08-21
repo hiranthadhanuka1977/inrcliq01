@@ -418,13 +418,26 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
   let following = Boolean(profile.relationship?.following);
   let isOwn = false;
   let collectionEnabled: boolean | undefined;
+  let coverUrlOverride: string | null | undefined;
 
   try {
     const preferredIds = profile.feed_posts.map((post) => post.id);
-    const [rawCollection, creator] = await Promise.all([
+    const [rawCollection, creator, ownerProfile] = await Promise.all([
       getCreatorCollectionRaw(slug),
-      prisma.creatorUser.findFirst({ where: { slug }, select: { id: true, userId: true } }),
+      prisma.creatorUser.findFirst({
+        where: { slug },
+        select: { id: true, userId: true, coverUrl: true },
+      }),
+      prisma.userProfile.findFirst({
+        where: { slug },
+        select: { coverUrl: true, userId: true },
+      }),
     ]);
+
+    coverUrlOverride =
+      ownerProfile || creator
+        ? ownerProfile?.coverUrl?.trim() || creator?.coverUrl?.trim() || null
+        : undefined;
 
     if (rawCollection) {
       const previewProducts = getCollectionPreviewProducts(rawCollection);
@@ -444,7 +457,11 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
       sessionUser = null;
     }
 
-    isOwn = resolveIsOwnProfile(sessionUser, creator?.userId, profile.handle);
+    isOwn = resolveIsOwnProfile(
+      sessionUser,
+      creator?.userId ?? ownerProfile?.userId,
+      profile.handle,
+    );
 
     if (sessionUser && creator && !isOwn) {
       const [subscription, isFollowing] = await Promise.all([
@@ -495,6 +512,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
 
   return {
     ...profile,
+    cover_url: coverUrlOverride !== undefined ? coverUrlOverride || null : profile.cover_url,
     special_requests: specialRequestsAvailable || undefined,
     special_requests_enabled: specialRequestsEnabled,
     collection_enabled: collectionEnabled,

@@ -66,4 +66,6 @@ next-env.d.ts
 !/public/uploads/avatars/.gitkeep
 /public/uploads/booking-accept/*
 !/public/uploads/booking-accept/.gitkeep
+/public/uploads/covers/*
+!/public/uploads/covers/.gitkeep
 
