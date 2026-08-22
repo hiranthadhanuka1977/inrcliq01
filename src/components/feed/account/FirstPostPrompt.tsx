@@ -16,6 +16,49 @@ import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
 
 const STORAGE_KEY = "inrcliq:first-post-prompt-dismissed";
 
+const CROSS_POST_PLATFORMS = [
+  {
+    id: "facebook",
+    label: "Facebook",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M13.5 20v-6.5H16l.4-3h-2.9V8.6c0-.9.2-1.5 1.5-1.5H16.5V4.3C16.1 4.2 14.9 4 13.6 4 10.9 4 9 5.7 9 8.9V10.5H6.5v3H9V20h4.5z" />
+      </svg>
+    ),
+  },
+  {
+    id: "instagram",
+    label: "Instagram",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+        <circle cx="12" cy="12" r="4.1" />
+        <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    id: "x",
+    label: "X",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17.6 4H20l-6.2 7.1L21 20h-4.7l-4.4-5.8L7 20H4.5l6.7-7.6L3.5 4H8.3l4 5.3L17.6 4zm-.8 14.5h1.4L7.3 5.4H5.8l11 13.1z" />
+      </svg>
+    ),
+  },
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M6.4 9.2H3.6V20h2.8V9.2zM5 4.2a1.7 1.7 0 1 0 .1 3.4A1.7 1.7 0 0 0 5 4.2zM20.4 13.1c0-3.1-1.7-4.5-3.9-4.5-1.8 0-2.6 1-3.1 1.7V9.2h-2.8c.1.8.1 10.8.1 10.8h2.8v-6c0-.3 0-.7.1-1 .3-.7.9-1.5 2-1.5 1.4 0 2 1.1 2 2.6V20h2.8v-6.9z" />
+      </svg>
+    ),
+  },
+] as const;
+
+type CrossPostPlatformId = (typeof CROSS_POST_PLATFORMS)[number]["id"];
+
 type ComposerPanel = "photo" | "tag" | "feeling" | "location" | "gif" | "more" | null;
 
 type TaggedPerson = {
@@ -178,6 +221,12 @@ export default function FirstPostPrompt({
   const [gifs, setGifs] = useState<GifItem[]>([]);
   const [gifsLoading, setGifsLoading] = useState(false);
   const [exclusiveContent, setExclusiveContent] = useState(Boolean(verified));
+  const [crossPostPlatforms, setCrossPostPlatforms] = useState<Record<CrossPostPlatformId, boolean>>({
+    facebook: false,
+    instagram: false,
+    x: false,
+    linkedin: false,
+  });
 
   const hasAttachment = media.length > 0 || Boolean(gif) || Boolean(feeling) || Boolean(location) || tagged.length > 0;
   const canPost = Boolean(text.trim() || media.length || gif);
@@ -357,6 +406,10 @@ export default function FirstPostPrompt({
       current.map((item) => (item.url === originalUrl ? { ...item, url: data.url! } : item)),
     );
     setEditingUrl(null);
+  }
+
+  function toggleCrossPostPlatform(id: CrossPostPlatformId) {
+    setCrossPostPlatforms((current) => ({ ...current, [id]: !current[id] }));
   }
 
   async function submit(event: FormEvent) {
@@ -854,6 +907,30 @@ export default function FirstPostPrompt({
             </span>
           </label>
         ) : null}
+        <fieldset className="composer-crosspost">
+          <legend className="composer-crosspost__legend">Also push to</legend>
+          <p className="composer-crosspost__hint">
+            Select other platforms to share this post. Cross-posting is not live yet.
+          </p>
+          <div className="composer-crosspost__platforms" role="group" aria-label="Cross-post platforms">
+            {CROSS_POST_PLATFORMS.map((platform) => {
+              const selected = crossPostPlatforms[platform.id];
+              return (
+                <button
+                  key={platform.id}
+                  type="button"
+                  className={`composer-crosspost__platform${selected ? " is-selected" : ""}`}
+                  aria-pressed={selected}
+                  disabled={submitting}
+                  onClick={() => toggleCrossPostPlatform(platform.id)}
+                >
+                  <span className="composer-crosspost__platform-icon">{platform.icon}</span>
+                  {platform.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
             {uploading ? "Uploading…" : "Photos, tags, places, feelings, and GIFs are optional."}
