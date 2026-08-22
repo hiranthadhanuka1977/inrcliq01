@@ -11,7 +11,7 @@ export const MOBILE_MORE_ITEMS = [
   { label: "Messages", href: "/feed/messages", icon: "messages" },
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
-  { label: "Bookings", href: "/feed/bookings", icon: "bookings" },
+  { label: "Calendar", href: "/feed/bookings", icon: "bookings" },
   { label: "Seller Tools", href: "/seller", icon: "seller" },
   { label: "Settings", href: "/settings", icon: "settings" },
   { label: "Profile", href: "/feed/me", icon: "profile" },

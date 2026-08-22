@@ -15,8 +15,8 @@ type CalendarDirectionFilter = "all" | "inbound" | "outbound";
 
 const DIRECTION_FILTERS: Array<{ id: CalendarDirectionFilter; label: string }> = [
   { id: "all", label: "All" },
-  { id: "inbound", label: "Inbound" },
-  { id: "outbound", label: "Outbound" },
+  { id: "inbound", label: "Commitments" },
+  { id: "outbound", label: "My Requests" },
 ];
 
 function toDateKey(date: Date): string {
@@ -129,10 +129,10 @@ export default function MyBookingsCalendar({
       <div className="my-bookings-calendar__controls">
         <p className="my-bookings-calendar__hint">
           {directionFilter === "all"
-            ? "Inbound and outbound bookings by delivery or scheduled date"
+            ? "Your alerts, events, bookings, and requests by date"
             : directionFilter === "inbound"
-              ? "Inbound bookings by delivery or scheduled date"
-              : "Outbound bookings by delivery or scheduled date"}
+              ? "Commitments by delivery or scheduled date"
+              : "My requests by delivery or scheduled date"}
           {monthBookingCount > 0 ? ` · ${monthBookingCount} this month` : ""}.
         </p>
         <div
@@ -257,7 +257,9 @@ export default function MyBookingsCalendar({
         </h3>
 
         {selectedBookings.length === 0 ? (
-          <p className="my-bookings-calendar__detail-empty">No bookings on this day.</p>
+          <p className="my-bookings-calendar__detail-empty">
+            {selectedKey === todayKey ? "There's none for today." : "There's none for this day."}
+          </p>
         ) : (
           <ul className="my-bookings-calendar__detail-list">
             {selectedBookings.map((booking) => (
@@ -270,7 +272,7 @@ export default function MyBookingsCalendar({
                   <div className="my-bookings-calendar__detail-copy">
                     <strong>{booking.requestLabel}</strong>
                     <span>
-                      {booking.direction === "inbound" ? "Inbound" : "Outbound"}
+                      {booking.direction === "inbound" ? "Commitments" : "My Requests"}
                       {` · ${booking.creator.name}`}
                       {booking.category ? ` · ${booking.category}` : ""}
                       {` · ${booking.totalLabel}`}

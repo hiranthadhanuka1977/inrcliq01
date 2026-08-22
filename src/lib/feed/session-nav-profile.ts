@@ -5,6 +5,7 @@ export type SessionNavProfile = {
   firstName: string | null;
   avatarUrl: string | null;
   avatarColor: string | null;
+  verified: boolean;
 };
 
 /**
@@ -13,7 +14,7 @@ export type SessionNavProfile = {
 export async function getSessionNavProfile(): Promise<SessionNavProfile> {
   const user = await getSessionUser();
   if (!user) {
-    return { firstName: null, avatarUrl: null, avatarColor: null };
+    return { firstName: null, avatarUrl: null, avatarColor: null, verified: false };
   }
 
   const [profile, creator] = await Promise.all([
@@ -23,6 +24,7 @@ export async function getSessionNavProfile(): Promise<SessionNavProfile> {
         displayName: true,
         avatarUrl: true,
         avatarColor: true,
+        verified: true,
       },
     }),
     prisma.creatorUser.findFirst({
@@ -31,6 +33,7 @@ export async function getSessionNavProfile(): Promise<SessionNavProfile> {
         name: true,
         avatarUrl: true,
         avatarColor: true,
+        verified: true,
       },
     }),
   ]);
@@ -46,5 +49,6 @@ export async function getSessionNavProfile(): Promise<SessionNavProfile> {
     firstName,
     avatarUrl: profile?.avatarUrl?.trim() || creator?.avatarUrl?.trim() || null,
     avatarColor: profile?.avatarColor?.trim() || creator?.avatarColor?.trim() || null,
+    verified: Boolean(profile?.verified || creator?.verified),
   };
 }

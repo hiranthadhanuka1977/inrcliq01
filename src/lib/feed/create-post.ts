@@ -119,6 +119,10 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
   const location = parseLocation(payload.location);
   const tagged = parseTagged(payload.tagged);
   const media = buildMediaJson({ images, videoUrl, feeling, location, tagged });
+  const wantsExclusive =
+    payload.membersOnly === true ||
+    payload.members_only === true ||
+    payload.exclusive === true;
 
   if (!text && !media) {
     return { ok: false as const, status: 400, error: "Write an update or add something to your post." };
@@ -133,6 +137,13 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
     };
   }
 
+  const profileVerified = await prisma.userProfile.findUnique({
+    where: { userId },
+    select: { verified: true },
+  });
+  const canPostExclusive = Boolean(profileVerified?.verified || creator.verified);
+  const membersOnly = wantsExclusive && canPostExclusive;
+
   const postId = newId();
   await prisma.feedPost.create({
     data: {
@@ -145,7 +156,7 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
       comments: 0,
       shares: 0,
       following: false,
-      membersOnly: false,
+      membersOnly,
       postedAt: new Date(),
       postedAgo: "Just now",
       sortOrder: 0,

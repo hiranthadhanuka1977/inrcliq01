@@ -585,18 +585,18 @@ export default function MyBookingsView({
       <LeftNav />
       <main className="main-content bookings-page" id="main">
         <header className="my-bookings__head">
-          <h1 className="my-bookings__title">Bookings</h1>
+          <h1 className="my-bookings__title">Calendar</h1>
           <p className="my-bookings__subtitle">
-            Track requests you initiated and requests assigned to you.
+            See your alerts, events, bookings, and requests in one place.
           </p>
-          <div className="my-bookings__tabs" role="tablist" aria-label="Booking views">
+          <div className="my-bookings__tabs" role="tablist" aria-label="Calendar views">
             <Link
               href="/feed/bookings?tab=calendar"
               className={`my-bookings__tab${activeTab === "calendar" ? " is-active" : ""}`}
               role="tab"
               aria-selected={activeTab === "calendar"}
             >
-              Calendar
+              Billboard
             </Link>
             <Link
               href="/feed/bookings?tab=outbound"
@@ -604,7 +604,7 @@ export default function MyBookingsView({
               role="tab"
               aria-selected={activeTab === "outbound"}
             >
-              Outbound
+              My Requests
             </Link>
             {inboundEnabled ? (
               <Link
@@ -613,7 +613,7 @@ export default function MyBookingsView({
                 role="tab"
                 aria-selected={activeTab === "inbound"}
               >
-                Inbound
+                Commitments
               </Link>
             ) : (
               <span
@@ -621,9 +621,9 @@ export default function MyBookingsView({
                 role="tab"
                 aria-selected={false}
                 aria-disabled="true"
-                title="Inbound bookings are available after you get verified"
+                title="Commitments are available after you get verified"
               >
-                Inbound
+                Commitments
               </span>
             )}
           </div>

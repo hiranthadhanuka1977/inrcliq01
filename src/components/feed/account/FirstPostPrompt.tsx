@@ -131,6 +131,7 @@ export default function FirstPostPrompt({
   profileHref = null,
   variant = "prompt",
   dismissKey = null,
+  verified = false,
   onClose,
 }: {
   firstName: string | null;
@@ -138,6 +139,8 @@ export default function FirstPostPrompt({
   variant?: "prompt" | "modal";
   /** Scopes dismiss storage to this account so a prior user cannot hide the prompt. */
   dismissKey?: string | null;
+  /** Monetized / verified creators can mark posts as subscriber-only. */
+  verified?: boolean;
   onClose?: () => void;
 }) {
   const router = useRouter();
@@ -174,6 +177,7 @@ export default function FirstPostPrompt({
   const [gifQuery, setGifQuery] = useState("");
   const [gifs, setGifs] = useState<GifItem[]>([]);
   const [gifsLoading, setGifsLoading] = useState(false);
+  const [exclusiveContent, setExclusiveContent] = useState(Boolean(verified));
 
   const hasAttachment = media.length > 0 || Boolean(gif) || Boolean(feeling) || Boolean(location) || tagged.length > 0;
   const canPost = Boolean(text.trim() || media.length || gif);
@@ -194,6 +198,10 @@ export default function FirstPostPrompt({
     }
     setVisible(true);
   }, [isModal, storageKey]);
+
+  useEffect(() => {
+    setExclusiveContent(Boolean(verified));
+  }, [verified]);
 
   useEffect(() => {
     if (!panel) return;
@@ -378,6 +386,7 @@ export default function FirstPostPrompt({
             handle: person.handle,
             slug: person.slug,
           })),
+          membersOnly: verified ? exclusiveContent : false,
         }),
       });
       const data = (await response.json().catch(() => ({}))) as {
@@ -831,6 +840,20 @@ export default function FirstPostPrompt({
         ) : null}
 
         {error ? <p className="first-post-prompt__error">{error}</p> : null}
+        {verified ? (
+          <label className="composer-exclusive">
+            <input
+              type="checkbox"
+              checked={exclusiveContent}
+              onChange={(event) => setExclusiveContent(event.target.checked)}
+              disabled={submitting}
+            />
+            <span>
+              <strong>Exclusive content</strong>
+              <span>Only subscribers can unlock this post.</span>
+            </span>
+          </label>
+        ) : null}
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
             {uploading ? "Uploading…" : "Photos, tags, places, feelings, and GIFs are optional."}

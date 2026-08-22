@@ -9,10 +9,12 @@ export default function CreatePostModal({
   open,
   onClose,
   firstName,
+  verified = false,
 }: {
   open: boolean;
   onClose: () => void;
   firstName: string | null;
+  verified?: boolean;
 }) {
   const handleClose = useCallback(() => {
     if (document.querySelector(".image-editor")) return;
@@ -47,7 +49,12 @@ export default function CreatePostModal({
         aria-modal="true"
         tabIndex={-1}
       >
-        <FirstPostPrompt variant="modal" firstName={firstName} onClose={handleClose} />
+        <FirstPostPrompt
+          variant="modal"
+          firstName={firstName}
+          verified={verified}
+          onClose={handleClose}
+        />
       </div>
     </div>,
     document.body,

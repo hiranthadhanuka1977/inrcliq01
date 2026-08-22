@@ -8,7 +8,7 @@ import { getSessionUser } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Bookings · INRCLIQ",
+  title: "Calendar · INRCLIQ",
 };
 
 async function currentUserIsVerified() {

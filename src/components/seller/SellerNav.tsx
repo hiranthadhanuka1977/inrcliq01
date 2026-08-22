@@ -50,6 +50,26 @@ const NAV_ITEMS: ReadonlyArray<{
     ),
   },
   {
+    href: "/seller/subscriptions",
+    label: "Subscriptions",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="M12 2l2.4 4.86L20 8.27l-4 3.9.94 5.5L12 15.77 7.06 17.67 8 12.17l-4-3.9 5.6-.41L12 2z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/seller/wallet",
+    label: "My Money (Wallet)",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="M19 7H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+        <path d="M16 11a2 2 0 1 0 0-4H5" />
+        <path d="M2 7V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2" />
+      </svg>
+    ),
+  },
+  {
     href: "/seller/settings",
     label: "Settings",
     icon: (

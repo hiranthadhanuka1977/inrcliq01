@@ -23,7 +23,7 @@ const navItems: {
   { label: "Audio", href: "/feed/audio", icon: "audio" },
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
-  { label: "Bookings", href: "/feed/bookings", icon: "bookings" },
+  { label: "Calendar", href: "/feed/bookings", icon: "bookings" },
   { label: "Seller Tools", href: "/seller", icon: "seller" },
 ];
 
@@ -45,7 +45,7 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function LeftNav({ firstName }: { firstName?: string | null } = {}) {
   const pathname = usePathname();
-  const { firstName: sessionFirstName, avatarUrl, avatarColor } = useFeedSession();
+  const { firstName: sessionFirstName, avatarUrl, avatarColor, verified } = useFeedSession();
   const { theme, toggleTheme } = useFeedTheme();
   const displayName = (firstName?.trim() || sessionFirstName?.trim() || "You");
   const avatarInitial = displayName === "You" ? "Y" : displayName.charAt(0).toUpperCase();
@@ -208,6 +208,7 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         firstName={firstName?.trim() || sessionFirstName?.trim() || null}
+        verified={verified}
       />
 
       <div className="nav-profile" ref={profileMenuRef}>

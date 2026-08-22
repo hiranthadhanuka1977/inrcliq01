@@ -643,6 +643,27 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
   line-height: 1.5;
 }
 
+.seller-placeholder--empty {
+  max-width: 40rem;
+}
+
+.seller-placeholder--empty p {
+  margin: 0;
+}
+
+.seller-placeholder--empty p + p {
+  margin-top: var(--space-3);
+}
+
+.seller-placeholder__eyebrow {
+  margin: 0 0 var(--space-2);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
 .seller-requests-head {
   display: flex;
   align-items: flex-start;
