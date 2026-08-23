@@ -141,7 +141,8 @@ export function formatDeliverByLabel(deliverByIso: string | null | undefined) {
   if (!deliverByIso?.trim()) return null;
   const date = new Date(deliverByIso);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleString(undefined, {
+  // Fixed locale so SSR and client hydration always match.
+  return date.toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",

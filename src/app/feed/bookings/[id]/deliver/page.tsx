@@ -12,10 +12,11 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const booking = await getInboundBookingForDelivery(id);
+  const action = booking?.instantBooking ? "Deliver" : "Mark as completed";
   return {
     title: booking
-      ? `Deliver ${booking.reference} · Calendar · INRCLIQ`
-      : "Deliver · Calendar · INRCLIQ",
+      ? `${action} ${booking.reference} · Calendar · INRCLIQ`
+      : `${action} · Calendar · INRCLIQ`,
   };
 }
 

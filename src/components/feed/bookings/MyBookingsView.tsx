@@ -45,6 +45,11 @@ function canGiveFeedback(booking: MyBookingItem) {
   return booking.status === "DELIVERED";
 }
 
+/** Instant bookings keep "Deliver"; non-instant use "Mark as completed". */
+function deliverActionLabel(booking: Pick<MyBookingItem, "instantBooking">) {
+  return booking.instantBooking ? "Deliver" : "Mark as completed";
+}
+
 const FEEDBACK_QUICK_PICKS = {
   requester: [
     "Great communication",
@@ -75,6 +80,9 @@ function DeliverConfirmModal({
 }) {
   if (!open || !booking) return null;
 
+  const actionLabel = deliverActionLabel(booking);
+  const isInstant = Boolean(booking.instantBooking);
+
   return (
     <div className="my-bookings-decline" role="presentation">
       <button
@@ -89,10 +97,21 @@ function DeliverConfirmModal({
         aria-modal="true"
         aria-labelledby="my-bookings-deliver-title"
       >
-        <h2 id="my-bookings-deliver-title">Ready to complete this request?</h2>
+        <h2 id="my-bookings-deliver-title">
+          {isInstant ? "Ready to complete this request?" : "Ready to mark this as completed?"}
+        </h2>
         <p>
-          Continue to upload your delivery for <code>{booking.reference}</code> and mark it as
-          delivered.
+          {isInstant ? (
+            <>
+              Continue to upload your delivery for <code>{booking.reference}</code> and mark it as
+              delivered.
+            </>
+          ) : (
+            <>
+              Continue for <code>{booking.reference}</code> to mark this request as completed. A
+              delivery file is optional.
+            </>
+          )}
         </p>
         <div className="my-bookings-decline__actions">
           <button
@@ -107,7 +126,7 @@ function DeliverConfirmModal({
             className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--deliver"
             onClick={onConfirm}
           >
-            Continue
+            {actionLabel}
           </button>
         </div>
       </div>
@@ -820,11 +839,18 @@ export default function MyBookingsView({
 
   useEffect(() => {
     const toastParam = searchParams.get("toast")?.trim();
-    if (toastParam !== "delivered") return;
+    if (toastParam !== "delivered" && toastParam !== "completed") return;
     const ref = searchParams.get("ref")?.trim();
     setToast({
       tone: "success",
-      message: ref ? `Request ${ref} marked as delivered.` : "Request marked as delivered.",
+      message:
+        toastParam === "completed"
+          ? ref
+            ? `Request ${ref} marked as completed.`
+            : "Request marked as completed."
+          : ref
+            ? `Request ${ref} marked as delivered.`
+            : "Request marked as delivered.",
     });
     const next = new URLSearchParams(searchParams.toString());
     next.delete("toast");
@@ -1267,7 +1293,7 @@ export default function MyBookingsView({
                         onClick={() => setDeliverConfirm(booking)}
                       >
                         <ActionIcon name="deliver" />
-                        Deliver
+                        {deliverActionLabel(booking)}
                       </button>
                     ) : null}
                     {booking.messagesHref ? (
@@ -1384,7 +1410,9 @@ export default function MyBookingsView({
                 {canDeliverBooking(selected) ? (
                   <div className="my-bookings__respond">
                     <p className="my-bookings__respond-copy">
-                      Ready to fulfill this commitment? Upload your delivery and mark it complete.
+                      {selected.instantBooking
+                        ? "Ready to fulfill this commitment? Upload your delivery and mark it complete."
+                        : "Ready to fulfill this commitment? Upload your work and mark it as completed."}
                     </p>
                     <div className="my-bookings__respond-actions">
                       <button
@@ -1392,7 +1420,7 @@ export default function MyBookingsView({
                         className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--deliver"
                         onClick={() => setDeliverConfirm(selected)}
                       >
-                        Deliver
+                        {deliverActionLabel(selected)}
                       </button>
                     </div>
                   </div>

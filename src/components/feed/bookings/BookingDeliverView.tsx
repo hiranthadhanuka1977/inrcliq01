@@ -12,12 +12,17 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
   const router = useRouter();
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isInstant = Boolean(booking.instantBooking);
+  const actionLabel = isInstant ? "Deliver" : "Mark as completed";
+  const pageTitle = isInstant ? "Mark as delivered" : "Mark as completed";
+  const submittingLabel = isInstant ? "Marking delivered…" : "Marking completed…";
   const [note, setNote] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const busy = uploading || submitting;
 
   async function handleFilePick(file: File | null) {
     if (!file) return;
@@ -48,7 +53,7 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!fileUrl) {
+    if (isInstant && !fileUrl) {
       setError("Upload a delivery file before marking this complete.");
       return;
     }
@@ -61,7 +66,7 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "deliver",
-          deliveryUrl: fileUrl,
+          deliveryUrl: fileUrl || null,
           deliveryName: fileName || null,
           note: note.trim() || null,
         }),
@@ -71,25 +76,32 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
         reference?: string;
       };
       if (!response.ok) {
-        setError(data.error ?? "Unable to mark this booking as delivered.");
+        setError(
+          data.error ??
+            (isInstant
+              ? "Unable to mark this booking as delivered."
+              : "Unable to mark this booking as completed."),
+        );
         return;
       }
 
       const params = new URLSearchParams({
         tab: "calendar",
-        toast: "delivered",
+        toast: isInstant ? "delivered" : "completed",
         ref: data.reference || booking.reference,
       });
       router.push(`/feed/bookings?${params.toString()}`);
       router.refresh();
     } catch {
-      setError("Unable to mark this booking as delivered.");
+      setError(
+        isInstant
+          ? "Unable to mark this booking as delivered."
+          : "Unable to mark this booking as completed.",
+      );
     } finally {
       setSubmitting(false);
     }
   }
-
-  const busy = uploading || submitting;
 
   return (
     <div className="app-shell page-bookings">
@@ -99,12 +111,21 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
           <p className="booking-deliver__eyebrow">
             <Link href="/feed/bookings?tab=inbound">Commitments</Link>
             <span aria-hidden="true"> · </span>
-            Deliver
+            {actionLabel}
           </p>
-          <h1 className="my-bookings__title">Mark as delivered</h1>
+          <h1 className="my-bookings__title">{pageTitle}</h1>
           <p className="my-bookings__subtitle">
-            Upload the finished file for <code>{booking.reference}</code>, review the request, then
-            confirm delivery.
+            {isInstant ? (
+              <>
+                Upload the finished file for <code>{booking.reference}</code>, review the request,
+                then confirm delivery.
+              </>
+            ) : (
+              <>
+                Review <code>{booking.reference}</code>, optionally attach a file, then mark it as
+                completed.
+              </>
+            )}
           </p>
         </header>
 
@@ -164,9 +185,11 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
           </section>
 
           <form className="booking-deliver__form" onSubmit={(event) => void handleSubmit(event)}>
-            <h2>Delivery file</h2>
+            <h2>Delivery file{isInstant ? "" : " (optional)"}</h2>
             <p className="booking-deliver__form-copy">
-              Add the finished deliverable fans should receive. PDF, Word, text, or image up to 10MB.
+              {isInstant
+                ? "Add the finished deliverable fans should receive. PDF, Word, text, or image up to 10MB."
+                : "Optionally attach a finished deliverable. PDF, Word, text, or image up to 10MB."}
             </p>
 
             <div className="my-bookings-decline__field">
@@ -204,7 +227,9 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
                     </button>
                   </span>
                 ) : (
-                  <span className="my-bookings-accept__file-hint">Required to mark as delivered</span>
+                  <span className="my-bookings-accept__file-hint">
+                    {isInstant ? "Required to mark as delivered" : "Optional"}
+                  </span>
                 )}
               </div>
             </div>
@@ -236,9 +261,9 @@ export default function BookingDeliverView({ booking }: { booking: MyBookingItem
               <button
                 type="submit"
                 className="btn btn--primary btn--sm"
-                disabled={busy || !fileUrl}
+                disabled={busy || (isInstant && !fileUrl)}
               >
-                {submitting ? "Marking delivered…" : "Mark as delivered"}
+                {submitting ? submittingLabel : actionLabel}
               </button>
             </div>
           </form>

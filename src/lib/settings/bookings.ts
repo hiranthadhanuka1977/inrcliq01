@@ -637,8 +637,9 @@ export type DeliverBookingOptions = {
 
 export async function deliverSettingsBooking(id: string, options: DeliverBookingOptions) {
   const deliveryUrl = options.deliveryUrl?.trim() || "";
-  if (!deliveryUrl || !/^\/uploads\//.test(deliveryUrl)) {
-    return { ok: false as const, error: "Upload a delivery file before marking this complete." };
+  const hasDeliveryFile = Boolean(deliveryUrl) && /^\/uploads\//.test(deliveryUrl);
+  if (deliveryUrl && !hasDeliveryFile) {
+    return { ok: false as const, error: "Invalid delivery file." };
   }
 
   const booking = await prisma.specialRequest.findUnique({
@@ -650,6 +651,7 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
       userId: true,
       threadId: true,
       detailsJson: true,
+      instantBooking: true,
       creator: {
         select: {
           name: true,
@@ -677,6 +679,10 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
     return { ok: false as const, error: "Booking not found." };
   }
 
+  if (booking.instantBooking && !hasDeliveryFile) {
+    return { ok: false as const, error: "Upload a delivery file before marking this complete." };
+  }
+
   if (booking.status === "DELIVERED") {
     return {
       ok: true as const,
@@ -685,8 +691,10 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
       status: "DELIVERED" as const,
       statusLabel: statusLabel("DELIVERED"),
       deliveredAtLabel: null as string | null,
-      deliveryUrl,
-      deliveryName: options.deliveryName?.trim() || "Delivery file",
+      deliveryUrl: hasDeliveryFile ? deliveryUrl : "",
+      deliveryName: hasDeliveryFile
+        ? options.deliveryName?.trim() || "Delivery file"
+        : null,
     };
   }
 
@@ -700,11 +708,17 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
   const deliveredAt = new Date();
   const creatorName = booking.creator.name?.trim() || "the creator";
   const firstName = creatorName.split(" ")[0] || creatorName;
-  const deliveryName = options.deliveryName?.trim() || "Delivery file";
+  const deliveryName = hasDeliveryFile
+    ? options.deliveryName?.trim() || "Delivery file"
+    : null;
   const note = options.note?.trim() || "";
 
-  const bodyParts = [`Booking ${booking.reference} has been delivered.`];
-  bodyParts.push(`File: ${deliveryName}.`);
+  const bodyParts = [
+    booking.instantBooking
+      ? `Booking ${booking.reference} has been delivered.`
+      : `Booking ${booking.reference} has been marked as completed.`,
+  ];
+  if (deliveryName) bodyParts.push(`File: ${deliveryName}.`);
   if (note) bodyParts.push(`Note: ${note}`);
 
   const notePayload = {
@@ -712,11 +726,14 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
     reference: booking.reference,
     creatorName,
     specialRequestId: booking.id,
-    title: `Delivered by ${firstName}`,
+    title: booking.instantBooking
+      ? `Delivered by ${firstName}`
+      : `Completed by ${firstName}`,
     body: bodyParts.join(" "),
     ...(note ? { note } : {}),
-    attachmentUrl: deliveryUrl,
-    attachmentName: deliveryName,
+    ...(hasDeliveryFile
+      ? { attachmentUrl: deliveryUrl, attachmentName: deliveryName || "Delivery file" }
+      : {}),
   };
   const noteBody = encodeBookingNote(notePayload);
   const notePreview = bookingNotePreview(notePayload);
@@ -730,7 +747,7 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
   const detailsJson = {
     ...existingDetails,
     delivery: {
-      deliveryUrl,
+      deliveryUrl: hasDeliveryFile ? deliveryUrl : null,
       deliveryName,
       note: note || null,
       deliveredAt: deliveredAt.toISOString(),
@@ -764,7 +781,7 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
     status: "DELIVERED" as const,
     statusLabel: statusLabel("DELIVERED"),
     deliveredAtLabel: formatDateTime(deliveredAt),
-    deliveryUrl,
+    deliveryUrl: hasDeliveryFile ? deliveryUrl : "",
     deliveryName,
   };
 }

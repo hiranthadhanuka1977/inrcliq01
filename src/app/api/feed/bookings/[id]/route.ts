@@ -185,7 +185,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         const status =
           result.error === "Booking not found."
             ? 404
-            : result.error.includes("Upload a delivery file")
+            : result.error.includes("Upload a delivery file") ||
+                result.error.includes("Invalid delivery file")
               ? 400
               : 409;
         return NextResponse.json({ error: result.error }, { status });
