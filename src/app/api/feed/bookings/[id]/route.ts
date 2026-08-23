@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
   acceptSettingsBooking,
   declineSettingsBooking,
+  deliverSettingsBooking,
 } from "@/lib/settings/bookings";
 
 type RouteContext = {
@@ -44,6 +45,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       note?: string | null;
       attachmentUrl?: string | null;
       attachmentName?: string | null;
+      deliveryUrl?: string | null;
+      deliveryName?: string | null;
     } | null;
     const action = body?.action?.trim().toLowerCase();
 
@@ -104,6 +107,34 @@ export async function PATCH(request: Request, context: RouteContext) {
         declinedAtLabel: result.declinedAtLabel,
         declineReason: result.declineReason,
         alreadyDeclined: result.alreadyDeclined,
+      });
+    }
+
+    if (action === "deliver") {
+      const result = await deliverSettingsBooking(id, {
+        deliveryUrl: body?.deliveryUrl ?? "",
+        deliveryName: body?.deliveryName ?? null,
+        note: body?.note ?? null,
+      });
+      if (!result.ok) {
+        const status =
+          result.error === "Booking not found."
+            ? 404
+            : result.error.includes("Upload a delivery file")
+              ? 400
+              : 409;
+        return NextResponse.json({ error: result.error }, { status });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        reference: result.reference,
+        status: result.status,
+        statusLabel: result.statusLabel,
+        deliveredAtLabel: result.deliveredAtLabel,
+        deliveryUrl: result.deliveryUrl,
+        deliveryName: result.deliveryName,
+        alreadyDelivered: result.alreadyDelivered,
       });
     }
 

@@ -603,6 +603,10 @@ a.booking-status-note__card:focus-visible {
   color: var(--booking-status-declined);
 }
 
+.booking-status-note--delivered .booking-status-note__status {
+  color: var(--booking-status-delivered);
+}
+
 .booking-confirm-card h3,
 .booking-status-note__card h3 {
   margin: 0;

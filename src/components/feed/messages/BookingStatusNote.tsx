@@ -18,20 +18,27 @@ export default function BookingStatusNote({
   detailsTab?: "inbound" | "outbound";
 }) {
   const declined = note.kind === "declined";
-  const statusLabel = declined ? "Declined" : "Accepted";
+  const delivered = note.kind === "delivered";
+  const statusLabel = declined ? "Declined" : delivered ? "Delivered" : "Accepted";
   const creator = note.creatorName?.trim() || "the creator";
   const firstName = creator.split(" ")[0];
   const title =
     note.title?.trim() ||
-    (declined ? `Declined by ${firstName}` : `Accepted by ${firstName}`);
+    (declined
+      ? `Declined by ${firstName}`
+      : delivered
+        ? `Delivered by ${firstName}`
+        : `Accepted by ${firstName}`);
   const body =
     note.body?.trim() ||
     (declined
       ? note.reason?.trim()
         ? `Booking ${note.reference} was declined. Reason: ${note.reason.trim()}`
         : `Booking ${note.reference} was declined.`
-      : `Booking ${note.reference} has been accepted. Delivery will follow the agreed schedule.`);
-  const deliverBy = !declined ? note.deliverBy?.trim() || "" : "";
+      : delivered
+        ? `Booking ${note.reference} has been delivered.`
+        : `Booking ${note.reference} has been accepted. Delivery will follow the agreed schedule.`);
+  const deliverBy = !declined && !delivered ? note.deliverBy?.trim() || "" : "";
   const offerPrice =
     typeof note.offerPrice === "number" && Number.isFinite(note.offerPrice)
       ? note.offerPrice
@@ -54,7 +61,9 @@ export default function BookingStatusNote({
 
   return (
     <article
-      className={`booking-status-note${declined ? " booking-status-note--declined" : ""}`}
+      className={`booking-status-note${declined ? " booking-status-note--declined" : ""}${
+        delivered ? " booking-status-note--delivered" : ""
+      }`}
       data-booking-id={requestId || note.reference || undefined}
     >
       <Link
@@ -93,7 +102,12 @@ export default function BookingStatusNote({
             ) : null}
           </ul>
         ) : null}
-        {deliverBy ? <BookingDeliveryCountdown deliverBy={deliverBy} /> : null}
+        {deliverBy ? (
+          <BookingDeliveryCountdown
+            deliverBy={deliverBy}
+            perspective={creatorInboxView ? "provider" : "requester"}
+          />
+        ) : null}
       </Link>
       {attachmentUrl ? (
         <a

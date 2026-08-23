@@ -1,0 +1,23 @@
+﻿# Build / deps (largest Cursor indexing cost)
+.next/
+**/.next/
+out/
+build/
+coverage/
+node_modules/
+**/node_modules/
+*.tsbuildinfo
+
+# Nested workspace copies (multi-GB; app lives at repo root)
+inrcliq/
+livefeed/
+web/
+.sync-backup/
+
+# Local / deploy noise
+.vercel/
+data/db-export/
+
+# Uploaded binaries (keep source searchable elsewhere)
+public/uploads/**
+!public/uploads/**/.gitkeep

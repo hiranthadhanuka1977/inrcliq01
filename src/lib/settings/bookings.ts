@@ -629,6 +629,146 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
   };
 }
 
+export type DeliverBookingOptions = {
+  deliveryUrl: string;
+  deliveryName?: string | null;
+  note?: string | null;
+};
+
+export async function deliverSettingsBooking(id: string, options: DeliverBookingOptions) {
+  const deliveryUrl = options.deliveryUrl?.trim() || "";
+  if (!deliveryUrl || !/^\/uploads\//.test(deliveryUrl)) {
+    return { ok: false as const, error: "Upload a delivery file before marking this complete." };
+  }
+
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      userId: true,
+      threadId: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status === "DELIVERED") {
+    return {
+      ok: true as const,
+      alreadyDelivered: true as const,
+      reference: booking.reference,
+      status: "DELIVERED" as const,
+      statusLabel: statusLabel("DELIVERED"),
+      deliveredAtLabel: null as string | null,
+      deliveryUrl,
+      deliveryName: options.deliveryName?.trim() || "Delivery file",
+    };
+  }
+
+  if (booking.status !== "ACCEPTED" && booking.status !== "IN_PROGRESS") {
+    return {
+      ok: false as const,
+      error: `Only accepted bookings can be delivered (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+
+  const deliveredAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const firstName = creatorName.split(" ")[0] || creatorName;
+  const deliveryName = options.deliveryName?.trim() || "Delivery file";
+  const note = options.note?.trim() || "";
+
+  const bodyParts = [`Booking ${booking.reference} has been delivered.`];
+  bodyParts.push(`File: ${deliveryName}.`);
+  if (note) bodyParts.push(`Note: ${note}`);
+
+  const notePayload = {
+    kind: "delivered" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Delivered by ${firstName}`,
+    body: bodyParts.join(" "),
+    ...(note ? { note } : {}),
+    attachmentUrl: deliveryUrl,
+    attachmentName: deliveryName,
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const detailsJson = {
+    ...existingDetails,
+    delivery: {
+      deliveryUrl,
+      deliveryName,
+      note: note || null,
+      deliveredAt: deliveredAt.toISOString(),
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "DELIVERED",
+      deliveredAt,
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: deliveredAt,
+  });
+
+  return {
+    ok: true as const,
+    alreadyDelivered: false as const,
+    reference: booking.reference,
+    status: "DELIVERED" as const,
+    statusLabel: statusLabel("DELIVERED"),
+    deliveredAtLabel: formatDateTime(deliveredAt),
+    deliveryUrl,
+    deliveryName,
+  };
+}
+
 async function postBookingNoteToBothParties(input: {
   bookingId: string;
   requesterUserId: string;

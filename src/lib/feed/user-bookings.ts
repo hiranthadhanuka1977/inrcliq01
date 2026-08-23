@@ -350,3 +350,23 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
 
   return [...inbound, ...outbound];
 }
+
+/** Load an inbound commitment the signed-in creator can deliver. */
+export async function getInboundBookingForDelivery(
+  bookingId: string,
+): Promise<MyBookingItem | null> {
+  const user = await getSessionUser();
+  if (!user) return null;
+
+  const bookings = await listMySpecialRequestBookings();
+  if (!bookings) return null;
+
+  const booking = bookings.find(
+    (item) =>
+      item.id === bookingId &&
+      item.direction === "inbound" &&
+      (item.status === "ACCEPTED" || item.status === "IN_PROGRESS"),
+  );
+  return booking ?? null;
+}
+

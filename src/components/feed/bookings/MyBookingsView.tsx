@@ -34,6 +34,66 @@ function canRespondToBooking(booking: MyBookingItem) {
   return booking.direction === "inbound" && booking.status === "RECEIVED";
 }
 
+function canDeliverBooking(booking: MyBookingItem) {
+  return (
+    booking.direction === "inbound" &&
+    (booking.status === "ACCEPTED" || booking.status === "IN_PROGRESS")
+  );
+}
+
+function DeliverConfirmModal({
+  open,
+  booking,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  if (!open || !booking) return null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close deliver confirmation"
+        onClick={onClose}
+      />
+      <div
+        className="my-bookings-decline__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-deliver-title"
+      >
+        <h2 id="my-bookings-deliver-title">Ready to complete this request?</h2>
+        <p>
+          Continue to upload your delivery for <code>{booking.reference}</code> and mark it as
+          delivered.
+        </p>
+        <div className="my-bookings-decline__actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--deliver"
+            onClick={onConfirm}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CreatorBlock({
   booking,
   compact = false,
@@ -220,6 +280,8 @@ function AcceptOfferModal({
   const fileInputId = useId();
   if (!open || !booking || !draft) return null;
 
+  const isInstant = Boolean(booking.instantBooking);
+
   return (
     <div className="my-bookings-decline" role="presentation">
       <button
@@ -237,23 +299,34 @@ function AcceptOfferModal({
       >
         <h2 id="my-bookings-accept-title">Accept booking</h2>
         <p>
-          Accept <code>{booking.reference}</code>. You can keep the current total (
-          {booking.totalLabel}) or send a new offer with an optional note and file.
+          {isInstant ? (
+            <>
+              Accept <code>{booking.reference}</code> for {booking.totalLabel}. You can add an
+              optional note for the requester.
+            </>
+          ) : (
+            <>
+              Accept <code>{booking.reference}</code>. You can keep the current total (
+              {booking.totalLabel}) or send a new offer with an optional note and file.
+            </>
+          )}
         </p>
         <form onSubmit={onSubmit}>
-          <label className="my-bookings-decline__field">
-            <span>New offer price (optional)</span>
-            <input
-              type="number"
-              min={1}
-              step={1}
-              inputMode="numeric"
-              value={draft.offerPrice}
-              onChange={(event) => onDraftChange({ offerPrice: event.target.value })}
-              disabled={submitting || uploading}
-              placeholder={booking.totalLabel.replace(/[^\d.]/g, "") || "e.g. 150"}
-            />
-          </label>
+          {!isInstant ? (
+            <label className="my-bookings-decline__field">
+              <span>New offer price (optional)</span>
+              <input
+                type="number"
+                min={1}
+                step={1}
+                inputMode="numeric"
+                value={draft.offerPrice}
+                onChange={(event) => onDraftChange({ offerPrice: event.target.value })}
+                disabled={submitting || uploading}
+                placeholder={booking.totalLabel.replace(/[^\d.]/g, "") || "e.g. 150"}
+              />
+            </label>
+          ) : null}
           <label className="my-bookings-decline__field">
             <span>Note to requester (optional)</span>
             <textarea
@@ -264,41 +337,43 @@ function AcceptOfferModal({
               placeholder="Share schedule details, expectations, or terms…"
             />
           </label>
-          <div className="my-bookings-decline__field">
-            <span>Attachment (optional)</span>
-            <div className="my-bookings-accept__file-row">
-              <input
-                id={fileInputId}
-                type="file"
-                className="sr-only"
-                accept=".pdf,.doc,.docx,.txt,image/*"
-                disabled={submitting || uploading}
-                onChange={(event) => onPickFile(event.target.files?.[0] ?? null)}
-              />
-              <label
-                htmlFor={fileInputId}
-                className="btn btn--secondary btn--xs my-bookings__respond-btn"
-              >
-                {uploading ? "Uploading…" : draft.attachmentName ? "Replace file" : "Attach file"}
-              </label>
-              {draft.attachmentName ? (
-                <span className="my-bookings-accept__file-name">
-                  {draft.attachmentName}
-                  <button
-                    type="button"
-                    className="my-bookings-accept__file-clear"
-                    onClick={onClearFile}
-                    disabled={submitting || uploading}
-                    aria-label="Remove attachment"
-                  >
-                    ×
-                  </button>
-                </span>
-              ) : (
-                <span className="my-bookings-accept__file-hint">PDF, Word, text, or image</span>
-              )}
+          {!isInstant ? (
+            <div className="my-bookings-decline__field">
+              <span>Attachment (optional)</span>
+              <div className="my-bookings-accept__file-row">
+                <input
+                  id={fileInputId}
+                  type="file"
+                  className="sr-only"
+                  accept=".pdf,.doc,.docx,.txt,image/*"
+                  disabled={submitting || uploading}
+                  onChange={(event) => onPickFile(event.target.files?.[0] ?? null)}
+                />
+                <label
+                  htmlFor={fileInputId}
+                  className="btn btn--secondary btn--xs my-bookings__respond-btn"
+                >
+                  {uploading ? "Uploading…" : draft.attachmentName ? "Replace file" : "Attach file"}
+                </label>
+                {draft.attachmentName ? (
+                  <span className="my-bookings-accept__file-name">
+                    {draft.attachmentName}
+                    <button
+                      type="button"
+                      className="my-bookings-accept__file-clear"
+                      onClick={onClearFile}
+                      disabled={submitting || uploading}
+                      aria-label="Remove attachment"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ) : (
+                  <span className="my-bookings-accept__file-hint">PDF, Word, text, or image</span>
+                )}
+              </div>
             </div>
-          </div>
+          ) : null}
           {error ? (
             <p className="my-bookings-decline__error" role="alert">
               {error}
@@ -348,10 +423,36 @@ export default function MyBookingsView({
   const [acceptDraft, setAcceptDraft] = useState<AcceptOfferDraft | null>(null);
   const [acceptModalError, setAcceptModalError] = useState("");
   const [acceptUploading, setAcceptUploading] = useState(false);
+  const [toast, setToast] = useState<{ tone: "success" | "neutral"; message: string } | null>(
+    null,
+  );
+  const [deliverConfirm, setDeliverConfirm] = useState<MyBookingItem | null>(null);
 
   useEffect(() => {
     setBookings(initialBookings);
   }, [initialBookings]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    const toastParam = searchParams.get("toast")?.trim();
+    if (toastParam !== "delivered") return;
+    const ref = searchParams.get("ref")?.trim();
+    setToast({
+      tone: "success",
+      message: ref ? `Request ${ref} marked as delivered.` : "Request marked as delivered.",
+    });
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("toast");
+    next.delete("ref");
+    if (!next.get("tab")) next.set("tab", "calendar");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const bookingParam = searchParams.get("booking")?.trim() || "";
   const refParam = searchParams.get("ref")?.trim() || "";
@@ -480,7 +581,9 @@ export default function MyBookingsView({
     event.preventDefault();
     if (!acceptDraft) return;
 
-    const offerRaw = acceptDraft.offerPrice.trim();
+    const booking = bookings.find((item) => item.id === acceptDraft.id);
+    const isInstant = Boolean(booking?.instantBooking);
+    const offerRaw = isInstant ? "" : acceptDraft.offerPrice.trim();
     const offerPrice = offerRaw ? Number(offerRaw) : null;
     if (offerRaw && (!Number.isFinite(offerPrice) || (offerPrice ?? 0) <= 0)) {
       setAcceptModalError("Enter a valid offer price, or leave it blank.");
@@ -496,10 +599,10 @@ export default function MyBookingsView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "accept",
-          offerPrice,
+          offerPrice: isInstant ? null : offerPrice,
           note: acceptDraft.note.trim() || null,
-          attachmentUrl: acceptDraft.attachmentUrl || null,
-          attachmentName: acceptDraft.attachmentName || null,
+          attachmentUrl: isInstant ? null : acceptDraft.attachmentUrl || null,
+          attachmentName: isInstant ? null : acceptDraft.attachmentName || null,
         }),
       });
       const data = await response.json().catch(() => null);
@@ -509,7 +612,6 @@ export default function MyBookingsView({
         return;
       }
 
-      const booking = bookings.find((item) => item.id === acceptDraft.id);
       patchBooking(acceptDraft.id, {
         status: data?.status ?? "ACCEPTED",
         statusLabel: data?.statusLabel ?? "Accepted",
@@ -519,6 +621,12 @@ export default function MyBookingsView({
       });
       setAcceptDraft(null);
       setPendingAction(null);
+      setToast({
+        tone: "success",
+        message: booking?.reference
+          ? `Request ${booking.reference} approved.`
+          : "Request approved.",
+      });
       router.refresh();
     } catch {
       setAcceptModalError("Unable to accept booking.");
@@ -563,8 +671,15 @@ export default function MyBookingsView({
         declinedAtLabel: data?.declinedAtLabel ?? null,
         declineReason: data?.declineReason ?? reason,
       });
+      const declined = bookings.find((item) => item.id === declineDraft.id);
       setDeclineDraft(null);
       setPendingAction(null);
+      setToast({
+        tone: "neutral",
+        message: declined?.reference
+          ? `Request ${declined.reference} declined.`
+          : "Request declined.",
+      });
       router.refresh();
     } catch {
       setDeclineModalError("Unable to decline booking.");
@@ -738,7 +853,11 @@ export default function MyBookingsView({
                     ) : null}
 
                     {showsCountdown(booking) && booking.deliverBy ? (
-                      <BookingDeliveryCountdown deliverBy={booking.deliverBy} compact />
+                      <BookingDeliveryCountdown
+                        deliverBy={booking.deliverBy}
+                        compact
+                        perspective={booking.direction === "inbound" ? "provider" : "requester"}
+                      />
                     ) : null}
                   </div>
                 </div>
@@ -751,6 +870,15 @@ export default function MyBookingsView({
                   >
                     Details
                   </button>
+                  {canDeliverBooking(booking) ? (
+                    <button
+                      type="button"
+                      className="btn btn--primary btn--sm"
+                      onClick={() => setDeliverConfirm(booking)}
+                    >
+                      Deliver
+                    </button>
+                  ) : null}
                   {booking.messagesHref ? (
                     <Link href={booking.messagesHref} className="btn btn--secondary btn--sm">
                       Messages
@@ -843,7 +971,27 @@ export default function MyBookingsView({
                 ) : null}
 
                 {showsCountdown(selected) && selected.deliverBy ? (
-                  <BookingDeliveryCountdown deliverBy={selected.deliverBy} />
+                  <BookingDeliveryCountdown
+                    deliverBy={selected.deliverBy}
+                    perspective={selected.direction === "inbound" ? "provider" : "requester"}
+                  />
+                ) : null}
+
+                {canDeliverBooking(selected) ? (
+                  <div className="my-bookings__respond">
+                    <p className="my-bookings__respond-copy">
+                      Ready to fulfill this commitment? Upload your delivery and mark it complete.
+                    </p>
+                    <div className="my-bookings__respond-actions">
+                      <button
+                        type="button"
+                        className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--deliver"
+                        onClick={() => setDeliverConfirm(selected)}
+                      >
+                        Deliver
+                      </button>
+                    </div>
+                  </div>
                 ) : null}
 
                 {selected.summary.length > 0 ? (
@@ -986,6 +1134,48 @@ export default function MyBookingsView({
         }}
         onSubmit={handleAcceptSubmit}
       />
+
+      <DeliverConfirmModal
+        open={Boolean(deliverConfirm)}
+        booking={deliverConfirm}
+        onClose={() => setDeliverConfirm(null)}
+        onConfirm={() => {
+          if (!deliverConfirm) return;
+          const href = `/feed/bookings/${encodeURIComponent(deliverConfirm.id)}/deliver`;
+          setDeliverConfirm(null);
+          router.push(href);
+        }}
+      />
+
+      {toast ? (
+        <div
+          className={`my-bookings-toast my-bookings-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="my-bookings-toast__icon" aria-hidden="true">
+            {toast.tone === "success" ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M8 12h8" />
+              </svg>
+            )}
+          </span>
+          <p>{toast.message}</p>
+          <button
+            type="button"
+            className="my-bookings-toast__dismiss"
+            aria-label="Dismiss notification"
+            onClick={() => setToast(null)}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

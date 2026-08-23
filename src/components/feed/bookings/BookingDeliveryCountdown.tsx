@@ -10,9 +10,12 @@ function pad(value: number) {
 export default function BookingDeliveryCountdown({
   deliverBy,
   compact = false,
+  perspective = "requester",
 }: {
   deliverBy: string;
   compact?: boolean;
+  /** Requester sees receive copy; provider (commitments) sees deliver copy. */
+  perspective?: "requester" | "provider";
 }) {
   const [parts, setParts] = useState(() => getCountdownParts(deliverBy));
 
@@ -28,13 +31,17 @@ export default function BookingDeliveryCountdown({
     { label: "Hours", value: pad(parts.hours) },
     { label: "Minutes", value: pad(parts.minutes) },
   ];
+  const label =
+    perspective === "provider"
+      ? "You are committed to deliver in"
+      : "You will receive your delivery in";
 
   return (
     <section
       className={`booking-countdown${compact ? " booking-countdown--compact" : ""}`}
-      aria-label="Delivery countdown"
+      aria-label={perspective === "provider" ? "Delivery commitment countdown" : "Delivery countdown"}
     >
-      <p className="booking-countdown__label">You will receive your delivery in</p>
+      <p className="booking-countdown__label">{label}</p>
       <div className="booking-countdown__grid">
         {units.map((unit, index) => (
           <Fragment key={unit.label}>
