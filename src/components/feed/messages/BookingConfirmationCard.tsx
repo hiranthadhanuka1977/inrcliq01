@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { resolveCreatorName, type BookingConfirmationPayload } from "@/lib/feed/booking-confirmation";
+import {
+  formatDeliverByLabel,
+  resolveCreatorName,
+  type BookingConfirmationPayload,
+} from "@/lib/feed/booking-confirmation";
 
 function statusTone(status: string) {
   const key = status.trim().toLowerCase();
@@ -42,12 +46,14 @@ export default function BookingConfirmationCard({
     ? creatorName?.trim() || "a fan"
     : "";
   const firstName = provider.split(" ")[0] || provider;
+  const deliverByLabel = formatDeliverByLabel(booking.deliverBy);
   const rows = [
     { label: "Type", value: booking.bookingType },
     { label: "Occasion", value: booking.occasion },
     { label: "Format", value: booking.contentType },
     { label: "Duration", value: booking.duration },
     { label: "Delivery", value: booking.publishingMethod },
+    { label: "Deliver by", value: deliverByLabel || "" },
     { label: "Total", value: booking.totalCharge },
   ].filter((row) => Boolean(row.value?.trim()));
 
@@ -61,8 +67,12 @@ export default function BookingConfirmationCard({
     ? `Requested by ${requesterName}`
     : `Requested from ${provider}`;
   const note = providerView
-    ? "Review this request and accept or decline it from your inbound bookings."
-    : `Waiting for ${firstName} to accept. Delivery timing appears after acceptance.`;
+    ? deliverByLabel
+      ? `Review this request and accept or decline it from your inbound bookings. Deliver by ${deliverByLabel}.`
+      : "Review this request and accept or decline it from your inbound bookings."
+    : deliverByLabel
+      ? `Waiting for ${firstName} to accept. Deliver by ${deliverByLabel}.`
+      : `Waiting for ${firstName} to accept.`;
 
   return (
     <article

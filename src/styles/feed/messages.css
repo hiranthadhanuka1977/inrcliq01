@@ -638,6 +638,13 @@ a.booking-status-note__card:focus-visible {
   line-height: 1.45;
 }
 
+.booking-status-note__deadline {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--color-text-primary);
+}
+
 .booking-status-note__offer {
   display: flex;
   flex-direction: column;

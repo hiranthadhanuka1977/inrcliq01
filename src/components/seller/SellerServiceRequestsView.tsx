@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { SellerBookingsCalendar } from "@/components/seller/SellerBookingsCalendar";
 import { SellerImageUploadField } from "@/components/seller/SellerImageUploadField";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
+import { formatDeliverByLabel } from "@/lib/feed/booking-confirmation";
 import type {
   CreatorRequestsContent,
   RequestCategory,
@@ -854,6 +855,7 @@ export function SellerServiceRequestsView({
                     <th>Request</th>
                     <th>Fan</th>
                     <th>Total</th>
+                    <th>Deliver by</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -861,6 +863,7 @@ export function SellerServiceRequestsView({
                 <tbody>
                   {bookings.map((booking) => {
                     const busy = pendingBookingId === booking.id;
+                    const deliverByLabel = formatDeliverByLabel(booking.deliverBy);
                     return (
                       <tr
                         key={booking.id}
@@ -891,6 +894,7 @@ export function SellerServiceRequestsView({
                           <div className="seller-table__sub">{booking.requesterEmail}</div>
                         </td>
                         <td>{booking.totalLabel}</td>
+                        <td>{deliverByLabel || "—"}</td>
                         <td>
                           <span className={`booking-status ${bookingStatusClass(booking.status)}`}>
                             {booking.statusLabel}

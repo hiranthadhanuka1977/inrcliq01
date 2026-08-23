@@ -1194,6 +1194,9 @@ export default function MyBookingsView({
                     <ul className="my-bookings__facts">
                       <li>{booking.totalLabel}</li>
                       <li>{booking.createdLabel}</li>
+                      {booking.deliverByLabel ? (
+                        <li>Deliver by {booking.deliverByLabel}</li>
+                      ) : null}
                       {booking.contentType ? <li>{booking.contentType}</li> : null}
                     </ul>
 
@@ -1485,10 +1488,7 @@ export default function MyBookingsView({
                     <dt>Created</dt>
                     <dd>{selected.createdLabel}</dd>
                   </div>
-                  {selected.deliverByLabel &&
-                  (selected.status === "ACCEPTED" ||
-                    selected.status === "IN_PROGRESS" ||
-                    selected.status === "DELIVERED") ? (
+                  {selected.deliverByLabel ? (
                     <div>
                       <dt>Deliver by</dt>
                       <dd>{selected.deliverByLabel}</dd>

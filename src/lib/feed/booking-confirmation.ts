@@ -136,6 +136,20 @@ export function parseDeliveryDeadline(when: string | undefined, fallbackDays = 7
   return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000).toISOString();
 }
 
+/** Human-readable deliver-by datetime for listings, details, and chat cards. */
+export function formatDeliverByLabel(deliverByIso: string | null | undefined) {
+  if (!deliverByIso?.trim()) return null;
+  const date = new Date(deliverByIso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function getCountdownParts(deliverByIso: string, now = Date.now()) {
   const target = Date.parse(deliverByIso);
   if (Number.isNaN(target)) {

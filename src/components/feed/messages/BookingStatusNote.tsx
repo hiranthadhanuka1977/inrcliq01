@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { BookingNotePayload } from "@/lib/feed/booking-confirmation";
+import {
+  formatDeliverByLabel,
+  type BookingNotePayload,
+} from "@/lib/feed/booking-confirmation";
 import BookingDeliveryCountdown from "@/components/feed/bookings/BookingDeliveryCountdown";
 
 export default function BookingStatusNote({
@@ -38,7 +41,9 @@ export default function BookingStatusNote({
       : delivered
         ? `Booking ${note.reference} has been delivered.`
         : `Booking ${note.reference} has been accepted. Delivery will follow the agreed schedule.`);
-  const deliverBy = !declined && !delivered ? note.deliverBy?.trim() || "" : "";
+  const deliverByIso = note.deliverBy?.trim() || "";
+  const deliverByLabel = formatDeliverByLabel(deliverByIso);
+  const showCountdown = !declined && !delivered && Boolean(deliverByIso);
   const offerPrice =
     typeof note.offerPrice === "number" && Number.isFinite(note.offerPrice)
       ? note.offerPrice
@@ -78,6 +83,9 @@ export default function BookingStatusNote({
         <h3>{title}</h3>
         <p className="booking-status-note__ref">{note.reference}</p>
         <p className="booking-status-note__body">{body}</p>
+        {deliverByLabel ? (
+          <p className="booking-status-note__deadline">Deliver by {deliverByLabel}</p>
+        ) : null}
         {!declined && (offerPrice != null || acceptNote || attachmentUrl) ? (
           <ul className="booking-status-note__offer">
             {offerPrice != null ? (
@@ -102,9 +110,9 @@ export default function BookingStatusNote({
             ) : null}
           </ul>
         ) : null}
-        {deliverBy ? (
+        {showCountdown ? (
           <BookingDeliveryCountdown
-            deliverBy={deliverBy}
+            deliverBy={deliverByIso}
             perspective={creatorInboxView ? "provider" : "requester"}
           />
         ) : null}

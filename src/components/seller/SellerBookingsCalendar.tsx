@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
+import { formatDeliverByLabel } from "@/lib/feed/booking-confirmation";
 import {
   dateKeysBetween,
   formatDateKeyLabel,
@@ -532,7 +533,9 @@ export function SellerBookingsCalendar({
           </p>
         ) : (
           <ul className="seller-calendar__detail-list">
-            {selectedBookings.map((booking) => (
+            {selectedBookings.map((booking) => {
+              const deliverByLabel = formatDeliverByLabel(booking.deliverBy);
+              return (
               <li key={booking.id}>
                 <Link
                   href={bookingDetailsHref(booking)}
@@ -546,12 +549,14 @@ export function SellerBookingsCalendar({
                       {booking.category ? ` · ${booking.category}` : ""}
                       {` · ${booking.totalLabel}`}
                     </span>
+                    {deliverByLabel ? <span>Deliver by {deliverByLabel}</span> : null}
                     <span className="seller-calendar__detail-ref">{booking.reference}</span>
                   </div>
                   <span className={bookingStatusClass(booking.status)}>{booking.statusLabel}</span>
                 </Link>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>
