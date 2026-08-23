@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
 import {
@@ -36,6 +37,14 @@ function bookingCalendarKey(booking: SettingsBookingRow): string {
 
 function occupiesDay(booking: SettingsBookingRow) {
   return OCCUPYING_STATUSES.has(booking.status);
+}
+
+function bookingDetailsHref(booking: SettingsBookingRow) {
+  const params = new URLSearchParams({
+    tab: "inbound",
+    booking: booking.id,
+  });
+  return `/feed/bookings?${params.toString()}`;
 }
 
 type SellerBookingsCalendarProps = {
@@ -524,17 +533,23 @@ export function SellerBookingsCalendar({
         ) : (
           <ul className="seller-calendar__detail-list">
             {selectedBookings.map((booking) => (
-              <li key={booking.id} className="seller-calendar__detail-item">
-                <div className="seller-calendar__detail-copy">
-                  <strong>{booking.requestLabel}</strong>
-                  <span>
-                    {booking.requesterName}
-                    {booking.category ? ` · ${booking.category}` : ""}
-                    {` · ${booking.totalLabel}`}
-                  </span>
-                  <span className="seller-calendar__detail-ref">{booking.reference}</span>
-                </div>
-                <span className={bookingStatusClass(booking.status)}>{booking.statusLabel}</span>
+              <li key={booking.id}>
+                <Link
+                  href={bookingDetailsHref(booking)}
+                  className="seller-calendar__detail-item"
+                  aria-label={`Open ${booking.requestLabel} (${booking.reference}) in Calendar`}
+                >
+                  <div className="seller-calendar__detail-copy">
+                    <strong>{booking.requestLabel}</strong>
+                    <span>
+                      {booking.requesterName}
+                      {booking.category ? ` · ${booking.category}` : ""}
+                      {` · ${booking.totalLabel}`}
+                    </span>
+                    <span className="seller-calendar__detail-ref">{booking.reference}</span>
+                  </div>
+                  <span className={bookingStatusClass(booking.status)}>{booking.statusLabel}</span>
+                </Link>
               </li>
             ))}
           </ul>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { SellerBookingsCalendar } from "@/components/seller/SellerBookingsCalendar";
 import { SellerImageUploadField } from "@/components/seller/SellerImageUploadField";
@@ -56,6 +57,14 @@ function parseInitialTab(value: TabId | undefined): TabId {
   return "calendar";
 }
 
+function bookingDetailsHref(bookingId: string) {
+  const params = new URLSearchParams({
+    tab: "inbound",
+    booking: bookingId,
+  });
+  return `/feed/bookings?${params.toString()}`;
+}
+
 export function SellerServiceRequestsView({
   slug,
   previewHref,
@@ -64,6 +73,7 @@ export function SellerServiceRequestsView({
   initialUnavailableDates = [],
   initialTab,
 }: SellerServiceRequestsViewProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<TabId>(parseInitialTab(initialTab));
   const [enabled, setEnabled] = useState(initialConfig.enabled);
   const [content, setContent] = useState<CreatorRequestsContent>(initialConfig.content);
@@ -852,7 +862,20 @@ export function SellerServiceRequestsView({
                   {bookings.map((booking) => {
                     const busy = pendingBookingId === booking.id;
                     return (
-                      <tr key={booking.id}>
+                      <tr
+                        key={booking.id}
+                        className="seller-table__row--link"
+                        tabIndex={0}
+                        role="link"
+                        aria-label={`Open ${booking.requestLabel} (${booking.reference}) in Calendar`}
+                        onClick={() => router.push(bookingDetailsHref(booking.id))}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            router.push(bookingDetailsHref(booking.id));
+                          }
+                        }}
+                      >
                         <td>
                           <code className="seller-table__ref">{booking.reference}</code>
                           <div className="seller-table__sub">{booking.createdLabel}</div>
@@ -873,7 +896,10 @@ export function SellerServiceRequestsView({
                             {booking.statusLabel}
                           </span>
                         </td>
-                        <td>
+                        <td
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                        >
                           {booking.status === "RECEIVED" ? (
                             <div className="seller-table__actions">
                               <button
