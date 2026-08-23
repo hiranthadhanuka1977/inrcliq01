@@ -41,6 +41,27 @@ function canDeliverBooking(booking: MyBookingItem) {
   );
 }
 
+function canGiveFeedback(booking: MyBookingItem) {
+  return booking.status === "DELIVERED";
+}
+
+const FEEDBACK_QUICK_PICKS = {
+  requester: [
+    "Great communication",
+    "On time",
+    "High quality",
+    "Would book again",
+    "Followed my brief",
+  ],
+  provider: [
+    "Clear brief",
+    "Easy to work with",
+    "Fair expectations",
+    "Responsive",
+    "Would work again",
+  ],
+} as const;
+
 function DeliverConfirmModal({
   open,
   booking,
@@ -94,6 +115,378 @@ function DeliverConfirmModal({
   );
 }
 
+function FeedbackModal({
+  open,
+  booking,
+  submitting,
+  submitError,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  submitting: boolean;
+  submitError: string;
+  onClose: () => void;
+  onSubmit: (payload: { rating: number; note: string; picks: string[] }) => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [note, setNote] = useState("");
+  const [picks, setPicks] = useState<string[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setRating(0);
+    setHoverRating(0);
+    setNote("");
+    setPicks([]);
+    setError("");
+  }, [open, booking?.id]);
+
+  if (!open || !booking) return null;
+
+  const perspective = booking.direction === "inbound" ? "provider" : "requester";
+  const quickPicks = FEEDBACK_QUICK_PICKS[perspective];
+  const counterpart =
+    booking.direction === "inbound"
+      ? "the requester"
+      : booking.creator.name || "the creator";
+
+  function togglePick(label: string) {
+    setPicks((current) =>
+      current.includes(label) ? current.filter((item) => item !== label) : [...current, label],
+    );
+  }
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (submitting) return;
+    if (rating < 1) {
+      setError("Please choose a star rating.");
+      return;
+    }
+    setError("");
+    onSubmit({ rating, note: note.trim(), picks });
+  }
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close feedback"
+        onClick={() => {
+          if (submitting) return;
+          onClose();
+        }}
+      />
+      <form
+        className="my-bookings-decline__panel my-bookings-feedback__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-feedback-title"
+        onSubmit={handleSubmit}
+      >
+        <h2 id="my-bookings-feedback-title">How was this experience?</h2>
+        <p>
+          Share quick feedback for {counterpart} on <code>{booking.reference}</code>.
+        </p>
+
+        <fieldset className="my-bookings-feedback__stars">
+          <legend>Star rating</legend>
+          <div
+            className="my-bookings-feedback__star-row"
+            onMouseLeave={() => setHoverRating(0)}
+          >
+            {[1, 2, 3, 4, 5].map((value) => {
+              const active = value <= (hoverRating || rating);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={`my-bookings-feedback__star${active ? " is-active" : ""}`}
+                  aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                  aria-pressed={rating === value}
+                  disabled={submitting}
+                  onMouseEnter={() => setHoverRating(value)}
+                  onFocus={() => setHoverRating(value)}
+                  onBlur={() => setHoverRating(0)}
+                  onClick={() => {
+                    setRating(value);
+                    setError("");
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                    <path
+                      d="M12 3.6l2.4 4.86 5.36.78-3.88 3.78.92 5.34L12 15.9l-4.8 2.52.92-5.34-3.88-3.78 5.36-.78L12 3.6z"
+                      fill={active ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <div className="my-bookings-feedback__picks" role="group" aria-label="Quick selections">
+          <p className="my-bookings-feedback__picks-label">Quick selections (optional)</p>
+          <ul className="my-bookings-feedback__chips">
+            {quickPicks.map((label) => {
+              const selected = picks.includes(label);
+              return (
+                <li key={label}>
+                  <button
+                    type="button"
+                    className={`my-bookings-feedback__chip${selected ? " is-selected" : ""}`}
+                    aria-pressed={selected}
+                    disabled={submitting}
+                    onClick={() => togglePick(label)}
+                  >
+                    {label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <label className="my-bookings-decline__field">
+          Feedback (optional)
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="Anything else about this experience?"
+            rows={3}
+            maxLength={500}
+            disabled={submitting}
+          />
+        </label>
+
+        {error || submitError ? (
+          <p className="my-bookings-decline__error" role="alert">
+            {error || submitError}
+          </p>
+        ) : null}
+
+        <div className="my-bookings-decline__actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+            disabled={submitting}
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn--primary btn--xs my-bookings__respond-btn"
+            disabled={submitting}
+          >
+            {submitting ? "Saving…" : "Submit feedback"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function ActionIcon({ name }: { name: "details" | "deliver" | "feedback" | "messages" }) {
+  if (name === "details") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path
+          d="M8 6.5h11M8 12h11M8 17.5h7"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <circle cx="4.5" cy="6.5" r="1.1" fill="currentColor" />
+        <circle cx="4.5" cy="12" r="1.1" fill="currentColor" />
+        <circle cx="4.5" cy="17.5" r="1.1" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (name === "deliver") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path
+          d="M4 12.5h11.5M12 7.5l5 5-5 5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 7.5v10"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+  if (name === "feedback") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path
+          d="M12 4.2l2.1 4.25 4.7.68-3.4 3.32.8 4.68L12 15.9l-4.2 2.23.8-4.68-3.4-3.32 4.7-.68L12 4.2z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+      <path
+        d="M5.5 7.5h13a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H10l-3.5 2.5V16.5H5.5A1.5 1.5 0 0 1 4 15V9a1.5 1.5 0 0 1 1.5-1.5z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FeedbackStars({ rating, size = 14 }: { rating: number; size?: number }) {
+  return (
+    <span className="my-bookings-feedback__stars-display" aria-hidden="true">
+      {[1, 2, 3, 4, 5].map((value) => {
+        const filled = value <= rating;
+        return (
+          <svg
+            key={value}
+            viewBox="0 0 24 24"
+            width={size}
+            height={size}
+            className={filled ? "is-filled" : undefined}
+          >
+            <path
+              d="M12 3.6l2.4 4.86 5.36.78-3.88 3.78.92 5.34L12 15.9l-4.8 2.52.92-5.34-3.88-3.78 5.36-.78L12 3.6z"
+              fill={filled ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      })}
+    </span>
+  );
+}
+
+function FeedbackRatingTrigger({
+  booking,
+  onOpen,
+}: {
+  booking: MyBookingItem;
+  onOpen: () => void;
+}) {
+  const rating = booking.feedbackRating ?? 0;
+  return (
+    <button
+      type="button"
+      className="btn btn--secondary btn--xs my-bookings__action-btn my-bookings__feedback-rating"
+      onClick={onOpen}
+      aria-label={`View your ${rating}-star feedback`}
+    >
+      <FeedbackStars rating={rating} />
+      <span>{rating}/5</span>
+    </button>
+  );
+}
+
+function FeedbackDetailsModal({
+  open,
+  booking,
+  onClose,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  onClose: () => void;
+}) {
+  if (!open || !booking || !booking.feedbackSubmitted) return null;
+
+  const rating = booking.feedbackRating ?? 0;
+  const submittedLabel = booking.feedbackSubmittedAt
+    ? new Date(booking.feedbackSubmittedAt).toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close feedback details"
+        onClick={onClose}
+      />
+      <div
+        className="my-bookings-decline__panel my-bookings-feedback__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-feedback-details-title"
+      >
+        <h2 id="my-bookings-feedback-details-title">Your feedback</h2>
+        <p>
+          Feedback for <code>{booking.reference}</code>
+          {submittedLabel ? ` · ${submittedLabel}` : ""}
+        </p>
+
+        <div className="my-bookings-feedback__details-rating">
+          <FeedbackStars rating={rating} size={22} />
+          <strong>
+            {rating} out of 5 star{rating === 1 ? "" : "s"}
+          </strong>
+        </div>
+
+        {booking.feedbackPicks.length > 0 ? (
+          <div className="my-bookings-feedback__picks">
+            <p className="my-bookings-feedback__picks-label">Selections</p>
+            <ul className="my-bookings-feedback__chips">
+              {booking.feedbackPicks.map((label) => (
+                <li key={label}>
+                  <span className="my-bookings-feedback__chip is-selected">{label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {booking.feedbackNote ? (
+          <div className="my-bookings-feedback__details-note">
+            <p className="my-bookings-feedback__picks-label">Note</p>
+            <p>{booking.feedbackNote}</p>
+          </div>
+        ) : (
+          <p className="my-bookings-feedback__details-empty">No written note was added.</p>
+        )}
+
+        <div className="my-bookings-decline__actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CreatorBlock({
   booking,
   compact = false,
@@ -101,10 +494,6 @@ function CreatorBlock({
   booking: MyBookingItem;
   compact?: boolean;
 }) {
-  const profileHref = booking.creator.slug
-    ? `/feed/profile/${booking.creator.slug}`
-    : null;
-
   const avatar = (
     <span
       className={`my-bookings__avatar${compact ? " my-bookings__avatar--sm" : ""}`}
@@ -126,19 +515,6 @@ function CreatorBlock({
       <span>{booking.creator.handle}</span>
     </span>
   );
-
-  if (profileHref) {
-    return (
-      <Link
-        href={profileHref}
-        className="my-bookings__creator"
-        aria-label={`Open ${booking.creator.name}'s profile`}
-      >
-        {avatar}
-        {copy}
-      </Link>
-    );
-  }
 
   return (
     <div className="my-bookings__creator">
@@ -427,6 +803,10 @@ export default function MyBookingsView({
     null,
   );
   const [deliverConfirm, setDeliverConfirm] = useState<MyBookingItem | null>(null);
+  const [feedbackTarget, setFeedbackTarget] = useState<MyBookingItem | null>(null);
+  const [feedbackView, setFeedbackView] = useState<MyBookingItem | null>(null);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackModalError, setFeedbackModalError] = useState("");
 
   useEffect(() => {
     setBookings(initialBookings);
@@ -518,14 +898,16 @@ export default function MyBookingsView({
     if (!open) return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") clearSelection();
+      if (event.key !== "Escape") return;
+      if (feedbackTarget || feedbackView || deliverConfirm || declineDraft || acceptDraft) return;
+      clearSelection();
     }
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, clearSelection]);
+  }, [open, clearSelection, feedbackTarget, feedbackView, deliverConfirm, declineDraft, acceptDraft]);
 
   function patchBooking(id: string, patch: Partial<MyBookingItem>) {
     setBookings((current) =>
@@ -803,22 +1185,11 @@ export default function MyBookingsView({
                       Ref <code>{booking.reference}</code>
                     </p>
 
-                    {booking.creator.slug ? (
-                      <Link
-                        href={`/feed/profile/${booking.creator.slug}`}
-                        className="my-bookings__creator-line"
-                      >
-                        {booking.creator.name}
-                        <span aria-hidden="true"> · </span>
-                        {booking.creator.handle}
-                      </Link>
-                    ) : (
-                      <p className="my-bookings__creator-line">
-                        {booking.creator.name}
-                        <span aria-hidden="true"> · </span>
-                        {booking.creator.handle}
-                      </p>
-                    )}
+                    <p className="my-bookings__creator-line">
+                      {booking.creator.name}
+                      <span aria-hidden="true"> · </span>
+                      {booking.creator.handle}
+                    </p>
 
                     <ul className="my-bookings__facts">
                       <li>{booking.totalLabel}</li>
@@ -863,27 +1234,57 @@ export default function MyBookingsView({
                 </div>
 
                 <div className="my-bookings__actions">
-                  <button
-                    type="button"
-                    className="btn btn--secondary btn--sm"
-                    onClick={() => openBookingDetails(booking)}
-                  >
-                    Details
-                  </button>
-                  {canDeliverBooking(booking) ? (
+                  <div className="my-bookings__actions-start">
+                    {canGiveFeedback(booking) ? (
+                      booking.feedbackSubmitted ? (
+                        <FeedbackRatingTrigger
+                          booking={booking}
+                          onOpen={() => setFeedbackView(booking)}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn--secondary btn--xs my-bookings__action-btn"
+                          onClick={() => {
+                            setFeedbackModalError("");
+                            setFeedbackTarget(booking);
+                          }}
+                        >
+                          <ActionIcon name="feedback" />
+                          Feedback
+                        </button>
+                      )
+                    ) : null}
+                  </div>
+                  <div className="my-bookings__actions-end">
+                    {canDeliverBooking(booking) ? (
+                      <button
+                        type="button"
+                        className="btn btn--secondary btn--xs my-bookings__action-btn"
+                        onClick={() => setDeliverConfirm(booking)}
+                      >
+                        <ActionIcon name="deliver" />
+                        Deliver
+                      </button>
+                    ) : null}
+                    {booking.messagesHref ? (
+                      <Link
+                        href={booking.messagesHref}
+                        className="btn btn--secondary btn--xs my-bookings__action-btn"
+                      >
+                        <ActionIcon name="messages" />
+                        Messages
+                      </Link>
+                    ) : null}
                     <button
                       type="button"
-                      className="btn btn--primary btn--sm"
-                      onClick={() => setDeliverConfirm(booking)}
+                      className="btn btn--secondary btn--xs my-bookings__action-btn"
+                      onClick={() => openBookingDetails(booking)}
                     >
-                      Deliver
+                      <ActionIcon name="details" />
+                      Details
                     </button>
-                  ) : null}
-                  {booking.messagesHref ? (
-                    <Link href={booking.messagesHref} className="btn btn--secondary btn--sm">
-                      Messages
-                    </Link>
-                  ) : null}
+                  </div>
                 </div>
               </li>
             ))}
@@ -991,6 +1392,42 @@ export default function MyBookingsView({
                         Deliver
                       </button>
                     </div>
+                  </div>
+                ) : null}
+
+                {canGiveFeedback(selected) ? (
+                  <div className="my-bookings__respond">
+                    {selected.feedbackSubmitted ? (
+                      <>
+                        <p className="my-bookings__respond-copy">
+                          You already left feedback for this request. Tap the rating to review it.
+                        </p>
+                        <div className="my-bookings__respond-actions">
+                          <FeedbackRatingTrigger
+                            booking={selected}
+                            onOpen={() => setFeedbackView(selected)}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="my-bookings__respond-copy">
+                          This request is complete. Rate the experience and leave optional feedback.
+                        </p>
+                        <div className="my-bookings__respond-actions">
+                          <button
+                            type="button"
+                            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+                            onClick={() => {
+                              setFeedbackModalError("");
+                              setFeedbackTarget(selected);
+                            }}
+                          >
+                            Give feedback
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : null}
 
@@ -1145,6 +1582,82 @@ export default function MyBookingsView({
           setDeliverConfirm(null);
           router.push(href);
         }}
+      />
+
+      <FeedbackModal
+        open={Boolean(feedbackTarget)}
+        booking={feedbackTarget}
+        submitting={feedbackSubmitting}
+        submitError={feedbackModalError}
+        onClose={() => {
+          if (feedbackSubmitting) return;
+          setFeedbackTarget(null);
+          setFeedbackModalError("");
+        }}
+        onSubmit={async ({ rating, note, picks }) => {
+          if (!feedbackTarget) return;
+          const id = feedbackTarget.id;
+          const ref = feedbackTarget.reference;
+          setFeedbackSubmitting(true);
+          setFeedbackModalError("");
+          try {
+            const response = await fetch(`/api/feed/bookings/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "feedback",
+                rating,
+                note: note || null,
+                picks,
+              }),
+            });
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+              setFeedbackModalError(data?.error ?? "Unable to save feedback.");
+              return;
+            }
+            patchBooking(id, {
+              feedbackSubmitted: true,
+              feedbackRating:
+                typeof data?.feedbackRating === "number" ? data.feedbackRating : rating,
+              feedbackNote:
+                typeof data?.feedbackNote === "string"
+                  ? data.feedbackNote
+                  : note || null,
+              feedbackPicks: Array.isArray(data?.feedbackPicks)
+                ? data.feedbackPicks.filter(
+                    (item: unknown): item is string => typeof item === "string",
+                  )
+                : picks,
+              feedbackSubmittedAt:
+                typeof data?.feedbackSubmittedAt === "string"
+                  ? data.feedbackSubmittedAt
+                  : new Date().toISOString(),
+              status: typeof data?.status === "string" ? data.status : feedbackTarget.status,
+              statusLabel:
+                typeof data?.statusLabel === "string"
+                  ? data.statusLabel
+                  : feedbackTarget.statusLabel,
+            });
+            setFeedbackTarget(null);
+            setToast({
+              tone: "success",
+              message: data?.alreadySubmitted
+                ? `Feedback for ${ref} was already saved.`
+                : `Thanks for your ${rating}-star feedback on ${ref}.`,
+            });
+          } catch {
+            setFeedbackModalError("Unable to save feedback.");
+          } finally {
+            setFeedbackSubmitting(false);
+          }
+        }}
+      />
+
+      <FeedbackDetailsModal
+        open={Boolean(feedbackView)}
+        booking={feedbackView}
+        onClose={() => setFeedbackView(null)}
       />
 
       {toast ? (

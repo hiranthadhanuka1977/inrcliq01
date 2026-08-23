@@ -5,6 +5,8 @@ import {
   acceptSettingsBooking,
   declineSettingsBooking,
   deliverSettingsBooking,
+  submitBookingFeedback,
+  type BookingFeedbackSide,
 } from "@/lib/settings/bookings";
 
 type RouteContext = {
@@ -25,6 +27,28 @@ async function requireInboundBookingOwner(bookingId: string, userId: string) {
   });
 }
 
+async function resolveFeedbackAccess(bookingId: string, userId: string) {
+  const booking = await prisma.specialRequest.findFirst({
+    where: {
+      id: bookingId,
+      OR: [{ userId }, { creator: { userId } }],
+    },
+    select: {
+      id: true,
+      userId: true,
+      creator: { select: { userId: true } },
+    },
+  });
+  if (!booking) return null;
+
+  let side: BookingFeedbackSide | null = null;
+  if (booking.userId === userId) side = "requester";
+  else if (booking.creator.userId === userId) side = "provider";
+  if (!side) return null;
+
+  return { id: booking.id, side };
+}
+
 export async function PATCH(request: Request, context: RouteContext) {
   const user = await getSessionUser();
   if (!user) {
@@ -33,11 +57,6 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   try {
     const { id } = await context.params;
-    const booking = await requireInboundBookingOwner(id, user.id);
-    if (!booking) {
-      return NextResponse.json({ error: "Booking not found." }, { status: 404 });
-    }
-
     const body = (await request.json().catch(() => null)) as {
       action?: string;
       reason?: string;
@@ -47,8 +66,54 @@ export async function PATCH(request: Request, context: RouteContext) {
       attachmentName?: string | null;
       deliveryUrl?: string | null;
       deliveryName?: string | null;
+      rating?: number | string | null;
+      picks?: string[] | null;
     } | null;
     const action = body?.action?.trim().toLowerCase();
+
+    if (action === "feedback") {
+      const access = await resolveFeedbackAccess(id, user.id);
+      if (!access) {
+        return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+      }
+
+      const rating =
+        body?.rating === "" || body?.rating == null ? NaN : Number(body.rating);
+      const result = await submitBookingFeedback(id, {
+        side: access.side,
+        rating,
+        note: body?.note ?? null,
+        picks: Array.isArray(body?.picks) ? body.picks : [],
+      });
+      if (!result.ok) {
+        const status =
+          result.error === "Booking not found."
+            ? 404
+            : result.error.includes("star rating") ||
+                result.error.includes("500 characters")
+              ? 400
+              : 409;
+        return NextResponse.json({ error: result.error }, { status });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        reference: result.reference,
+        status: result.status,
+        statusLabel: result.statusLabel,
+        feedbackSubmitted: result.feedbackSubmitted,
+        feedbackRating: result.feedbackRating,
+        feedbackNote: result.feedbackNote,
+        feedbackPicks: result.feedbackPicks,
+        feedbackSubmittedAt: result.feedbackSubmittedAt,
+        alreadySubmitted: result.alreadySubmitted,
+      });
+    }
+
+    const booking = await requireInboundBookingOwner(id, user.id);
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+    }
 
     if (action === "accept") {
       const parsedPrice =

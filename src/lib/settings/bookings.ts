@@ -769,6 +769,160 @@ export async function deliverSettingsBooking(id: string, options: DeliverBooking
   };
 }
 
+export type BookingFeedbackSide = "provider" | "requester";
+
+export type SubmitBookingFeedbackOptions = {
+  side: BookingFeedbackSide;
+  rating: number;
+  note?: string | null;
+  picks?: string[] | null;
+};
+
+export type StoredBookingFeedback = {
+  rating: number;
+  note: string | null;
+  picks: string[];
+  submittedAt: string;
+};
+
+function parseFeedbackEntry(value: unknown): StoredBookingFeedback | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const rating = typeof record.rating === "number" ? record.rating : Number(record.rating);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return null;
+  const note =
+    typeof record.note === "string" && record.note.trim() ? record.note.trim() : null;
+  const picks = Array.isArray(record.picks)
+    ? record.picks
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 8)
+    : [];
+  const submittedAt =
+    typeof record.submittedAt === "string" && record.submittedAt.trim()
+      ? record.submittedAt.trim()
+      : new Date().toISOString();
+  return { rating, note, picks, submittedAt };
+}
+
+export function readBookingFeedback(
+  detailsJson: unknown,
+  side: BookingFeedbackSide,
+): StoredBookingFeedback | null {
+  if (!detailsJson || typeof detailsJson !== "object" || Array.isArray(detailsJson)) {
+    return null;
+  }
+  const details = detailsJson as Record<string, unknown>;
+  const feedback = details.feedback;
+  if (!feedback || typeof feedback !== "object" || Array.isArray(feedback)) {
+    return null;
+  }
+  return parseFeedbackEntry((feedback as Record<string, unknown>)[side]);
+}
+
+export async function submitBookingFeedback(id: string, options: SubmitBookingFeedbackOptions) {
+  const rating = Number(options.rating);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { ok: false as const, error: "Choose a star rating from 1 to 5." };
+  }
+
+  const noteRaw = options.note?.trim() || "";
+  if (noteRaw.length > 500) {
+    return { ok: false as const, error: "Feedback must be 500 characters or fewer." };
+  }
+
+  const picks = (options.picks ?? [])
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      detailsJson: true,
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status !== "DELIVERED") {
+    return {
+      ok: false as const,
+      error: "Feedback is only available after a request is delivered.",
+    };
+  }
+
+  const existing = readBookingFeedback(booking.detailsJson, options.side);
+  if (existing) {
+    return {
+      ok: true as const,
+      alreadySubmitted: true as const,
+      reference: booking.reference,
+      status: booking.status,
+      statusLabel: statusLabel(booking.status),
+      feedbackSubmitted: true as const,
+      feedbackRating: existing.rating,
+      feedbackNote: existing.note,
+      feedbackPicks: existing.picks,
+      feedbackSubmittedAt: existing.submittedAt,
+    };
+  }
+
+  const submittedAt = new Date().toISOString();
+  const entry: StoredBookingFeedback = {
+    rating,
+    note: noteRaw || null,
+    picks,
+    submittedAt,
+  };
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const existingFeedback =
+    existingDetails.feedback &&
+    typeof existingDetails.feedback === "object" &&
+    !Array.isArray(existingDetails.feedback)
+      ? (existingDetails.feedback as Record<string, unknown>)
+      : {};
+
+  const detailsJson = {
+    ...existingDetails,
+    feedback: {
+      ...existingFeedback,
+      [options.side]: entry,
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: { detailsJson },
+  });
+
+  return {
+    ok: true as const,
+    alreadySubmitted: false as const,
+    reference: booking.reference,
+    status: booking.status,
+    statusLabel: statusLabel(booking.status),
+    feedbackSubmitted: true as const,
+    feedbackRating: entry.rating,
+    feedbackNote: entry.note,
+    feedbackPicks: entry.picks,
+    feedbackSubmittedAt: entry.submittedAt,
+  };
+}
+
 async function postBookingNoteToBothParties(input: {
   bookingId: string;
   requesterUserId: string;

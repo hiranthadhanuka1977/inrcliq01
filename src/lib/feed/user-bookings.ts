@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { readBookingFeedback } from "@/lib/settings/bookings";
 
 export type MyBookingSummaryRow = {
   label: string;
@@ -25,6 +26,11 @@ export type MyBookingItem = {
   declinedAtLabel: string | null;
   declineReason: string | null;
   instantBooking: boolean;
+  feedbackSubmitted: boolean;
+  feedbackRating: number | null;
+  feedbackNote: string | null;
+  feedbackPicks: string[];
+  feedbackSubmittedAt: string | null;
   summary: MyBookingSummaryRow[];
   creator: {
     id: string;
@@ -80,6 +86,21 @@ function readable(value: string | null | undefined) {
   const trimmed = value?.trim();
   if (!trimmed || trimmed === "—") return null;
   return trimmed;
+}
+
+function feedbackForDirection(
+  detailsJson: unknown,
+  direction: "outbound" | "inbound",
+) {
+  const side = direction === "inbound" ? "provider" : "requester";
+  const entry = readBookingFeedback(detailsJson, side);
+  return {
+    feedbackSubmitted: Boolean(entry),
+    feedbackRating: entry?.rating ?? null,
+    feedbackNote: entry?.note ?? null,
+    feedbackPicks: entry?.picks ?? [],
+    feedbackSubmittedAt: entry?.submittedAt ?? null,
+  };
 }
 
 function detailsRecord(detailsJson: unknown) {
@@ -219,6 +240,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       typeof details?.declineReason === "string" && details.declineReason.trim()
         ? details.declineReason.trim()
         : null;
+    const feedback = feedbackForDirection(request.detailsJson, "outbound");
 
     return {
       id: request.id,
@@ -239,6 +261,11 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       declinedAtLabel: formatDateTime(request.declinedAt),
       declineReason,
       instantBooking: Boolean(request.instantBooking),
+      feedbackSubmitted: feedback.feedbackSubmitted,
+      feedbackRating: feedback.feedbackRating,
+      feedbackNote: feedback.feedbackNote,
+      feedbackPicks: feedback.feedbackPicks,
+      feedbackSubmittedAt: feedback.feedbackSubmittedAt,
       summary: buildSummary(request),
       creator: {
         id: request.creator.id,
@@ -314,6 +341,7 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       typeof details?.declineReason === "string" && details.declineReason.trim()
         ? details.declineReason.trim()
         : null;
+    const feedback = feedbackForDirection(request.detailsJson, "inbound");
 
     return {
       id: request.id,
@@ -334,6 +362,11 @@ export async function listMySpecialRequestBookings(): Promise<MyBookingItem[] | 
       declinedAtLabel: formatDateTime(request.declinedAt),
       declineReason,
       instantBooking: Boolean(request.instantBooking),
+      feedbackSubmitted: feedback.feedbackSubmitted,
+      feedbackRating: feedback.feedbackRating,
+      feedbackNote: feedback.feedbackNote,
+      feedbackPicks: feedback.feedbackPicks,
+      feedbackSubmittedAt: feedback.feedbackSubmittedAt,
       summary: buildSummary(request),
       creator: {
         id: request.user.id,
