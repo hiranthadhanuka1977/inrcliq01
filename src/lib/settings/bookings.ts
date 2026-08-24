@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import {
   bookingNotePreview,
   encodeBookingNote,
@@ -1938,7 +1939,7 @@ export async function submitBookingFeedback(id: string, options: SubmitBookingFe
 
   await prisma.specialRequest.update({
     where: { id },
-    data: { detailsJson },
+    data: { detailsJson: detailsJson as Prisma.InputJsonValue },
   });
 
   return {

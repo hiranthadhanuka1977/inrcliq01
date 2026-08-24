@@ -376,12 +376,16 @@ export default function FirstPostPrompt({
           setError(data.error ?? "Unable to upload that file.");
           break;
         }
-        setMedia((current) => {
-          if (data.kind === "video") {
-            return [{ url: data.url!, alt: file.name, kind: "video" }];
+        const uploadedUrl = data.url;
+        const uploadedKind: MediaItem["kind"] = data.kind === "video" ? "video" : "image";
+        setMedia((current): MediaItem[] => {
+          if (uploadedKind === "video") {
+            const videoItem: MediaItem = { url: uploadedUrl, alt: file.name, kind: "video" };
+            return [videoItem];
           }
           const withoutVideo = current.filter((item) => item.kind !== "video");
-          return [...withoutVideo, { url: data.url!, alt: file.name, kind: "image" }].slice(0, 6);
+          const imageItem: MediaItem = { url: uploadedUrl, alt: file.name, kind: "image" };
+          return [...withoutVideo, imageItem].slice(0, 6);
         });
         if (data.kind === "video") break;
       }

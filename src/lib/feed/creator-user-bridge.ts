@@ -169,10 +169,10 @@ export async function ensureCreatorLinkedToUser(creatorId: string): Promise<stri
  */
 export async function ensureCreatorUserForAuthUser(
   userId: string,
-): Promise<{ id: string; slug: string | null; name: string } | null> {
+): Promise<{ id: string; slug: string | null; name: string; verified: boolean } | null> {
   const existing = await prisma.creatorUser.findFirst({
     where: { userId },
-    select: { id: true, slug: true, name: true },
+    select: { id: true, slug: true, name: true, verified: true },
   });
   if (existing) return existing;
 
@@ -251,7 +251,7 @@ export async function ensureCreatorUserForAuthUser(
 
   const bySlug = await prisma.creatorUser.findFirst({
     where: { slug: profile.slug! },
-    select: { id: true, slug: true, name: true, userId: true },
+    select: { id: true, slug: true, name: true, userId: true, verified: true },
   });
   if (bySlug) {
     if (!bySlug.userId || bySlug.userId === user.id) {
@@ -261,7 +261,7 @@ export async function ensureCreatorUserForAuthUser(
           data: { userId: user.id },
         });
       }
-      return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name };
+      return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name, verified: Boolean(bySlug.verified) };
     }
     const nextSlug = await uniquePublicSlug(`${profile.slug}-user`);
     profile.slug = nextSlug;
@@ -302,14 +302,14 @@ export async function ensureCreatorUserForAuthUser(
         source: user.profile ? "seller-tools-auto" : "first-post-auto",
         userId: user.id,
       },
-      select: { id: true, slug: true, name: true },
+      select: { id: true, slug: true, name: true, verified: true },
     });
   } catch {
     const raced = await prisma.creatorUser.findFirst({
       where: {
         OR: [{ userId: user.id }, { slug: profile.slug! }, { handle }, { email }],
       },
-      select: { id: true, slug: true, name: true, userId: true },
+      select: { id: true, slug: true, name: true, userId: true, verified: true },
     });
     if (!raced) return null;
     if (!raced.userId) {
@@ -318,6 +318,6 @@ export async function ensureCreatorUserForAuthUser(
         data: { userId: user.id },
       });
     }
-    return { id: raced.id, slug: raced.slug, name: raced.name };
+    return { id: raced.id, slug: raced.slug, name: raced.name, verified: Boolean(raced.verified) };
   }
 }
