@@ -12,6 +12,12 @@ function statusLabel(status: string) {
   switch (status) {
     case "RECEIVED":
       return "Received";
+    case "NEW_OFFER":
+      return "New offer";
+    case "COUNTER_OFFER":
+      return "Counter offer";
+    case "OFFER_ACCEPTED":
+      return "Awaiting acceptance";
     case "ACCEPTED":
       return "Accepted";
     case "IN_PROGRESS":

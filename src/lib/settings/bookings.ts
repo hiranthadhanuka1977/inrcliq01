@@ -3,6 +3,7 @@ import {
   bookingNotePreview,
   encodeBookingNote,
 } from "@/lib/feed/booking-confirmation";
+import { bookingBalanceDue, bookingFeeDueNow, paidAmountOnBooking } from "@/lib/feed/booking-fee";
 
 export type SettingsBookingRow = {
   id: string;
@@ -93,6 +94,12 @@ function statusLabel(status: string) {
   switch (status) {
     case "RECEIVED":
       return "Received";
+    case "NEW_OFFER":
+      return "New offer";
+    case "COUNTER_OFFER":
+      return "Counter offer";
+    case "OFFER_ACCEPTED":
+      return "Awaiting acceptance";
     case "ACCEPTED":
       return "Accepted";
     case "IN_PROGRESS":
@@ -339,6 +346,976 @@ export type AcceptBookingOptions = {
   attachmentName?: string | null;
 };
 
+export type SendNewOfferOptions = {
+  offerPrice?: number | null;
+  note?: string | null;
+};
+
+export type CounterOfferOptions = {
+  offerPrice: number;
+  note?: string | null;
+};
+
+function readDetailsJson(detailsJson: unknown): Record<string, unknown> {
+  return detailsJson && typeof detailsJson === "object" && !Array.isArray(detailsJson)
+    ? (detailsJson as Record<string, unknown>)
+    : {};
+}
+
+function readPendingOffer(detailsJson: unknown): {
+  offerPrice: number | null;
+  currency: string;
+  note: string | null;
+  sentAt: string | null;
+} | null {
+  const details = readDetailsJson(detailsJson);
+  const pending = details.pendingOffer;
+  if (!pending || typeof pending !== "object" || Array.isArray(pending)) return null;
+  const row = pending as Record<string, unknown>;
+  const offerPrice =
+    typeof row.offerPrice === "number" && Number.isFinite(row.offerPrice)
+      ? Math.round(row.offerPrice)
+      : null;
+  return {
+    offerPrice,
+    currency: typeof row.currency === "string" ? row.currency : "USD",
+    note: typeof row.note === "string" ? row.note : null,
+    sentAt: typeof row.sentAt === "string" ? row.sentAt : null,
+  };
+}
+
+function readPendingCounterOffer(detailsJson: unknown): {
+  offerPrice: number;
+  currency: string;
+  note: string | null;
+  sentAt: string | null;
+} | null {
+  const details = readDetailsJson(detailsJson);
+  const pending = details.pendingCounterOffer;
+  if (!pending || typeof pending !== "object" || Array.isArray(pending)) return null;
+  const row = pending as Record<string, unknown>;
+  const offerPrice =
+    typeof row.offerPrice === "number" && Number.isFinite(row.offerPrice)
+      ? Math.round(row.offerPrice)
+      : null;
+  if (offerPrice == null || offerPrice <= 0) return null;
+  return {
+    offerPrice,
+    currency: typeof row.currency === "string" ? row.currency : "USD",
+    note: typeof row.note === "string" ? row.note : null,
+    sentAt: typeof row.sentAt === "string" ? row.sentAt : null,
+  };
+}
+
+export async function sendNewOfferSettingsBooking(
+  id: string,
+  options: SendNewOfferOptions = {},
+) {
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      userId: true,
+      threadId: true,
+      deliverBy: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.instantBooking) {
+    return {
+      ok: false as const,
+      error: "Instant bookings cannot send a new offer. Accept or decline instead.",
+    };
+  }
+
+  if (booking.status === "NEW_OFFER") {
+    return {
+      ok: true as const,
+      alreadySent: true as const,
+      reference: booking.reference,
+      status: "NEW_OFFER" as const,
+      statusLabel: statusLabel("NEW_OFFER"),
+      totalLabel: `${booking.totalFee} ${booking.currency}`,
+      offerPrice: null as number | null,
+      note: null as string | null,
+    };
+  }
+
+  if (booking.status !== "RECEIVED") {
+    return {
+      ok: false as const,
+      error: `Only received bookings can receive a new offer (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+
+  const offerPriceRaw = options.offerPrice;
+  const offerPrice =
+    typeof offerPriceRaw === "number" && Number.isFinite(offerPriceRaw) && offerPriceRaw > 0
+      ? Math.round(offerPriceRaw)
+      : null;
+  const note = options.note?.trim() || "";
+  const sentAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const firstName = creatorName.split(" ")[0];
+  const currency = booking.currency || "USD";
+  const finalTotal = offerPrice ?? booking.totalFee;
+
+  const bodyParts = [`${firstName} sent a new offer for booking ${booking.reference}.`];
+  if (offerPrice != null) {
+    bodyParts.push(`Offer price: ${offerPrice} ${currency}.`);
+  } else {
+    bodyParts.push(`Total remains ${finalTotal} ${currency}.`);
+  }
+  if (note) {
+    bodyParts.push(`Note: ${note}`);
+  }
+
+  const notePayload = {
+    kind: "new_offer" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `New offer from ${firstName}`,
+    body: bodyParts.join(" "),
+    deliverBy: booking.deliverBy?.toISOString(),
+    ...(offerPrice != null ? { offerPrice, currency } : {}),
+    ...(note ? { note } : {}),
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const detailsJson = {
+    ...existingDetails,
+    pendingOffer: {
+      offerPrice,
+      currency,
+      note: note || null,
+      sentAt: sentAt.toISOString(),
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "NEW_OFFER",
+      ...(offerPrice != null ? { totalFee: offerPrice } : {}),
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: sentAt,
+  });
+
+  return {
+    ok: true as const,
+    alreadySent: false as const,
+    reference: booking.reference,
+    status: "NEW_OFFER" as const,
+    statusLabel: statusLabel("NEW_OFFER"),
+    totalLabel: `${finalTotal} ${currency}`,
+    offerPrice,
+    note: note || null,
+  };
+}
+
+export async function sendCounterOfferByRequester(
+  id: string,
+  userId: string,
+  options: CounterOfferOptions,
+) {
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      userId: true,
+      threadId: true,
+      deliverBy: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.userId !== userId) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.instantBooking) {
+    return {
+      ok: false as const,
+      error: "Instant bookings cannot send a counter offer.",
+    };
+  }
+
+  if (
+    booking.status === "NEW_OFFER" &&
+    readPendingCounterOffer(booking.detailsJson) &&
+    readDetailsJson(booking.detailsJson).counterAcceptedByProvider !== true
+  ) {
+    return {
+      ok: true as const,
+      alreadySent: true as const,
+      reference: booking.reference,
+      status: "NEW_OFFER" as const,
+      statusLabel: statusLabel("NEW_OFFER"),
+      totalLabel: `${booking.totalFee} ${booking.currency}`,
+      offerPrice: readPendingCounterOffer(booking.detailsJson)?.offerPrice ?? null,
+      note: readPendingCounterOffer(booking.detailsJson)?.note ?? null,
+    };
+  }
+
+  if (booking.status !== "NEW_OFFER") {
+    return {
+      ok: false as const,
+      error: `Counter offers are only available for new offers (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+
+  const offerPrice =
+    typeof options.offerPrice === "number" && Number.isFinite(options.offerPrice) && options.offerPrice > 0
+      ? Math.round(options.offerPrice)
+      : null;
+  if (offerPrice == null) {
+    return { ok: false as const, error: "Enter a valid counter offer price." };
+  }
+
+  const note = options.note?.trim() || "";
+  const sentAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const requesterName =
+    booking.user.profile?.displayName?.trim() ||
+    `${booking.user.firstName?.trim() || ""} ${booking.user.lastName?.trim() || ""}`.trim() ||
+    "The requester";
+  const firstName = requesterName.split(" ")[0];
+  const currency = booking.currency || "USD";
+
+  const bodyParts = [
+    `${firstName} sent a counter offer for booking ${booking.reference}.`,
+    `Counter price: ${offerPrice} ${currency}.`,
+  ];
+  if (note) {
+    bodyParts.push(`Note: ${note}`);
+  }
+
+  const notePayload = {
+    kind: "counter_offer" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Counter offer from ${firstName}`,
+    body: bodyParts.join(" "),
+    deliverBy: booking.deliverBy?.toISOString(),
+    offerPrice,
+    currency,
+    ...(note ? { note } : {}),
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails = readDetailsJson(booking.detailsJson);
+  const detailsJson = {
+    ...existingDetails,
+    counterAcceptedByProvider: false,
+    pendingCounterOffer: {
+      offerPrice,
+      currency,
+      note: note || null,
+      sentAt: sentAt.toISOString(),
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "NEW_OFFER",
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: sentAt,
+  });
+
+  return {
+    ok: true as const,
+    alreadySent: false as const,
+    reference: booking.reference,
+    status: "NEW_OFFER" as const,
+    statusLabel: statusLabel("NEW_OFFER"),
+    totalLabel: `${offerPrice} ${currency}`,
+    offerPrice,
+    note: note || null,
+  };
+}
+
+export async function acceptCounterOfferSettingsBooking(id: string) {
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      userId: true,
+      threadId: true,
+      deliverBy: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status !== "NEW_OFFER") {
+    return {
+      ok: false as const,
+      error: `Only counter offers can be accepted (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+
+  const counter = readPendingCounterOffer(booking.detailsJson);
+  if (!counter) {
+    return { ok: false as const, error: "Counter offer details are missing." };
+  }
+  const existingDetailsForAccept = readDetailsJson(booking.detailsJson);
+  if (existingDetailsForAccept.counterAcceptedByProvider === true) {
+    return {
+      ok: false as const,
+      error: "Counter offer is already accepted.",
+    };
+  }
+
+  const acceptedAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const firstName = creatorName.split(" ")[0];
+  const currency = booking.currency || "USD";
+
+  const notePayload = {
+    kind: "counter_accepted" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Counter accepted by ${firstName}`,
+    body: `${firstName} accepted the counter offer for booking ${booking.reference} at ${counter.offerPrice} ${currency}. The requester can pay the balance to continue.`,
+    offerPrice: counter.offerPrice,
+    currency,
+    ...(counter.note ? { note: counter.note } : {}),
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails = existingDetailsForAccept;
+  const detailsJson = {
+    ...existingDetails,
+    counterAcceptedByProvider: true,
+    pendingOffer: {
+      offerPrice: counter.offerPrice,
+      currency,
+      note: counter.note,
+      sentAt: acceptedAt.toISOString(),
+      source: "requester_counter",
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "NEW_OFFER",
+      totalFee: counter.offerPrice,
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: acceptedAt,
+  });
+
+  return {
+    ok: true as const,
+    reference: booking.reference,
+    status: "NEW_OFFER" as const,
+    statusLabel: statusLabel("NEW_OFFER"),
+    totalLabel: `${counter.offerPrice} ${currency}`,
+    offerPrice: counter.offerPrice,
+    note: counter.note,
+  };
+}
+
+export async function declineCounterOfferSettingsBooking(id: string, reasonInput?: string) {
+  const reason = reasonInput?.trim() || "Counter offer declined.";
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      userId: true,
+      threadId: true,
+      deliverBy: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status !== "NEW_OFFER") {
+    return {
+      ok: false as const,
+      error: `Only counter offers can be declined (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+  const pendingCounter = readPendingCounterOffer(booking.detailsJson);
+  if (!pendingCounter) {
+    return { ok: false as const, error: "Counter offer details are missing." };
+  }
+
+  const declinedAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const firstName = creatorName.split(" ")[0];
+  const currency = booking.currency || "USD";
+  const providerOffer = readPendingOffer(booking.detailsJson);
+  const restoredTotal =
+    providerOffer?.offerPrice != null && providerOffer.offerPrice > 0
+      ? providerOffer.offerPrice
+      : booking.totalFee;
+
+  const notePayload = {
+    kind: "counter_declined" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Counter declined by ${firstName}`,
+    body: `${firstName} declined the counter offer for booking ${booking.reference}. Reason: ${reason} Your original offer of ${restoredTotal} ${currency} still stands.`,
+    reason,
+    offerPrice: restoredTotal,
+    currency,
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails = readDetailsJson(booking.detailsJson);
+  const { pendingCounterOffer: _removed, counterAcceptedByProvider: _accepted, ...rest } =
+    existingDetails;
+  const detailsJson = {
+    ...rest,
+    counterAcceptedByProvider: false,
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "NEW_OFFER",
+      totalFee: restoredTotal,
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: declinedAt,
+  });
+
+  return {
+    ok: true as const,
+    reference: booking.reference,
+    status: "NEW_OFFER" as const,
+    statusLabel: statusLabel("NEW_OFFER"),
+    totalLabel: `${restoredTotal} ${currency}`,
+    declineReason: reason,
+  };
+}
+
+export async function declineOfferByRequester(id: string, reasonInput?: string) {
+  const reason = reasonInput?.trim() || "Offer declined.";
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      totalFee: true,
+      currency: true,
+      userId: true,
+      threadId: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status === "DECLINED") {
+    return {
+      ok: true as const,
+      alreadyDeclined: true as const,
+      reference: booking.reference,
+      status: "DECLINED" as const,
+      statusLabel: statusLabel("DECLINED"),
+      declinedAtLabel: null as string | null,
+      declineReason: reason,
+    };
+  }
+
+  if (booking.status !== "NEW_OFFER") {
+    return {
+      ok: false as const,
+      error: `Only bookings with a new offer can be declined (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+
+  const declinedAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const requesterName =
+    booking.user.profile?.displayName?.trim() ||
+    `${booking.user.firstName?.trim() || ""} ${booking.user.lastName?.trim() || ""}`.trim() ||
+    "The requester";
+  const firstName = requesterName.split(" ")[0];
+  const notePayload = {
+    kind: "offer_declined" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Offer declined by ${firstName}`,
+    body: `The new offer for booking ${booking.reference} was declined. ${reason}`,
+    reason,
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const refundAmount = paidAmountOnBooking({
+    totalFee: booking.totalFee,
+    instantBooking: booking.instantBooking,
+    status: booking.status,
+    detailsJson: booking.detailsJson,
+  });
+  const currency = booking.currency || "USD";
+  const detailsJson = {
+    ...existingDetails,
+    declineReason: reason,
+    offerDeclinedAt: declinedAt.toISOString(),
+    refund: {
+      amount: refundAmount,
+      currency,
+      issuedAt: declinedAt.toISOString(),
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "DECLINED",
+      declinedAt,
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: declinedAt,
+  });
+
+  await postDeclineRefundNotice({
+    booking,
+    amount: refundAmount,
+    currency,
+    at: new Date(declinedAt.getTime() + 1000),
+  });
+
+  return {
+    ok: true as const,
+    alreadyDeclined: false as const,
+    reference: booking.reference,
+    status: "DECLINED" as const,
+    statusLabel: statusLabel("DECLINED"),
+    declinedAtLabel: formatDateTime(declinedAt),
+    declineReason: reason,
+  };
+}
+
+export async function completeOfferBalancePayment(id: string, userId: string) {
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      userId: true,
+      threadId: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          userId: true,
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          handle: true,
+          profile: {
+            select: {
+              displayName: true,
+              handle: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.userId !== userId) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status === "OFFER_ACCEPTED") {
+    return {
+      ok: true as const,
+      alreadyPaid: true as const,
+      reference: booking.reference,
+      status: "OFFER_ACCEPTED" as const,
+      statusLabel: statusLabel("OFFER_ACCEPTED"),
+    };
+  }
+
+  if (booking.status !== "NEW_OFFER") {
+    return {
+      ok: false as const,
+      error: `Balance payment is only available for new offers (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+  if (
+    readPendingCounterOffer(booking.detailsJson) &&
+    readDetailsJson(booking.detailsJson).counterAcceptedByProvider !== true
+  ) {
+    return {
+      ok: false as const,
+      error: "Wait for the provider to respond to your counter offer before paying the balance.",
+    };
+  }
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const depositPaid =
+    typeof existingDetails.bookingFee === "number" && Number.isFinite(existingDetails.bookingFee)
+      ? existingDetails.bookingFee
+      : bookingFeeDueNow(booking.totalFee);
+  const balancePaid = bookingBalanceDue(booking.totalFee, depositPaid);
+  const paidAt = new Date();
+  const creatorName = booking.creator.name?.trim() || "the creator";
+  const requesterName =
+    booking.user.profile?.displayName?.trim() ||
+    `${booking.user.firstName?.trim() || ""} ${booking.user.lastName?.trim() || ""}`.trim() ||
+    "The requester";
+  const firstName = requesterName.split(" ")[0];
+  const currency = booking.currency || "USD";
+
+  const notePayload = {
+    kind: "offer_accepted" as const,
+    reference: booking.reference,
+    creatorName,
+    specialRequestId: booking.id,
+    title: `Balance paid by ${firstName}`,
+    body: `The new offer for booking ${booking.reference} was accepted and the balance of ${balancePaid} ${currency} has been paid. Waiting for ${creatorName.split(" ")[0] || "the provider"} to accept before the delivery countdown starts.`,
+    offerPrice: booking.totalFee,
+    currency,
+  };
+  const noteBody = encodeBookingNote(notePayload);
+  const notePreview = bookingNotePreview(notePayload);
+
+  const detailsJson = {
+    ...existingDetails,
+    balancePayment: {
+      amount: balancePaid,
+      currency,
+      depositPaid,
+      paidAt: paidAt.toISOString(),
+    },
+  };
+
+  await prisma.specialRequest.update({
+    where: { id },
+    data: {
+      status: "OFFER_ACCEPTED",
+      detailsJson,
+    },
+  });
+
+  await postBookingNoteToBothParties({
+    bookingId: booking.id,
+    requesterUserId: booking.userId,
+    requesterThreadId: booking.threadId,
+    creatorOwnerUserId: booking.creator.userId,
+    requester: booking.user,
+    noteBody,
+    notePreview,
+    at: paidAt,
+  });
+
+  return {
+    ok: true as const,
+    alreadyPaid: false as const,
+    reference: booking.reference,
+    status: "OFFER_ACCEPTED" as const,
+    statusLabel: statusLabel("OFFER_ACCEPTED"),
+    balancePaid,
+    currency,
+  };
+}
+
+export async function getBookingBalanceCheckout(id: string, userId: string) {
+  const booking = await prisma.specialRequest.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      instantBooking: true,
+      userId: true,
+      requestLabel: true,
+      totalFee: true,
+      currency: true,
+      detailsJson: true,
+      creator: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  if (!booking || booking.userId !== userId) {
+    return { ok: false as const, error: "Booking not found." };
+  }
+
+  if (booking.status !== "NEW_OFFER") {
+    return {
+      ok: false as const,
+      error: `Balance checkout is not available (current status: ${statusLabel(booking.status)}).`,
+    };
+  }
+  if (
+    readPendingCounterOffer(booking.detailsJson) &&
+    readDetailsJson(booking.detailsJson).counterAcceptedByProvider !== true
+  ) {
+    return {
+      ok: false as const,
+      error: "Balance checkout is unavailable while your counter offer is pending provider response.",
+    };
+  }
+
+  const existingDetails =
+    booking.detailsJson &&
+    typeof booking.detailsJson === "object" &&
+    !Array.isArray(booking.detailsJson)
+      ? (booking.detailsJson as Record<string, unknown>)
+      : {};
+  const depositPaid =
+    typeof existingDetails.bookingFee === "number" && Number.isFinite(existingDetails.bookingFee)
+      ? existingDetails.bookingFee
+      : bookingFeeDueNow(booking.totalFee);
+  const balanceDue = bookingBalanceDue(booking.totalFee, depositPaid);
+
+  return {
+    ok: true as const,
+    id: booking.id,
+    reference: booking.reference,
+    requestLabel: booking.requestLabel,
+    totalFee: booking.totalFee,
+    currency: booking.currency,
+    depositPaid,
+    balanceDue,
+    creatorName: booking.creator.name?.trim() || "Creator",
+    creatorSlug: booking.creator.slug,
+  };
+}
+
 export async function acceptSettingsBooking(id: string, options: AcceptBookingOptions = {}) {
   const booking = await prisma.specialRequest.findUnique({
     where: { id },
@@ -346,6 +1323,7 @@ export async function acceptSettingsBooking(id: string, options: AcceptBookingOp
       id: true,
       reference: true,
       status: true,
+      instantBooking: true,
       userId: true,
       threadId: true,
       deliverBy: true,
@@ -396,21 +1374,32 @@ export async function acceptSettingsBooking(id: string, options: AcceptBookingOp
     };
   }
 
-  if (booking.status !== "RECEIVED") {
+  const isInstant = Boolean(booking.instantBooking);
+  const allowedStatus = isInstant ? "RECEIVED" : "OFFER_ACCEPTED";
+  if (booking.status !== allowedStatus) {
+    if (!isInstant && booking.status === "RECEIVED") {
+      return {
+        ok: false as const,
+        error: "Send a new offer first. The requester must accept and pay the balance before you can confirm delivery.",
+      };
+    }
     return {
       ok: false as const,
-      error: `Only received bookings can be accepted (current status: ${statusLabel(booking.status)}).`,
+      error: `This booking cannot be accepted yet (current status: ${statusLabel(booking.status)}).`,
     };
   }
 
   const offerPriceRaw = options.offerPrice;
   const offerPrice =
-    typeof offerPriceRaw === "number" && Number.isFinite(offerPriceRaw) && offerPriceRaw > 0
+    isInstant &&
+    typeof offerPriceRaw === "number" &&
+    Number.isFinite(offerPriceRaw) &&
+    offerPriceRaw > 0
       ? Math.round(offerPriceRaw)
       : null;
   const note = options.note?.trim() || "";
-  const attachmentUrl = options.attachmentUrl?.trim() || "";
-  const attachmentName = options.attachmentName?.trim() || "";
+  const attachmentUrl = isInstant ? "" : options.attachmentUrl?.trim() || "";
+  const attachmentName = isInstant ? "" : options.attachmentName?.trim() || "";
   if (attachmentUrl && !/^\/uploads\//.test(attachmentUrl)) {
     return { ok: false as const, error: "Invalid attachment." };
   }
@@ -423,7 +1412,11 @@ export async function acceptSettingsBooking(id: string, options: AcceptBookingOp
     booking.deliverBy?.toISOString() ??
     new Date(acceptedAt.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const bodyParts = [`Booking ${booking.reference} has been accepted.`];
+  const bodyParts = [
+    isInstant
+      ? `Booking ${booking.reference} has been accepted.`
+      : `Booking ${booking.reference} has been accepted and the delivery countdown has started.`,
+  ];
   if (offerPrice != null) {
     bodyParts.push(`New offer: ${offerPrice} ${currency}.`);
   }
@@ -523,6 +1516,9 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
       id: true,
       reference: true,
       status: true,
+      instantBooking: true,
+      totalFee: true,
+      currency: true,
       userId: true,
       threadId: true,
       detailsJson: true,
@@ -565,10 +1561,10 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
     };
   }
 
-  if (booking.status !== "RECEIVED") {
+  if (booking.status !== "RECEIVED" && booking.status !== "OFFER_ACCEPTED") {
     return {
       ok: false as const,
-      error: `Only received bookings can be declined (current status: ${statusLabel(booking.status)}).`,
+      error: `This booking cannot be declined (current status: ${statusLabel(booking.status)}).`,
     };
   }
 
@@ -593,9 +1589,21 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
     !Array.isArray(booking.detailsJson)
       ? (booking.detailsJson as Record<string, unknown>)
       : {};
+  const refundAmount = paidAmountOnBooking({
+    totalFee: booking.totalFee,
+    instantBooking: booking.instantBooking,
+    status: booking.status,
+    detailsJson: booking.detailsJson,
+  });
+  const currency = booking.currency || "USD";
   const detailsJson = {
     ...existingDetails,
     declineReason: reason,
+    refund: {
+      amount: refundAmount,
+      currency,
+      issuedAt: declinedAt.toISOString(),
+    },
   };
 
   await prisma.specialRequest.update({
@@ -616,6 +1624,13 @@ export async function declineSettingsBooking(id: string, reasonInput: string) {
     noteBody,
     notePreview,
     at: declinedAt,
+  });
+
+  await postDeclineRefundNotice({
+    booking,
+    amount: refundAmount,
+    currency,
+    at: new Date(declinedAt.getTime() + 1000),
   });
 
   return {
@@ -938,6 +1953,59 @@ export async function submitBookingFeedback(id: string, options: SubmitBookingFe
     feedbackPicks: entry.picks,
     feedbackSubmittedAt: entry.submittedAt,
   };
+}
+
+async function postDeclineRefundNotice(input: {
+  booking: {
+    id: string;
+    reference: string;
+    userId: string;
+    threadId: string | null;
+    creator: {
+      name: string | null;
+      userId: string | null;
+    };
+    user: {
+      firstName: string | null;
+      lastName: string | null;
+      handle: string | null;
+      profile: {
+        displayName: string | null;
+        handle: string | null;
+        slug: string | null;
+      } | null;
+    };
+  };
+  amount: number;
+  currency: string;
+  at: Date;
+}) {
+  const amount = Math.max(0, Math.round(input.amount));
+  if (amount <= 0) return;
+
+  const creatorName = input.booking.creator.name?.trim() || "the creator";
+  const amountLabel = `${amount} ${input.currency}`;
+  const notePayload = {
+    kind: "refund" as const,
+    reference: input.booking.reference,
+    creatorName,
+    specialRequestId: input.booking.id,
+    title: "Refund issued",
+    body: `A refund of ${amountLabel} has been issued for booking ${input.booking.reference} because this request was declined. The amount will return to your original payment method.`,
+    refundAmount: amount,
+    currency: input.currency,
+  };
+
+  await postBookingNoteToBothParties({
+    bookingId: input.booking.id,
+    requesterUserId: input.booking.userId,
+    requesterThreadId: input.booking.threadId,
+    creatorOwnerUserId: input.booking.creator.userId,
+    requester: input.booking.user,
+    noteBody: encodeBookingNote(notePayload),
+    notePreview: bookingNotePreview(notePayload),
+    at: input.at,
+  });
 }
 
 async function postBookingNoteToBothParties(input: {

@@ -23,8 +23,15 @@
   color: var(--booking-status-received);
 }
 
+.booking-status--new_offer {
+  border-color: color-mix(in srgb, #7c4dff 35%, var(--color-border-default));
+  background: color-mix(in srgb, #7c4dff 12%, transparent);
+  color: #5e35b1;
+}
+
 .booking-status--accepted,
-.booking-status--in_progress {
+.booking-status--in_progress,
+.booking-status--offer_accepted {
   border-color: color-mix(in srgb, var(--booking-status-active-border) 40%, var(--color-border-default));
   background: color-mix(in srgb, var(--booking-status-active-border) 12%, transparent);
   color: var(--booking-status-active);

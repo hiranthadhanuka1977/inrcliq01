@@ -276,6 +276,10 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note--declin
   border-color: color-mix(in srgb, var(--booking-status-declined-border) 30%, var(--feed-card-border));
 }
 
+html[data-feed-theme="light"]:has(.feed-path-shell) .booking-status-note--refund .booking-status-note__card {
+  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 30%, var(--feed-card-border));
+}
+
 html[data-feed-theme="light"]:has(.feed-path-shell) .booking-countdown {
   background: var(--color-neutral-50);
   border-color: var(--feed-card-border);

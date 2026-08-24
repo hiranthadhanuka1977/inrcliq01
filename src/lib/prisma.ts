@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump whenever Prisma models change so the Next.js global singleton is discarded. */
-const PRISMA_SCHEMA_VERSION = "20260819083000_creator_unavailable_dates";
+const PRISMA_SCHEMA_VERSION = "20260824143000_special_request_counter_offer_status";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;

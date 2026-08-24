@@ -27,6 +27,9 @@ enum SubscriptionStatus {
 
 enum SpecialRequestStatus {
   RECEIVED
+  NEW_OFFER
+  COUNTER_OFFER
+  OFFER_ACCEPTED
   ACCEPTED
   IN_PROGRESS
   DELIVERED
