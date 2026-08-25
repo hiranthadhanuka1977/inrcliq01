@@ -65,37 +65,71 @@ export function GuardianFlow() {
   const [selfieCapturedOpen, setSelfieCapturedOpen] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [completion, setCompletion] = useState<GuardianCompletion | null>(null);
 
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      setLoadError("This link is missing required information.");
-      return;
-    }
+  const applyLoadedContext = useCallback((data: GuardianContext) => {
+    setContext(data);
+    setIdDocType(data.idDocType ?? "passport");
+    setGuardianCountry(data.guardianCountry);
+    setLoadError("");
+  }, []);
 
-    async function loadContext() {
+  const reloadContext = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`/api/guardian/context?token=${encodeURIComponent(token)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setLoadError(data.error ?? "Invalid or expired approval link.");
+        return;
+      }
+
+      applyLoadedContext(data);
+    } catch {
+      setLoadError("Unable to load approval request.");
+    }
+  }, [applyLoadedContext, token]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadInitialContext() {
+      if (!token) {
+        if (!active) return;
+        setLoading(false);
+        setLoadError("This link is missing required information.");
+        return;
+      }
+
       try {
         const response = await fetch(`/api/guardian/context?token=${encodeURIComponent(token)}`);
         const data = await response.json();
 
+        if (!active) return;
         if (!response.ok) {
           setLoadError(data.error ?? "Invalid or expired approval link.");
           return;
         }
 
-        setContext(data);
-        setIdDocType(data.idDocType ?? "passport");
-        setGuardianCountry(data.guardianCountry);
+        applyLoadedContext(data);
       } catch {
-        setLoadError("Unable to load approval request.");
+        if (active) {
+          setLoadError("Unable to load approval request.");
+        }
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
-    loadContext();
-  }, [token]);
+    void loadInitialContext();
+    return () => {
+      active = false;
+    };
+  }, [applyLoadedContext, token]);
 
   const openDecline = useCallback(() => setDeclineOpen(true), []);
 
@@ -127,6 +161,11 @@ export function GuardianFlow() {
 
   async function handleConsentApprove() {
     if (!context) return;
+
+    if (context.authenticatedGuardian) {
+      setStep("account");
+      return;
+    }
 
     if (context.isReturningGuardian) {
       setStep("protection");
@@ -169,6 +208,26 @@ export function GuardianFlow() {
       setSubmitError("Unable to create guardian account.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleLogout() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    setSubmitError("");
+
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) {
+        setSubmitError("Unable to log out.");
+        return;
+      }
+      await reloadContext();
+      setStep("account");
+    } catch {
+      setSubmitError("Unable to log out.");
+    } finally {
+      setIsLoggingOut(false);
     }
   }
 
@@ -324,13 +383,34 @@ export function GuardianFlow() {
         protection={step === "protection"}
         screenId={step === "account" ? "screen-PAR-02" : undefined}
         sidebar={sidebar}
+        loginEmail={context.parentEmail}
+        onLoginSuccess={async () => {
+          await reloadContext();
+        }}
       >
         {step === "account" ? (
           <ParentAccountStep
             parentEmail={context.parentEmail}
+            existingGuardian={
+              context.authenticatedGuardian
+                ? context.authenticatedGuardianProfile ?? {
+                    name: context.authenticatedGuardianName,
+                    email: context.authenticatedGuardianEmail ?? context.parentEmail,
+                    country: context.authenticatedGuardianCountry,
+                    region: context.authenticatedGuardianRegion,
+                    statusLabel: "Active",
+                    emailVerified: true,
+                    ageVerified: context.isReturningGuardian,
+                    accountTypeLabel: "Guardian",
+                  }
+                : null
+            }
+            onContinueAsExistingGuardian={() => setStep("protection")}
+            onLogout={handleLogout}
             onBack={() => setStep("consent")}
             onSubmit={handleAccountSubmit}
             isSubmitting={isSubmitting}
+            isLoggingOut={isLoggingOut}
             error={submitError}
           />
         ) : null}

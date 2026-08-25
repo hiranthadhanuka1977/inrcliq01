@@ -28,11 +28,28 @@ export type GuardianChildContext = {
   sentAtDisplay: string;
 };
 
+export type AuthenticatedGuardianProfile = {
+  name: string | null;
+  email: string;
+  country: string | null;
+  region: string | null;
+  statusLabel: string;
+  emailVerified: boolean;
+  ageVerified: boolean;
+  accountTypeLabel: string;
+};
+
 export type GuardianContext = {
   requestId: string;
   status: ApprovalStatus;
   parentEmail: string;
   isReturningGuardian: boolean;
+  authenticatedGuardian: boolean;
+  authenticatedGuardianName: string | null;
+  authenticatedGuardianEmail: string | null;
+  authenticatedGuardianCountry: string | null;
+  authenticatedGuardianRegion: string | null;
+  authenticatedGuardianProfile: AuthenticatedGuardianProfile | null;
   child: GuardianChildContext;
   guardianCountry: string | null;
   guardianRegion: string | null;
@@ -42,6 +59,53 @@ export type GuardianContext = {
   simulatedParentDob: string;
   simulatedIdNumber: string;
 };
+
+export function buildAuthenticatedGuardianProfile(user: {
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  country: string | null;
+  region: string | null;
+  emailVerified: Date | null;
+  dateOfBirth: Date | null;
+  accountType: AccountType;
+  onboardingStep: string | null;
+}): AuthenticatedGuardianProfile {
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+  const age = user.dateOfBirth
+    ? calculateAge(
+        user.dateOfBirth.getMonth() + 1,
+        user.dateOfBirth.getDate(),
+        user.dateOfBirth.getFullYear(),
+      )
+    : null;
+  const ageVerified =
+    user.onboardingStep === "complete" || (age != null && age >= 18);
+
+  let statusLabel = "Active";
+  if (user.onboardingStep === "guardian-setup") statusLabel = "Setup in progress";
+  else if (user.onboardingStep && user.onboardingStep !== "complete") {
+    statusLabel = "Onboarding incomplete";
+  }
+
+  const accountTypeLabel =
+    user.accountType === AccountType.GUARDIAN
+      ? "Guardian"
+      : user.accountType === AccountType.MINOR
+        ? "Minor"
+        : "Adult";
+
+  return {
+    name: fullName || null,
+    email: user.email,
+    country: user.country,
+    region: user.region,
+    statusLabel,
+    emailVerified: Boolean(user.emailVerified),
+    ageVerified,
+    accountTypeLabel,
+  };
+}
 
 function buildChildContext(child: {
   firstName: string | null;
@@ -53,7 +117,6 @@ function buildChildContext(child: {
   region: string | null;
 }, sentAt: Date): GuardianChildContext {
   const firstName = child.firstName ?? "Your child";
-  const lastName = child.lastName ?? "";
   const fullName = [child.firstName, child.lastName].filter(Boolean).join(" ") || firstName;
   const age = child.dateOfBirth
     ? calculateAge(
@@ -127,6 +190,12 @@ export async function buildGuardianContext(rawToken: string): Promise<
       status: request.status,
       parentEmail: request.parentEmail,
       isReturningGuardian: Boolean(returningGuardian),
+      authenticatedGuardian: false,
+      authenticatedGuardianName: null,
+      authenticatedGuardianEmail: null,
+      authenticatedGuardianCountry: null,
+      authenticatedGuardianRegion: null,
+      authenticatedGuardianProfile: null,
       child,
       guardianCountry: request.guardianCountry,
       guardianRegion: request.guardianRegion,
