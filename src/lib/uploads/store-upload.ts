@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { put } from "@vercel/blob";
 
 function usesBlobStorage() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  // Long-lived token (legacy / external) or OIDC-connected store on Vercel.
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
 /** True for local `/uploads/...` paths or Vercel Blob public URLs. */
@@ -50,7 +51,7 @@ export async function storeUploadedFile(options: {
 
   if (process.env.VERCEL) {
     throw new Error(
-      "File uploads on Vercel require BLOB_READ_WRITE_TOKEN. Add a Blob store in the Vercel project and set the token.",
+      "File uploads on Vercel require a connected Blob store. Link inrcliq01-blob to this project under Storage.",
     );
   }
 
