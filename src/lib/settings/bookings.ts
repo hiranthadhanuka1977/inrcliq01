@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isStoredUploadUrl } from "@/lib/uploads/store-upload";
 import type { Prisma } from "@/generated/prisma/client";
 import {
   bookingNotePreview,
@@ -1401,7 +1402,7 @@ export async function acceptSettingsBooking(id: string, options: AcceptBookingOp
   const note = options.note?.trim() || "";
   const attachmentUrl = isInstant ? "" : options.attachmentUrl?.trim() || "";
   const attachmentName = isInstant ? "" : options.attachmentName?.trim() || "";
-  if (attachmentUrl && !/^\/uploads\//.test(attachmentUrl)) {
+  if (attachmentUrl && !isStoredUploadUrl(attachmentUrl)) {
     return { ok: false as const, error: "Invalid attachment." };
   }
 
@@ -1653,7 +1654,7 @@ export type DeliverBookingOptions = {
 
 export async function deliverSettingsBooking(id: string, options: DeliverBookingOptions) {
   const deliveryUrl = options.deliveryUrl?.trim() || "";
-  const hasDeliveryFile = Boolean(deliveryUrl) && /^\/uploads\//.test(deliveryUrl);
+  const hasDeliveryFile = Boolean(deliveryUrl) && isStoredUploadUrl(deliveryUrl);
   if (deliveryUrl && !hasDeliveryFile) {
     return { ok: false as const, error: "Invalid delivery file." };
   }

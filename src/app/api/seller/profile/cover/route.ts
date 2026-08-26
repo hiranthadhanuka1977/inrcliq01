@@ -1,10 +1,9 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { requireSellerCollectionIdentity } from "@/lib/seller/identity";
+import { storeUploadedFile } from "@/lib/uploads/store-upload";
 
 const MAX_BYTES = 12 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -72,12 +71,13 @@ export async function POST(request: Request) {
 
     const bytes = Buffer.from(await file.arrayBuffer());
     const filename = `${user.id}-${Date.now()}-${randomBytes(4).toString("hex")}.${extensionFor(file.type)}`;
-    const relativeDir = join("uploads", "covers");
-    const absoluteDir = join(process.cwd(), "public", relativeDir);
-    mkdirSync(absoluteDir, { recursive: true });
-    writeFileSync(join(absoluteDir, filename), bytes);
-
-    const coverUrl = `/${relativeDir.replaceAll("\\", "/")}/${filename}`;
+    const stored = await storeUploadedFile({
+      folder: "uploads/covers",
+      filename,
+      bytes,
+      contentType: file.type,
+    });
+    const coverUrl = stored.url;
     await persistCoverUrl(user.id, coverUrl);
 
     return NextResponse.json({ ok: true, coverUrl });

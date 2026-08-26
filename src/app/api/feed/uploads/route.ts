@@ -1,8 +1,7 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
+import { storeUploadedFile } from "@/lib/uploads/store-upload";
 
 const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 25 * 1024 * 1024;
@@ -21,7 +20,7 @@ function extensionFor(type: string, filename: string) {
 }
 
 export async function POST(request: Request) {
-  const { user, error } = await requireSessionUser();
+  const { error } = await requireSessionUser();
   if (error) return error;
 
   try {
@@ -51,18 +50,24 @@ export async function POST(request: Request) {
 
     const bytes = Buffer.from(await file.arrayBuffer());
     const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${extensionFor(file.type, file.name)}`;
-    const relativeDir = join("uploads", "feed-posts");
-    const absoluteDir = join(process.cwd(), "public", relativeDir);
-    mkdirSync(absoluteDir, { recursive: true });
-    writeFileSync(join(absoluteDir, filename), bytes);
+    const stored = await storeUploadedFile({
+      folder: "uploads/feed-posts",
+      filename,
+      bytes,
+      contentType: file.type,
+    });
 
     return NextResponse.json({
       ok: true,
       kind: isVideo ? "video" : "image",
-      url: `/${relativeDir.replaceAll("\\", "/")}/${filename}`,
+      url: stored.url,
     });
   } catch (error) {
     console.error("POST /api/feed/uploads error", error);
-    return NextResponse.json({ error: "Unable to upload that file." }, { status: 500 });
+    const message =
+      error instanceof Error && error.message.includes("BLOB_READ_WRITE_TOKEN")
+        ? error.message
+        : "Unable to upload that file.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

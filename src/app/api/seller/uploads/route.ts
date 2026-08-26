@@ -1,8 +1,7 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
+import { storeUploadedFile } from "@/lib/uploads/store-upload";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -47,17 +46,23 @@ export async function POST(request: Request) {
 
     const bytes = Buffer.from(await file.arrayBuffer());
     const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${extensionFor(file.type)}`;
-    const relativeDir = join("uploads", "seller-service-requests");
-    const absoluteDir = join(process.cwd(), "public", relativeDir);
-    mkdirSync(absoluteDir, { recursive: true });
-    writeFileSync(join(absoluteDir, filename), bytes);
+    const stored = await storeUploadedFile({
+      folder: "uploads/seller-service-requests",
+      filename,
+      bytes,
+      contentType: file.type,
+    });
 
     return NextResponse.json({
       ok: true,
-      url: `/${relativeDir.replaceAll("\\", "/")}/${filename}`,
+      url: stored.url,
     });
   } catch (error) {
     console.error("seller/uploads POST error", error);
-    return NextResponse.json({ error: "Unable to upload image." }, { status: 500 });
+    const message =
+      error instanceof Error && error.message.includes("BLOB_READ_WRITE_TOKEN")
+        ? error.message
+        : "Unable to upload image.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
