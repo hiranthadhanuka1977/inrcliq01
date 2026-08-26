@@ -110,3 +110,58 @@ body.page-messages .app-shell.page-messages,
     padding-right: var(--space-4);
   }
 }
+
+.feed-media-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-3);
+  min-height: min(60vh, 28rem);
+  width: 100%;
+  max-width: var(--feed-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-5);
+}
+
+.feed-media-placeholder__icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-lg, 1rem);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  color: var(--color-accent);
+}
+
+.feed-media-placeholder__icon .nav-icon,
+.feed-media-placeholder__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.feed-media-placeholder__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.feed-media-placeholder__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.feed-media-placeholder__body {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}

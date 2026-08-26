@@ -95,6 +95,22 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item.is-active
   color: var(--color-brand-primary);
 }
 
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-media__item {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-media__item:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-media__item:focus-visible {
+  background: var(--color-bg-muted);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-media__item.is-active {
+  background: var(--color-brand-primary-subtle);
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
+
 html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item--danger {
   color: #b42318;
 }

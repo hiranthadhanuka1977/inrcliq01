@@ -17,9 +17,9 @@ const navItems: {
 }[] = [
   { label: "Home", href: "/feed", icon: "home" },
   { label: "Messages", href: "/feed/messages", icon: "messages" },
-  { label: "Snaps", href: "#", icon: "snaps" },
-  { label: "Photos", href: "#", icon: "photos" },
-  { label: "Videos", href: "#", icon: "videos" },
+  { label: "Snaps", href: "/feed/snaps", icon: "snaps" },
+  { label: "Photos", href: "/feed/photos", icon: "photos" },
+  { label: "Videos", href: "/feed/videos", icon: "videos" },
   { label: "Audio", href: "/feed/audio", icon: "audio" },
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },

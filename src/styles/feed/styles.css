@@ -2774,7 +2774,7 @@ a.nav-profile__dropdown-item {
   }
   .mobile-nav {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     position: fixed;
     left: 0;
     right: 0;
@@ -2904,6 +2904,77 @@ a.nav-profile__dropdown-item {
   }
 
   .mobile-more__item .nav-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .mobile-media__sheet {
+    max-height: none;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-media__title {
+    margin: 0 0 0.85rem;
+    padding: 0 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .mobile-media__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-media__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    min-height: 5.25rem;
+    margin: 0;
+    padding: 0.75rem 0.35rem;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle, var(--color-neutral-50));
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .mobile-media__item:hover,
+  .mobile-media__item:focus-visible {
+    background: var(--color-bg-muted);
+    outline: none;
+  }
+
+  .mobile-media__item.is-active {
+    border-color: var(--color-brand-primary);
+    background: var(--color-brand-primary-subtle);
+    color: var(--color-brand-primary);
+  }
+
+  .mobile-media__item .nav-icon {
+    display: inline-flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: inherit;
+  }
+
+  .mobile-media__item .nav-icon svg {
     width: 100%;
     height: 100%;
   }

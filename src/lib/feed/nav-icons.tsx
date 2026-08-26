@@ -1,10 +1,14 @@
 export const MOBILE_NAV_ITEMS = [
   { label: "Home", href: "/feed", icon: "home" },
-  { label: "Snaps", href: "#", icon: "snaps" },
-  { label: "Photos", href: "#", icon: "photos" },
-  { label: "Videos", href: "#", icon: "videos" },
+  { label: "Media", href: "#", icon: "media", action: "media" },
+  { label: "More", href: "#", icon: "more", action: "more" },
+] as const;
+
+export const MOBILE_MEDIA_ITEMS = [
+  { label: "Snaps", href: "/feed/snaps", icon: "snaps" },
+  { label: "Photos", href: "/feed/photos", icon: "photos" },
+  { label: "Videos", href: "/feed/videos", icon: "videos" },
   { label: "Audio", href: "/feed/audio", icon: "audio" },
-  { label: "More", href: "#", icon: "more" },
 ] as const;
 
 export const MOBILE_MORE_ITEMS = [
@@ -21,6 +25,7 @@ export const MOBILE_MORE_ITEMS = [
 
 export type NavIconName =
   | (typeof MOBILE_NAV_ITEMS)[number]["icon"]
+  | (typeof MOBILE_MEDIA_ITEMS)[number]["icon"]
   | (typeof MOBILE_MORE_ITEMS)[number]["icon"]
   | "explore"
   | "messages"
@@ -34,6 +39,14 @@ export function NavIcon({ name }: { name: NavIconName }) {
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
+        </svg>
+      );
+    case "media":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m21 15-5-5-4 4-2-2-5 5" />
         </svg>
       );
     case "snaps":
