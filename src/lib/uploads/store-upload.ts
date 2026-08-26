@@ -26,7 +26,7 @@ export function isStoredUploadUrl(url: string) {
 
 /**
  * Persist an uploaded file.
- * - With `BLOB_READ_WRITE_TOKEN` (required on Vercel): stores in Vercel Blob and
+ * - On Vercel with a connected Blob store (BLOB_STORE_ID / OIDC or BLOB_READ_WRITE_TOKEN):
  *   returns a public HTTPS URL.
  * - Locally without that token: writes under `public/uploads/...` and returns a
  *   site-relative `/uploads/...` path.

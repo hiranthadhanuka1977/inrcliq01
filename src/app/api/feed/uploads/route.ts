@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("POST /api/feed/uploads error", error);
     const message =
-      error instanceof Error && error.message.includes("BLOB_READ_WRITE_TOKEN")
+      error instanceof Error && error.message.includes("Blob store")
         ? error.message
         : "Unable to upload that file.";
     return NextResponse.json({ error: message }, { status: 500 });

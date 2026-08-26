@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("seller/uploads POST error", error);
     const message =
-      error instanceof Error && error.message.includes("BLOB_READ_WRITE_TOKEN")
+      error instanceof Error && error.message.includes("Blob store")
         ? error.message
         : "Unable to upload image.";
     return NextResponse.json({ error: message }, { status: 500 });
