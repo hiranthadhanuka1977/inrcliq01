@@ -11,8 +11,9 @@ function initialsFromName(firstName?: string | null) {
 }
 
 export default function SpotifyLanding({ firstName }: { firstName?: string | null } = {}) {
-  const { firstName: sessionFirstName } = useFeedSession();
+  const { firstName: sessionFirstName, avatarUrl, avatarColor } = useFeedSession();
   const name = (firstName?.trim() || sessionFirstName?.trim() || "there");
+  const avatarAccent = avatarColor?.trim() || "#0d9488";
 
   return (
     <section className="spotify-landing" aria-label="Quick access">
@@ -21,10 +22,15 @@ export default function SpotifyLanding({ firstName }: { firstName?: string | nul
           <Link
             href="/feed/me"
             className="spotify-landing__avatar spotify-landing__avatar--live"
-            style={{ "--story-color": "#0d9488" } as React.CSSProperties}
+            style={{ "--story-color": avatarAccent } as React.CSSProperties}
             aria-label="View your profile"
           >
-            {initialsFromName(name === "there" ? null : name)}
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" width={48} height={48} />
+            ) : (
+              initialsFromName(name === "there" ? null : name)
+            )}
           </Link>
           <h1 className="spotify-landing__greeting">
             {getGreeting()}, {name}

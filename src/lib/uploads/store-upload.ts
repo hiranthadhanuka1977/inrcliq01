@@ -3,8 +3,12 @@ import { join } from "node:path";
 import { put } from "@vercel/blob";
 
 function usesBlobStorage() {
-  // Long-lived token (legacy / external) or OIDC-connected store on Vercel.
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+  // Explicit token works anywhere (including local Blob testing).
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    return true;
+  }
+  // OIDC store binding (BLOB_STORE_ID) only works on Vercel's platform.
+  return Boolean(process.env.VERCEL && process.env.BLOB_STORE_ID);
 }
 
 /** True for local `/uploads/...` paths or Vercel Blob public URLs. */
@@ -26,10 +30,10 @@ export function isStoredUploadUrl(url: string) {
 
 /**
  * Persist an uploaded file.
- * - On Vercel with a connected Blob store (BLOB_STORE_ID / OIDC or BLOB_READ_WRITE_TOKEN):
+ * - On Vercel with a connected Blob store (BLOB_STORE_ID + OIDC, or BLOB_READ_WRITE_TOKEN):
  *   returns a public HTTPS URL.
- * - Locally without that token: writes under `public/uploads/...` and returns a
- *   site-relative `/uploads/...` path.
+ * - Locally (or when only BLOB_STORE_ID is present without Vercel OIDC): writes under
+ *   `public/uploads/...` and returns a site-relative `/uploads/...` path.
  */
 export async function storeUploadedFile(options: {
   folder: string;
