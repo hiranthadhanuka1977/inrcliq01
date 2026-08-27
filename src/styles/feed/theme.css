@@ -111,6 +111,16 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-media__item.is-activ
   color: var(--color-brand-primary);
 }
 
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav__create-btn {
+  border-color: var(--feed-card-bg, var(--color-neutral-0));
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav__create-btn:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav__create-btn:focus-visible,
+html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav__create-btn:active {
+  border-color: var(--color-brand-primary);
+}
+
 html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__item--danger {
   color: #b42318;
 }

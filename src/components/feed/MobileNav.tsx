@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import CreatePostModal from "@/components/feed/account/CreatePostModal";
+import { useFeedSession } from "@/context/feed/FeedSessionContext";
 import { useFeedTheme } from "@/context/feed/FeedThemeContext";
 import {
   MOBILE_MEDIA_ITEMS,
@@ -82,11 +84,12 @@ type SheetKind = "media" | "more" | null;
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { firstName, verified } = useFeedSession();
   const { theme, toggleTheme } = useFeedTheme();
   const [openSheet, setOpenSheet] = useState<SheetKind>(null);
-  const [selectedMedia, setSelectedMedia] = useState<MediaSelection | null>(() =>
-    readStoredMediaSelection(),
-  );
+  const [selectedMedia, setSelectedMedia] = useState<MediaSelection | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [messagesUnread, setMessagesUnread] = useState(0);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const mediaSheetId = useId();
   const moreSheetId = useId();
@@ -98,10 +101,35 @@ export default function MobileNav() {
   const effectiveMedia: MediaSelection | null = pathMedia ?? selectedMedia;
 
   useEffect(() => {
+    if (pathMedia) return;
+    const stored = readStoredMediaSelection();
+    if (stored) {
+      setSelectedMedia(stored);
+    }
+  }, [pathMedia]);
+
+  useEffect(() => {
     if (!pathMedia) return;
     setSelectedMedia(pathMedia);
     writeStoredMediaSelection(pathMedia);
   }, [pathMedia]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/feed/messages", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { unreadTotal?: number } | null) => {
+        if (!cancelled && data?.unreadTotal != null) {
+          setMessagesUnread(Number(data.unreadTotal) || 0);
+        }
+      })
+      .catch(() => {
+        // Badge stays at 0 when offline/unauthenticated.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!openSheet) return;
@@ -291,8 +319,37 @@ export default function MobileNav() {
         </div>
       ) : null}
 
+      <CreatePostModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        firstName={firstName?.trim() || null}
+        verified={verified}
+      />
+
       <nav className="mobile-nav" aria-label="Primary navigation">
         {MOBILE_NAV_ITEMS.map((item) => {
+          const action = "action" in item ? item.action : undefined;
+
+          if (action === "create") {
+            return (
+              <div key={item.label} className="mobile-nav__create">
+                <button
+                  type="button"
+                  className="mobile-nav__create-btn"
+                  aria-label="Create"
+                  aria-haspopup="dialog"
+                  aria-expanded={createOpen}
+                  onClick={() => {
+                    setOpenSheet(null);
+                    setCreateOpen(true);
+                  }}
+                >
+                  <NavIcon name="create" />
+                </button>
+              </div>
+            );
+          }
+
           if (item.label === "Media") {
             const mediaActive =
               openSheet === "media" ||
@@ -340,6 +397,7 @@ export default function MobileNav() {
           }
 
           const active = isActive(pathname, item.href);
+          const showMessagesBadge = item.href === "/feed/messages" && messagesUnread > 0;
 
           return (
             <Link
@@ -349,8 +407,14 @@ export default function MobileNav() {
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
-              <span className={`nav-icon${item.icon === "home" ? " nav-icon--home" : ""}`} aria-hidden="true">
+              <span
+                className={`nav-icon${item.icon === "home" ? " nav-icon--home" : ""}${showMessagesBadge ? " nav-icon--badged" : ""}`}
+                aria-hidden="true"
+              >
                 <NavIcon name={item.icon} />
+                {showMessagesBadge ? (
+                  <span className="mobile-nav__badge">{messagesUnread > 99 ? "99+" : messagesUnread}</span>
+                ) : null}
               </span>
               {item.label}
             </Link>
