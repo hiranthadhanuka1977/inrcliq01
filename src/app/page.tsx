@@ -3,6 +3,7 @@ import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { WelcomePlaceholder } from "@/components/home/WelcomePlaceholder";
 import { PrototypeConsentModal } from "@/components/prototype/PrototypeConsentModal";
+import { PrototypeControls } from "@/components/prototype/PrototypeControls";
 import { getOnboardingRedirect } from "@/lib/auth/onboarding";
 import { getLatestParentRequest } from "@/lib/auth/parent-invite";
 import { getSessionUser } from "@/lib/session";
@@ -28,6 +29,7 @@ export default async function LoginPage({
 
   return (
     <>
+      <PrototypeControls />
       <AuthSplitLayout title="Welcome back." subtitle="Log in to your InrCliq account.">
         <LoginForm />
       </AuthSplitLayout>
