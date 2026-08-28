@@ -10,7 +10,7 @@ const REMOTE_BASE =
   "https://raw.githubusercontent.com/infinitered/nsfwjs/master/models/mobilenet_v2";
 const FILES = ["model.json", "group1-shard1of1"];
 
-async function fileExists(filePath: string) {
+async function fileExists(filePath) {
   try {
     const info = await stat(filePath);
     return info.isFile() && info.size > 0;
@@ -19,7 +19,7 @@ async function fileExists(filePath: string) {
   }
 }
 
-async function download(url: string) {
+async function download(url) {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to download ${url} (${response.status})`);
