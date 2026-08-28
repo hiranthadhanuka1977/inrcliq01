@@ -26,6 +26,7 @@ type UploadModerationPayload = {
   message: string;
   category: ImageModerationBlock["category"];
   confidence: number;
+  verificationFailed?: boolean;
 };
 
 function uploadModerationToBlock(payload: UploadModerationPayload): ImageModerationBlock {
@@ -36,6 +37,7 @@ function uploadModerationToBlock(payload: UploadModerationPayload): ImageModerat
     category: payload.category,
     confidence: payload.confidence,
     predictions: [],
+    verificationFailed: payload.verificationFailed,
   };
 }
 
@@ -121,6 +123,19 @@ type GifItem = {
   url: string;
   alt: string;
 };
+
+function ComposerImageStatus({ label }: { label: string }) {
+  return (
+    <p className="composer-image-status" role="status" aria-live="polite">
+      <span className="composer-image-status__label">{label}</span>
+      <span className="composer-image-status__dots" aria-hidden="true">
+        <span>.</span>
+        <span>.</span>
+        <span>.</span>
+      </span>
+    </p>
+  );
+}
 
 function PhotoIcon() {
   return (
@@ -249,7 +264,7 @@ export default function FirstPostPrompt({
   const [gifQuery, setGifQuery] = useState("");
   const [gifs, setGifs] = useState<GifItem[]>([]);
   const [gifsLoading, setGifsLoading] = useState(false);
-  const [exclusiveContent, setExclusiveContent] = useState(Boolean(verified));
+  const [exclusiveContent, setExclusiveContent] = useState(false);
   const [crossPostPlatforms, setCrossPostPlatforms] = useState<Record<CrossPostPlatformId, boolean>>({
     facebook: false,
     instagram: false,
@@ -276,10 +291,6 @@ export default function FirstPostPrompt({
     }
     setVisible(true);
   }, [isModal, storageKey]);
-
-  useEffect(() => {
-    setExclusiveContent(Boolean(verified));
-  }, [verified]);
 
   useEffect(() => {
     void preloadImageModerationModel();
@@ -520,10 +531,6 @@ export default function FirstPostPrompt({
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (imageWarning) {
-      setError("Remove the flagged photo before publishing.");
-      return;
-    }
     const unverifiedImage = media.find((item) => item.kind === "image" && !item.moderationPassed);
     if (unverifiedImage) {
       setError("One or more photos did not pass the safety check. Remove them and try again.");
@@ -564,6 +571,7 @@ export default function FirstPostPrompt({
         setError(data.error ?? "Unable to publish your post.");
         return;
       }
+      setImageWarning(null);
       try {
         window.localStorage.setItem(storageKey, "1");
       } catch {
@@ -805,19 +813,17 @@ export default function FirstPostPrompt({
           </div>
         </div>
 
-        {moderating ? (
-          <p className="composer-image-warning__checking" role="status">
-            Checking selected photo…
-          </p>
-        ) : null}
+        {moderating ? <ComposerImageStatus label="Checking photo" /> : null}
+        {!moderating && uploading ? <ComposerImageStatus label="Uploading file" /> : null}
 
         {imageWarning ? (
           <div ref={imageWarningRef} className="composer-image-warning" role="alert" aria-live="assertive">
             <strong className="composer-image-warning__title">{imageWarning.title}</strong>
             <p className="composer-image-warning__body">{imageWarning.message}</p>
             <p className="composer-image-warning__meta">
-              Flagged as {imageWarning.category.toLowerCase()} ({Math.round(imageWarning.confidence * 100)}%
-              confidence). This photo was not added to your post.
+              {imageWarning.verificationFailed
+                ? "This photo was not added to your post."
+                : `Flagged as ${imageWarning.category.toLowerCase()} (${Math.round(imageWarning.confidence * 100)}% confidence). This photo was not added to your post.`}
             </p>
           </div>
         ) : null}
@@ -1060,11 +1066,27 @@ export default function FirstPostPrompt({
         </fieldset>
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
-            {moderating
-              ? "Checking selected photo…"
-              : uploading
-                ? "Uploading…"
-                : "Photos, tags, places, feelings, and GIFs are optional."}
+            {moderating ? (
+              <>
+                Checking photo
+                <span className="composer-image-status__dots composer-image-status__dots--inline" aria-hidden="true">
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </span>
+              </>
+            ) : uploading ? (
+              <>
+                Uploading file
+                <span className="composer-image-status__dots composer-image-status__dots--inline" aria-hidden="true">
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </span>
+              </>
+            ) : (
+              "Photos, tags, places, feelings, and GIFs are optional."
+            )}
           </p>
           <div className="first-post-prompt__actions">
             {isModal ? null : (

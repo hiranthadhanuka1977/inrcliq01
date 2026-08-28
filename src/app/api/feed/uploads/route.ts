@@ -63,6 +63,7 @@ export async function POST(request: Request) {
               message: moderation.message,
               category: moderation.category,
               confidence: moderation.confidence,
+              verificationFailed: moderation.verificationFailed,
             },
           },
           { status: 422 },

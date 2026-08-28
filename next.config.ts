@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  serverExternalPackages: ["@tensorflow/tfjs", "nsfwjs", "sharp"],
 };
 
 export default nextConfig;

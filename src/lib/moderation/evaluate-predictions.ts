@@ -80,6 +80,7 @@ export function evaluatePredictions(predictions: ImageModerationPrediction[]): I
       category: "Neutral",
       confidence: 0,
       predictions: [],
+      verificationFailed: true,
     };
   }
 

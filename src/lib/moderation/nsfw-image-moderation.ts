@@ -1,6 +1,6 @@
 "use client";
 
-import { evaluatePredictions, formatImageModerationError } from "@/lib/moderation/evaluate-predictions";
+import { formatImageModerationError } from "@/lib/moderation/evaluate-predictions";
 import type { ImageModerationBlock, ImageModerationResult } from "@/lib/moderation/image-moderation-types";
 
 export type {
@@ -11,57 +11,6 @@ export type {
 } from "@/lib/moderation/image-moderation-types";
 
 export { formatImageModerationError };
-
-type NsfwModel = {
-  classify: (
-    img: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement,
-    topK?: number,
-  ) => Promise<import("@/lib/moderation/image-moderation-types").ImageModerationPrediction[]>;
-};
-
-let modelPromise: Promise<NsfwModel> | null = null;
-
-async function loadModerationModel(): Promise<NsfwModel> {
-  if (typeof window === "undefined") {
-    throw new Error("Image moderation runs in the browser only.");
-  }
-
-  if (!modelPromise) {
-    modelPromise = (async () => {
-      try {
-        const tf = await import("@tensorflow/tfjs");
-        await import("@tensorflow/tfjs-backend-webgl");
-        if (!tf.getBackend()) {
-          await tf.setBackend("webgl");
-        }
-        await tf.ready();
-        const nsfwjs = await import("nsfwjs");
-        return (await nsfwjs.load()) as NsfwModel;
-      } catch (error) {
-        modelPromise = null;
-        throw error;
-      }
-    })();
-  }
-
-  return modelPromise;
-}
-
-function fileToImageElement(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error("Could not read this image file."));
-    };
-    image.src = objectUrl;
-  });
-}
 
 export function isImageFile(file: File): boolean {
   if (file.type.startsWith("image/")) return true;
@@ -78,33 +27,49 @@ export function shouldModerateUploadFile(file: File): boolean {
   return !file.type || file.type === "application/octet-stream";
 }
 
+function verificationFailedResult(): ImageModerationBlock {
+  return {
+    allowed: false,
+    title: "Unable to verify image",
+    message:
+      "We could not run the safety check on this photo. Please try again or choose a different image.",
+    category: "Neutral",
+    confidence: 0,
+    predictions: [],
+    verificationFailed: true,
+  };
+}
+
 export async function moderateImageFile(file: File): Promise<ImageModerationResult> {
   if (!shouldModerateUploadFile(file)) {
     return { allowed: true };
   }
 
   try {
-    const [model, image] = await Promise.all([loadModerationModel(), fileToImageElement(file)]);
-    const predictions = await model.classify(image, 5);
-    return evaluatePredictions(predictions);
+    const body = new FormData();
+    body.append("file", file);
+    const response = await fetch("/api/feed/moderate-image", { method: "POST", body });
+    const data = (await response.json().catch(() => ({}))) as {
+      ok?: boolean;
+      error?: string;
+      result?: ImageModerationResult;
+    };
+
+    if (data.result) {
+      return data.result;
+    }
+
+    if (!response.ok) {
+      console.error("Image moderation API failed", response.status, data.error);
+    }
+
+    return verificationFailedResult();
   } catch (error) {
     console.error("Image moderation failed", error);
-    return {
-      allowed: false,
-      title: "Unable to verify image",
-      message:
-        "We could not run the safety check on this photo. Please try again or choose a different image.",
-      category: "Neutral",
-      confidence: 0,
-      predictions: [],
-    };
+    return verificationFailedResult();
   }
 }
 
 export async function preloadImageModerationModel(): Promise<void> {
-  try {
-    await loadModerationModel();
-  } catch (error) {
-    console.error("Failed to preload image moderation model", error);
-  }
+  // Model loads on the server when the moderate-image API is first called.
 }

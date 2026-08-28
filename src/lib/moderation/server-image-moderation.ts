@@ -27,6 +27,21 @@ async function loadServerModel(): Promise<NsfwModel> {
   return modelPromise;
 }
 
+let tfReadyPromise: Promise<void> | null = null;
+
+async function ensureTensorFlowReady(): Promise<typeof import("@tensorflow/tfjs")> {
+  if (!tfReadyPromise) {
+    tfReadyPromise = (async () => {
+      const tf = await import("@tensorflow/tfjs");
+      await import("@tensorflow/tfjs-backend-cpu");
+      await tf.setBackend("cpu");
+      await tf.ready();
+    })();
+  }
+  await tfReadyPromise;
+  return import("@tensorflow/tfjs");
+}
+
 export async function moderateImageBytes(bytes: Buffer): Promise<ImageModerationResult> {
   try {
     const sharp = (await import("sharp")).default;
@@ -37,7 +52,7 @@ export async function moderateImageBytes(bytes: Buffer): Promise<ImageModeration
       .raw()
       .toBuffer({ resolveWithObject: true });
 
-    const tf = await import("@tensorflow/tfjs");
+    const tf = await ensureTensorFlowReady();
     const tensor = tf.tensor3d(new Uint8Array(data), [info.height, info.width, info.channels]);
     try {
       const model = await loadServerModel();
@@ -56,6 +71,7 @@ export async function moderateImageBytes(bytes: Buffer): Promise<ImageModeration
       category: "Neutral",
       confidence: 0,
       predictions: [],
+      verificationFailed: true,
     };
   }
 }
