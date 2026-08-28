@@ -1,6 +1,8 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
+import { formatImageModerationError } from "@/lib/moderation/evaluate-predictions";
+import { moderateImageBytes } from "@/lib/moderation/server-image-moderation";
 import { storeUploadedFile } from "@/lib/uploads/store-upload";
 
 const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
@@ -49,6 +51,25 @@ export async function POST(request: Request) {
     }
 
     const bytes = Buffer.from(await file.arrayBuffer());
+
+    if (isImage) {
+      const moderation = await moderateImageBytes(bytes);
+      if (!moderation.allowed) {
+        return NextResponse.json(
+          {
+            error: formatImageModerationError(moderation),
+            moderation: {
+              title: moderation.title,
+              message: moderation.message,
+              category: moderation.category,
+              confidence: moderation.confidence,
+            },
+          },
+          { status: 422 },
+        );
+      }
+    }
+
     const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${extensionFor(file.type, file.name)}`;
     const stored = await storeUploadedFile({
       folder: "uploads/feed-posts",
