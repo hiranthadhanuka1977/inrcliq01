@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { evaluatePredictions } from "@/lib/moderation/evaluate-predictions";
 import type { ImageModerationPrediction, ImageModerationResult } from "@/lib/moderation/image-moderation-types";
 
@@ -5,11 +7,28 @@ type NsfwModel = {
   classify: (img: import("@tensorflow/tfjs").Tensor3D, topK?: number) => Promise<ImageModerationPrediction[]>;
 };
 
+type NsfwJsModule = typeof import("nsfwjs");
+
+const REMOTE_MODEL_URL =
+  "https://raw.githubusercontent.com/infinitered/nsfwjs/master/models/mobilenet_v2/";
+
 let modelPromise: Promise<NsfwModel> | null = null;
 let moderationQueue: Promise<void> = Promise.resolve();
 
 function resetModerationModel(): void {
   modelPromise = null;
+}
+
+function getLocalModelDir(): string {
+  return path.join(process.cwd(), "public", "models", "mobilenet_v2");
+}
+
+function localModelFilesExist(): boolean {
+  const modelDir = getLocalModelDir();
+  return (
+    fs.existsSync(path.join(modelDir, "model.json")) &&
+    fs.existsSync(path.join(modelDir, "group1-shard1of1"))
+  );
 }
 
 async function ensureTensorFlowReady(): Promise<typeof import("@tensorflow/tfjs")> {
@@ -20,12 +39,40 @@ async function ensureTensorFlowReady(): Promise<typeof import("@tensorflow/tfjs"
   return tf;
 }
 
+async function loadModelFromDisk(tf: Awaited<ReturnType<typeof ensureTensorFlowReady>>, nsfwjs: NsfwJsModule) {
+  const modelDir = getLocalModelDir();
+  const modelJson = JSON.parse(fs.readFileSync(path.join(modelDir, "model.json"), "utf8")) as {
+    modelTopology: object;
+    weightsManifest: Array<{ weights: import("@tensorflow/tfjs").io.WeightsManifestEntry[] }>;
+  };
+  const weightData = new Uint8Array(fs.readFileSync(path.join(modelDir, "group1-shard1of1")));
+  const weightSpecs = modelJson.weightsManifest.flatMap((manifest) => manifest.weights);
+  const handler = tf.io.fromMemory({
+    modelTopology: modelJson.modelTopology,
+    weightSpecs,
+    weightData,
+  });
+  const model = new nsfwjs.NSFWJS(handler, { size: 224 });
+  await model.load();
+  return model as NsfwModel;
+}
+
+async function loadModelFromRemote(nsfwjs: NsfwJsModule) {
+  console.info(`Loading NSFW moderation model from ${REMOTE_MODEL_URL}`);
+  return (await nsfwjs.load(REMOTE_MODEL_URL)) as NsfwModel;
+}
+
 async function loadServerModel(): Promise<NsfwModel> {
   if (!modelPromise) {
     modelPromise = (async () => {
       await ensureTensorFlowReady();
       const nsfwjs = await import("nsfwjs");
-      return (await nsfwjs.load()) as NsfwModel;
+      if (localModelFilesExist()) {
+        const tf = await ensureTensorFlowReady();
+        console.info("Loading NSFW moderation model from local public/models files");
+        return loadModelFromDisk(tf, nsfwjs);
+      }
+      return loadModelFromRemote(nsfwjs);
     })().catch((error) => {
       modelPromise = null;
       throw error;
