@@ -12,6 +12,11 @@ export type {
 
 export { formatImageModerationError };
 
+export type ModerateImageFileOutcome = {
+  result: ImageModerationResult;
+  passToken?: string;
+};
+
 export function isImageFile(file: File): boolean {
   if (file.type.startsWith("image/")) return true;
   const name = file.name.toLowerCase();
@@ -40,9 +45,9 @@ function verificationFailedResult(): ImageModerationBlock {
   };
 }
 
-export async function moderateImageFile(file: File): Promise<ImageModerationResult> {
+export async function moderateImageFile(file: File): Promise<ModerateImageFileOutcome> {
   if (!shouldModerateUploadFile(file)) {
-    return { allowed: true };
+    return { result: { allowed: true } };
   }
 
   try {
@@ -53,20 +58,24 @@ export async function moderateImageFile(file: File): Promise<ImageModerationResu
       ok?: boolean;
       error?: string;
       result?: ImageModerationResult;
+      passToken?: string;
     };
 
     if (data.result) {
-      return data.result;
+      return {
+        result: data.result,
+        passToken: data.passToken,
+      };
     }
 
     if (!response.ok) {
       console.error("Image moderation API failed", response.status, data.error);
     }
 
-    return verificationFailedResult();
+    return { result: verificationFailedResult() };
   } catch (error) {
     console.error("Image moderation failed", error);
-    return verificationFailedResult();
+    return { result: verificationFailedResult() };
   }
 }
 

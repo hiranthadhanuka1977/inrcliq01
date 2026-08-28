@@ -417,14 +417,16 @@ export default function FirstPostPrompt({
     setModerating(true);
 
     let blocked: ImageModerationBlock | null = null;
+    const passTokens = new Map<File, string>();
     try {
       for (const file of files) {
         if (!shouldModerateUploadFile(file)) continue;
-        const moderation = await moderateImageFile(file);
-        if (!moderation.allowed) {
-          blocked = moderation;
+        const { result, passToken } = await moderateImageFile(file);
+        if (!result.allowed) {
+          blocked = result;
           break;
         }
+        if (passToken) passTokens.set(file, passToken);
       }
     } finally {
       setModerating(false);
@@ -441,6 +443,8 @@ export default function FirstPostPrompt({
       for (const file of files) {
         const body = new FormData();
         body.append("file", file);
+        const passToken = passTokens.get(file);
+        if (passToken) body.append("moderationPassToken", passToken);
         const response = await fetch("/api/feed/uploads", { method: "POST", body });
         const data = (await response.json().catch(() => ({}))) as {
           error?: string;
@@ -491,15 +495,16 @@ export default function FirstPostPrompt({
     setError("");
     setImageWarning(null);
     setModerating(true);
-    const moderation = await moderateImageFile(file);
+    const { result, passToken } = await moderateImageFile(file);
     setModerating(false);
-    if (!moderation.allowed) {
-      setImageWarning(moderation);
-      throw new Error(formatImageModerationError(moderation));
+    if (!result.allowed) {
+      setImageWarning(result);
+      throw new Error(formatImageModerationError(result));
     }
 
     const body = new FormData();
     body.append("file", file);
+    if (passToken) body.append("moderationPassToken", passToken);
     const response = await fetch("/api/feed/uploads", { method: "POST", body });
     const data = (await response.json().catch(() => ({}))) as {
       error?: string;

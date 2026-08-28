@@ -2,8 +2,14 @@ import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { formatImageModerationError } from "@/lib/moderation/evaluate-predictions";
+import {
+  hashImageBytes,
+  verifyModerationPassToken,
+} from "@/lib/moderation/moderation-pass-token";
 import { moderateImageBytes } from "@/lib/moderation/server-image-moderation";
 import { storeUploadedFile } from "@/lib/uploads/store-upload";
+
+export const maxDuration = 60;
 
 const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 25 * 1024 * 1024;
@@ -22,12 +28,16 @@ function extensionFor(type: string, filename: string) {
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireSessionUser();
+  const { user, error } = await requireSessionUser();
   if (error) return error;
 
   try {
     const form = await request.formData();
     const file = form.get("file");
+    const moderationPassToken =
+      typeof form.get("moderationPassToken") === "string"
+        ? String(form.get("moderationPassToken"))
+        : "";
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file provided." }, { status: 400 });
@@ -53,21 +63,25 @@ export async function POST(request: Request) {
     const bytes = Buffer.from(await file.arrayBuffer());
 
     if (isImage) {
-      const moderation = await moderateImageBytes(bytes);
-      if (!moderation.allowed) {
-        return NextResponse.json(
-          {
-            error: formatImageModerationError(moderation),
-            moderation: {
-              title: moderation.title,
-              message: moderation.message,
-              category: moderation.category,
-              confidence: moderation.confidence,
-              verificationFailed: moderation.verificationFailed,
+      const fileHash = hashImageBytes(bytes);
+      const alreadyModerated = verifyModerationPassToken(user.id, fileHash, moderationPassToken);
+      if (!alreadyModerated) {
+        const moderation = await moderateImageBytes(bytes);
+        if (!moderation.allowed) {
+          return NextResponse.json(
+            {
+              error: formatImageModerationError(moderation),
+              moderation: {
+                title: moderation.title,
+                message: moderation.message,
+                category: moderation.category,
+                confidence: moderation.confidence,
+                verificationFailed: moderation.verificationFailed,
+              },
             },
-          },
-          { status: 422 },
-        );
+            { status: 422 },
+          );
+        }
       }
     }
 

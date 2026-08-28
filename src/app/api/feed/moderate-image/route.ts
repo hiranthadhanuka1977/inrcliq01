@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { formatImageModerationError } from "@/lib/moderation/evaluate-predictions";
+import {
+  createModerationPassToken,
+  hashImageBytes,
+} from "@/lib/moderation/moderation-pass-token";
 import { moderateImageBytes } from "@/lib/moderation/server-image-moderation";
+
+export const maxDuration = 60;
 
 const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 export async function POST(request: Request) {
-  const { error } = await requireSessionUser();
+  const { user, error } = await requireSessionUser();
   if (error) return error;
 
   try {
@@ -28,6 +34,7 @@ export async function POST(request: Request) {
     }
 
     const bytes = Buffer.from(await file.arrayBuffer());
+    const fileHash = hashImageBytes(bytes);
     const result = await moderateImageBytes(bytes);
 
     if (!result.allowed) {
@@ -38,7 +45,11 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ ok: true, result });
+    return NextResponse.json({
+      ok: true,
+      result,
+      passToken: createModerationPassToken(user.id, fileHash),
+    });
   } catch (err) {
     console.error("POST /api/feed/moderate-image error", err);
     return NextResponse.json({ error: "Unable to verify this photo." }, { status: 500 });
