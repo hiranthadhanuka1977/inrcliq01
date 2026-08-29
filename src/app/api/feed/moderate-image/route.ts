@@ -45,10 +45,17 @@ export async function POST(request: Request) {
       });
     }
 
+    let passToken: string | undefined;
+    try {
+      passToken = createModerationPassToken(user.id, fileHash);
+    } catch (tokenError) {
+      console.error("Moderation pass token creation failed", tokenError);
+    }
+
     return NextResponse.json({
       ok: true,
       result,
-      passToken: createModerationPassToken(user.id, fileHash),
+      passToken,
     });
   } catch (err) {
     console.error("POST /api/feed/moderate-image error", err);

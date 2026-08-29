@@ -30,6 +30,7 @@
     "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
+    "jimp": "^1.6.1",
     "next": "16.2.10",
     "nodemailer": "^9.0.3",
     "nsfwjs": "^4.3.0",
@@ -37,7 +38,6 @@
     "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "^0.35.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {

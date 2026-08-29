@@ -9,6 +9,13 @@ type NsfwModel = {
 
 type NsfwJsModule = typeof import("nsfwjs");
 
+type ModelArtifacts = {
+  modelTopology: object;
+  weightSpecs: import("@tensorflow/tfjs").io.WeightsManifestEntry[];
+  weightData: Uint8Array;
+};
+
+const MODEL_SIZE = 224;
 const REMOTE_MODEL_URL =
   "https://raw.githubusercontent.com/infinitered/nsfwjs/master/models/mobilenet_v2/";
 
@@ -23,12 +30,66 @@ function getLocalModelDir(): string {
   return path.join(process.cwd(), "public", "models", "mobilenet_v2");
 }
 
-function localModelFilesExist(): boolean {
+function readLocalModelArtifacts(): ModelArtifacts | null {
   const modelDir = getLocalModelDir();
-  return (
-    fs.existsSync(path.join(modelDir, "model.json")) &&
-    fs.existsSync(path.join(modelDir, "group1-shard1of1"))
-  );
+  const modelJsonPath = path.join(modelDir, "model.json");
+  const weightsPath = path.join(modelDir, "group1-shard1of1");
+  if (!fs.existsSync(modelJsonPath) || !fs.existsSync(weightsPath)) {
+    return null;
+  }
+
+  const modelJson = JSON.parse(fs.readFileSync(modelJsonPath, "utf8")) as {
+    modelTopology: object;
+    weightsManifest: Array<{ weights: import("@tensorflow/tfjs").io.WeightsManifestEntry[] }>;
+  };
+
+  return {
+    modelTopology: modelJson.modelTopology,
+    weightSpecs: modelJson.weightsManifest.flatMap((manifest) => manifest.weights),
+    weightData: new Uint8Array(fs.readFileSync(weightsPath)),
+  };
+}
+
+function deploymentModelBaseUrls(): string[] {
+  const urls = new Set<string>();
+
+  if (process.env.VERCEL_URL) {
+    const host = process.env.VERCEL_URL.replace(/^https?:\/\//, "");
+    urls.add(`https://${host}/models/mobilenet_v2`);
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  if (appUrl && !appUrl.includes("localhost")) {
+    urls.add(`${appUrl}/models/mobilenet_v2`);
+  }
+
+  return [...urls];
+}
+
+async function fetchModelArtifacts(baseUrl: string): Promise<ModelArtifacts> {
+  const base = baseUrl.replace(/\/$/, "");
+  const [jsonRes, weightRes] = await Promise.all([
+    fetch(`${base}/model.json`, { cache: "force-cache" }),
+    fetch(`${base}/group1-shard1of1`, { cache: "force-cache" }),
+  ]);
+
+  if (!jsonRes.ok) {
+    throw new Error(`Failed to fetch model.json from ${base} (${jsonRes.status})`);
+  }
+  if (!weightRes.ok) {
+    throw new Error(`Failed to fetch model weights from ${base} (${weightRes.status})`);
+  }
+
+  const modelJson = (await jsonRes.json()) as {
+    modelTopology: object;
+    weightsManifest: Array<{ weights: import("@tensorflow/tfjs").io.WeightsManifestEntry[] }>;
+  };
+
+  return {
+    modelTopology: modelJson.modelTopology,
+    weightSpecs: modelJson.weightsManifest.flatMap((manifest) => manifest.weights),
+    weightData: new Uint8Array(await weightRes.arrayBuffer()),
+  };
 }
 
 async function ensureTensorFlowReady(): Promise<typeof import("@tensorflow/tfjs")> {
@@ -39,40 +100,56 @@ async function ensureTensorFlowReady(): Promise<typeof import("@tensorflow/tfjs"
   return tf;
 }
 
-async function loadModelFromDisk(tf: Awaited<ReturnType<typeof ensureTensorFlowReady>>, nsfwjs: NsfwJsModule) {
-  const modelDir = getLocalModelDir();
-  const modelJson = JSON.parse(fs.readFileSync(path.join(modelDir, "model.json"), "utf8")) as {
-    modelTopology: object;
-    weightsManifest: Array<{ weights: import("@tensorflow/tfjs").io.WeightsManifestEntry[] }>;
-  };
-  const weightData = new Uint8Array(fs.readFileSync(path.join(modelDir, "group1-shard1of1")));
-  const weightSpecs = modelJson.weightsManifest.flatMap((manifest) => manifest.weights);
+async function buildModelFromArtifacts(
+  tf: Awaited<ReturnType<typeof ensureTensorFlowReady>>,
+  nsfwjs: NsfwJsModule,
+  artifacts: ModelArtifacts,
+): Promise<NsfwModel> {
   const handler = tf.io.fromMemory({
-    modelTopology: modelJson.modelTopology,
-    weightSpecs,
-    weightData,
+    modelTopology: artifacts.modelTopology,
+    weightSpecs: artifacts.weightSpecs,
+    weightData: artifacts.weightData,
   });
-  const model = new nsfwjs.NSFWJS(handler, { size: 224 });
+  const model = new nsfwjs.NSFWJS(handler, { size: MODEL_SIZE });
   await model.load();
   return model as NsfwModel;
-}
-
-async function loadModelFromRemote(nsfwjs: NsfwJsModule) {
-  console.info(`Loading NSFW moderation model from ${REMOTE_MODEL_URL}`);
-  return (await nsfwjs.load(REMOTE_MODEL_URL)) as NsfwModel;
 }
 
 async function loadServerModel(): Promise<NsfwModel> {
   if (!modelPromise) {
     modelPromise = (async () => {
-      await ensureTensorFlowReady();
+      const tf = await ensureTensorFlowReady();
       const nsfwjs = await import("nsfwjs");
-      if (localModelFilesExist()) {
-        const tf = await ensureTensorFlowReady();
-        console.info("Loading NSFW moderation model from local public/models files");
-        return loadModelFromDisk(tf, nsfwjs);
+      const errors: string[] = [];
+
+      const localArtifacts = readLocalModelArtifacts();
+      if (localArtifacts) {
+        try {
+          console.info("[moderation] Loading NSFW model from local files");
+          return await buildModelFromArtifacts(tf, nsfwjs, localArtifacts);
+        } catch (error) {
+          errors.push(`local files: ${formatError(error)}`);
+        }
       }
-      return loadModelFromRemote(nsfwjs);
+
+      for (const baseUrl of deploymentModelBaseUrls()) {
+        try {
+          console.info(`[moderation] Loading NSFW model from ${baseUrl}`);
+          const artifacts = await fetchModelArtifacts(baseUrl);
+          return await buildModelFromArtifacts(tf, nsfwjs, artifacts);
+        } catch (error) {
+          errors.push(`${baseUrl}: ${formatError(error)}`);
+        }
+      }
+
+      try {
+        console.info(`[moderation] Loading NSFW model from ${REMOTE_MODEL_URL}`);
+        return (await nsfwjs.load(REMOTE_MODEL_URL)) as NsfwModel;
+      } catch (error) {
+        errors.push(`github: ${formatError(error)}`);
+        console.error("[moderation] All model load strategies failed:", errors.join(" | "));
+        throw error;
+      }
     })().catch((error) => {
       modelPromise = null;
       throw error;
@@ -82,31 +159,29 @@ async function loadServerModel(): Promise<NsfwModel> {
   return modelPromise;
 }
 
-async function withModerationLock<T>(work: () => Promise<T>): Promise<T> {
-  const run = moderationQueue.then(work, work);
-  moderationQueue = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function decodeToRgbTensor(bytes: Buffer, tf: Awaited<ReturnType<typeof ensureTensorFlowReady>>) {
+  const { Jimp } = await import("jimp");
+  const image = await Jimp.read(bytes);
+  image.cover({ w: MODEL_SIZE, h: MODEL_SIZE });
+
+  const { width, height, data } = image.bitmap;
+  const rgb = new Uint8Array(width * height * 3);
+  for (let i = 0, offset = 0; i < data.length; i += 4, offset += 3) {
+    rgb[offset] = data[i];
+    rgb[offset + 1] = data[i + 1];
+    rgb[offset + 2] = data[i + 2];
+  }
+
+  return tf.tensor3d(rgb, [height, width, 3]);
 }
 
 async function classifyBytes(bytes: Buffer): Promise<ImageModerationResult> {
-  const sharp = (await import("sharp")).default;
-  const { data, info } = await sharp(bytes, { animated: false, failOn: "none" })
-    .rotate()
-    .resize(299, 299, { fit: "cover" })
-    .removeAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
   const tf = await ensureTensorFlowReady();
-  const channels = info.channels;
-  if (channels !== 3) {
-    throw new Error(`Unexpected image channel count: ${channels}`);
-  }
-
-  const tensor = tf.tensor3d(new Uint8Array(data), [info.height, info.width, channels]);
+  const tensor = await decodeToRgbTensor(bytes, tf);
   try {
     const model = await loadServerModel();
     const predictions = await model.classify(tensor, 5);
@@ -135,7 +210,7 @@ export async function moderateImageBytes(bytes: Buffer): Promise<ImageModeration
       try {
         return await classifyBytes(bytes);
       } catch (error) {
-        console.error(`Server image moderation attempt ${attempt + 1} failed`, error);
+        console.error(`[moderation] attempt ${attempt + 1} failed`, error);
         resetModerationModel();
         if (attempt === 1) break;
       }
@@ -143,4 +218,13 @@ export async function moderateImageBytes(bytes: Buffer): Promise<ImageModeration
 
     return verificationFailedResult();
   });
+}
+
+async function withModerationLock<T>(work: () => Promise<T>): Promise<T> {
+  const run = moderationQueue.then(work, work);
+  moderationQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }

@@ -6,7 +6,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
-  serverExternalPackages: ["@tensorflow/tfjs", "nsfwjs", "sharp"],
+  serverExternalPackages: ["@tensorflow/tfjs", "nsfwjs"],
+  outputFileTracingIncludes: {
+    "/api/feed/moderate-image": ["./public/models/mobilenet_v2/**/*"],
+    "/api/feed/uploads": ["./public/models/mobilenet_v2/**/*"],
+  },
 };
 
 export default nextConfig;
