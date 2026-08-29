@@ -124,16 +124,32 @@ type GifItem = {
   alt: string;
 };
 
-function ComposerImageStatus({ label }: { label: string }) {
+type ComposerImageStatusKind = "checking" | "uploading";
+
+function ComposerImageStatus({ kind }: { kind: ComposerImageStatusKind }) {
+  const copy =
+    kind === "checking"
+      ? { title: "Checking photo", detail: "Running our safety check on your image" }
+      : { title: "Uploading file", detail: "Adding your photo to the post" };
+
   return (
-    <p className="composer-image-status" role="status" aria-live="polite">
-      <span className="composer-image-status__label">{label}</span>
-      <span className="composer-image-status__dots" aria-hidden="true">
-        <span>.</span>
-        <span>.</span>
-        <span>.</span>
-      </span>
-    </p>
+    <div
+      className={`composer-image-status composer-image-status--${kind}`}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="composer-image-status__main">
+        <span className="composer-image-status__spinner" aria-hidden="true" />
+        <div className="composer-image-status__copy">
+          <strong className="composer-image-status__title">{copy.title}</strong>
+          <p className="composer-image-status__detail">{copy.detail}</p>
+        </div>
+      </div>
+      <div className="composer-image-status__track" aria-hidden="true">
+        <span className="composer-image-status__track-fill" />
+      </div>
+    </div>
   );
 }
 
@@ -818,8 +834,8 @@ export default function FirstPostPrompt({
           </div>
         </div>
 
-        {moderating ? <ComposerImageStatus label="Checking photo" /> : null}
-        {!moderating && uploading ? <ComposerImageStatus label="Uploading file" /> : null}
+        {moderating ? <ComposerImageStatus kind="checking" /> : null}
+        {!moderating && uploading ? <ComposerImageStatus kind="uploading" /> : null}
 
         {imageWarning ? (
           <div ref={imageWarningRef} className="composer-image-warning" role="alert" aria-live="assertive">
@@ -1071,27 +1087,7 @@ export default function FirstPostPrompt({
         </fieldset>
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
-            {moderating ? (
-              <>
-                Checking photo
-                <span className="composer-image-status__dots composer-image-status__dots--inline" aria-hidden="true">
-                  <span>.</span>
-                  <span>.</span>
-                  <span>.</span>
-                </span>
-              </>
-            ) : uploading ? (
-              <>
-                Uploading file
-                <span className="composer-image-status__dots composer-image-status__dots--inline" aria-hidden="true">
-                  <span>.</span>
-                  <span>.</span>
-                  <span>.</span>
-                </span>
-              </>
-            ) : (
-              "Photos, tags, places, feelings, and GIFs are optional."
-            )}
+            Photos, tags, places, feelings, and GIFs are optional.
           </p>
           <div className="first-post-prompt__actions">
             {isModal ? null : (
