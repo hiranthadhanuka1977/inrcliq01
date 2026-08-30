@@ -18,6 +18,7 @@ const TABLE_ORDER = [
   "LoginCode",
   "EmailVerificationToken",
   "ParentApprovalRequest",
+  "GuardianChildLink",
   "CreatorUser",
   "FeedPost",
   "CreatorCollection",

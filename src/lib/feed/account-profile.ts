@@ -1,5 +1,7 @@
 import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { getLatestParentRequest } from "@/lib/auth/parent-invite";
+import { resolveUserDisplayName, resolveUserFirstName } from "@/lib/auth/display-name";
+import { ensureGuardianUserNames } from "@/lib/auth/guardian-user-names";
 import { getCountryLabel } from "@/lib/constants/locations";
 import {
   PROTECTION_TIER_LABELS,
@@ -15,9 +17,11 @@ import {
   listFollowedCreatorsForUser,
   listInboundFollowersForUser,
 } from "@/lib/feed/follow-service";
+import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
+import { getMinorGuardianSummary, type MinorGuardianSummary } from "@/lib/guardian/minor-guardian-profile";
 
 export type AccountSocialPerson = {
   id: string;
@@ -61,6 +65,7 @@ export type AccountProfile = {
   verified: boolean;
   postCount: number;
   profileHref: string | null;
+  guardian: MinorGuardianSummary | null;
   social: {
     followersCount: number;
     followingCount: number;
@@ -152,8 +157,16 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
   const user = await getSessionUser();
   if (!user) return null;
 
+  await ensureGuardianUserNames(user.id, user.email);
+
+  const refreshedUser = user.firstName?.trim()
+    ? user
+    : await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+
   const parentRequest =
-    user.accountType === AccountType.MINOR ? await getLatestParentRequest(user.id) : null;
+    refreshedUser.accountType === AccountType.MINOR
+      ? await getLatestParentRequest(refreshedUser.id)
+      : null;
 
   const approvedTier =
     parentRequest?.status === ApprovalStatus.APPROVED && parentRequest.protectionLevel
@@ -163,14 +176,23 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
   const privacyTier =
     approvedTier && approvedTier in PROTECTION_TIER_LABELS ? approvedTier : null;
 
-  const firstName = user.firstName?.trim() || null;
-  const lastName = user.lastName?.trim() || null;
-  const fullName = [firstName, lastName].filter(Boolean).join(" ") || "Your profile";
-  const avatarInitial = (firstName || user.email || "Y").charAt(0).toUpperCase();
+  const firstName =
+    resolveUserFirstName({
+      email: refreshedUser.email,
+      firstName: refreshedUser.firstName,
+      lastName: refreshedUser.lastName,
+    }) || null;
+  const lastName = refreshedUser.lastName?.trim() || null;
+  const fullName = resolveUserDisplayName({
+    email: refreshedUser.email,
+    firstName: refreshedUser.firstName,
+    lastName: refreshedUser.lastName,
+  });
+  const avatarInitial = (firstName || refreshedUser.email || "Y").charAt(0).toUpperCase();
 
   const [profileRow, creatorRow] = await Promise.all([
     prisma.userProfile.findUnique({
-      where: { userId: user.id },
+      where: { userId: refreshedUser.id },
       select: {
         displayName: true,
         avatarUrl: true,
@@ -181,7 +203,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
       },
     }),
     prisma.creatorUser.findFirst({
-      where: { userId: user.id },
+      where: { userId: refreshedUser.id },
       select: {
         name: true,
         avatarUrl: true,
@@ -200,15 +222,15 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
   const resolvedAvatarInitial =
     profileRow?.avatarInitials?.trim() ||
     creatorRow?.avatarInitials?.trim() ||
-    (resolvedFullName === "Your profile" ? avatarInitial : resolvedFullName.charAt(0).toUpperCase());
+    (resolvedFullName.charAt(0).toUpperCase() || avatarInitial);
   const avatarUrl = profileRow?.avatarUrl?.trim() || creatorRow?.avatarUrl?.trim() || null;
   const avatarColor =
     profileRow?.avatarColor?.trim() || creatorRow?.avatarColor?.trim() || null;
 
   let age: number | null = null;
   let dateOfBirth: string | null = null;
-  if (user.dateOfBirth) {
-    const dob = user.dateOfBirth;
+  if (refreshedUser.dateOfBirth) {
+    const dob = refreshedUser.dateOfBirth;
     age = calculateAge(dob.getMonth() + 1, dob.getDate(), dob.getFullYear());
     dateOfBirth = dob.toLocaleDateString("en-US", {
       month: "long",
@@ -217,19 +239,19 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     });
   }
 
-  const countryLabel = user.country ? getCountryLabel(user.country) : null;
-  const region = user.region?.trim() || null;
+  const countryLabel = refreshedUser.country ? getCountryLabel(refreshedUser.country) : null;
+  const region = refreshedUser.region?.trim() || null;
   const locationLabel = [region, countryLabel].filter(Boolean).join(", ") || null;
 
   const [subscriptionRows, subscriptionsCount, followRows, followingCount, followerRows, followersCount, postCount] =
     await Promise.all([
-      listActiveSubscriptionsForUser(user.id),
-      countActiveSubscriptionsForUser(user.id),
-      listFollowedCreatorsForUser(user.id),
-      countFollowedCreatorsForUser(user.id),
-      listInboundFollowersForUser(user.id),
-      countInboundFollowersForUser(user.id),
-      prisma.feedPost.count({ where: { userId: user.id } }),
+      listActiveSubscriptionsForUser(refreshedUser.id),
+      countActiveSubscriptionsForUser(refreshedUser.id),
+      listFollowedCreatorsForUser(refreshedUser.id),
+      countFollowedCreatorsForUser(refreshedUser.id),
+      listInboundFollowersForUser(refreshedUser.id),
+      countInboundFollowersForUser(refreshedUser.id),
+      prisma.feedPost.count({ where: { userId: refreshedUser.id } }),
     ]);
 
   const subscriptions: AccountSocialPerson[] = subscriptionRows.map((row) => ({
@@ -283,30 +305,35 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
 
   // Fan-only accounts (no linked CreatorUser) have no inbound follows in this model.
 
+  const guardian =
+    refreshedUser.accountType === AccountType.MINOR
+      ? await getMinorGuardianSummary(refreshedUser.id)
+      : null;
+
   return {
-    id: user.id,
+    id: refreshedUser.id,
     firstName,
     lastName,
     fullName: resolvedFullName,
-    handle: user.handle?.trim() || null,
-    email: user.email,
-    emailVerified: Boolean(user.emailVerified),
-    accountType: user.accountType,
-    accountTypeLabel: accountTypeLabel(user.accountType),
+    handle: refreshedUser.handle?.trim() || null,
+    email: refreshedUser.email,
+    emailVerified: Boolean(refreshedUser.emailVerified),
+    accountType: refreshedUser.accountType,
+    accountTypeLabel: accountTypeLabel(refreshedUser.accountType),
     dateOfBirth,
     age,
-    country: user.country,
+    country: refreshedUser.country,
     countryLabel,
     region,
     locationLabel,
     privacyTier,
     privacyTierLabel: privacyTier
       ? PROTECTION_TIER_LABELS[privacyTier]
-      : user.accountType === AccountType.MINOR
+      : refreshedUser.accountType === AccountType.MINOR
         ? "Not set"
         : "Standard",
-    privacyTierDescription: privacyDescription(privacyTier, user.accountType),
-    memberSince: user.createdAt.toLocaleDateString("en-US", {
+    privacyTierDescription: privacyDescription(privacyTier, refreshedUser.accountType),
+    memberSince: refreshedUser.createdAt.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
     }),
@@ -315,11 +342,17 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     avatarColor,
     verified: Boolean(profileRow?.verified) || Boolean(creatorRow?.verified),
     postCount,
-    profileHref: profileRow?.slug
-      ? `/feed/profile/${profileRow.slug}`
-      : creatorRow?.slug
-        ? `/feed/profile/${creatorRow.slug}`
-        : null,
+    profileHref: profileRow?.slug?.trim()
+      ? `/feed/profile/${profileRow.slug.trim()}`
+      : creatorRow?.slug?.trim()
+        ? `/feed/profile/${creatorRow.slug.trim()}`
+        : refreshedUser.handle?.trim()
+          ? `/feed/profile/${resolveAuthorProfileSlug(
+              refreshedUser.handle,
+              profileRow?.slug ?? creatorRow?.slug,
+            )}`
+          : null,
+    guardian,
     social: {
       followersCount,
       followingCount,

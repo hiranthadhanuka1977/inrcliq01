@@ -1,5 +1,6 @@
 import CollectionListingView from "@/components/feed/profile/CollectionListingView";
 import { CollectionUnavailablePage } from "@/components/feed/profile/CollectionUnavailable";
+import ProfileUnavailableView from "@/components/feed/profile/ProfileUnavailableView";
 import { getCreatorCollection, getCreatorCollectionRaw } from "@/lib/feed/collection";
 import { getProfileData } from "@/lib/feed/profile";
 import { notFound } from "next/navigation";
@@ -25,7 +26,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     getCreatorCollectionRaw(slug),
     getCreatorCollection(slug),
   ]);
-  if (!profile) notFound();
+  if (!profile) return <ProfileUnavailableView />;
 
   if (rawCollection && rawCollection.enabled === false) {
     return (

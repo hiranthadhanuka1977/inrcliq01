@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { hashPassword } from "@/lib/auth/credentials";
-import { ensureCreatorLinkedToUser } from "@/lib/feed/creator-user-bridge";
+import { ensureCreatorForPublicIdentifier, ensureCreatorLinkedToUser } from "@/lib/feed/creator-user-bridge";
 import { prisma } from "@/lib/prisma";
 
 const VALID_NOTIFY_LEVELS = new Set(["all", "personalized", "none"]);
@@ -74,6 +74,9 @@ export async function resolveCreatorIdBySlug(slug: string) {
     await ensureCreatorLinkedToUser(existing.id);
     return existing;
   }
+
+  const fromAuthUser = await ensureCreatorForPublicIdentifier(slug);
+  if (fromAuthUser) return fromAuthUser;
 
   const profile = readProfileSeed(slug);
   if (!profile?.handle || !profile.name) return null;

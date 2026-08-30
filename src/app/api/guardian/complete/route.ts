@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { completeGuardianApproval, resolveGuardianToken } from "@/lib/auth/guardian-flow";
+import { completeGuardianApproval } from "@/lib/auth/guardian-flow";
+import { resolveParentApprovalRequestByToken } from "@/lib/auth/parent-invite";
 import type { ProtectionTier } from "@/lib/guardian/constants";
 import { PROTECTION_TIER_LABELS } from "@/lib/guardian/constants";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid protection level." }, { status: 400 });
     }
 
-    const verification = await resolveGuardianToken(token);
+    const verification = await resolveParentApprovalRequestByToken(token);
     if (!verification.ok) {
       return NextResponse.json({ error: "Invalid or expired approval link." }, { status: 400 });
     }

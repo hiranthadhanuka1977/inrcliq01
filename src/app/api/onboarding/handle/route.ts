@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
-import { parseHandle } from "@/lib/validation";
+import { setUserHandle } from "@/lib/feed/set-user-handle";
 
 export async function POST(request: Request) {
   try {
@@ -23,33 +23,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, redirectTo: "/onboarding/interests" });
     }
 
-    const parsed = parseHandle(body.handle);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid handle." },
-        { status: 400 },
-      );
-    }
-
-    const handle = parsed.data;
-    const existing = await prisma.user.findFirst({
-      where: {
-        handle: { equals: handle, mode: "insensitive" },
-        NOT: { id: user.id },
-      },
-    });
-
-    if (existing && existing.id !== user.id) {
-      return NextResponse.json({ error: "This handle is already taken." }, { status: 409 });
+    const rawHandle = typeof body.handle === "string" ? body.handle : "";
+    const result = await setUserHandle(user.id, rawHandle);
+    if (!result.ok) {
+      const status = result.error === "This handle is already taken." ? 409 : 400;
+      return NextResponse.json({ error: result.error }, { status });
     }
 
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        handle,
-        onboardingStep: "interests",
-      },
+      data: { onboardingStep: "interests" },
     });
+
     return NextResponse.json({ ok: true, redirectTo: "/onboarding/interests" });
   } catch (error) {
     console.error("onboarding/handle error", error);

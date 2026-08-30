@@ -1,4 +1,5 @@
 import ProfileRequestsView from "@/components/feed/profile/ProfileRequestsView";
+import ProfileUnavailableView from "@/components/feed/profile/ProfileUnavailableView";
 import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import { getProfileData } from "@/lib/feed/profile";
 import { resolveCreatorRequestsContent } from "@/lib/seller/service-requests-store";
@@ -26,7 +27,8 @@ export default async function RequestsChoosePage({
   const { slug } = await params;
   const { category, service } = await searchParams;
   const profile = await getProfileData(slug);
-  if (!profile?.special_requests) notFound();
+  if (!profile) return <ProfileUnavailableView />;
+  if (!profile.special_requests) notFound();
 
   if (profile.special_requests_enabled === false) {
     return (

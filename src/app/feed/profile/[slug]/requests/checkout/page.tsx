@@ -1,4 +1,5 @@
 import RequestCheckoutView from "@/components/feed/profile/RequestCheckoutView";
+import ProfileUnavailableView from "@/components/feed/profile/ProfileUnavailableView";
 import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import { isDateKey } from "@/lib/calendar-date";
 import { getProfileData } from "@/lib/feed/profile";
@@ -40,7 +41,8 @@ export default async function RequestsCheckoutPage({
   const { slug } = await params;
   const query = await searchParams;
   const profile = await getProfileData(slug);
-  if (!profile?.special_requests) notFound();
+  if (!profile) return <ProfileUnavailableView />;
+  if (!profile.special_requests) notFound();
 
   if (profile.special_requests_enabled === false) {
     return (

@@ -6,6 +6,7 @@ import {
   parseBookingNote,
   withCreatorName,
 } from "@/lib/feed/booking-confirmation";
+import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type DbMessage = {
   id: string;
@@ -54,7 +55,7 @@ export function formatChatClock(date: Date): string {
 export function mapThreadToConversation(thread: DbThread): Conversation {
   const participant: ConversationParticipant = {
     id: thread.peerCreatorId ?? thread.id,
-    slug: thread.peerSlug ?? undefined,
+    slug: resolveAuthorProfileSlug(thread.peerHandle, thread.peerSlug),
     name: thread.peerName,
     handle: thread.peerHandle,
     initials: thread.peerInitials,

@@ -79,6 +79,32 @@ async function uniqueProfileHandle(preferred: string) {
 }
 
 /**
+ * Resolve a signed-up user's public slug/handle to a CreatorUser row,
+ * creating/linking one when missing (same bridge used for first posts).
+ */
+export async function ensureCreatorForPublicIdentifier(
+  identifier: string,
+): Promise<{ id: string; slug: string | null; name: string } | null> {
+  const normalized = identifier.trim().toLowerCase().replace(/^@/, "");
+  if (!normalized) return null;
+
+  const row = await prisma.userProfile.findFirst({
+    where: {
+      OR: [
+        { slug: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: `@${normalized}`, mode: "insensitive" } },
+        { user: { handle: { equals: normalized, mode: "insensitive" } } },
+      ],
+    },
+    select: { userId: true },
+  });
+  if (!row) return null;
+
+  return ensureCreatorUserForAuthUser(row.userId);
+}
+
+/**
  * Ensure a CreatorUser has a linked auth User, and that creator's FeedPosts
  * point at that User. Safe to call repeatedly.
  */

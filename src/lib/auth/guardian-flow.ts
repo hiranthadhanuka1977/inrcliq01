@@ -8,6 +8,9 @@ import { getCountryLabel } from "@/lib/constants/locations";
 import { getDefaultAdultDob } from "@/lib/form-validation";
 import { simulateExtractedIdNumber } from "@/lib/guardian/constants";
 import type { IdDocType, ProtectionTier } from "@/lib/guardian/constants";
+import { deriveUserNameFromEmail } from "@/lib/auth/display-name";
+import { ensureGuardianUserNames } from "@/lib/auth/guardian-user-names";
+import { linkGuardianToChild } from "@/lib/guardian/guardian-child-link";
 import { seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
 import { calculateAge } from "@/lib/utils/age";
@@ -142,10 +145,7 @@ function buildChildContext(child: {
 }
 
 function buildSimulatedParentName(parentEmail: string) {
-  const local = parentEmail.split("@")[0] ?? "guardian";
-  const parts = local.split(/[._-]+/).filter(Boolean);
-  if (parts.length === 0) return "Guardian User";
-  return parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+  return deriveUserNameFromEmail(parentEmail).fullName;
 }
 
 function buildSimulatedParentDob() {
@@ -253,6 +253,7 @@ export async function createGuardianAccount(
   }
 
   const passwordHash = await hashPassword(data.password);
+  const derivedName = deriveUserNameFromEmail(request.parentEmail);
 
   const guardian = await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
@@ -262,6 +263,8 @@ export async function createGuardianAccount(
         accountType: AccountType.GUARDIAN,
         onboardingStep: "guardian-setup",
         passwordHash,
+        firstName: derivedName.firstName,
+        lastName: derivedName.lastName,
         country: data.country,
         region: data.region,
       },
@@ -301,13 +304,90 @@ export async function declineParentRequestById(requestId: string) {
   return request;
 }
 
+function buildGuardianApprovalSuccess(
+  request: {
+    childUser: {
+      firstName: string | null;
+      lastName: string | null;
+      handle: string | null;
+      dateOfBirth: Date | null;
+    };
+    parentEmail: string;
+    resolvedAt: Date | null;
+  },
+  protectionLevel: ProtectionTier,
+) {
+  return {
+    ok: true as const,
+    childFirstName: request.childUser.firstName ?? "Your child",
+    childFullName:
+      [request.childUser.firstName, request.childUser.lastName].filter(Boolean).join(" ") ||
+      request.childUser.firstName ||
+      "Your child",
+    childHandle: request.childUser.handle,
+    childAge: request.childUser.dateOfBirth
+      ? calculateAge(
+          request.childUser.dateOfBirth.getMonth() + 1,
+          request.childUser.dateOfBirth.getDate(),
+          request.childUser.dateOfBirth.getFullYear(),
+        )
+      : null,
+    parentEmail: request.parentEmail,
+    protectionLevel,
+    activatedAt: (request.resolvedAt ?? new Date()).toISOString(),
+  };
+}
+
+async function runPostGuardianApprovalSideEffects(requestId: string, guardianUserId: string) {
+  const guardian = await prisma.user.findUnique({
+    where: { id: guardianUserId },
+    select: { firstName: true },
+  });
+
+  try {
+    await seedDefaultChatThreadsForUser(guardianUserId, { firstName: guardian?.firstName });
+  } catch (error) {
+    console.error("guardian approval: seed chat threads failed", error);
+  }
+
+  try {
+    await notifyChildOfParentApproval(requestId);
+  } catch (error) {
+    console.error("guardian approval: notify child failed", error);
+  }
+}
+
 export async function quickApproveReturningGuardian(requestId: string) {
   const request = await prisma.parentApprovalRequest.findUnique({
     where: { id: requestId },
     include: { childUser: true },
   });
 
-  if (!request || request.status !== ApprovalStatus.PENDING) {
+  if (!request) {
+    return { ok: false as const, error: "Invalid or expired approval link." };
+  }
+
+  if (request.status === ApprovalStatus.APPROVED) {
+    if (!request.guardianUserId) {
+      return { ok: false as const, error: "Guardian account not found." };
+    }
+    await linkGuardianToChild({
+      guardianUserId: request.guardianUserId,
+      childUserId: request.childUserId,
+      parentApprovalRequestId: requestId,
+      protectionLevel: request.protectionLevel,
+      linkedAt: request.resolvedAt ?? undefined,
+    });
+    await runPostGuardianApprovalSideEffects(requestId, request.guardianUserId);
+    const tier = (request.protectionLevel as ProtectionTier | null) ?? "standard";
+    return {
+      ok: true as const,
+      childFirstName: request.childUser.firstName ?? "Your child",
+      protectionLevel: tier,
+    };
+  }
+
+  if (request.status !== ApprovalStatus.PENDING) {
     return { ok: false as const, error: "Invalid or expired approval link." };
   }
 
@@ -317,24 +397,35 @@ export async function quickApproveReturningGuardian(requestId: string) {
   }
 
   const protectionLevel: ProtectionTier = "standard";
+  const resolvedAt = new Date();
 
-  await prisma.$transaction([
-    prisma.parentApprovalRequest.update({
+  await prisma.$transaction(async (tx) => {
+    await tx.parentApprovalRequest.update({
       where: { id: requestId },
       data: {
         status: ApprovalStatus.APPROVED,
-        resolvedAt: new Date(),
+        resolvedAt,
         guardianUserId: guardian.id,
         protectionLevel,
       },
-    }),
-    prisma.user.update({
+    });
+    await tx.user.update({
       where: { id: request.childUserId },
       data: { onboardingStep: "approved" },
-    }),
-  ]);
+    });
+    await linkGuardianToChild(
+      {
+        guardianUserId: guardian.id,
+        childUserId: request.childUserId,
+        parentApprovalRequestId: requestId,
+        protectionLevel,
+        linkedAt: resolvedAt,
+      },
+      tx,
+    );
+  });
 
-  await notifyChildOfParentApproval(requestId);
+  await runPostGuardianApprovalSideEffects(requestId, guardian.id);
 
   return {
     ok: true as const,
@@ -357,7 +448,29 @@ export async function completeGuardianApproval(
     include: { childUser: true, guardianUser: true },
   });
 
-  if (!request || request.status !== ApprovalStatus.PENDING) {
+  if (!request) {
+    return { ok: false as const, error: "Invalid or expired approval link." };
+  }
+
+  if (request.status === ApprovalStatus.APPROVED) {
+    if (!request.guardianUserId) {
+      return { ok: false as const, error: "Guardian account not set up yet." };
+    }
+    const tier =
+      (request.protectionLevel as ProtectionTier | null) ?? data.protectionLevel;
+    await linkGuardianToChild({
+      guardianUserId: request.guardianUserId,
+      childUserId: request.childUserId,
+      parentApprovalRequestId: requestId,
+      protectionLevel: tier,
+      linkedAt: request.resolvedAt ?? undefined,
+    });
+    await runPostGuardianApprovalSideEffects(requestId, request.guardianUserId);
+    await ensureGuardianUserNames(request.guardianUserId, request.parentEmail);
+    return buildGuardianApprovalSuccess(request, tier);
+  }
+
+  if (request.status !== ApprovalStatus.PENDING) {
     return { ok: false as const, error: "Invalid or expired approval link." };
   }
 
@@ -375,12 +488,14 @@ export async function completeGuardianApproval(
     guardianRegion = guardianRegion ?? returningGuardian.region;
   }
 
-  await prisma.$transaction([
-    prisma.parentApprovalRequest.update({
+  const resolvedAt = new Date();
+
+  await prisma.$transaction(async (tx) => {
+    await tx.parentApprovalRequest.update({
       where: { id: requestId },
       data: {
         status: ApprovalStatus.APPROVED,
-        resolvedAt: new Date(),
+        resolvedAt,
         guardianUserId,
         protectionLevel: data.protectionLevel,
         childLivesWithGuardian: data.childLivesWithGuardian,
@@ -391,41 +506,33 @@ export async function completeGuardianApproval(
           ? guardianRegion
           : data.childLocationRegion ?? null,
       },
-    }),
-    prisma.user.update({
+    });
+    await tx.user.update({
       where: { id: guardianUserId },
       data: { onboardingStep: "complete" },
-    }),
-    prisma.user.update({
+    });
+    await tx.user.update({
       where: { id: request.childUserId },
       data: { onboardingStep: "approved" },
-    }),
-  ]);
-
-  const guardian = await prisma.user.findUnique({
-    where: { id: guardianUserId },
-    select: { firstName: true },
+    });
+    await linkGuardianToChild(
+      {
+        guardianUserId,
+        childUserId: request.childUserId,
+        parentApprovalRequestId: requestId,
+        protectionLevel: data.protectionLevel,
+        linkedAt: resolvedAt,
+      },
+      tx,
+    );
   });
-  await seedDefaultChatThreadsForUser(guardianUserId, { firstName: guardian?.firstName });
 
-  await notifyChildOfParentApproval(requestId);
+  await runPostGuardianApprovalSideEffects(requestId, guardianUserId);
 
-  return {
-    ok: true as const,
-    childFirstName: request.childUser.firstName ?? "Your child",
-    childFullName: [request.childUser.firstName, request.childUser.lastName].filter(Boolean).join(" ")
-      || request.childUser.firstName
-      || "Your child",
-    childHandle: request.childUser.handle,
-    childAge: request.childUser.dateOfBirth
-      ? calculateAge(
-          request.childUser.dateOfBirth.getMonth() + 1,
-          request.childUser.dateOfBirth.getDate(),
-          request.childUser.dateOfBirth.getFullYear(),
-        )
-      : null,
-    parentEmail: request.parentEmail,
-    protectionLevel: data.protectionLevel,
-    activatedAt: new Date().toISOString(),
-  };
+  await ensureGuardianUserNames(guardianUserId, request.parentEmail);
+
+  return buildGuardianApprovalSuccess(
+    { ...request, resolvedAt },
+    data.protectionLevel,
+  );
 }

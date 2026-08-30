@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { CONVERSATIONS } from "@/lib/feed/messages";
+import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type SeedMessage = {
   body: string;
@@ -112,7 +113,10 @@ export async function seedDefaultChatThreadsForUser(
         peerInitials: creator?.avatarInitials ?? conversation.participant.initials,
         peerAvatarColor: creator?.avatarColor ?? conversation.participant.avatarColor,
         peerAvatarUrl: creator?.avatarUrl ?? conversation.participant.avatarUrl,
-        peerSlug: creator?.slug ?? conversation.participant.slug ?? null,
+        peerSlug:
+          creator?.slug ??
+          conversation.participant.slug ??
+          resolveAuthorProfileSlug(conversation.participant.handle),
         peerOnline: Boolean(conversation.participant.online),
         preview: last ? personalizeSeedBody(last.body, firstName) : conversation.preview,
         lastMessageAt: last?.createdAt ?? new Date(),
@@ -229,7 +233,7 @@ async function peerDisplayFromUser(userId: string): Promise<PeerDisplay | null> 
     peerInitials: user.profile?.avatarInitials?.trim() || initialsFromName(name),
     peerAvatarColor: user.profile?.avatarColor?.trim() || "#6b9fff",
     peerAvatarUrl: user.profile?.avatarUrl?.trim() || null,
-    peerSlug: user.profile?.slug?.trim() || null,
+    peerSlug: user.profile?.slug?.trim() || resolveAuthorProfileSlug(handle),
   };
 }
 
@@ -255,7 +259,7 @@ async function peerDisplayFromCreatorOwner(userId: string): Promise<PeerDisplay 
     peerInitials: creator.avatarInitials,
     peerAvatarColor: creator.avatarColor,
     peerAvatarUrl: creator.avatarUrl,
-    peerSlug: creator.slug,
+    peerSlug: creator.slug?.trim() || resolveAuthorProfileSlug(creator.handle),
   };
 }
 
@@ -543,4 +547,88 @@ export async function sendBookingConfirmationMessage(
   ]);
 
   return getChatThreadForUser(userId, threadId);
+}
+
+type GuardianChatPeer = {
+  guardianUserId: string;
+  fullName: string;
+  handleLabel: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  slug: string | null;
+};
+
+/** Ensures a minor has a DM thread with their linked guardian. */
+export async function ensureGuardianChatThreadForMinor(
+  minorUserId: string,
+  peer: GuardianChatPeer,
+) {
+  const seedKey = `guardian:${peer.guardianUserId}`;
+
+  const existing = await prisma.chatThread.findFirst({
+    where: { userId: minorUserId, seedKey },
+    select: { id: true },
+  });
+  if (existing) return existing;
+
+  return prisma.chatThread.create({
+    data: {
+      userId: minorUserId,
+      seedKey,
+      peerName: peer.fullName,
+      peerHandle: peer.handleLabel,
+      peerInitials: peer.avatarInitials,
+      peerAvatarColor: peer.avatarColor,
+      peerAvatarUrl: peer.avatarUrl,
+      peerSlug: peer.slug?.trim() || resolveAuthorProfileSlug(peer.handleLabel),
+      peerOnline: false,
+      preview: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+    },
+    select: { id: true },
+  });
+}
+
+type ChildChatPeer = {
+  childUserId: string;
+  fullName: string;
+  handleLabel: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  slug: string | null;
+};
+
+/** Ensures a guardian has a DM thread with a linked child. */
+export async function ensureChildChatThreadForGuardian(
+  guardianUserId: string,
+  peer: ChildChatPeer,
+) {
+  const seedKey = `child:${peer.childUserId}`;
+
+  const existing = await prisma.chatThread.findFirst({
+    where: { userId: guardianUserId, seedKey },
+    select: { id: true },
+  });
+  if (existing) return existing;
+
+  return prisma.chatThread.create({
+    data: {
+      userId: guardianUserId,
+      seedKey,
+      peerName: peer.fullName,
+      peerHandle: peer.handleLabel,
+      peerInitials: peer.avatarInitials,
+      peerAvatarColor: peer.avatarColor,
+      peerAvatarUrl: peer.avatarUrl,
+      peerSlug: peer.slug?.trim() || resolveAuthorProfileSlug(peer.handleLabel),
+      peerOnline: false,
+      preview: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+    },
+    select: { id: true },
+  });
 }
