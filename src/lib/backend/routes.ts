@@ -7,6 +7,8 @@ import {
   setBackendSession,
   type BackendUser,
 } from "./session";
+import { SSO_PENDING_COOKIE, endSessionUrl, type PendingSsoRegistration } from "./sso";
+import { cookies } from "next/headers";
 
 /**
  * Live-mode implementations of the prototype's auth and onboarding routes.
@@ -15,7 +17,7 @@ import {
  * components are unaware of which backend answered them.
  */
 
-type Session = { accessToken: string; refreshToken: string; userId?: string };
+type Session = { accessToken: string; refreshToken: string; userId?: string; idToken?: string | null };
 
 function fail(errorCode: string, message: string, status: number, extra: Record<string, unknown> = {}) {
   return NextResponse.json({ error: errorCopy(errorCode, message), ...extra }, { status });
@@ -26,6 +28,7 @@ async function startSession(tokens: Session, userId: string) {
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
     userId,
+    ...(tokens.idToken ? { idToken: tokens.idToken } : {}),
   });
 }
 
@@ -37,12 +40,79 @@ async function requireUser() {
 
 // ── Signup ──────────────────────────────────────────────────────────────────
 
+/**
+ * Finishes a signup that began at a provider's consent screen.
+ *
+ * Google and Apple supply an email and sometimes a name, never a date of birth
+ * or a country — and those two decide the compliance outcome. The signup form
+ * collects them, then the short-lived ssoToken parked by /auth/callback is
+ * redeemed here. No password is involved: the provider already proved who this
+ * is, so onboarding starts at the handle step.
+ */
+async function completeSsoSignup(
+  pending: PendingSsoRegistration,
+  fields: { firstName?: string; lastName?: string; dateOfBirth: string; country: string },
+) {
+  const result = await callBackend<{
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+    onboardingStep: string;
+    accountState: string;
+  }>("/auth/sso-register", {
+    method: "POST",
+    body: {
+      ssoToken: pending.ssoToken,
+      ...(fields.firstName ? { firstName: fields.firstName } : {}),
+      ...(fields.lastName ? { lastName: fields.lastName } : {}),
+      dateOfBirth: fields.dateOfBirth,
+      countryOfResidence: fields.country,
+      termsAccepted: true,
+    },
+  });
+
+  const jar = await cookies();
+  jar.delete(SSO_PENDING_COOKIE);
+
+  if (!result.ok) return fail(result.errorCode, result.message, result.status);
+
+  await startSession({ ...result.data, idToken: pending.idToken }, result.data.userId);
+
+  // The provider vouched for the address, so there is no verification step to
+  // send them to — reuse the "skip verification" contract the form already
+  // understands and route straight into onboarding.
+  return NextResponse.json({
+    ok: true,
+    skipVerification: true,
+    redirectTo: redirectForUser({ ...(result.data as unknown as BackendUser), emailVerified: true }),
+    email: pending.email,
+  });
+}
+
+async function readPendingSso(): Promise<PendingSsoRegistration | null> {
+  const raw = (await cookies()).get(SSO_PENDING_COOKIE)?.value;
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as PendingSsoRegistration;
+    return parsed.ssoToken ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function liveSignupJoin(request: Request) {
   const body = (await request.json()) as Record<string, string>;
   const { firstName, lastName, email, month, day, year, country } = body;
 
   // The API takes an ISO date; the prototype's form collects three fields.
   const dateOfBirth = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  // Same form, two origins: a plain signup registers an email, while one that
+  // began at Google finishes a registration Keycloak has already authenticated.
+  const pending = await readPendingSso();
+  if (pending) {
+    return completeSsoSignup(pending, { firstName, lastName, dateOfBirth, country });
+  }
 
   const result = await callBackend<{ userId: string; ageZone: string; accountState: string }>("/auth/register", {
     method: "POST",
@@ -167,7 +237,7 @@ async function redirectAfterLogin(token: string): Promise<string> {
   return me.ok ? redirectForUser(me.data) : "/feed";
 }
 
-export async function liveLogout() {
+export async function liveLogout(request: Request) {
   const current = await getBackendUser();
   if (current) {
     await callBackend("/auth/logout", {
@@ -176,7 +246,17 @@ export async function liveLogout() {
     });
   }
   await clearBackendSession();
-  return NextResponse.json({ ok: true, redirectTo: "/" });
+
+  // Revoking our token ends *our* session. A user who arrived through Google
+  // also has a Keycloak SSO session living in a cookie on Keycloak's origin,
+  // which we cannot touch from here — so hand the browser off to Keycloak's
+  // end-session endpoint, which drops it and returns the user to the login
+  // page. Password and code logins have no such session and go straight home.
+  const home = new URL("/", request.url).toString();
+  return NextResponse.json({
+    ok: true,
+    redirectTo: endSessionUrl(current?.session.idToken, home),
+  });
 }
 
 export async function liveSession() {

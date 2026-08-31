@@ -216,7 +216,44 @@ export function SignupFlow() {
     window.setTimeout(() => emailRef.current?.focus(), 0);
   }
 
+  // Returning from a provider's consent screen with no account yet: /auth/callback
+  // parked what Google told us, so skip straight to the details it cannot supply.
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has("sso")) return;
+    let cancelled = false;
+
+    void (async () => {
+      const response = await fetch("/api/auth/sso/pending");
+      const data = (await response.json()) as {
+        pending: boolean;
+        provider?: SignupMethod;
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+      };
+      if (cancelled || !data.pending) return;
+
+      setSignupMethod(data.provider ?? "google");
+      setEmail(data.email ?? "");
+      if (data.firstName) setFirstName(data.firstName);
+      if (data.lastName) setLastName(data.lastName);
+      applyDefaultDob({ setMonth, setDay, setYear });
+      setStep(2);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function startSocialSignup(provider: "google" | "apple") {
+    // Google is brokered by Keycloak for real; Apple has no identity provider
+    // configured yet, so it keeps the placeholder behaviour below.
+    if (provider === "google") {
+      window.location.href = "/api/auth/sso/start?provider=google";
+      return;
+    }
+
     setSignupMethod(provider);
     setEmail("");
     setFirstName(SOCIAL_SIGNUP_FIRST_NAME);
