@@ -366,7 +366,15 @@ export function LoginForm() {
       />
 
       <div className="gap-3 mt-8">
-        <button type="button" className="btn btn--secondary btn-login-oauth" disabled>
+        <button
+          type="button"
+          className="btn btn--secondary btn-login-oauth"
+          onClick={() => {
+            // Full navigation, not a router push: the next hop is Keycloak's
+            // origin, and the route handler needs to set the PKCE cookie.
+            window.location.href = "/api/auth/sso/start?provider=google";
+          }}
+        >
           <GoogleIcon />
           Continue with Google
         </button>

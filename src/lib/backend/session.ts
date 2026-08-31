@@ -19,6 +19,8 @@ export interface BackendSession {
   accessToken: string;
   refreshToken: string;
   userId: string;
+  /** SSO logins only — the proof needed to end the Keycloak SSO session. */
+  idToken?: string;
 }
 
 export interface BackendUser {
@@ -108,6 +110,8 @@ export async function getBackendUser(): Promise<{ user: BackendUser; session: Ba
     }
     session.accessToken = refreshed.data.accessToken;
     session.refreshToken = refreshed.data.refreshToken;
+    // idToken is deliberately left as-is: the refresh grant does not reissue
+    // one, and the original still identifies the session we would end.
     await bestEffort(() => setBackendSession(session));
     result = await callBackend<BackendUser>("/users/me", { token: session.accessToken });
   }

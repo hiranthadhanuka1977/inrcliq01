@@ -3,8 +3,8 @@ import { destroySession } from "@/lib/session";
 import { isLiveBackend } from "@/lib/backend/config";
 import { liveLogout } from "@/lib/backend/routes";
 
-export async function POST() {
-  if (isLiveBackend()) return liveLogout();
+export async function POST(request: Request) {
+  if (isLiveBackend()) return liveLogout(request);
 
   try {
     await destroySession();
