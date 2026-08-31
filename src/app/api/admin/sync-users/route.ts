@@ -106,6 +106,24 @@ async function upsertRows(pool: Pool, table: string, rows: Record<string, unknow
       }
     }
 
+    if (table === "CreatorUser") {
+      const ids = rows.map((row) => String(row.id));
+      const handles = rows.map((row) => row.handle).filter(Boolean);
+      const emails = rows.map((row) => row.email).filter(Boolean);
+      if (handles.length) {
+        await client.query(
+          `DELETE FROM public."CreatorUser" WHERE handle = ANY($1::text[]) AND NOT (id = ANY($2::text[]))`,
+          [handles, ids],
+        );
+      }
+      if (emails.length) {
+        await client.query(
+          `DELETE FROM public."CreatorUser" WHERE email = ANY($1::text[]) AND NOT (id = ANY($2::text[]))`,
+          [emails, ids],
+        );
+      }
+    }
+
     const columns = Object.keys(rows[0]);
     const colSql = columns.map((column) => `"${column}"`).join(", ");
     const conflictColumns = CONFLICT_TARGETS[table as (typeof TABLE_ORDER)[number]] ?? ["id"];
