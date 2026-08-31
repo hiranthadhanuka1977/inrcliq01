@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { parseHandle } from "@/lib/validation";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveOnboardingHandle } from "@/lib/backend/routes";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveOnboardingHandle(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

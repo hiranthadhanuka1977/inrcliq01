@@ -11,8 +11,12 @@ import { calculateAge, parseDateOfBirth } from "@/lib/utils/age";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { parseSignupJoin } from "@/lib/validation";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveSignupJoin } from "@/lib/backend/routes";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveSignupJoin(request);
+
   try {
     const body = await request.json();
     const parsed = parseSignupJoin(body);
@@ -60,7 +64,7 @@ export async function POST(request: Request) {
           lastName,
           dateOfBirth,
           country,
-          region: country === "US" ? region : null,
+          region: region?.trim() || null,
           accountType,
           signupMethod: oauthProvider,
           emailVerified: new Date(),
@@ -89,7 +93,7 @@ export async function POST(request: Request) {
             lastName,
             dateOfBirth,
             country,
-            region: country === "US" ? region : null,
+            region: region?.trim() || null,
             accountType,
             signupMethod: "email",
             onboardingStep: null,
@@ -102,7 +106,7 @@ export async function POST(request: Request) {
             lastName,
             dateOfBirth,
             country,
-            region: country === "US" ? region : null,
+            region: region?.trim() || null,
             accountType,
             signupMethod: "email",
           },

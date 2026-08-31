@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { isLiveBackend } from "@/lib/backend/config";
+import { getLiveSessionUser } from "@/lib/backend/session-bridge";
+import { clearBackendSession } from "@/lib/backend/session";
 
 export const SESSION_COOKIE = "inrcliq_session";
 const SESSION_MAX_AGE_DAYS = 30;
@@ -30,6 +33,10 @@ export async function createSession(userId: string) {
 }
 
 export async function getSessionUser() {
+  // Live mode keeps no session row of its own — the backend's JWTs are the
+  // session. Adapted to this shape so pages and routes stay unchanged.
+  if (isLiveBackend()) return getLiveSessionUser();
+
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get(SESSION_COOKIE)?.value;
   if (!sessionToken) return null;
@@ -50,6 +57,11 @@ export async function getSessionUser() {
 }
 
 export async function destroySession() {
+  if (isLiveBackend()) {
+    await clearBackendSession();
+    return;
+  }
+
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get(SESSION_COOKIE)?.value;
   if (sessionToken) {

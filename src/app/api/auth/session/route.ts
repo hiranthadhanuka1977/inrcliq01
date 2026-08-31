@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { getOnboardingRedirect } from "@/lib/auth/onboarding";
 import { getLatestParentRequest } from "@/lib/auth/parent-invite";
 import { getSessionUser } from "@/lib/session";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveSession } from "@/lib/backend/routes";
 
 export async function GET() {
+  if (isLiveBackend()) return liveSession();
+
   const user = await getSessionUser();
 
   if (!user) {
