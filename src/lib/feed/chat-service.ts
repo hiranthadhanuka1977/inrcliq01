@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { CONVERSATIONS } from "@/lib/feed/messages";
+import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type SeedMessage = {
   body: string;
@@ -112,7 +113,10 @@ export async function seedDefaultChatThreadsForUser(
         peerInitials: creator?.avatarInitials ?? conversation.participant.initials,
         peerAvatarColor: creator?.avatarColor ?? conversation.participant.avatarColor,
         peerAvatarUrl: creator?.avatarUrl ?? conversation.participant.avatarUrl,
-        peerSlug: creator?.slug ?? conversation.participant.slug ?? null,
+        peerSlug:
+          creator?.slug ??
+          conversation.participant.slug ??
+          resolveAuthorProfileSlug(conversation.participant.handle),
         peerOnline: Boolean(conversation.participant.online),
         preview: last ? personalizeSeedBody(last.body, firstName) : conversation.preview,
         lastMessageAt: last?.createdAt ?? new Date(),
@@ -157,6 +161,252 @@ export async function markThreadRead(userId: string, threadId: string) {
   });
 }
 
+function initialsFromName(name: string) {
+  const parts = name
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const initials = parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+  return initials || "??";
+}
+
+function normalizeHandle(value: string | null | undefined, fallback: string) {
+  const raw = value?.trim() || "";
+  if (raw) return raw.startsWith("@") ? raw : `@${raw}`;
+  const cleaned = fallback.replace(/^@/, "").trim() || "user";
+  return `@${cleaned}`;
+}
+
+function previewFromBody(body: string) {
+  const trimmed = body.trim();
+  if (trimmed.length <= 140) return trimmed;
+  return `${trimmed.slice(0, 137)}…`;
+}
+
+type PeerDisplay = {
+  peerCreatorId: string | null;
+  peerName: string;
+  peerHandle: string;
+  peerInitials: string;
+  peerAvatarColor: string;
+  peerAvatarUrl: string | null;
+  peerSlug: string | null;
+};
+
+async function peerDisplayFromUser(userId: string): Promise<PeerDisplay | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      firstName: true,
+      lastName: true,
+      handle: true,
+      profile: {
+        select: {
+          displayName: true,
+          handle: true,
+          slug: true,
+          avatarInitials: true,
+          avatarColor: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  });
+  if (!user) return null;
+
+  const name =
+    user.profile?.displayName?.trim() ||
+    `${user.firstName?.trim() || ""} ${user.lastName?.trim() || ""}`.trim() ||
+    "Member";
+  const handle = normalizeHandle(
+    user.profile?.handle || user.handle,
+    name.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 24) || "member",
+  );
+
+  return {
+    peerCreatorId: null,
+    peerName: name,
+    peerHandle: handle,
+    peerInitials: user.profile?.avatarInitials?.trim() || initialsFromName(name),
+    peerAvatarColor: user.profile?.avatarColor?.trim() || "#6b9fff",
+    peerAvatarUrl: user.profile?.avatarUrl?.trim() || null,
+    peerSlug: user.profile?.slug?.trim() || resolveAuthorProfileSlug(handle),
+  };
+}
+
+async function peerDisplayFromCreatorOwner(userId: string): Promise<PeerDisplay | null> {
+  const creator = await prisma.creatorUser.findFirst({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      handle: true,
+      slug: true,
+      avatarInitials: true,
+      avatarColor: true,
+      avatarUrl: true,
+    },
+  });
+  if (!creator) return null;
+
+  return {
+    peerCreatorId: creator.id,
+    peerName: creator.name,
+    peerHandle: creator.handle,
+    peerInitials: creator.avatarInitials,
+    peerAvatarColor: creator.avatarColor,
+    peerAvatarUrl: creator.avatarUrl,
+    peerSlug: creator.slug?.trim() || resolveAuthorProfileSlug(creator.handle),
+  };
+}
+
+async function resolveReceiverUserId(thread: {
+  peerCreatorId: string | null;
+  peerSlug: string | null;
+  peerHandle: string;
+}): Promise<string | null> {
+  if (thread.peerCreatorId) {
+    const creator = await prisma.creatorUser.findUnique({
+      where: { id: thread.peerCreatorId },
+      select: { userId: true },
+    });
+    return creator?.userId ?? null;
+  }
+
+  const slug = thread.peerSlug?.trim();
+  if (slug) {
+    const bySlug = await prisma.userProfile.findFirst({
+      where: { slug: { equals: slug, mode: "insensitive" } },
+      select: { userId: true },
+    });
+    if (bySlug?.userId) return bySlug.userId;
+  }
+
+  const handle = thread.peerHandle?.trim();
+  if (!handle) return null;
+  const normalized = handle.replace(/^@/, "");
+  const handleFilters = [
+    { equals: handle, mode: "insensitive" as const },
+    { equals: `@${normalized}`, mode: "insensitive" as const },
+    { equals: normalized, mode: "insensitive" as const },
+  ];
+
+  const byUserHandle = await prisma.user.findFirst({
+    where: { OR: handleFilters.map((equals) => ({ handle: equals })) },
+    select: { id: true },
+  });
+  if (byUserHandle?.id) return byUserHandle.id;
+
+  const byProfileHandle = await prisma.userProfile.findFirst({
+    where: { OR: handleFilters.map((equals) => ({ handle: equals })) },
+    select: { userId: true },
+  });
+  return byProfileHandle?.userId ?? null;
+}
+
+async function findOrCreatePeerInboxThread(receiverUserId: string, peer: PeerDisplay) {
+  if (peer.peerCreatorId) {
+    const byCreator = await prisma.chatThread.findFirst({
+      where: { userId: receiverUserId, peerCreatorId: peer.peerCreatorId },
+      select: { id: true },
+    });
+    if (byCreator) return byCreator;
+  }
+
+  const orFilters = [
+    peer.peerSlug
+      ? { peerSlug: { equals: peer.peerSlug, mode: "insensitive" as const } }
+      : undefined,
+    peer.peerHandle
+      ? { peerHandle: { equals: peer.peerHandle, mode: "insensitive" as const } }
+      : undefined,
+  ].filter(Boolean) as Array<
+    | { peerSlug: { equals: string; mode: "insensitive" } }
+    | { peerHandle: { equals: string; mode: "insensitive" } }
+  >;
+
+  if (orFilters.length > 0) {
+    const existing = await prisma.chatThread.findFirst({
+      where: { userId: receiverUserId, OR: orFilters },
+      select: { id: true },
+    });
+    if (existing) return existing;
+  }
+
+  return prisma.chatThread.create({
+    data: {
+      userId: receiverUserId,
+      peerCreatorId: peer.peerCreatorId,
+      peerName: peer.peerName,
+      peerHandle: peer.peerHandle,
+      peerInitials: peer.peerInitials,
+      peerAvatarColor: peer.peerAvatarColor,
+      peerAvatarUrl: peer.peerAvatarUrl,
+      peerSlug: peer.peerSlug,
+      peerOnline: false,
+      preview: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+    },
+    select: { id: true },
+  });
+}
+
+/**
+ * Mirror a sent message into the peer user's private inbox thread.
+ * Chat is stored per-user (not a shared thread), same pattern as booking confirmations.
+ */
+async function mirrorChatMessageToPeer(
+  senderUserId: string,
+  senderThread: {
+    peerCreatorId: string | null;
+    peerSlug: string | null;
+    peerHandle: string;
+  },
+  body: string,
+) {
+  const receiverUserId = await resolveReceiverUserId(senderThread);
+  if (!receiverUserId || receiverUserId === senderUserId) return;
+
+  // Messaging a creator → peer inbox shows the fan. Messaging a fan → show the creator when possible.
+  const peer = senderThread.peerCreatorId
+    ? await peerDisplayFromUser(senderUserId)
+    : (await peerDisplayFromCreatorOwner(senderUserId)) ||
+      (await peerDisplayFromUser(senderUserId));
+  if (!peer) return;
+
+  const receiverThread = await findOrCreatePeerInboxThread(receiverUserId, peer);
+  const preview = previewFromBody(body);
+
+  await prisma.$transaction([
+    prisma.chatMessage.create({
+      data: {
+        threadId: receiverThread.id,
+        body,
+        fromMe: false,
+      },
+    }),
+    prisma.chatThread.update({
+      where: { id: receiverThread.id },
+      data: {
+        preview,
+        lastMessageAt: new Date(),
+        unreadCount: { increment: 1 },
+        peerName: peer.peerName,
+        peerHandle: peer.peerHandle,
+        peerInitials: peer.peerInitials,
+        peerAvatarColor: peer.peerAvatarColor,
+        peerAvatarUrl: peer.peerAvatarUrl,
+        peerSlug: peer.peerSlug,
+        ...(peer.peerCreatorId ? { peerCreatorId: peer.peerCreatorId } : {}),
+      },
+    }),
+  ]);
+}
+
 export async function sendChatMessage(userId: string, threadId: string, body: string) {
   const thread = await prisma.chatThread.findFirst({
     where: { id: threadId, userId },
@@ -177,12 +427,18 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
     prisma.chatThread.update({
       where: { id: threadId },
       data: {
-        preview: trimmed,
+        preview: previewFromBody(trimmed),
         lastMessageAt: new Date(),
         unreadCount: 0,
       },
     }),
   ]);
+
+  try {
+    await mirrorChatMessageToPeer(userId, thread, trimmed);
+  } catch (error) {
+    console.error("chat mirror to peer failed", error);
+  }
 
   return getChatThreadForUser(userId, threadId).then((fresh) => ({
     thread: fresh,
@@ -291,4 +547,88 @@ export async function sendBookingConfirmationMessage(
   ]);
 
   return getChatThreadForUser(userId, threadId);
+}
+
+type GuardianChatPeer = {
+  guardianUserId: string;
+  fullName: string;
+  handleLabel: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  slug: string | null;
+};
+
+/** Ensures a minor has a DM thread with their linked guardian. */
+export async function ensureGuardianChatThreadForMinor(
+  minorUserId: string,
+  peer: GuardianChatPeer,
+) {
+  const seedKey = `guardian:${peer.guardianUserId}`;
+
+  const existing = await prisma.chatThread.findFirst({
+    where: { userId: minorUserId, seedKey },
+    select: { id: true },
+  });
+  if (existing) return existing;
+
+  return prisma.chatThread.create({
+    data: {
+      userId: minorUserId,
+      seedKey,
+      peerName: peer.fullName,
+      peerHandle: peer.handleLabel,
+      peerInitials: peer.avatarInitials,
+      peerAvatarColor: peer.avatarColor,
+      peerAvatarUrl: peer.avatarUrl,
+      peerSlug: peer.slug?.trim() || resolveAuthorProfileSlug(peer.handleLabel),
+      peerOnline: false,
+      preview: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+    },
+    select: { id: true },
+  });
+}
+
+type ChildChatPeer = {
+  childUserId: string;
+  fullName: string;
+  handleLabel: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  slug: string | null;
+};
+
+/** Ensures a guardian has a DM thread with a linked child. */
+export async function ensureChildChatThreadForGuardian(
+  guardianUserId: string,
+  peer: ChildChatPeer,
+) {
+  const seedKey = `child:${peer.childUserId}`;
+
+  const existing = await prisma.chatThread.findFirst({
+    where: { userId: guardianUserId, seedKey },
+    select: { id: true },
+  });
+  if (existing) return existing;
+
+  return prisma.chatThread.create({
+    data: {
+      userId: guardianUserId,
+      seedKey,
+      peerName: peer.fullName,
+      peerHandle: peer.handleLabel,
+      peerInitials: peer.avatarInitials,
+      peerAvatarColor: peer.avatarColor,
+      peerAvatarUrl: peer.avatarUrl,
+      peerSlug: peer.slug?.trim() || resolveAuthorProfileSlug(peer.handleLabel),
+      peerOnline: false,
+      preview: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+    },
+    select: { id: true },
+  });
 }

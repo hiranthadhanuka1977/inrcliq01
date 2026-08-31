@@ -29,6 +29,8 @@ export default async function SellerLayout({
       avatarUrl={navProfile.avatarUrl}
       avatarColor={navProfile.avatarColor}
       verified={verified || navProfile.verified}
+      isGuardian={navProfile.isGuardian}
+      profileHref={navProfile.profileHref}
     >
       <div className="seller-path-shell feed-path-shell">
         <SellerHeader />

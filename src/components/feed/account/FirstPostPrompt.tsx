@@ -13,6 +13,33 @@ import {
 import { COMPOSER_ACTIVITIES, COMPOSER_FEELINGS } from "@/data/feed/composer-feelings";
 import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
 import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
+import {
+  formatImageModerationError,
+  moderateImageFile,
+  preloadImageModerationModel,
+  shouldModerateUploadFile,
+  type ImageModerationBlock,
+} from "@/lib/moderation/nsfw-image-moderation";
+
+type UploadModerationPayload = {
+  title: string;
+  message: string;
+  category: ImageModerationBlock["category"];
+  confidence: number;
+  verificationFailed?: boolean;
+};
+
+function uploadModerationToBlock(payload: UploadModerationPayload): ImageModerationBlock {
+  return {
+    allowed: false,
+    title: payload.title,
+    message: payload.message,
+    category: payload.category,
+    confidence: payload.confidence,
+    predictions: [],
+    verificationFailed: payload.verificationFailed,
+  };
+}
 
 const STORAGE_KEY = "inrcliq:first-post-prompt-dismissed";
 
@@ -88,6 +115,7 @@ type MediaItem = {
   url: string;
   alt: string;
   kind: "image" | "video";
+  moderationPassed: boolean;
 };
 
 type GifItem = {
@@ -95,6 +123,35 @@ type GifItem = {
   url: string;
   alt: string;
 };
+
+type ComposerImageStatusKind = "checking" | "uploading";
+
+function ComposerImageStatus({ kind }: { kind: ComposerImageStatusKind }) {
+  const copy =
+    kind === "checking"
+      ? { title: "Checking photo", detail: "Running our safety check on your image" }
+      : { title: "Uploading file", detail: "Adding your photo to the post" };
+
+  return (
+    <div
+      className={`composer-image-status composer-image-status--${kind}`}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="composer-image-status__main">
+        <span className="composer-image-status__spinner" aria-hidden="true" />
+        <div className="composer-image-status__copy">
+          <strong className="composer-image-status__title">{copy.title}</strong>
+          <p className="composer-image-status__detail">{copy.detail}</p>
+        </div>
+      </div>
+      <div className="composer-image-status__track" aria-hidden="true">
+        <span className="composer-image-status__track-fill" />
+      </div>
+    </div>
+  );
+}
 
 function PhotoIcon() {
   return (
@@ -193,12 +250,15 @@ export default function FirstPostPrompt({
   const isModal = variant === "modal";
   const rootRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageWarningRef = useRef<HTMLDivElement>(null);
 
   const [visible, setVisible] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
+  const [imageWarning, setImageWarning] = useState<ImageModerationBlock | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [moderating, setModerating] = useState(false);
   const [publishedHref, setPublishedHref] = useState<string | null>(null);
   const [panel, setPanel] = useState<ComposerPanel>(null);
 
@@ -220,7 +280,7 @@ export default function FirstPostPrompt({
   const [gifQuery, setGifQuery] = useState("");
   const [gifs, setGifs] = useState<GifItem[]>([]);
   const [gifsLoading, setGifsLoading] = useState(false);
-  const [exclusiveContent, setExclusiveContent] = useState(Boolean(verified));
+  const [exclusiveContent, setExclusiveContent] = useState(false);
   const [crossPostPlatforms, setCrossPostPlatforms] = useState<Record<CrossPostPlatformId, boolean>>({
     facebook: false,
     instagram: false,
@@ -249,8 +309,13 @@ export default function FirstPostPrompt({
   }, [isModal, storageKey]);
 
   useEffect(() => {
-    setExclusiveContent(Boolean(verified));
-  }, [verified]);
+    void preloadImageModerationModel();
+  }, []);
+
+  useEffect(() => {
+    if (!imageWarning) return;
+    imageWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [imageWarning]);
 
   useEffect(() => {
     if (!panel) return;
@@ -360,50 +425,122 @@ export default function FirstPostPrompt({
 
   async function handleFiles(fileList: FileList | null) {
     if (!fileList?.length) return;
+
+    const files = Array.from(fileList).slice(0, 6);
     setError("");
+    setImageWarning(null);
+    setPanel("photo");
+    setModerating(true);
+
+    let blocked: ImageModerationBlock | null = null;
+    const passTokens = new Map<File, string>();
+    try {
+      for (const file of files) {
+        if (!shouldModerateUploadFile(file)) continue;
+        const { result, passToken } = await moderateImageFile(file);
+        if (!result.allowed) {
+          blocked = result;
+          break;
+        }
+        if (passToken) passTokens.set(file, passToken);
+      }
+    } finally {
+      setModerating(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+
+    if (blocked) {
+      setImageWarning(blocked);
+      return;
+    }
+
     setUploading(true);
     try {
-      for (const file of Array.from(fileList).slice(0, 6)) {
+      for (const file of files) {
         const body = new FormData();
         body.append("file", file);
+        const passToken = passTokens.get(file);
+        if (passToken) body.append("moderationPassToken", passToken);
         const response = await fetch("/api/feed/uploads", { method: "POST", body });
         const data = (await response.json().catch(() => ({}))) as {
           error?: string;
           url?: string;
           kind?: "image" | "video";
+          moderation?: UploadModerationPayload;
         };
+        if (response.status === 422 && data.moderation) {
+          setImageWarning(uploadModerationToBlock(data.moderation));
+          break;
+        }
         if (!response.ok || !data.url) {
           setError(data.error ?? "Unable to upload that file.");
           break;
         }
-        setMedia((current) => {
-          if (data.kind === "video") {
-            return [{ url: data.url!, alt: file.name, kind: "video" }];
+        const uploadedUrl = data.url;
+        const uploadedKind: MediaItem["kind"] = data.kind === "video" ? "video" : "image";
+        setMedia((current): MediaItem[] => {
+          if (uploadedKind === "video") {
+            const videoItem: MediaItem = {
+              url: uploadedUrl,
+              alt: file.name,
+              kind: "video",
+              moderationPassed: true,
+            };
+            return [videoItem];
           }
           const withoutVideo = current.filter((item) => item.kind !== "video");
-          return [...withoutVideo, { url: data.url!, alt: file.name, kind: "image" }].slice(0, 6);
+          const imageItem: MediaItem = {
+            url: uploadedUrl,
+            alt: file.name,
+            kind: "image",
+            moderationPassed: true,
+          };
+          return [...withoutVideo, imageItem].slice(0, 6);
         });
         if (data.kind === "video") break;
       }
-      setPanel("photo");
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
   async function saveEditedImage(file: File) {
     if (!editingUrl) return;
     const originalUrl = editingUrl;
+
+    setError("");
+    setImageWarning(null);
+    setModerating(true);
+    const { result, passToken } = await moderateImageFile(file);
+    setModerating(false);
+    if (!result.allowed) {
+      setImageWarning(result);
+      throw new Error(formatImageModerationError(result));
+    }
+
     const body = new FormData();
     body.append("file", file);
+    if (passToken) body.append("moderationPassToken", passToken);
     const response = await fetch("/api/feed/uploads", { method: "POST", body });
-    const data = (await response.json().catch(() => ({}))) as { error?: string; url?: string };
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      url?: string;
+      moderation?: UploadModerationPayload;
+    };
+    if (response.status === 422 && data.moderation) {
+      const block = uploadModerationToBlock(data.moderation);
+      setImageWarning(block);
+      throw new Error(formatImageModerationError(block));
+    }
     if (!response.ok || !data.url) {
       throw new Error(data.error ?? "Unable to save the edited photo.");
     }
     setMedia((current) =>
-      current.map((item) => (item.url === originalUrl ? { ...item, url: data.url! } : item)),
+      current.map((item) =>
+        item.url === originalUrl
+          ? { ...item, url: data.url!, moderationPassed: true }
+          : item,
+      ),
     );
     setEditingUrl(null);
   }
@@ -415,6 +552,11 @@ export default function FirstPostPrompt({
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    const unverifiedImage = media.find((item) => item.kind === "image" && !item.moderationPassed);
+    if (unverifiedImage) {
+      setError("One or more photos did not pass the safety check. Remove them and try again.");
+      return;
+    }
     setSubmitting(true);
     try {
       const images = media
@@ -450,6 +592,7 @@ export default function FirstPostPrompt({
         setError(data.error ?? "Unable to publish your post.");
         return;
       }
+      setImageWarning(null);
       try {
         window.localStorage.setItem(storageKey, "1");
       } catch {
@@ -691,6 +834,21 @@ export default function FirstPostPrompt({
           </div>
         </div>
 
+        {moderating ? <ComposerImageStatus kind="checking" /> : null}
+        {!moderating && uploading ? <ComposerImageStatus kind="uploading" /> : null}
+
+        {imageWarning ? (
+          <div ref={imageWarningRef} className="composer-image-warning" role="alert" aria-live="assertive">
+            <strong className="composer-image-warning__title">{imageWarning.title}</strong>
+            <p className="composer-image-warning__body">{imageWarning.message}</p>
+            <p className="composer-image-warning__meta">
+              {imageWarning.verificationFailed
+                ? "This photo was not added to your post."
+                : `Flagged as ${imageWarning.category.toLowerCase()} (${Math.round(imageWarning.confidence * 100)}% confidence). This photo was not added to your post.`}
+            </p>
+          </div>
+        ) : null}
+
         {panel === "tag" ? (
           <div className="composer-panel">
             <p className="composer-panel__title">Tag people</p>
@@ -888,10 +1046,6 @@ export default function FirstPostPrompt({
           </div>
         ) : null}
 
-        {panel === "photo" && uploading ? (
-          <p className="composer-panel__status">Uploading…</p>
-        ) : null}
-
         {error ? <p className="first-post-prompt__error">{error}</p> : null}
         {verified ? (
           <label className="composer-exclusive">
@@ -933,7 +1087,7 @@ export default function FirstPostPrompt({
         </fieldset>
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
-            {uploading ? "Uploading…" : "Photos, tags, places, feelings, and GIFs are optional."}
+            Photos, tags, places, feelings, and GIFs are optional.
           </p>
           <div className="first-post-prompt__actions">
             {isModal ? null : (
@@ -944,7 +1098,7 @@ export default function FirstPostPrompt({
             <button
               type="submit"
               className="btn btn--primary btn--sm first-post-prompt__cta"
-              disabled={submitting || uploading || !canPost}
+              disabled={submitting || uploading || moderating || !canPost}
             >
               {submitting ? "Posting…" : "Post"}
             </button>

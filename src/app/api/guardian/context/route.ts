@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { buildGuardianContext } from "@/lib/auth/guardian-flow";
+import {
+  buildAuthenticatedGuardianProfile,
+  buildGuardianContext,
+} from "@/lib/auth/guardian-flow";
+import { getSessionUser } from "@/lib/session";
 
 export async function GET(request: Request) {
   try {
@@ -20,6 +24,17 @@ export async function GET(request: Request) {
         );
       }
       return NextResponse.json({ error: "Invalid or expired approval link." }, { status: 400 });
+    }
+
+    const sessionUser = await getSessionUser();
+    if (sessionUser) {
+      const profile = buildAuthenticatedGuardianProfile(sessionUser);
+      result.context.authenticatedGuardian = true;
+      result.context.authenticatedGuardianName = profile.name;
+      result.context.authenticatedGuardianEmail = profile.email;
+      result.context.authenticatedGuardianCountry = profile.country;
+      result.context.authenticatedGuardianRegion = profile.region;
+      result.context.authenticatedGuardianProfile = profile;
     }
 
     return NextResponse.json(result.context);

@@ -7,7 +7,7 @@ import PageBodyClass from "@/components/feed/PageBodyClass";
 import FeedPost from "@/components/feed/FeedPost";
 import FeedScrollButton from "@/components/feed/FeedScrollButton";
 import LeftNav from "@/components/feed/LeftNav";
-import FirstPostPrompt from "@/components/feed/account/FirstPostPrompt";
+import FirstPostPromptCard from "@/components/feed/account/FirstPostPromptCard";
 import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
 import ProfileCollection from "@/components/feed/profile/ProfileCollection";
 import ProfileHeader from "@/components/feed/profile/ProfileHeader";
@@ -80,10 +80,10 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
               </>
             ) : profile.is_own ? (
               <section className="profile-feed" aria-label="Create your first post">
-                <FirstPostPrompt
+                <FirstPostPromptCard
                   firstName={profile.name.split(/\s+/)[0] || null}
-                  profileHref={`/feed/profile/${profile.slug}`}
                   dismissKey={profile.slug}
+                  verified={profile.verified}
                 />
               </section>
             ) : (

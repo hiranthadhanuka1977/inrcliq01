@@ -1,0 +1,47 @@
+﻿{
+  "files.watcherExclude": {
+    "**/.next/**": true,
+    "**/node_modules/**": true,
+    "**/out/**": true,
+    "**/build/**": true,
+    "**/coverage/**": true,
+    "**/.git/objects/**": true,
+    "**/public/uploads/**": true,
+    "**/public/models/**": true,
+    "**/src/generated/**": true,
+    "**/inrcliq/**": true,
+    "**/livefeed/**": true,
+    "**/web/**": true,
+    "**/.sync-backup/**": true,
+    "**/data/db-export/**": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/node_modules": true,
+    "**/out": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/public/uploads": true,
+    "**/public/models": true,
+    "**/src/generated": true,
+    "**/inrcliq": true,
+    "**/livefeed": true,
+    "**/web": true,
+    "**/.sync-backup": true,
+    "**/data/db-export": true,
+    "**/package-lock.json": true
+  },
+  "files.exclude": {
+    "**/.next": true,
+    "inrcliq": true,
+    "livefeed": true,
+    "web": true,
+    ".sync-backup": true,
+    "data/db-export": true
+  },
+  "git.autofetch": false,
+  "editor.minimap.enabled": false,
+  "editor.smoothScrolling": false,
+  "workbench.list.smoothScrolling": false,
+  "typescript.tsserver.maxTsServerMemory": 4096
+}

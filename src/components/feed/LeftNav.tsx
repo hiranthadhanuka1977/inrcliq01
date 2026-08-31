@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import CreatePostModal from "@/components/feed/account/CreatePostModal";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
@@ -17,15 +17,21 @@ const navItems: {
 }[] = [
   { label: "Home", href: "/feed", icon: "home" },
   { label: "Messages", href: "/feed/messages", icon: "messages" },
-  { label: "Snaps", href: "#", icon: "snaps" },
-  { label: "Photos", href: "#", icon: "photos" },
-  { label: "Videos", href: "#", icon: "videos" },
+  { label: "Snaps", href: "/feed/snaps", icon: "snaps" },
+  { label: "Photos", href: "/feed/photos", icon: "photos" },
+  { label: "Videos", href: "/feed/videos", icon: "videos" },
   { label: "Audio", href: "/feed/audio", icon: "audio" },
   { label: "Explore", href: "#", icon: "explore" },
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Calendar", href: "/feed/bookings", icon: "bookings" },
-  { label: "Seller Tools", href: "/seller", icon: "seller" },
+  { label: "Seller Tools", href: "/seller", icon: "seller" as const },
 ];
+
+const familyCenterNavItem = {
+  label: "Family Center",
+  href: "/feed/family-center",
+  icon: "family-center" as const,
+};
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/feed") {
@@ -34,6 +40,10 @@ function isActive(pathname: string, href: string): boolean {
 
   if (href === "/seller") {
     return pathname === "/seller" || pathname.startsWith("/seller/");
+  }
+
+  if (href === "/feed/family-center") {
+    return pathname === "/feed/family-center" || pathname.startsWith("/feed/family-center/");
   }
 
   if (href === "#") {
@@ -45,7 +55,15 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function LeftNav({ firstName }: { firstName?: string | null } = {}) {
   const pathname = usePathname();
-  const { firstName: sessionFirstName, avatarUrl, avatarColor, verified } = useFeedSession();
+  const { firstName: sessionFirstName, avatarUrl, avatarColor, verified, isGuardian } =
+    useFeedSession();
+  const visibleNavItems = useMemo(() => {
+    if (!isGuardian) return navItems;
+    const items = [...navItems];
+    const sellerIndex = items.findIndex((item) => item.label === "Seller Tools");
+    items.splice(sellerIndex + 1, 0, familyCenterNavItem);
+    return items;
+  }, [isGuardian]);
   const { theme, toggleTheme } = useFeedTheme();
   const displayName = (firstName?.trim() || sessionFirstName?.trim() || "You");
   const avatarInitial = displayName === "You" ? "Y" : displayName.charAt(0).toUpperCase();
@@ -138,14 +156,16 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
           </div>
         </div>
         <nav>
-          {navItems.map((item, index) => {
+          {visibleNavItems.map((item, index) => {
             const showTopDivider = item.label === "Snaps";
             const showBottomDivider = item.label === "Audio";
             const active = isActive(pathname, item.href);
             const badge =
               item.href === "/feed/messages" && messagesUnread > 0
                 ? String(messagesUnread)
-                : item.badge;
+                : "badge" in item
+                  ? item.badge
+                  : undefined;
 
             return (
               <div key={item.label}>
@@ -165,7 +185,9 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
                     </span>
                   </span>
                 </Link>
-                {showBottomDivider && index < navItems.length - 1 ? <hr className="nav-separator" /> : null}
+                {showBottomDivider && index < visibleNavItems.length - 1 ? (
+                  <hr className="nav-separator" />
+                ) : null}
               </div>
             );
           })}

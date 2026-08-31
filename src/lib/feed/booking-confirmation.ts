@@ -16,7 +16,17 @@ export type BookingConfirmationPayload = {
 };
 
 export type BookingNotePayload = {
-  kind: "accepted" | "declined" | "delivered";
+  kind:
+    | "accepted"
+    | "declined"
+    | "delivered"
+    | "new_offer"
+    | "offer_declined"
+    | "offer_accepted"
+    | "counter_offer"
+    | "counter_accepted"
+    | "counter_declined"
+    | "refund";
   reference: string;
   creatorName: string;
   specialRequestId?: string;
@@ -30,6 +40,8 @@ export type BookingNotePayload = {
   note?: string;
   attachmentUrl?: string;
   attachmentName?: string;
+  /** Amount refunded to the requester after a decline. */
+  refundAmount?: number;
 };
 
 export function generateBookingReference() {
@@ -62,7 +74,18 @@ export function parseBookingNote(body: string): BookingNotePayload | null {
   try {
     const parsed = JSON.parse(body.slice(BOOKING_NOTE_PREFIX.length)) as BookingNotePayload;
     if (!parsed?.reference) return null;
-    if (parsed.kind !== "accepted" && parsed.kind !== "declined" && parsed.kind !== "delivered") {
+    if (
+      parsed.kind !== "accepted" &&
+      parsed.kind !== "declined" &&
+      parsed.kind !== "delivered" &&
+      parsed.kind !== "new_offer" &&
+      parsed.kind !== "offer_declined" &&
+      parsed.kind !== "offer_accepted" &&
+      parsed.kind !== "counter_offer" &&
+      parsed.kind !== "counter_accepted" &&
+      parsed.kind !== "counter_declined" &&
+      parsed.kind !== "refund"
+    ) {
       return null;
     }
     return parsed;
@@ -87,11 +110,29 @@ export function bookingMessagePreview(
 export function bookingNotePreview(payload: BookingNotePayload) {
   const name = payload.creatorName?.trim() || "the creator";
   const first = name.split(" ")[0];
-  if (payload.kind === "declined") {
+  if (payload.kind === "declined" || payload.kind === "offer_declined") {
     return `Declined by ${first} · ${payload.reference}`;
   }
   if (payload.kind === "delivered") {
     return `Delivered by ${first} · ${payload.reference}`;
+  }
+  if (payload.kind === "new_offer") {
+    return `New offer from ${first} · ${payload.reference}`;
+  }
+  if (payload.kind === "counter_offer") {
+    return `Counter offer · ${payload.reference}`;
+  }
+  if (payload.kind === "counter_accepted") {
+    return `Counter accepted · ${payload.reference}`;
+  }
+  if (payload.kind === "counter_declined") {
+    return `Counter declined · ${payload.reference}`;
+  }
+  if (payload.kind === "offer_accepted") {
+    return `Balance paid · ${payload.reference}`;
+  }
+  if (payload.kind === "refund") {
+    return `Refund issued · ${payload.reference}`;
   }
   return `Accepted by ${first} · ${payload.reference}`;
 }
@@ -134,6 +175,21 @@ export function parseDeliveryDeadline(when: string | undefined, fallbackDays = 7
     }
   }
   return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000).toISOString();
+}
+
+/** Human-readable deliver-by datetime for listings, details, and chat cards. */
+export function formatDeliverByLabel(deliverByIso: string | null | undefined) {
+  if (!deliverByIso?.trim()) return null;
+  const date = new Date(deliverByIso);
+  if (Number.isNaN(date.getTime())) return null;
+  // Fixed locale so SSR and client hydration always match.
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export function getCountdownParts(deliverByIso: string, now = Date.now()) {
@@ -188,3 +244,4 @@ export function extractTone(content: string | undefined) {
   if (/^(live appearance|select format)$/i.test(first)) return null;
   return first;
 }
+

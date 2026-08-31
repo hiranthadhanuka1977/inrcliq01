@@ -3,31 +3,185 @@
 import { useEffect, useRef, useState } from "react";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
 import { getSignupPasswordFieldError, isPasswordRequirementMet } from "@/lib/form-validation";
+import type { AuthenticatedGuardianProfile } from "@/lib/auth/guardian-flow";
+
+function maskEmailAddress(email: string) {
+  const trimmed = email.trim();
+  const atIndex = trimmed.indexOf("@");
+  if (atIndex <= 0) return "***";
+
+  const local = trimmed.slice(0, atIndex);
+  const domain = trimmed.slice(atIndex);
+  const visible = local.slice(0, Math.min(2, local.length));
+  const maskedLocal = `${visible}${"*".repeat(Math.max(3, local.length - visible.length))}`;
+  return `${maskedLocal}${domain}`;
+}
+
+function EyeToggleIcons({ revealed }: { revealed: boolean }) {
+  return (
+    <>
+      <svg
+        className={`password-toggle__icon password-toggle__icon--show${revealed ? " hidden" : ""}`}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden="true"
+      >
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <svg
+        className={`password-toggle__icon password-toggle__icon--hide${revealed ? "" : " hidden"}`}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden="true"
+      >
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+        <line x1="1" y1="1" x2="23" y2="23" />
+      </svg>
+    </>
+  );
+}
 
 export function ParentAccountStep({
   parentEmail,
+  existingGuardian,
+  onContinueAsExistingGuardian,
+  onLogout,
   onBack,
   onSubmit,
   isSubmitting,
+  isLoggingOut,
   error,
 }: {
   parentEmail: string;
+  existingGuardian?: AuthenticatedGuardianProfile | null;
+  onContinueAsExistingGuardian?: () => void;
+  onLogout?: () => void | Promise<void>;
   onBack: () => void;
   onSubmit: (data: { password: string; country: string; region: string | null }) => void;
   isSubmitting?: boolean;
+  isLoggingOut?: boolean;
   error?: string;
 }) {
   const passwordRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
   const [country, setCountry] = useState("LK");
   const [region, setRegion] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [fieldError, setFieldError] = useState({ visible: false, message: "" });
 
   useEffect(() => {
+    if (existingGuardian) return;
     passwordRef.current?.focus();
-  }, []);
+  }, [existingGuardian]);
+
+  if (existingGuardian) {
+    const countryLabel = existingGuardian.country
+      ? (COUNTRIES.find((item) => item.code === existingGuardian.country)?.label ?? existingGuardian.country)
+      : "Not set";
+    const emailDisplay = showEmail
+      ? existingGuardian.email
+      : maskEmailAddress(existingGuardian.email);
+
+    return (
+      <>
+        <button
+          type="button"
+          className="back-btn"
+          id="btn-parent-back"
+          aria-label="Back"
+          onClick={onBack}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M14 6l-6 6 6 6" />
+          </svg>
+        </button>
+        <h1 className="parent-signup__title">Continue with your parent account</h1>
+        <p className="parent-signup__logged-in">
+          <span className="parent-signup__logged-in-label">
+            You are logged in as <strong>{existingGuardian.name ?? existingGuardian.email}</strong>
+          </span>
+          <span className="parent-signup__logged-in-sep" aria-hidden="true">
+            ·
+          </span>
+          <button
+            type="button"
+            className="link-btn parent-signup__logged-in-logout"
+            onClick={() => void onLogout?.()}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? "Logging out…" : "Log out"}
+          </button>
+        </p>
+
+        <dl className="parent-signup__details parent-signup__account-info mt-8">
+          <div className="parent-signup__detail">
+            <dt className="parent-signup__detail-label">Name</dt>
+            <dd className="parent-signup__detail-value">
+              <strong>{existingGuardian.name ?? "Not set"}</strong>
+            </dd>
+          </div>
+
+          <hr className="parent-signup__divider" />
+
+          <div className="parent-signup__detail">
+            <dt className="parent-signup__detail-label">Email ID</dt>
+            <dd className="parent-signup__detail-value">
+              <strong>{emailDisplay}</strong>
+              <button
+                type="button"
+                className="parent-signup__edit-btn"
+                aria-label={showEmail ? "Hide email" : "Reveal email"}
+                aria-pressed={showEmail}
+                onClick={() => setShowEmail((value) => !value)}
+              >
+                <EyeToggleIcons revealed={showEmail} />
+              </button>
+            </dd>
+          </div>
+
+          <hr className="parent-signup__divider" />
+
+          <div className="parent-signup__detail">
+            <dt className="parent-signup__detail-label">Country of residence</dt>
+            <dd className="parent-signup__detail-value">
+              <strong>{countryLabel}</strong>
+            </dd>
+          </div>
+        </dl>
+
+        <button
+          type="button"
+          className="btn btn--primary mt-8"
+          onClick={onContinueAsExistingGuardian}
+          disabled={isSubmitting || isLoggingOut}
+        >
+          Continue approval
+        </button>
+
+        {error ? (
+          <p className="field-error mt-4" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </>
+    );
+  }
 
   function handleSubmit() {
     if (!confirmed) {
@@ -129,29 +283,7 @@ export function ParentAccountStep({
               aria-pressed={showPassword}
               onClick={() => setShowPassword((value) => !value)}
             >
-              <svg
-                className={`password-toggle__icon password-toggle__icon--show${showPassword ? " hidden" : ""}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              <svg
-                className={`password-toggle__icon password-toggle__icon--hide${showPassword ? "" : " hidden"}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                <line x1="1" y1="1" x2="23" y2="23" />
-              </svg>
+              <EyeToggleIcons revealed={showPassword} />
             </button>
           </div>
           <p

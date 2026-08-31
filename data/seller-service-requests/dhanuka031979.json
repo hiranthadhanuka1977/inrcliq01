@@ -1,0 +1,40 @@
+{
+  "enabled": false,
+  "content": {
+    "intro": [
+      "Offer personalized text, audio, and video requests for Dhanuka03 De Silva.",
+      "Add categories and offerings to go live on your profile."
+    ],
+    "gallery": [],
+    "guarantee": "Money-back guarantee when delivery terms are not met.",
+    "categories": [],
+    "howItWorks": [
+      {
+        "copy": "They choose a category, offering, format, and delivery date.",
+        "title": "Fans request"
+      },
+      {
+        "copy": "Fulfill the booking and deliver by the agreed time.",
+        "title": "You create"
+      },
+      {
+        "copy": "Payment is captured when the fan books the request.",
+        "title": "Get paid"
+      }
+    ],
+    "responseTime": "Set your response time",
+    "nextAvailable": "2026-08-20",
+    "startingRange": "Set your pricing",
+    "guaranteePoints": [
+      {
+        "copy": "Choose formats, length options, and pricing per offering.",
+        "title": "You set the rules"
+      },
+      {
+        "copy": "Keep Special Requests hidden until your first category is ready.",
+        "title": "Go live when ready"
+      }
+    ]
+  },
+  "updatedAt": "2026-08-20T10:30:40.938Z"
+}

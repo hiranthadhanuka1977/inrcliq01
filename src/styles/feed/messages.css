@@ -563,6 +563,11 @@ a.booking-status-note__card:focus-visible {
   border-color: color-mix(in srgb, var(--booking-status-declined-border) 42%, var(--color-neutral-200));
 }
 
+.booking-status-note--refund a.booking-status-note__card:hover,
+.booking-status-note--refund a.booking-status-note__card:focus-visible {
+  border-color: color-mix(in srgb, var(--booking-status-delivered-border) 42%, var(--color-neutral-200));
+}
+
 .booking-confirm-card__status,
 .booking-status-note__status {
   display: inline-flex;
@@ -607,6 +612,10 @@ a.booking-status-note__card:focus-visible {
   color: var(--booking-status-delivered);
 }
 
+.booking-status-note--refund .booking-status-note__status {
+  color: var(--booking-status-delivered);
+}
+
 .booking-confirm-card h3,
 .booking-status-note__card h3 {
   margin: 0;
@@ -636,6 +645,13 @@ a.booking-status-note__card:focus-visible {
 .booking-status-note__body {
   font-size: 0.84rem;
   line-height: 1.45;
+}
+
+.booking-status-note__deadline {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--color-text-primary);
 }
 
 .booking-status-note__offer {

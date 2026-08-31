@@ -79,6 +79,32 @@ async function uniqueProfileHandle(preferred: string) {
 }
 
 /**
+ * Resolve a signed-up user's public slug/handle to a CreatorUser row,
+ * creating/linking one when missing (same bridge used for first posts).
+ */
+export async function ensureCreatorForPublicIdentifier(
+  identifier: string,
+): Promise<{ id: string; slug: string | null; name: string } | null> {
+  const normalized = identifier.trim().toLowerCase().replace(/^@/, "");
+  if (!normalized) return null;
+
+  const row = await prisma.userProfile.findFirst({
+    where: {
+      OR: [
+        { slug: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: `@${normalized}`, mode: "insensitive" } },
+        { user: { handle: { equals: normalized, mode: "insensitive" } } },
+      ],
+    },
+    select: { userId: true },
+  });
+  if (!row) return null;
+
+  return ensureCreatorUserForAuthUser(row.userId);
+}
+
+/**
  * Ensure a CreatorUser has a linked auth User, and that creator's FeedPosts
  * point at that User. Safe to call repeatedly.
  */
@@ -169,10 +195,10 @@ export async function ensureCreatorLinkedToUser(creatorId: string): Promise<stri
  */
 export async function ensureCreatorUserForAuthUser(
   userId: string,
-): Promise<{ id: string; slug: string | null; name: string } | null> {
+): Promise<{ id: string; slug: string | null; name: string; verified: boolean } | null> {
   const existing = await prisma.creatorUser.findFirst({
     where: { userId },
-    select: { id: true, slug: true, name: true },
+    select: { id: true, slug: true, name: true, verified: true },
   });
   if (existing) return existing;
 
@@ -251,7 +277,7 @@ export async function ensureCreatorUserForAuthUser(
 
   const bySlug = await prisma.creatorUser.findFirst({
     where: { slug: profile.slug! },
-    select: { id: true, slug: true, name: true, userId: true },
+    select: { id: true, slug: true, name: true, userId: true, verified: true },
   });
   if (bySlug) {
     if (!bySlug.userId || bySlug.userId === user.id) {
@@ -261,7 +287,7 @@ export async function ensureCreatorUserForAuthUser(
           data: { userId: user.id },
         });
       }
-      return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name };
+      return { id: bySlug.id, slug: bySlug.slug, name: bySlug.name, verified: Boolean(bySlug.verified) };
     }
     const nextSlug = await uniquePublicSlug(`${profile.slug}-user`);
     profile.slug = nextSlug;
@@ -302,14 +328,14 @@ export async function ensureCreatorUserForAuthUser(
         source: user.profile ? "seller-tools-auto" : "first-post-auto",
         userId: user.id,
       },
-      select: { id: true, slug: true, name: true },
+      select: { id: true, slug: true, name: true, verified: true },
     });
   } catch {
     const raced = await prisma.creatorUser.findFirst({
       where: {
         OR: [{ userId: user.id }, { slug: profile.slug! }, { handle }, { email }],
       },
-      select: { id: true, slug: true, name: true, userId: true },
+      select: { id: true, slug: true, name: true, userId: true, verified: true },
     });
     if (!raced) return null;
     if (!raced.userId) {
@@ -318,6 +344,6 @@ export async function ensureCreatorUserForAuthUser(
         data: { userId: user.id },
       });
     }
-    return { id: raced.id, slug: raced.slug, name: raced.name };
+    return { id: raced.id, slug: raced.slug, name: raced.name, verified: Boolean(raced.verified) };
   }
 }

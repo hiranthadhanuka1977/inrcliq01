@@ -206,7 +206,7 @@ type DbUserProfile = {
   userId: string;
 };
 
-async function getDbUserProfile(slug: string): Promise<DbUserProfile | null> {
+async function getDbUserProfile(slugOrHandle: string): Promise<DbUserProfile | null> {
   // Guard against a stale Prisma singleton after schema changes (dev HMR).
   if (typeof prisma.userProfile?.findFirst !== "function") {
     console.error(
@@ -215,8 +215,18 @@ async function getDbUserProfile(slug: string): Promise<DbUserProfile | null> {
     return null;
   }
 
-  return prisma.userProfile.findFirst({
-    where: { slug },
+  const normalized = slugOrHandle.trim().toLowerCase().replace(/^@/, "");
+  if (!normalized) return null;
+
+  const row = await prisma.userProfile.findFirst({
+    where: {
+      OR: [
+        { slug: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: normalized, mode: "insensitive" } },
+        { handle: { equals: `@${normalized}`, mode: "insensitive" } },
+        { user: { handle: { equals: normalized, mode: "insensitive" } } },
+      ],
+    },
     select: {
       slug: true,
       displayName: true,
@@ -239,6 +249,32 @@ async function getDbUserProfile(slug: string): Promise<DbUserProfile | null> {
       userId: true,
     },
   });
+
+  if (!row) return null;
+
+  const slug = row.slug?.trim();
+  if (slug) return row;
+
+  const conflict = await prisma.userProfile.findFirst({
+    where: {
+      slug: normalized,
+      NOT: { userId: row.userId },
+    },
+    select: { id: true },
+  });
+
+  if (!conflict) {
+    try {
+      await prisma.userProfile.update({
+        where: { userId: row.userId },
+        data: { slug: normalized },
+      });
+    } catch (error) {
+      console.error("getDbUserProfile: slug backfill failed", error);
+    }
+  }
+
+  return { ...row, slug: normalized };
 }
 
 function profileFromDbRow(row: DbUserProfile, feedPosts: FeedItem[]): ProfileData {
@@ -276,7 +312,9 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     return null;
   });
 
-  if (dbProfile?.slug) {
+  if (dbProfile) {
+    const publicSlug = dbProfile.slug?.trim() || slug.trim().toLowerCase().replace(/^@/, "");
+    const dbRow: DbUserProfile = { ...dbProfile, slug: publicSlug };
     let collection: ProfileCollectionItem[] = [];
     let feedPosts: FeedItem[] = [];
     let subscribed = false;
@@ -284,9 +322,9 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
 
     try {
       const [rawCollection, creator, postCount] = await Promise.all([
-        getCreatorCollectionRaw(slug),
+        getCreatorCollectionRaw(publicSlug),
         prisma.creatorUser.findFirst({
-          where: { OR: [{ slug }, { userId: dbProfile.userId }] },
+          where: { OR: [{ slug: publicSlug }, { userId: dbProfile.userId }] },
           select: { id: true, slug: true },
         }),
         prisma.feedPost.count({ where: { userId: dbProfile.userId } }),
@@ -307,7 +345,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         sessionUser = null;
       }
 
-      const isOwn = resolveIsOwnProfile(sessionUser, dbProfile.userId, dbProfile.handle);
+      const isOwn = resolveIsOwnProfile(sessionUser, dbRow.userId, dbRow.handle);
 
       if (sessionUser && creator && !isOwn) {
         const [subscription, isFollowing] = await Promise.all([
@@ -319,16 +357,16 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
       }
 
       // Rich profiles: pinned JSON order. Stub profiles: all linked FeedPosts.
-      if (dbProfile.source === "stub") {
-        feedPosts = await getFeedPostsForUser(dbProfile.userId, { following, subscribed });
-      } else if (dbProfile.pinnedFeedPostIds.length > 0) {
-        const creatorSlug = creator?.slug || slug;
-        feedPosts = await getCreatorFeedPosts(creatorSlug, dbProfile.pinnedFeedPostIds, {
+      if (dbRow.source === "stub") {
+        feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
+      } else if (dbRow.pinnedFeedPostIds.length > 0) {
+        const creatorSlug = creator?.slug || publicSlug;
+        feedPosts = await getCreatorFeedPosts(creatorSlug, dbRow.pinnedFeedPostIds, {
           following,
           subscribed,
         });
 
-        const jsonFallback = getProfileDataFromJson(slug);
+        const jsonFallback = getProfileDataFromJson(publicSlug);
         if (!isOwn && jsonFallback?.feed_posts?.length) {
           const fromDbIds = new Set(feedPosts.map((post) => post.id));
           const leftovers = jsonFallback.feed_posts
@@ -344,30 +382,30 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
           feedPosts = [...feedPosts, ...leftovers];
         }
       } else {
-        feedPosts = await getFeedPostsForUser(dbProfile.userId, { following, subscribed });
+        feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
       }
 
       if (isOwn) {
         feedPosts = feedPosts.map((post) => ({ ...post, is_own: true }));
       }
 
-      const base = profileFromDbRow(dbProfile, feedPosts);
-      if (dbProfile.source === "stub") {
+      const base = profileFromDbRow(dbRow, feedPosts);
+      if (dbRow.source === "stub") {
         base.stats.posts = feedPosts.length || postCount;
-      } else if (dbProfile.postsCountLabel == null) {
+      } else if (dbRow.postsCountLabel == null) {
         base.stats.posts = Math.max(postCount, feedPosts.length);
       }
 
-      const jsonFallback = getProfileDataFromJson(slug);
+      const jsonFallback = getProfileDataFromJson(publicSlug);
       // Only use profile JSON shop preview when no collection catalog exists at all.
       if (!collection.length && !rawCollection && jsonFallback?.collection?.length) {
         collection = jsonFallback.collection;
       }
 
-      const specialRequestsAvailable = await resolveSpecialRequestsAvailable(slug);
+      const specialRequestsAvailable = await resolveSpecialRequestsAvailable(publicSlug);
       const specialRequestsEnabled =
         specialRequestsAvailable &&
-        (await resolveSpecialRequestsEnabled(slug, dbProfile.specialRequests));
+        (await resolveSpecialRequestsEnabled(publicSlug, dbRow.specialRequests));
       // Own profile: keep the Special Requests entry visible from seed/catalog even if
       // the public toggle is currently off.
       const showSpecialRequests =
@@ -389,10 +427,10 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
       };
     } catch (error) {
       console.error("getProfileData: DB profile overlay failed", error);
-      const specialRequestsAvailable = await resolveSpecialRequestsAvailable(slug);
+      const specialRequestsAvailable = await resolveSpecialRequestsAvailable(publicSlug);
       const specialRequestsEnabled =
         specialRequestsAvailable &&
-        (await resolveSpecialRequestsEnabled(slug, dbProfile.specialRequests));
+        (await resolveSpecialRequestsEnabled(publicSlug, dbRow.specialRequests));
       let sessionUser: Awaited<ReturnType<typeof getSessionUser>> = null;
       try {
         sessionUser = await getSessionUser();
@@ -400,10 +438,10 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         sessionUser = null;
       }
       return {
-        ...profileFromDbRow(dbProfile, []),
+        ...profileFromDbRow(dbRow, []),
         special_requests: specialRequestsAvailable || undefined,
         special_requests_enabled: specialRequestsEnabled,
-        is_own: resolveIsOwnProfile(sessionUser, dbProfile.userId, dbProfile.handle) || undefined,
+        is_own: resolveIsOwnProfile(sessionUser, dbRow.userId, dbRow.handle) || undefined,
       };
     }
   }

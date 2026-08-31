@@ -109,9 +109,9 @@ export default function MessagesView({
     bookingId: string;
     latest: boolean;
   } | null>(() =>
-    focusBooking || focusLatest || focusThread || focusSlug
-      ? { bookingId: focusBooking, latest: focusLatest || Boolean(focusBooking) }
-      : null,
+    focusBooking
+      ? { bookingId: focusBooking, latest: true }
+      : { bookingId: "", latest: true },
   );
 
   useEffect(() => {
@@ -162,6 +162,9 @@ export default function MessagesView({
                     conversation.id === payload.conversation.id ? payload.conversation : conversation,
                   ),
                 );
+                setPendingScroll((current) =>
+                  current?.bookingId ? current : { bookingId: "", latest: true },
+                );
               })
               .catch(() => undefined);
             router.replace("/feed/messages", { scroll: false });
@@ -172,7 +175,12 @@ export default function MessagesView({
           setError(err instanceof Error ? err.message : "Failed to load messages.");
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setPendingScroll((current) =>
+            current?.bookingId ? current : { bookingId: "", latest: true },
+          );
+        }
       }
     }
 
@@ -190,6 +198,57 @@ export default function MessagesView({
     router,
   ]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshInbox() {
+      try {
+        const listResponse = await fetch("/api/feed/messages", { cache: "no-store" });
+        if (!listResponse.ok || cancelled) return;
+        const listData = (await listResponse.json()) as { conversations: Conversation[] };
+        if (cancelled) return;
+
+        setConversations((current) => {
+          const localActive = current.find((item) => item.id === activeId);
+          return listData.conversations.map((item) => {
+            if (item.id !== activeId) return item;
+            return {
+              ...item,
+              messages: localActive?.messages ?? item.messages,
+              unread: 0,
+            };
+          });
+        });
+
+        if (!activeId) return;
+        const threadResponse = await fetch(`/api/feed/messages/${activeId}`, {
+          cache: "no-store",
+        });
+        if (!threadResponse.ok || cancelled) return;
+        const threadData = (await threadResponse.json()) as { conversation: Conversation };
+        if (cancelled) return;
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === threadData.conversation.id
+              ? { ...threadData.conversation, unread: 0 }
+              : conversation,
+          ),
+        );
+      } catch {
+        // Ignore transient poll errors.
+      }
+    }
+
+    const timer = window.setInterval(() => {
+      void refreshInbox();
+    }, 4000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [activeId]);
+
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
     [activeId, conversations],
@@ -201,27 +260,29 @@ export default function MessagesView({
     if (!stream) return;
 
     let cancelled = false;
-    const frame = window.requestAnimationFrame(() => {
+    const scrollToLatest = () => {
       if (cancelled) return;
-
       const bookingId = pendingScroll.bookingId;
       if (bookingId) {
         const matches = stream.querySelectorAll<HTMLElement>(`[data-booking-id="${bookingId}"]`);
         const target = matches[matches.length - 1];
         if (target) {
-          target.scrollIntoView({ block: "end", behavior: "smooth" });
+          target.scrollIntoView({ block: "end", behavior: "auto" });
           target.classList.add("is-booking-focused");
           window.setTimeout(() => target.classList.remove("is-booking-focused"), 1600);
           setPendingScroll(null);
           return;
         }
+        // Keep pending until booking card mounts or fall through to bottom.
         if (activeConversation.messages.length === 0) return;
       }
 
-      if (pendingScroll.latest || bookingId) {
-        stream.scrollTop = stream.scrollHeight;
-        setPendingScroll(null);
-      }
+      stream.scrollTop = stream.scrollHeight;
+      setPendingScroll(null);
+    };
+
+    const frame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(scrollToLatest);
     });
 
     return () => {
@@ -246,6 +307,7 @@ export default function MessagesView({
   async function openConversation(id: string) {
     setActiveId(id);
     setMobileChatOpen(true);
+    setPendingScroll({ bookingId: "", latest: true });
     setConversations((current) =>
       current.map((conversation) =>
         conversation.id === id ? { ...conversation, unread: 0 } : conversation,
@@ -261,6 +323,7 @@ export default function MessagesView({
           conversation.id === id ? data.conversation : conversation,
         ),
       );
+      setPendingScroll({ bookingId: "", latest: true });
     } catch {
       // Keep optimistic unread clear.
     }

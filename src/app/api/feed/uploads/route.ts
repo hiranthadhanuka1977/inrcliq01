@@ -1,8 +1,15 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
+import { formatImageModerationError } from "@/lib/moderation/evaluate-predictions";
+import {
+  hashImageBytes,
+  verifyModerationPassToken,
+} from "@/lib/moderation/moderation-pass-token";
+import { moderateImageBytes } from "@/lib/moderation/server-image-moderation";
+import { storeUploadedFile } from "@/lib/uploads/store-upload";
+
+export const maxDuration = 60;
 
 const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 25 * 1024 * 1024;
@@ -27,6 +34,10 @@ export async function POST(request: Request) {
   try {
     const form = await request.formData();
     const file = form.get("file");
+    const moderationPassToken =
+      typeof form.get("moderationPassToken") === "string"
+        ? String(form.get("moderationPassToken"))
+        : "";
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file provided." }, { status: 400 });
@@ -50,19 +61,49 @@ export async function POST(request: Request) {
     }
 
     const bytes = Buffer.from(await file.arrayBuffer());
+
+    if (isImage) {
+      const fileHash = hashImageBytes(bytes);
+      const alreadyModerated = verifyModerationPassToken(user.id, fileHash, moderationPassToken);
+      if (!alreadyModerated) {
+        const moderation = await moderateImageBytes(bytes);
+        if (!moderation.allowed) {
+          return NextResponse.json(
+            {
+              error: formatImageModerationError(moderation),
+              moderation: {
+                title: moderation.title,
+                message: moderation.message,
+                category: moderation.category,
+                confidence: moderation.confidence,
+                verificationFailed: moderation.verificationFailed,
+              },
+            },
+            { status: 422 },
+          );
+        }
+      }
+    }
+
     const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${extensionFor(file.type, file.name)}`;
-    const relativeDir = join("uploads", "feed-posts");
-    const absoluteDir = join(process.cwd(), "public", relativeDir);
-    mkdirSync(absoluteDir, { recursive: true });
-    writeFileSync(join(absoluteDir, filename), bytes);
+    const stored = await storeUploadedFile({
+      folder: "uploads/feed-posts",
+      filename,
+      bytes,
+      contentType: file.type,
+    });
 
     return NextResponse.json({
       ok: true,
       kind: isVideo ? "video" : "image",
-      url: `/${relativeDir.replaceAll("\\", "/")}/${filename}`,
+      url: stored.url,
     });
   } catch (error) {
     console.error("POST /api/feed/uploads error", error);
-    return NextResponse.json({ error: "Unable to upload that file." }, { status: 500 });
+    const message =
+      error instanceof Error && error.message.includes("Blob store")
+        ? error.message
+        : "Unable to upload that file.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

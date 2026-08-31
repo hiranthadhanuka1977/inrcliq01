@@ -31,7 +31,39 @@ function showsCountdown(booking: MyBookingItem) {
 }
 
 function canRespondToBooking(booking: MyBookingItem) {
-  return booking.direction === "inbound" && booking.status === "RECEIVED";
+  return (
+    booking.direction === "inbound" &&
+    booking.status === "RECEIVED" &&
+    Boolean(booking.instantBooking)
+  );
+}
+
+function canSendOffer(booking: MyBookingItem) {
+  return (
+    booking.direction === "inbound" &&
+    booking.status === "RECEIVED" &&
+    !booking.instantBooking
+  );
+}
+
+function canFinalAcceptBooking(booking: MyBookingItem) {
+  return booking.direction === "inbound" && booking.status === "OFFER_ACCEPTED";
+}
+
+function canRespondToOffer(booking: MyBookingItem) {
+  return (
+    booking.direction === "outbound" &&
+    booking.status === "NEW_OFFER" &&
+    !booking.counterOfferPendingForProvider
+  );
+}
+
+function canWaitOnCounterOffer(booking: MyBookingItem) {
+  return booking.direction === "outbound" && Boolean(booking.counterOfferPendingForProvider);
+}
+
+function canRespondToCounterOffer(booking: MyBookingItem) {
+  return booking.direction === "inbound" && Boolean(booking.counterOfferPendingForProvider);
 }
 
 function canDeliverBooking(booking: MyBookingItem) {
@@ -40,6 +72,32 @@ function canDeliverBooking(booking: MyBookingItem) {
     (booking.status === "ACCEPTED" || booking.status === "IN_PROGRESS")
   );
 }
+
+function canGiveFeedback(booking: MyBookingItem) {
+  return booking.status === "DELIVERED";
+}
+
+/** Instant bookings keep "Deliver"; non-instant use "Mark as completed". */
+function deliverActionLabel(booking: Pick<MyBookingItem, "instantBooking">) {
+  return booking.instantBooking ? "Deliver" : "Mark as completed";
+}
+
+const FEEDBACK_QUICK_PICKS = {
+  requester: [
+    "Great communication",
+    "On time",
+    "High quality",
+    "Would book again",
+    "Followed my brief",
+  ],
+  provider: [
+    "Clear brief",
+    "Easy to work with",
+    "Fair expectations",
+    "Responsive",
+    "Would work again",
+  ],
+} as const;
 
 function DeliverConfirmModal({
   open,
@@ -53,6 +111,9 @@ function DeliverConfirmModal({
   onConfirm: () => void;
 }) {
   if (!open || !booking) return null;
+
+  const actionLabel = deliverActionLabel(booking);
+  const isInstant = Boolean(booking.instantBooking);
 
   return (
     <div className="my-bookings-decline" role="presentation">
@@ -68,10 +129,21 @@ function DeliverConfirmModal({
         aria-modal="true"
         aria-labelledby="my-bookings-deliver-title"
       >
-        <h2 id="my-bookings-deliver-title">Ready to complete this request?</h2>
+        <h2 id="my-bookings-deliver-title">
+          {isInstant ? "Ready to complete this request?" : "Ready to mark this as completed?"}
+        </h2>
         <p>
-          Continue to upload your delivery for <code>{booking.reference}</code> and mark it as
-          delivered.
+          {isInstant ? (
+            <>
+              Continue to upload your delivery for <code>{booking.reference}</code> and mark it as
+              delivered.
+            </>
+          ) : (
+            <>
+              Continue for <code>{booking.reference}</code> to mark this request as completed. A
+              delivery file is optional.
+            </>
+          )}
         </p>
         <div className="my-bookings-decline__actions">
           <button
@@ -86,7 +158,379 @@ function DeliverConfirmModal({
             className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--deliver"
             onClick={onConfirm}
           >
-            Continue
+            {actionLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeedbackModal({
+  open,
+  booking,
+  submitting,
+  submitError,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  submitting: boolean;
+  submitError: string;
+  onClose: () => void;
+  onSubmit: (payload: { rating: number; note: string; picks: string[] }) => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [note, setNote] = useState("");
+  const [picks, setPicks] = useState<string[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setRating(0);
+    setHoverRating(0);
+    setNote("");
+    setPicks([]);
+    setError("");
+  }, [open, booking?.id]);
+
+  if (!open || !booking) return null;
+
+  const perspective = booking.direction === "inbound" ? "provider" : "requester";
+  const quickPicks = FEEDBACK_QUICK_PICKS[perspective];
+  const counterpart =
+    booking.direction === "inbound"
+      ? "the requester"
+      : booking.creator.name || "the creator";
+
+  function togglePick(label: string) {
+    setPicks((current) =>
+      current.includes(label) ? current.filter((item) => item !== label) : [...current, label],
+    );
+  }
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (submitting) return;
+    if (rating < 1) {
+      setError("Please choose a star rating.");
+      return;
+    }
+    setError("");
+    onSubmit({ rating, note: note.trim(), picks });
+  }
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close feedback"
+        onClick={() => {
+          if (submitting) return;
+          onClose();
+        }}
+      />
+      <form
+        className="my-bookings-decline__panel my-bookings-feedback__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-feedback-title"
+        onSubmit={handleSubmit}
+      >
+        <h2 id="my-bookings-feedback-title">How was this experience?</h2>
+        <p>
+          Share quick feedback for {counterpart} on <code>{booking.reference}</code>.
+        </p>
+
+        <fieldset className="my-bookings-feedback__stars">
+          <legend>Star rating</legend>
+          <div
+            className="my-bookings-feedback__star-row"
+            onMouseLeave={() => setHoverRating(0)}
+          >
+            {[1, 2, 3, 4, 5].map((value) => {
+              const active = value <= (hoverRating || rating);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={`my-bookings-feedback__star${active ? " is-active" : ""}`}
+                  aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                  aria-pressed={rating === value}
+                  disabled={submitting}
+                  onMouseEnter={() => setHoverRating(value)}
+                  onFocus={() => setHoverRating(value)}
+                  onBlur={() => setHoverRating(0)}
+                  onClick={() => {
+                    setRating(value);
+                    setError("");
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                    <path
+                      d="M12 3.6l2.4 4.86 5.36.78-3.88 3.78.92 5.34L12 15.9l-4.8 2.52.92-5.34-3.88-3.78 5.36-.78L12 3.6z"
+                      fill={active ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <div className="my-bookings-feedback__picks" role="group" aria-label="Quick selections">
+          <p className="my-bookings-feedback__picks-label">Quick selections (optional)</p>
+          <ul className="my-bookings-feedback__chips">
+            {quickPicks.map((label) => {
+              const selected = picks.includes(label);
+              return (
+                <li key={label}>
+                  <button
+                    type="button"
+                    className={`my-bookings-feedback__chip${selected ? " is-selected" : ""}`}
+                    aria-pressed={selected}
+                    disabled={submitting}
+                    onClick={() => togglePick(label)}
+                  >
+                    {label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <label className="my-bookings-decline__field">
+          Feedback (optional)
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="Anything else about this experience?"
+            rows={3}
+            maxLength={500}
+            disabled={submitting}
+          />
+        </label>
+
+        {error || submitError ? (
+          <p className="my-bookings-decline__error" role="alert">
+            {error || submitError}
+          </p>
+        ) : null}
+
+        <div className="my-bookings-decline__actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+            disabled={submitting}
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn--primary btn--xs my-bookings__respond-btn"
+            disabled={submitting}
+          >
+            {submitting ? "Saving…" : "Submit feedback"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function ActionIcon({ name }: { name: "details" | "deliver" | "feedback" | "messages" }) {
+  if (name === "details") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path
+          d="M8 6.5h11M8 12h11M8 17.5h7"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <circle cx="4.5" cy="6.5" r="1.1" fill="currentColor" />
+        <circle cx="4.5" cy="12" r="1.1" fill="currentColor" />
+        <circle cx="4.5" cy="17.5" r="1.1" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (name === "deliver") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path
+          d="M4 12.5h11.5M12 7.5l5 5-5 5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 7.5v10"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+  if (name === "feedback") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path
+          d="M12 4.2l2.1 4.25 4.7.68-3.4 3.32.8 4.68L12 15.9l-4.2 2.23.8-4.68-3.4-3.32 4.7-.68L12 4.2z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+      <path
+        d="M5.5 7.5h13a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H10l-3.5 2.5V16.5H5.5A1.5 1.5 0 0 1 4 15V9a1.5 1.5 0 0 1 1.5-1.5z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FeedbackStars({ rating, size = 14 }: { rating: number; size?: number }) {
+  return (
+    <span className="my-bookings-feedback__stars-display" aria-hidden="true">
+      {[1, 2, 3, 4, 5].map((value) => {
+        const filled = value <= rating;
+        return (
+          <svg
+            key={value}
+            viewBox="0 0 24 24"
+            width={size}
+            height={size}
+            className={filled ? "is-filled" : undefined}
+          >
+            <path
+              d="M12 3.6l2.4 4.86 5.36.78-3.88 3.78.92 5.34L12 15.9l-4.8 2.52.92-5.34-3.88-3.78 5.36-.78L12 3.6z"
+              fill={filled ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      })}
+    </span>
+  );
+}
+
+function FeedbackRatingTrigger({
+  booking,
+  onOpen,
+}: {
+  booking: MyBookingItem;
+  onOpen: () => void;
+}) {
+  const rating = booking.feedbackRating ?? 0;
+  return (
+    <button
+      type="button"
+      className="btn btn--secondary btn--xs my-bookings__action-btn my-bookings__feedback-rating"
+      onClick={onOpen}
+      aria-label={`View your ${rating}-star feedback`}
+    >
+      <FeedbackStars rating={rating} />
+      <span>{rating}/5</span>
+    </button>
+  );
+}
+
+function FeedbackDetailsModal({
+  open,
+  booking,
+  onClose,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  onClose: () => void;
+}) {
+  if (!open || !booking || !booking.feedbackSubmitted) return null;
+
+  const rating = booking.feedbackRating ?? 0;
+  const submittedLabel = booking.feedbackSubmittedAt
+    ? new Date(booking.feedbackSubmittedAt).toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close feedback details"
+        onClick={onClose}
+      />
+      <div
+        className="my-bookings-decline__panel my-bookings-feedback__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-feedback-details-title"
+      >
+        <h2 id="my-bookings-feedback-details-title">Your feedback</h2>
+        <p>
+          Feedback for <code>{booking.reference}</code>
+          {submittedLabel ? ` · ${submittedLabel}` : ""}
+        </p>
+
+        <div className="my-bookings-feedback__details-rating">
+          <FeedbackStars rating={rating} size={22} />
+          <strong>
+            {rating} out of 5 star{rating === 1 ? "" : "s"}
+          </strong>
+        </div>
+
+        {booking.feedbackPicks.length > 0 ? (
+          <div className="my-bookings-feedback__picks">
+            <p className="my-bookings-feedback__picks-label">Selections</p>
+            <ul className="my-bookings-feedback__chips">
+              {booking.feedbackPicks.map((label) => (
+                <li key={label}>
+                  <span className="my-bookings-feedback__chip is-selected">{label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {booking.feedbackNote ? (
+          <div className="my-bookings-feedback__details-note">
+            <p className="my-bookings-feedback__picks-label">Note</p>
+            <p>{booking.feedbackNote}</p>
+          </div>
+        ) : (
+          <p className="my-bookings-feedback__details-empty">No written note was added.</p>
+        )}
+
+        <div className="my-bookings-decline__actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+            onClick={onClose}
+          >
+            Close
           </button>
         </div>
       </div>
@@ -101,10 +545,6 @@ function CreatorBlock({
   booking: MyBookingItem;
   compact?: boolean;
 }) {
-  const profileHref = booking.creator.slug
-    ? `/feed/profile/${booking.creator.slug}`
-    : null;
-
   const avatar = (
     <span
       className={`my-bookings__avatar${compact ? " my-bookings__avatar--sm" : ""}`}
@@ -126,19 +566,6 @@ function CreatorBlock({
       <span>{booking.creator.handle}</span>
     </span>
   );
-
-  if (profileHref) {
-    return (
-      <Link
-        href={profileHref}
-        className="my-bookings__creator"
-        aria-label={`Open ${booking.creator.name}'s profile`}
-      >
-        {avatar}
-        {copy}
-      </Link>
-    );
-  }
 
   return (
     <div className="my-bookings__creator">
@@ -246,10 +673,7 @@ function DeclineReasonModal({
 
 type AcceptOfferDraft = {
   id: string;
-  offerPrice: string;
   note: string;
-  attachmentUrl: string;
-  attachmentName: string;
 };
 
 function AcceptOfferModal({
@@ -258,10 +682,7 @@ function AcceptOfferModal({
   draft,
   error,
   submitting,
-  uploading,
   onDraftChange,
-  onPickFile,
-  onClearFile,
   onClose,
   onSubmit,
 }: {
@@ -270,17 +691,14 @@ function AcceptOfferModal({
   draft: AcceptOfferDraft | null;
   error: string;
   submitting: boolean;
-  uploading: boolean;
   onDraftChange: (patch: Partial<AcceptOfferDraft>) => void;
-  onPickFile: (file: File | null) => void;
-  onClearFile: () => void;
   onClose: () => void;
   onSubmit: (event: FormEvent) => void;
 }) {
-  const fileInputId = useId();
   if (!open || !booking || !draft) return null;
 
   const isInstant = Boolean(booking.instantBooking);
+  const isFinalAccept = booking.status === "OFFER_ACCEPTED";
 
   return (
     <div className="my-bookings-decline" role="presentation">
@@ -289,7 +707,7 @@ function AcceptOfferModal({
         className="my-bookings-decline__backdrop"
         aria-label="Close accept dialog"
         onClick={onClose}
-        disabled={submitting || uploading}
+        disabled={submitting}
       />
       <div
         className="my-bookings-decline__panel my-bookings-accept__panel"
@@ -299,81 +717,35 @@ function AcceptOfferModal({
       >
         <h2 id="my-bookings-accept-title">Accept booking</h2>
         <p>
-          {isInstant ? (
+          {isFinalAccept ? (
+            <>
+              The requester paid the balance ({booking.totalLabel}) for{" "}
+              <code>{booking.reference}</code>. Accept to confirm the booking and start the delivery
+              countdown. You can add an optional note.
+            </>
+          ) : isInstant ? (
             <>
               Accept <code>{booking.reference}</code> for {booking.totalLabel}. You can add an
               optional note for the requester.
             </>
           ) : (
             <>
-              Accept <code>{booking.reference}</code>. You can keep the current total (
-              {booking.totalLabel}) or send a new offer with an optional note and file.
+              Accept <code>{booking.reference}</code> for {booking.totalLabel}. You can add an
+              optional note for the requester.
             </>
           )}
         </p>
         <form onSubmit={onSubmit}>
-          {!isInstant ? (
-            <label className="my-bookings-decline__field">
-              <span>New offer price (optional)</span>
-              <input
-                type="number"
-                min={1}
-                step={1}
-                inputMode="numeric"
-                value={draft.offerPrice}
-                onChange={(event) => onDraftChange({ offerPrice: event.target.value })}
-                disabled={submitting || uploading}
-                placeholder={booking.totalLabel.replace(/[^\d.]/g, "") || "e.g. 150"}
-              />
-            </label>
-          ) : null}
           <label className="my-bookings-decline__field">
             <span>Note to requester (optional)</span>
             <textarea
               value={draft.note}
               onChange={(event) => onDraftChange({ note: event.target.value })}
               rows={3}
-              disabled={submitting || uploading}
+              disabled={submitting}
               placeholder="Share schedule details, expectations, or terms…"
             />
           </label>
-          {!isInstant ? (
-            <div className="my-bookings-decline__field">
-              <span>Attachment (optional)</span>
-              <div className="my-bookings-accept__file-row">
-                <input
-                  id={fileInputId}
-                  type="file"
-                  className="sr-only"
-                  accept=".pdf,.doc,.docx,.txt,image/*"
-                  disabled={submitting || uploading}
-                  onChange={(event) => onPickFile(event.target.files?.[0] ?? null)}
-                />
-                <label
-                  htmlFor={fileInputId}
-                  className="btn btn--secondary btn--xs my-bookings__respond-btn"
-                >
-                  {uploading ? "Uploading…" : draft.attachmentName ? "Replace file" : "Attach file"}
-                </label>
-                {draft.attachmentName ? (
-                  <span className="my-bookings-accept__file-name">
-                    {draft.attachmentName}
-                    <button
-                      type="button"
-                      className="my-bookings-accept__file-clear"
-                      onClick={onClearFile}
-                      disabled={submitting || uploading}
-                      aria-label="Remove attachment"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ) : (
-                  <span className="my-bookings-accept__file-hint">PDF, Word, text, or image</span>
-                )}
-              </div>
-            </div>
-          ) : null}
           {error ? (
             <p className="my-bookings-decline__error" role="alert">
               {error}
@@ -384,19 +756,271 @@ function AcceptOfferModal({
               type="button"
               className="btn btn--secondary btn--xs my-bookings__respond-btn"
               onClick={onClose}
-              disabled={submitting || uploading}
+              disabled={submitting}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
-              disabled={submitting || uploading}
+              disabled={submitting}
             >
               {submitting ? "Accepting…" : "Accept"}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+type SendOfferDraft = {
+  id: string;
+  offerPrice: string;
+  note: string;
+};
+
+function SendNewOfferModal({
+  open,
+  booking,
+  draft,
+  error,
+  submitting,
+  onDraftChange,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  draft: SendOfferDraft | null;
+  error: string;
+  submitting: boolean;
+  onDraftChange: (patch: Partial<SendOfferDraft>) => void;
+  onClose: () => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  if (!open || !booking || !draft) return null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close send offer dialog"
+        onClick={onClose}
+        disabled={submitting}
+      />
+      <div
+        className="my-bookings-decline__panel my-bookings-accept__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-send-offer-title"
+      >
+        <h2 id="my-bookings-send-offer-title">Send new offer</h2>
+        <p>
+          Send a new offer for <code>{booking.reference}</code>. Keep the current total (
+          {booking.totalLabel}) or propose a new price with an optional note.
+        </p>
+        <form onSubmit={onSubmit}>
+          <label className="my-bookings-decline__field">
+            <span>New offer price (optional)</span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              value={draft.offerPrice}
+              onChange={(event) => onDraftChange({ offerPrice: event.target.value })}
+              disabled={submitting}
+              placeholder={booking.totalLabel.replace(/[^\d.]/g, "") || "e.g. 150"}
+            />
+          </label>
+          <label className="my-bookings-decline__field">
+            <span>Note to requester (optional)</span>
+            <textarea
+              value={draft.note}
+              onChange={(event) => onDraftChange({ note: event.target.value })}
+              rows={3}
+              disabled={submitting}
+              placeholder="Explain your offer, timeline, or terms…"
+            />
+          </label>
+          <div className="my-bookings-decline__actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={submitting}
+            >
+              {submitting ? "Sending…" : "Send new offer"}
+            </button>
+          </div>
+          {error ? (
+            <p className="my-bookings-decline__error" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function CounterOfferModal({
+  open,
+  booking,
+  draft,
+  error,
+  submitting,
+  onDraftChange,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  draft: SendOfferDraft | null;
+  error: string;
+  submitting: boolean;
+  onDraftChange: (patch: Partial<SendOfferDraft>) => void;
+  onClose: () => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  if (!open || !booking || !draft) return null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close counter offer dialog"
+        onClick={onClose}
+        disabled={submitting}
+      />
+      <div
+        className="my-bookings-decline__panel my-bookings-accept__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-counter-offer-title"
+      >
+        <h2 id="my-bookings-counter-offer-title">Counter offer</h2>
+        <p>
+          Send a counter offer for <code>{booking.reference}</code>. Propose a new price and optional
+          note for the provider.
+        </p>
+        <form onSubmit={onSubmit}>
+          <label className="my-bookings-decline__field">
+            <span>Counter offer price</span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              required
+              value={draft.offerPrice}
+              onChange={(event) => onDraftChange({ offerPrice: event.target.value })}
+              disabled={submitting}
+              placeholder={booking.totalLabel.replace(/[^\d.]/g, "") || "e.g. 150"}
+            />
+          </label>
+          <label className="my-bookings-decline__field">
+            <span>Note to provider (optional)</span>
+            <textarea
+              value={draft.note}
+              onChange={(event) => onDraftChange({ note: event.target.value })}
+              rows={3}
+              disabled={submitting}
+              placeholder="Explain your counter offer…"
+            />
+          </label>
+          <div className="my-bookings-decline__actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={submitting}
+            >
+              {submitting ? "Sending…" : "Send counter offer"}
+            </button>
+          </div>
+          {error ? (
+            <p className="my-bookings-decline__error" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function AcceptOfferPaymentModal({
+  open,
+  booking,
+  submitting,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  booking: MyBookingItem | null;
+  submitting: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  if (!open || !booking) return null;
+
+  return (
+    <div className="my-bookings-decline" role="presentation">
+      <button
+        type="button"
+        className="my-bookings-decline__backdrop"
+        aria-label="Close accept offer dialog"
+        onClick={onClose}
+        disabled={submitting}
+      />
+      <div
+        className="my-bookings-decline__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="my-bookings-accept-offer-title"
+      >
+        <h2 id="my-bookings-accept-offer-title">Accept new offer</h2>
+        <p>
+          To accept the new offer for <code>{booking.reference}</code>, a balance payment is
+          required to complete the booking. You&apos;ll be taken through the payment flow, then the
+          provider will confirm for final delivery.
+        </p>
+        <div className="my-bookings-decline__actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+            onClick={onConfirm}
+            disabled={submitting}
+          >
+            Continue to payment
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -416,17 +1040,35 @@ export default function MyBookingsView({
   const searchParams = useSearchParams();
   const [bookings, setBookings] = useState(initialBookings);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<"accept" | "decline" | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    "accept" | "decline" | "send_offer" | "decline_offer" | "counter_offer" | "accept_counter" | "decline_counter" | null
+  >(null);
   const [actionError, setActionError] = useState("");
   const [declineDraft, setDeclineDraft] = useState<{ id: string; reason: string } | null>(null);
   const [declineModalError, setDeclineModalError] = useState("");
   const [acceptDraft, setAcceptDraft] = useState<AcceptOfferDraft | null>(null);
   const [acceptModalError, setAcceptModalError] = useState("");
-  const [acceptUploading, setAcceptUploading] = useState(false);
+  const [sendOfferDraft, setSendOfferDraft] = useState<SendOfferDraft | null>(null);
+  const [sendOfferModalError, setSendOfferModalError] = useState("");
+  const [offerPaymentTarget, setOfferPaymentTarget] = useState<MyBookingItem | null>(null);
+  const [declineOfferDraft, setDeclineOfferDraft] = useState<{ id: string; reason: string } | null>(
+    null,
+  );
+  const [declineOfferModalError, setDeclineOfferModalError] = useState("");
+  const [counterOfferDraft, setCounterOfferDraft] = useState<SendOfferDraft | null>(null);
+  const [counterOfferModalError, setCounterOfferModalError] = useState("");
+  const [declineCounterDraft, setDeclineCounterDraft] = useState<{ id: string; reason: string } | null>(
+    null,
+  );
+  const [declineCounterModalError, setDeclineCounterModalError] = useState("");
   const [toast, setToast] = useState<{ tone: "success" | "neutral"; message: string } | null>(
     null,
   );
   const [deliverConfirm, setDeliverConfirm] = useState<MyBookingItem | null>(null);
+  const [feedbackTarget, setFeedbackTarget] = useState<MyBookingItem | null>(null);
+  const [feedbackView, setFeedbackView] = useState<MyBookingItem | null>(null);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackModalError, setFeedbackModalError] = useState("");
 
   useEffect(() => {
     setBookings(initialBookings);
@@ -440,11 +1082,23 @@ export default function MyBookingsView({
 
   useEffect(() => {
     const toastParam = searchParams.get("toast")?.trim();
-    if (toastParam !== "delivered") return;
+    if (toastParam !== "delivered" && toastParam !== "completed" && toastParam !== "balance_paid")
+      return;
     const ref = searchParams.get("ref")?.trim();
     setToast({
       tone: "success",
-      message: ref ? `Request ${ref} marked as delivered.` : "Request marked as delivered.",
+      message:
+        toastParam === "balance_paid"
+          ? ref
+            ? `Balance paid for ${ref}. Waiting for provider to accept before countdown starts.`
+            : "Balance paid. Waiting for provider to accept before countdown starts."
+          : toastParam === "completed"
+            ? ref
+              ? `Request ${ref} marked as completed.`
+              : "Request marked as completed."
+            : ref
+              ? `Request ${ref} marked as delivered.`
+              : "Request marked as delivered.",
     });
     const next = new URLSearchParams(searchParams.toString());
     next.delete("toast");
@@ -518,14 +1172,16 @@ export default function MyBookingsView({
     if (!open) return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") clearSelection();
+      if (event.key !== "Escape") return;
+      if (feedbackTarget || feedbackView || deliverConfirm || declineDraft || acceptDraft || sendOfferDraft || offerPaymentTarget || declineOfferDraft || counterOfferDraft || declineCounterDraft) return;
+      clearSelection();
     }
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, clearSelection]);
+  }, [open, clearSelection, feedbackTarget, feedbackView, deliverConfirm, declineDraft, acceptDraft, sendOfferDraft, offerPaymentTarget, declineOfferDraft, counterOfferDraft, declineCounterDraft]);
 
   function patchBooking(id: string, patch: Partial<MyBookingItem>) {
     setBookings((current) =>
@@ -536,44 +1192,254 @@ export default function MyBookingsView({
   async function handleAccept(booking: MyBookingItem) {
     setAcceptDraft({
       id: booking.id,
-      offerPrice: "",
       note: "",
-      attachmentUrl: "",
-      attachmentName: "",
     });
     setAcceptModalError("");
     setActionError("");
   }
 
-  async function handleAcceptFilePick(file: File | null) {
-    if (!file || !acceptDraft) return;
-    setAcceptUploading(true);
-    setAcceptModalError("");
+  function handleSendOffer(booking: MyBookingItem) {
+    setSendOfferDraft({
+      id: booking.id,
+      offerPrice: "",
+      note: "",
+    });
+    setSendOfferModalError("");
+    setActionError("");
+  }
+
+  async function handleSendOfferSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!sendOfferDraft) return;
+
+    const offerRaw = sendOfferDraft.offerPrice.trim();
+    const offerPrice = offerRaw ? Number(offerRaw) : null;
+    if (offerRaw && (!Number.isFinite(offerPrice) || (offerPrice ?? 0) <= 0)) {
+      setSendOfferModalError("Enter a valid offer price, or leave it blank.");
+      return;
+    }
+
+    setPendingAction("send_offer");
+    setSendOfferModalError("");
+
     try {
-      const body = new FormData();
-      body.append("file", file);
-      const response = await fetch("/api/feed/bookings/uploads", {
-        method: "POST",
-        body,
+      const response = await fetch(`/api/feed/bookings/${sendOfferDraft.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send_offer",
+          offerPrice,
+          note: sendOfferDraft.note.trim() || null,
+        }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setAcceptModalError(data?.error ?? "Unable to upload that file.");
+        setSendOfferModalError(data?.error ?? "Unable to send offer.");
+        setPendingAction(null);
         return;
       }
-      setAcceptDraft((current) =>
-        current
-          ? {
-              ...current,
-              attachmentUrl: data?.url ?? "",
-              attachmentName: data?.name || file.name,
-            }
-          : current,
-      );
+
+      const booking = bookings.find((item) => item.id === sendOfferDraft.id);
+      patchBooking(sendOfferDraft.id, {
+        status: data?.status ?? "NEW_OFFER",
+        statusLabel: data?.statusLabel ?? "New offer",
+        totalLabel: data?.totalLabel ?? booking?.totalLabel,
+      });
+      setSendOfferDraft(null);
+      setPendingAction(null);
+      setToast({
+        tone: "success",
+        message: booking?.reference
+          ? `New offer sent for ${booking.reference}.`
+          : "New offer sent.",
+      });
+      router.refresh();
     } catch {
-      setAcceptModalError("Unable to upload that file.");
-    } finally {
-      setAcceptUploading(false);
+      setSendOfferModalError("Unable to send offer.");
+      setPendingAction(null);
+    }
+  }
+
+  async function handleDeclineOfferSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!declineOfferDraft) return;
+
+    setPendingAction("decline_offer");
+    setDeclineOfferModalError("");
+
+    try {
+      const response = await fetch(`/api/feed/bookings/${declineOfferDraft.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "decline_offer",
+          reason: declineOfferDraft.reason.trim() || null,
+        }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setDeclineOfferModalError(data?.error ?? "Unable to decline offer.");
+        setPendingAction(null);
+        return;
+      }
+
+      patchBooking(declineOfferDraft.id, {
+        status: data?.status ?? "DECLINED",
+        statusLabel: data?.statusLabel ?? "Declined",
+        declinedAtLabel: data?.declinedAtLabel ?? null,
+        declineReason: data?.declineReason ?? declineOfferDraft.reason,
+      });
+      const declined = bookings.find((item) => item.id === declineOfferDraft.id);
+      setDeclineOfferDraft(null);
+      setPendingAction(null);
+      setToast({
+        tone: "neutral",
+        message: declined?.reference
+          ? `Offer declined for ${declined.reference}.`
+          : "Offer declined.",
+      });
+      router.refresh();
+    } catch {
+      setDeclineOfferModalError("Unable to decline offer.");
+      setPendingAction(null);
+    }
+  }
+
+  async function handleCounterOfferSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!counterOfferDraft) return;
+
+    const offerRaw = counterOfferDraft.offerPrice.trim();
+    const offerPrice = offerRaw ? Number(offerRaw) : NaN;
+    if (!offerRaw || !Number.isFinite(offerPrice) || offerPrice <= 0) {
+      setCounterOfferModalError("Enter a valid counter offer price.");
+      return;
+    }
+
+    setPendingAction("counter_offer");
+    setCounterOfferModalError("");
+
+    try {
+      const response = await fetch(`/api/feed/bookings/${counterOfferDraft.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "counter_offer",
+          offerPrice,
+          note: counterOfferDraft.note.trim() || null,
+        }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setCounterOfferModalError(data?.error ?? "Unable to send counter offer.");
+        setPendingAction(null);
+        return;
+      }
+
+      const booking = bookings.find((item) => item.id === counterOfferDraft.id);
+      patchBooking(counterOfferDraft.id, {
+        status: data?.status ?? "NEW_OFFER",
+        statusLabel: data?.statusLabel ?? "New offer",
+        totalLabel: data?.totalLabel ?? booking?.totalLabel,
+        counterAcceptedByProvider: false,
+        counterOfferPendingForProvider: true,
+      });
+      setCounterOfferDraft(null);
+      setPendingAction(null);
+      setToast({
+        tone: "success",
+        message: booking?.reference
+          ? `Counter offer sent for ${booking.reference}.`
+          : "Counter offer sent.",
+      });
+      router.refresh();
+    } catch {
+      setCounterOfferModalError("Unable to send counter offer.");
+      setPendingAction(null);
+    }
+  }
+
+  async function handleAcceptCounter(booking: MyBookingItem) {
+    setPendingAction("accept_counter");
+    setActionError("");
+
+    try {
+      const response = await fetch(`/api/feed/bookings/${booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "accept_counter" }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setActionError(data?.error ?? "Unable to accept counter offer.");
+        setPendingAction(null);
+        return;
+      }
+
+      patchBooking(booking.id, {
+        status: data?.status ?? "NEW_OFFER",
+        statusLabel: data?.statusLabel ?? "New offer",
+        totalLabel: data?.totalLabel ?? booking.totalLabel,
+        counterAcceptedByProvider: true,
+        counterOfferPendingForProvider: false,
+      });
+      setPendingAction(null);
+      setToast({
+        tone: "success",
+        message: booking.reference
+          ? `Counter offer accepted for ${booking.reference}.`
+          : "Counter offer accepted.",
+      });
+      router.refresh();
+    } catch {
+      setActionError("Unable to accept counter offer.");
+      setPendingAction(null);
+    }
+  }
+
+  async function handleDeclineCounterSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!declineCounterDraft) return;
+
+    setPendingAction("decline_counter");
+    setDeclineCounterModalError("");
+
+    try {
+      const response = await fetch(`/api/feed/bookings/${declineCounterDraft.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "decline_counter",
+          reason: declineCounterDraft.reason.trim() || null,
+        }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setDeclineCounterModalError(data?.error ?? "Unable to decline counter offer.");
+        setPendingAction(null);
+        return;
+      }
+
+      const booking = bookings.find((item) => item.id === declineCounterDraft.id);
+      patchBooking(declineCounterDraft.id, {
+        status: data?.status ?? "NEW_OFFER",
+        statusLabel: data?.statusLabel ?? "New offer",
+        totalLabel: data?.totalLabel ?? booking?.totalLabel,
+        counterAcceptedByProvider: false,
+        counterOfferPendingForProvider: false,
+      });
+      setDeclineCounterDraft(null);
+      setPendingAction(null);
+      setToast({
+        tone: "neutral",
+        message: booking?.reference
+          ? `Counter offer declined for ${booking.reference}.`
+          : "Counter offer declined.",
+      });
+      router.refresh();
+    } catch {
+      setDeclineCounterModalError("Unable to decline counter offer.");
+      setPendingAction(null);
     }
   }
 
@@ -582,13 +1448,6 @@ export default function MyBookingsView({
     if (!acceptDraft) return;
 
     const booking = bookings.find((item) => item.id === acceptDraft.id);
-    const isInstant = Boolean(booking?.instantBooking);
-    const offerRaw = isInstant ? "" : acceptDraft.offerPrice.trim();
-    const offerPrice = offerRaw ? Number(offerRaw) : null;
-    if (offerRaw && (!Number.isFinite(offerPrice) || (offerPrice ?? 0) <= 0)) {
-      setAcceptModalError("Enter a valid offer price, or leave it blank.");
-      return;
-    }
 
     setPendingAction("accept");
     setAcceptModalError("");
@@ -599,10 +1458,7 @@ export default function MyBookingsView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "accept",
-          offerPrice: isInstant ? null : offerPrice,
           note: acceptDraft.note.trim() || null,
-          attachmentUrl: isInstant ? null : acceptDraft.attachmentUrl || null,
-          attachmentName: isInstant ? null : acceptDraft.attachmentName || null,
         }),
       });
       const data = await response.json().catch(() => null);
@@ -623,9 +1479,14 @@ export default function MyBookingsView({
       setPendingAction(null);
       setToast({
         tone: "success",
-        message: booking?.reference
-          ? `Request ${booking.reference} approved.`
-          : "Request approved.",
+        message:
+          booking?.status === "OFFER_ACCEPTED"
+            ? booking?.reference
+              ? `Request ${booking.reference} accepted. Delivery countdown started.`
+              : "Request accepted. Delivery countdown started."
+            : booking?.reference
+              ? `Request ${booking.reference} approved.`
+              : "Request approved.",
       });
       router.refresh();
     } catch {
@@ -691,9 +1552,218 @@ export default function MyBookingsView({
   const declineTarget = declineDraft
     ? bookings.find((item) => item.id === declineDraft.id) ?? null
     : null;
+  const declineOfferTarget = declineOfferDraft
+    ? bookings.find((item) => item.id === declineOfferDraft.id) ?? null
+    : null;
   const acceptTarget = acceptDraft
     ? bookings.find((item) => item.id === acceptDraft.id) ?? null
     : null;
+  const sendOfferTarget = sendOfferDraft
+    ? bookings.find((item) => item.id === sendOfferDraft.id) ?? null
+    : null;
+  const counterOfferTarget = counterOfferDraft
+    ? bookings.find((item) => item.id === counterOfferDraft.id) ?? null
+    : null;
+  const declineCounterTarget = declineCounterDraft
+    ? bookings.find((item) => item.id === declineCounterDraft.id) ?? null
+    : null;
+
+  function renderRespondActions(booking: MyBookingItem, variant: "inline" | "panel" = "inline") {
+    const respondClass =
+      variant === "inline"
+        ? "my-bookings__respond my-bookings__respond--inline"
+        : "my-bookings__respond";
+
+    if (canRespondToBooking(booking)) {
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            Accept or decline this instant request to continue.
+          </p>
+          <div className="my-bookings__respond-actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={busy}
+              onClick={() => handleAccept(booking)}
+            >
+              {pendingAction === "accept" ? "Accepting…" : "Accept"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+              disabled={busy}
+              onClick={() => openDeclineModal(booking)}
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (canSendOffer(booking)) {
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            Send a new offer or decline this request.
+          </p>
+          <div className="my-bookings__respond-actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={busy}
+              onClick={() => handleSendOffer(booking)}
+            >
+              {pendingAction === "send_offer" ? "Sending…" : "Send new offer"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+              disabled={busy}
+              onClick={() => openDeclineModal(booking)}
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (canFinalAcceptBooking(booking)) {
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            The requester paid the balance. Accept to confirm the booking and start the countdown, or
+            decline.
+          </p>
+          <div className="my-bookings__respond-actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={busy}
+              onClick={() => handleAccept(booking)}
+            >
+              {pendingAction === "accept" ? "Accepting…" : "Accept"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+              disabled={busy}
+              onClick={() => openDeclineModal(booking)}
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (canRespondToCounterOffer(booking)) {
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            The requester sent a counter offer. Accept to agree to their price, or decline to keep
+            your original offer.
+          </p>
+          <div className="my-bookings__respond-actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={busy}
+              onClick={() => handleAcceptCounter(booking)}
+            >
+              {pendingAction === "accept_counter" ? "Accepting…" : "Accept counter"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+              disabled={busy}
+              onClick={() => {
+                setDeclineCounterDraft({ id: booking.id, reason: "" });
+                setDeclineCounterModalError("");
+              }}
+            >
+              Decline counter
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (canRespondToOffer(booking)) {
+      const counterAccepted = Boolean(booking.counterAcceptedByProvider);
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            {counterAccepted
+              ? "Your counter was accepted. Pay the balance to continue, or decline."
+              : "You received a new offer. Accept and pay the balance, counter offer, or decline."}
+          </p>
+          <div className="my-bookings__respond-actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
+              disabled={busy}
+              onClick={() => setOfferPaymentTarget(booking)}
+            >
+              Accept offer
+            </button>
+            {!counterAccepted ? (
+              <button
+                type="button"
+                className="btn btn--secondary btn--xs my-bookings__respond-btn"
+                disabled={busy}
+                onClick={() => {
+                  setCounterOfferDraft({
+                    id: booking.id,
+                    offerPrice: "",
+                    note: "",
+                  });
+                  setCounterOfferModalError("");
+                }}
+              >
+                Counter offer
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
+              disabled={busy}
+              onClick={() => {
+                setDeclineOfferDraft({ id: booking.id, reason: "" });
+                setDeclineOfferModalError("");
+              }}
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (canWaitOnCounterOffer(booking)) {
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            Your counter offer was sent. Waiting for the provider to accept or decline.
+          </p>
+        </div>
+      );
+    }
+
+    if (booking.direction === "outbound" && booking.status === "OFFER_ACCEPTED") {
+      return (
+        <div className={respondClass}>
+          <p className="my-bookings__respond-copy">
+            Balance paid. Waiting for the provider to accept before the delivery countdown starts.
+          </p>
+        </div>
+      );
+    }
+
+    return null;
+  }
 
   return (
     <div className="app-shell page-bookings">
@@ -803,54 +1873,22 @@ export default function MyBookingsView({
                       Ref <code>{booking.reference}</code>
                     </p>
 
-                    {booking.creator.slug ? (
-                      <Link
-                        href={`/feed/profile/${booking.creator.slug}`}
-                        className="my-bookings__creator-line"
-                      >
-                        {booking.creator.name}
-                        <span aria-hidden="true"> · </span>
-                        {booking.creator.handle}
-                      </Link>
-                    ) : (
-                      <p className="my-bookings__creator-line">
-                        {booking.creator.name}
-                        <span aria-hidden="true"> · </span>
-                        {booking.creator.handle}
-                      </p>
-                    )}
+                    <p className="my-bookings__creator-line">
+                      {booking.creator.name}
+                      <span aria-hidden="true"> · </span>
+                      {booking.creator.handle}
+                    </p>
 
                     <ul className="my-bookings__facts">
                       <li>{booking.totalLabel}</li>
                       <li>{booking.createdLabel}</li>
+                      {booking.deliverByLabel ? (
+                        <li>Deliver by {booking.deliverByLabel}</li>
+                      ) : null}
                       {booking.contentType ? <li>{booking.contentType}</li> : null}
                     </ul>
 
-                    {canRespondToBooking(booking) ? (
-                      <div className="my-bookings__respond my-bookings__respond--inline">
-                        <p className="my-bookings__respond-copy">
-                          Accept or decline this request to continue.
-                        </p>
-                        <div className="my-bookings__respond-actions">
-                          <button
-                            type="button"
-                            className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
-                            disabled={busy}
-                            onClick={() => handleAccept(booking)}
-                          >
-                            {pendingAction === "accept" ? "Accepting…" : "Accept"}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
-                            disabled={busy}
-                            onClick={() => openDeclineModal(booking)}
-                          >
-                            Decline
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
+                    {renderRespondActions(booking)}
 
                     {showsCountdown(booking) && booking.deliverBy ? (
                       <BookingDeliveryCountdown
@@ -863,27 +1901,57 @@ export default function MyBookingsView({
                 </div>
 
                 <div className="my-bookings__actions">
-                  <button
-                    type="button"
-                    className="btn btn--secondary btn--sm"
-                    onClick={() => openBookingDetails(booking)}
-                  >
-                    Details
-                  </button>
-                  {canDeliverBooking(booking) ? (
+                  <div className="my-bookings__actions-start">
+                    {canGiveFeedback(booking) ? (
+                      booking.feedbackSubmitted ? (
+                        <FeedbackRatingTrigger
+                          booking={booking}
+                          onOpen={() => setFeedbackView(booking)}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn--secondary btn--xs my-bookings__action-btn"
+                          onClick={() => {
+                            setFeedbackModalError("");
+                            setFeedbackTarget(booking);
+                          }}
+                        >
+                          <ActionIcon name="feedback" />
+                          Feedback
+                        </button>
+                      )
+                    ) : null}
+                  </div>
+                  <div className="my-bookings__actions-end">
+                    {canDeliverBooking(booking) ? (
+                      <button
+                        type="button"
+                        className="btn btn--secondary btn--xs my-bookings__action-btn"
+                        onClick={() => setDeliverConfirm(booking)}
+                      >
+                        <ActionIcon name="deliver" />
+                        {deliverActionLabel(booking)}
+                      </button>
+                    ) : null}
+                    {booking.messagesHref ? (
+                      <Link
+                        href={booking.messagesHref}
+                        className="btn btn--secondary btn--xs my-bookings__action-btn"
+                      >
+                        <ActionIcon name="messages" />
+                        Messages
+                      </Link>
+                    ) : null}
                     <button
                       type="button"
-                      className="btn btn--primary btn--sm"
-                      onClick={() => setDeliverConfirm(booking)}
+                      className="btn btn--secondary btn--xs my-bookings__action-btn"
+                      onClick={() => openBookingDetails(booking)}
                     >
-                      Deliver
+                      <ActionIcon name="details" />
+                      Details
                     </button>
-                  ) : null}
-                  {booking.messagesHref ? (
-                    <Link href={booking.messagesHref} className="btn btn--secondary btn--sm">
-                      Messages
-                    </Link>
-                  ) : null}
+                  </div>
                 </div>
               </li>
             ))}
@@ -938,36 +2006,12 @@ export default function MyBookingsView({
                   </span>
                 </div>
 
-                {canRespondToBooking(selected) ? (
-                  <div className="my-bookings__respond">
-                    <p className="my-bookings__respond-copy">
-                      This request is waiting for your decision. Accept to start the delivery
-                      countdown, or decline with a reason.
-                    </p>
-                    <div className="my-bookings__respond-actions">
-                      <button
-                        type="button"
-                        className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--accept"
-                        disabled={busy}
-                        onClick={() => handleAccept(selected)}
-                      >
-                        {pendingAction === "accept" ? "Accepting…" : "Accept"}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--decline"
-                        disabled={busy}
-                        onClick={() => openDeclineModal(selected)}
-                      >
-                        Decline
-                      </button>
-                    </div>
-                    {actionError ? (
-                      <p className="my-bookings__respond-error" role="alert">
-                        {actionError}
-                      </p>
-                    ) : null}
-                  </div>
+                {renderRespondActions(selected, "panel")}
+
+                {actionError ? (
+                  <p className="my-bookings__respond-error" role="alert">
+                    {actionError}
+                  </p>
                 ) : null}
 
                 {showsCountdown(selected) && selected.deliverBy ? (
@@ -980,7 +2024,9 @@ export default function MyBookingsView({
                 {canDeliverBooking(selected) ? (
                   <div className="my-bookings__respond">
                     <p className="my-bookings__respond-copy">
-                      Ready to fulfill this commitment? Upload your delivery and mark it complete.
+                      {selected.instantBooking
+                        ? "Ready to fulfill this commitment? Upload your delivery and mark it complete."
+                        : "Ready to fulfill this commitment? Upload your work and mark it as completed."}
                     </p>
                     <div className="my-bookings__respond-actions">
                       <button
@@ -988,9 +2034,45 @@ export default function MyBookingsView({
                         className="btn btn--secondary btn--xs my-bookings__respond-btn my-bookings__respond-btn--deliver"
                         onClick={() => setDeliverConfirm(selected)}
                       >
-                        Deliver
+                        {deliverActionLabel(selected)}
                       </button>
                     </div>
+                  </div>
+                ) : null}
+
+                {canGiveFeedback(selected) ? (
+                  <div className="my-bookings__respond">
+                    {selected.feedbackSubmitted ? (
+                      <>
+                        <p className="my-bookings__respond-copy">
+                          You already left feedback for this request. Tap the rating to review it.
+                        </p>
+                        <div className="my-bookings__respond-actions">
+                          <FeedbackRatingTrigger
+                            booking={selected}
+                            onOpen={() => setFeedbackView(selected)}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="my-bookings__respond-copy">
+                          This request is complete. Rate the experience and leave optional feedback.
+                        </p>
+                        <div className="my-bookings__respond-actions">
+                          <button
+                            type="button"
+                            className="btn btn--secondary btn--xs my-bookings__respond-btn"
+                            onClick={() => {
+                              setFeedbackModalError("");
+                              setFeedbackTarget(selected);
+                            }}
+                          >
+                            Give feedback
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : null}
 
@@ -1048,10 +2130,7 @@ export default function MyBookingsView({
                     <dt>Created</dt>
                     <dd>{selected.createdLabel}</dd>
                   </div>
-                  {selected.deliverByLabel &&
-                  (selected.status === "ACCEPTED" ||
-                    selected.status === "IN_PROGRESS" ||
-                    selected.status === "DELIVERED") ? (
+                  {selected.deliverByLabel ? (
                     <div>
                       <dt>Deliver by</dt>
                       <dd>{selected.deliverByLabel}</dd>
@@ -1117,22 +2196,96 @@ export default function MyBookingsView({
         draft={acceptDraft}
         error={acceptModalError}
         submitting={pendingAction === "accept"}
-        uploading={acceptUploading}
         onDraftChange={(patch) =>
           setAcceptDraft((current) => (current ? { ...current, ...patch } : current))
         }
-        onPickFile={handleAcceptFilePick}
-        onClearFile={() =>
-          setAcceptDraft((current) =>
-            current ? { ...current, attachmentUrl: "", attachmentName: "" } : current,
-          )
-        }
         onClose={() => {
-          if (pendingAction === "accept" || acceptUploading) return;
+          if (pendingAction === "accept") return;
           setAcceptDraft(null);
           setAcceptModalError("");
         }}
         onSubmit={handleAcceptSubmit}
+      />
+
+      <SendNewOfferModal
+        open={Boolean(sendOfferDraft)}
+        booking={sendOfferTarget}
+        draft={sendOfferDraft}
+        error={sendOfferModalError}
+        submitting={pendingAction === "send_offer"}
+        onDraftChange={(patch) =>
+          setSendOfferDraft((current) => (current ? { ...current, ...patch } : current))
+        }
+        onClose={() => {
+          if (pendingAction === "send_offer") return;
+          setSendOfferDraft(null);
+          setSendOfferModalError("");
+        }}
+        onSubmit={handleSendOfferSubmit}
+      />
+
+      <CounterOfferModal
+        open={Boolean(counterOfferDraft)}
+        booking={counterOfferTarget}
+        draft={counterOfferDraft}
+        error={counterOfferModalError}
+        submitting={pendingAction === "counter_offer"}
+        onDraftChange={(patch) =>
+          setCounterOfferDraft((current) => (current ? { ...current, ...patch } : current))
+        }
+        onClose={() => {
+          if (pendingAction === "counter_offer") return;
+          setCounterOfferDraft(null);
+          setCounterOfferModalError("");
+        }}
+        onSubmit={handleCounterOfferSubmit}
+      />
+
+      <AcceptOfferPaymentModal
+        open={Boolean(offerPaymentTarget)}
+        booking={offerPaymentTarget}
+        submitting={false}
+        onClose={() => setOfferPaymentTarget(null)}
+        onConfirm={() => {
+          if (!offerPaymentTarget) return;
+          const href = `/feed/bookings/${encodeURIComponent(offerPaymentTarget.id)}/balance`;
+          setOfferPaymentTarget(null);
+          router.push(href);
+        }}
+      />
+
+      <DeclineReasonModal
+        open={Boolean(declineOfferDraft)}
+        reference={declineOfferTarget?.reference ?? ""}
+        reason={declineOfferDraft?.reason ?? ""}
+        error={declineOfferModalError}
+        submitting={pendingAction === "decline_offer"}
+        onReasonChange={(value) =>
+          setDeclineOfferDraft((current) => (current ? { ...current, reason: value } : current))
+        }
+        onClose={() => {
+          if (pendingAction === "decline_offer") return;
+          setDeclineOfferDraft(null);
+          setDeclineOfferModalError("");
+        }}
+        onSubmit={handleDeclineOfferSubmit}
+      />
+
+      <DeclineReasonModal
+        open={Boolean(declineCounterDraft)}
+        reference={declineCounterTarget?.reference ?? ""}
+        reason={declineCounterDraft?.reason ?? ""}
+        error={declineCounterModalError}
+        submitting={pendingAction === "decline_counter"}
+        onReasonChange={(value) =>
+          setDeclineCounterDraft((current) => (current ? { ...current, reason: value } : current))
+        }
+        onClose={() => {
+          if (pendingAction === "decline_counter") return;
+          setDeclineCounterDraft(null);
+          setDeclineCounterModalError("");
+        }}
+        onSubmit={handleDeclineCounterSubmit}
       />
 
       <DeliverConfirmModal
@@ -1145,6 +2298,82 @@ export default function MyBookingsView({
           setDeliverConfirm(null);
           router.push(href);
         }}
+      />
+
+      <FeedbackModal
+        open={Boolean(feedbackTarget)}
+        booking={feedbackTarget}
+        submitting={feedbackSubmitting}
+        submitError={feedbackModalError}
+        onClose={() => {
+          if (feedbackSubmitting) return;
+          setFeedbackTarget(null);
+          setFeedbackModalError("");
+        }}
+        onSubmit={async ({ rating, note, picks }) => {
+          if (!feedbackTarget) return;
+          const id = feedbackTarget.id;
+          const ref = feedbackTarget.reference;
+          setFeedbackSubmitting(true);
+          setFeedbackModalError("");
+          try {
+            const response = await fetch(`/api/feed/bookings/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "feedback",
+                rating,
+                note: note || null,
+                picks,
+              }),
+            });
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+              setFeedbackModalError(data?.error ?? "Unable to save feedback.");
+              return;
+            }
+            patchBooking(id, {
+              feedbackSubmitted: true,
+              feedbackRating:
+                typeof data?.feedbackRating === "number" ? data.feedbackRating : rating,
+              feedbackNote:
+                typeof data?.feedbackNote === "string"
+                  ? data.feedbackNote
+                  : note || null,
+              feedbackPicks: Array.isArray(data?.feedbackPicks)
+                ? data.feedbackPicks.filter(
+                    (item: unknown): item is string => typeof item === "string",
+                  )
+                : picks,
+              feedbackSubmittedAt:
+                typeof data?.feedbackSubmittedAt === "string"
+                  ? data.feedbackSubmittedAt
+                  : new Date().toISOString(),
+              status: typeof data?.status === "string" ? data.status : feedbackTarget.status,
+              statusLabel:
+                typeof data?.statusLabel === "string"
+                  ? data.statusLabel
+                  : feedbackTarget.statusLabel,
+            });
+            setFeedbackTarget(null);
+            setToast({
+              tone: "success",
+              message: data?.alreadySubmitted
+                ? `Feedback for ${ref} was already saved.`
+                : `Thanks for your ${rating}-star feedback on ${ref}.`,
+            });
+          } catch {
+            setFeedbackModalError("Unable to save feedback.");
+          } finally {
+            setFeedbackSubmitting(false);
+          }
+        }}
+      />
+
+      <FeedbackDetailsModal
+        open={Boolean(feedbackView)}
+        booking={feedbackView}
+        onClose={() => setFeedbackView(null)}
       />
 
       {toast ? (

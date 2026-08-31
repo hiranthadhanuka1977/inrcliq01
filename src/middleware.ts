@@ -111,6 +111,6 @@ export const config = {
      * Protect all routes except Next.js internals and common static assets.
      * Basic Auth still applies to pages and API routes.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|models/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

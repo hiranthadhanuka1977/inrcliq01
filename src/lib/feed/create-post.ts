@@ -151,7 +151,7 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
       category: "personal",
       text,
       tags: tagsFromText(text),
-      mediaJson: media as Prisma.InputJsonValue | undefined,
+      mediaJson: media as unknown as Prisma.InputJsonValue | undefined,
       likes: 0,
       comments: 0,
       shares: 0,

@@ -11,14 +11,16 @@ export const metadata: Metadata = {
 };
 
 export default async function FeedLayout({ children }: { children: React.ReactNode }) {
-  const { firstName, avatarUrl, avatarColor, verified } = await getSessionNavProfile();
+  const navProfile = await getSessionNavProfile();
 
   return (
     <FeedSessionProvider
-      firstName={firstName}
-      avatarUrl={avatarUrl}
-      avatarColor={avatarColor}
-      verified={verified}
+      firstName={navProfile.firstName}
+      avatarUrl={navProfile.avatarUrl}
+      avatarColor={navProfile.avatarColor}
+      verified={navProfile.verified}
+      isGuardian={navProfile.isGuardian}
+      profileHref={navProfile.profileHref}
     >
       <FeedFollowStateProvider>
         <FeedPathShell>

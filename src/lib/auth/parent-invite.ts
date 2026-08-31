@@ -88,6 +88,30 @@ export async function verifyParentApprovalToken(rawToken: string) {
   return { ok: false as const, reason: "invalid" as const };
 }
 
+/** Resolve a parent approval request from the emailed token (pending or already approved). */
+export async function resolveParentApprovalRequestByToken(rawToken: string) {
+  const candidates = await prisma.parentApprovalRequest.findMany({
+    where: {
+      OR: [
+        { status: ApprovalStatus.PENDING, expiresAt: { gt: new Date() } },
+        { status: ApprovalStatus.APPROVED },
+      ],
+    },
+    include: { childUser: true, guardianUser: true },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+
+  for (const record of candidates) {
+    const matches = await bcrypt.compare(rawToken, record.tokenHash);
+    if (!matches) continue;
+
+    return { ok: true as const, request: record };
+  }
+
+  return { ok: false as const, reason: "invalid" as const };
+}
+
 /** Issues a one-time continue link bound to this approved request / child. */
 export async function issueChildContinueUrl(requestId: string) {
   const rawToken = generateToken();

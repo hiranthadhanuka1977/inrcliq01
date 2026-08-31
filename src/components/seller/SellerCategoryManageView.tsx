@@ -146,7 +146,10 @@ export function SellerCategoryManageView({
 
   function updateCategory(
     patch: Partial<
-      Pick<RequestCategory, "title" | "intent" | "blurb" | "popular" | "icon" | "image" | "imageAlt">
+      Pick<
+        RequestCategory,
+        "title" | "intent" | "blurb" | "popular" | "icon" | "image" | "imageAlt" | "instantBooking"
+      >
     >,
   ) {
     setContent((current) => ({

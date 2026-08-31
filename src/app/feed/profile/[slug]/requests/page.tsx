@@ -1,4 +1,5 @@
 import ProfileRequestsView from "@/components/feed/profile/ProfileRequestsView";
+import ProfileUnavailableView from "@/components/feed/profile/ProfileUnavailableView";
 import { SpecialRequestsUnavailablePage } from "@/components/feed/profile/SpecialRequestsUnavailable";
 import { getProfileData } from "@/lib/feed/profile";
 import { resolveCreatorRequestsContent } from "@/lib/seller/service-requests-store";
@@ -21,7 +22,8 @@ export async function generateMetadata({ params }: RequestsPageProps) {
 export default async function RequestsPage({ params }: RequestsPageProps) {
   const { slug } = await params;
   const profile = await getProfileData(slug);
-  if (!profile?.special_requests) notFound();
+  if (!profile) return <ProfileUnavailableView />;
+  if (!profile.special_requests) notFound();
 
   if (profile.special_requests_enabled === false) {
     return (

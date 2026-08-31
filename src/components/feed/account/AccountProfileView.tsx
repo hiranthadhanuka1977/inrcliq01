@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import FollowButton from "@/components/feed/FollowButton";
 import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
-import FirstPostPrompt from "@/components/feed/account/FirstPostPrompt";
+import FirstPostPromptCard from "@/components/feed/account/FirstPostPromptCard";
+import SetHandleModal from "@/components/feed/account/SetHandleModal";
+import SetHandlePrompt from "@/components/feed/account/SetHandlePrompt";
 import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
+import ProtectionTierIcon from "@/components/guardian/ProtectionTierIcon";
 import type {
   AccountProfile,
   AccountSocialPerson,
@@ -126,6 +129,23 @@ export default function AccountProfileView({
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [editorSrc, setEditorSrc] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState("");
+  const [currentHandle, setCurrentHandle] = useState(profile.handle);
+  const [handleModalOpen, setHandleModalOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentHandle(profile.handle);
+  }, [profile.handle]);
+
+  const hasHandle = Boolean(currentHandle?.trim());
+
+  function openHandleModal() {
+    setHandleModalOpen(true);
+  }
+
+  function handleSaved(handle: string) {
+    setCurrentHandle(handle);
+    router.refresh();
+  }
 
   useEffect(() => {
     setAvatarUrl(profile.avatarUrl);
@@ -249,10 +269,43 @@ export default function AccountProfileView({
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               ) : null}
+              {profile.accountType === "GUARDIAN" ? (
+                <Link
+                  href="/feed/family-center"
+                  className="account-profile__family-center-icon"
+                  aria-label="Family Center"
+                  title="Family Center"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <circle cx="12" cy="11" r="2.5" />
+                    <path d="M8.5 15.5c.9 1.2 2.2 2 3.5 2s2.6-.8 3.5-2" />
+                  </svg>
+                </Link>
+              ) : null}
             </h1>
-            <p className="account-profile__handle">
-              {profile.handle ? `@${profile.handle}` : "No handle set"}
-            </p>
+            <div className="account-profile__handle-row">
+              <p className="account-profile__handle">
+                {hasHandle ? `@${currentHandle}` : "No handle set"}
+              </p>
+              {!hasHandle ? (
+                <>
+                  <span className="account-profile__handle-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94" />
+                    </svg>
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn--sm btn--secondary account-profile__handle-set"
+                    onClick={openHandleModal}
+                  >
+                    Set now
+                  </button>
+                </>
+              ) : null}
+            </div>
             <div className="account-profile__chips">
               <span className="account-profile__chip">{profile.accountTypeLabel}</span>
               {profile.verified ? (
@@ -270,30 +323,73 @@ export default function AccountProfileView({
                 </span>
               ) : null}
               <span className="account-profile__chip account-profile__chip--privacy">
+                <ProtectionTierIcon tier={profile.privacyTier} />
                 Privacy: {profile.privacyTierLabel}
               </span>
             </div>
+            {profile.guardian ? (
+              <div className="account-profile__guardian">
+                <span className="account-profile__guardian-icon" aria-label="Guardian" title="Guardian">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <circle cx="12" cy="11" r="2.5" />
+                    <path d="M8.5 15.5c.9 1.2 2.2 2 3.5 2s2.6-.8 3.5-2" />
+                  </svg>
+                </span>
+                <div className="account-profile__guardian-main">
+                  <span className="account-profile__guardian-name">{profile.guardian.fullName}</span>
+                  <span className="account-profile__guardian-handle">{profile.guardian.handleLabel}</span>
+                </div>
+                <Link
+                  href={profile.guardian.messagesHref}
+                  className="account-profile__guardian-message"
+                  aria-label={`Message ${profile.guardian.fullName}`}
+                  title={`Message ${profile.guardian.fullName}`}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </Link>
+              </div>
+            ) : null}
             {avatarError ? (
               <p className="account-profile__avatar-error" role="alert">
                 {avatarError}
               </p>
             ) : null}
           </div>
-          <Link href="/feed/me/edit" className="btn btn--secondary btn--sm account-profile__edit">
-            Edit Profile
-          </Link>
+          <div className="account-profile__hero-actions">
+            <Link
+              href="/feed/me/edit"
+              className="account-profile__edit"
+              aria-label="Edit profile"
+              title="Edit profile"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+              </svg>
+            </Link>
+          </div>
         </div>
 
-        {profile.postCount === 0 ? (
-          <FirstPostPrompt
+        {!hasHandle ? (
+          <SetHandlePrompt
             firstName={profile.firstName}
-            profileHref={profile.profileHref}
             dismissKey={profile.id}
+            onSetHandle={openHandleModal}
+          />
+        ) : profile.postCount === 0 ? (
+          <FirstPostPromptCard
+            firstName={profile.firstName}
+            dismissKey={profile.id}
+            verified={profile.verified}
           />
         ) : (
           <ShareOnSocialPrompt
             firstName={profile.firstName}
-            handle={profile.handle}
+            handle={currentHandle}
             profileHref={profile.profileHref}
             dismissKey={profile.id}
           />
@@ -364,6 +460,14 @@ export default function AccountProfileView({
           onSave={saveAvatar}
         />
       ) : null}
+
+      <SetHandleModal
+        open={handleModalOpen}
+        onClose={() => setHandleModalOpen(false)}
+        firstName={profile.firstName}
+        lastName={profile.lastName}
+        onSaved={handleSaved}
+      />
     </main>
   );
 }

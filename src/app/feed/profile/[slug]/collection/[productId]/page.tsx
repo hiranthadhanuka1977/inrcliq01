@@ -1,5 +1,6 @@
 import CollectionProductDetailView from "@/components/feed/profile/CollectionProductDetailView";
 import { CollectionUnavailablePage } from "@/components/feed/profile/CollectionUnavailable";
+import ProfileUnavailableView from "@/components/feed/profile/ProfileUnavailableView";
 import { getCollectionProduct, getCreatorCollectionRaw } from "@/lib/feed/collection";
 import { getProfileData } from "@/lib/feed/profile";
 import { notFound } from "next/navigation";
@@ -22,7 +23,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     getCreatorCollectionRaw(slug),
     getCollectionProduct(slug, productId),
   ]);
-  if (!profile) notFound();
+  if (!profile) return <ProfileUnavailableView />;
 
   if (rawCollection && rawCollection.enabled === false) {
     return (

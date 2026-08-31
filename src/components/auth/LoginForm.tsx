@@ -48,7 +48,15 @@ const CodeLoginIcon = () => (
 type Step = "email" | "otp";
 type LoginMethod = "code" | "password";
 
-export function LoginForm() {
+export function LoginForm({
+  initialEmail = "",
+  suppressRedirect = false,
+  onLoggedIn,
+}: {
+  initialEmail?: string;
+  suppressRedirect?: boolean;
+  onLoggedIn?: () => void | Promise<void>;
+}) {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
   const otpRef = useRef<HTMLInputElement>(null);
@@ -56,7 +64,7 @@ export function LoginForm() {
 
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("code");
   const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -80,6 +88,11 @@ export function LoginForm() {
       setStep("otp");
     }
   }, []);
+
+  useEffect(() => {
+    if (!initialEmail) return;
+    setEmail((current) => current || initialEmail);
+  }, [initialEmail]);
 
   useEffect(() => {
     emailRef.current?.focus();
@@ -221,8 +234,16 @@ export function LoginForm() {
         sessionStorage.removeItem(LOGIN_CODE_KEY);
         sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
 
-        router.push(data.redirectTo ?? "/feed");
-        router.refresh();
+        if (suppressRedirect) {
+          if (onLoggedIn) {
+            await onLoggedIn();
+          } else {
+            router.refresh();
+          }
+        } else {
+          router.push(data.redirectTo ?? "/feed");
+          router.refresh();
+        }
       } catch {
         setOtpError("Unable to log in.");
       } finally {
@@ -230,7 +251,7 @@ export function LoginForm() {
         setIsLoggingIn(false);
       }
     },
-    [email, router],
+    [email, onLoggedIn, router, suppressRedirect],
   );
 
   async function handleEmailSubmit(event: FormEvent) {
@@ -296,8 +317,16 @@ export function LoginForm() {
       sessionStorage.removeItem(LOGIN_CODE_KEY);
       sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
 
-      router.push(data.redirectTo ?? "/feed");
-      router.refresh();
+      if (suppressRedirect) {
+        if (onLoggedIn) {
+          await onLoggedIn();
+        } else {
+          router.refresh();
+        }
+      } else {
+        router.push(data.redirectTo ?? "/feed");
+        router.refresh();
+      }
     } catch {
       setPasswordError("Unable to log in.");
     } finally {

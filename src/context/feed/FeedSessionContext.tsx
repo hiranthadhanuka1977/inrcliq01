@@ -7,6 +7,8 @@ type FeedSessionValue = {
   avatarUrl: string | null;
   avatarColor: string | null;
   verified: boolean;
+  isGuardian: boolean;
+  profileHref: string | null;
 };
 
 const FeedSessionContext = createContext<FeedSessionValue>({
@@ -14,6 +16,8 @@ const FeedSessionContext = createContext<FeedSessionValue>({
   avatarUrl: null,
   avatarColor: null,
   verified: false,
+  isGuardian: false,
+  profileHref: null,
 });
 
 export function FeedSessionProvider({
@@ -21,16 +25,22 @@ export function FeedSessionProvider({
   avatarUrl = null,
   avatarColor = null,
   verified = false,
+  isGuardian = false,
+  profileHref = null,
   children,
 }: {
   firstName: string | null;
   avatarUrl?: string | null;
   avatarColor?: string | null;
   verified?: boolean;
+  isGuardian?: boolean;
+  profileHref?: string | null;
   children: React.ReactNode;
 }) {
   return (
-    <FeedSessionContext.Provider value={{ firstName, avatarUrl, avatarColor, verified }}>
+    <FeedSessionContext.Provider
+      value={{ firstName, avatarUrl, avatarColor, verified, isGuardian, profileHref }}
+    >
       {children}
     </FeedSessionContext.Provider>
   );

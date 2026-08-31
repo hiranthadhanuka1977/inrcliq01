@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
-import { PrototypeControls } from "@/components/prototype/PrototypeControls";
 import { FeedThemeProvider } from "@/context/feed/FeedThemeContext";
 import "./globals.css";
 
@@ -36,7 +35,6 @@ export default function RootLayout({
         </a>
         <GoogleAnalytics />
         <MicrosoftClarity />
-        <PrototypeControls />
         <FeedThemeProvider>
           <div id="main-content" tabIndex={-1}>
             {children}

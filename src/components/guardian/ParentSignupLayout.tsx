@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthPathShell } from "@/components/auth/AuthPathShell";
 import { AuthTopbar } from "@/components/auth/AuthTopbar";
 import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
+import { GuardianLoginModal } from "@/components/guardian/GuardianModals";
 import { ParentStepper } from "@/components/guardian/ParentStepper";
 
 export function ParentSignupLayout({
@@ -15,6 +16,8 @@ export function ParentSignupLayout({
   screenId,
   children,
   sidebar,
+  onLoginSuccess,
+  loginEmail,
 }: {
   stepperStep: number;
   completeCurrentStep?: boolean;
@@ -23,8 +26,11 @@ export function ParentSignupLayout({
   screenId?: string;
   children: React.ReactNode;
   sidebar?: React.ReactNode;
+  onLoginSuccess?: () => void | Promise<void>;
+  loginEmail?: string;
 }) {
   const router = useRouter();
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const sectionClass = [
     "screen",
@@ -50,7 +56,7 @@ export function ParentSignupLayout({
             <AuthTopbar>
               <p className="auth-topbar__prompt-text">
                 Already have an account?{" "}
-                <button type="button" className="link-btn" onClick={() => router.push("/")}>
+                <button type="button" className="link-btn" onClick={() => setLoginOpen(true)}>
                   Log in
                 </button>
               </p>
@@ -71,6 +77,18 @@ export function ParentSignupLayout({
           </section>
         </div>
       </div>
+      <GuardianLoginModal
+        open={loginOpen}
+        parentEmail={loginEmail}
+        onClose={() => setLoginOpen(false)}
+        onSuccess={async () => {
+          if (onLoginSuccess) {
+            await onLoginSuccess();
+            return;
+          }
+          router.refresh();
+        }}
+      />
     </AuthPathShell>
   );
 }

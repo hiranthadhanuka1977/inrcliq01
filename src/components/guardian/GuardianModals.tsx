@@ -1,5 +1,6 @@
 "use client";
 
+import { LoginForm } from "@/components/auth/LoginForm";
 import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 export function DeclineModal({
@@ -80,6 +81,44 @@ export function CaptureSuccessModal({
         <button type="button" className="btn btn--primary mt-8" onClick={onContinue}>
           {buttonLabel}
         </button>
+      </div>
+    </div>
+  );
+}
+
+export function GuardianLoginModal({
+  open,
+  parentEmail,
+  onClose,
+  onSuccess,
+}: {
+  open: boolean;
+  parentEmail?: string;
+  onClose: () => void;
+  onSuccess: () => void | Promise<void>;
+}) {
+  const { dialogRef } = useDialogA11y(open, onClose);
+
+  if (!open) return null;
+
+  return (
+    <div className="modal-backdrop is-open" role="dialog" aria-modal="true" aria-labelledby="guardian-login-title">
+      <div className="modal" ref={dialogRef} tabIndex={-1}>
+        <button type="button" className="modal__close" aria-label="Close" onClick={onClose}>
+          ×
+        </button>
+        <h2 id="guardian-login-title">Log in to continue</h2>
+        <p className="subtitle mt-4">Use your existing guardian account, then continue this approval request.</p>
+        <div className="mt-6">
+          <LoginForm
+            initialEmail={parentEmail ?? ""}
+            suppressRedirect
+            onLoggedIn={async () => {
+              await onSuccess();
+              onClose();
+            }}
+          />
+        </div>
       </div>
     </div>
   );

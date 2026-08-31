@@ -1,8 +1,7 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
+import { storeUploadedFile } from "@/lib/uploads/store-upload";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -60,18 +59,24 @@ export async function POST(request: Request) {
 
     const bytes = Buffer.from(await file.arrayBuffer());
     const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${extensionFor(file.type, file.name)}`;
-    const relativeDir = join("uploads", "booking-accept");
-    const absoluteDir = join(process.cwd(), "public", relativeDir);
-    mkdirSync(absoluteDir, { recursive: true });
-    writeFileSync(join(absoluteDir, filename), bytes);
+    const stored = await storeUploadedFile({
+      folder: "uploads/booking-accept",
+      filename,
+      bytes,
+      contentType: file.type,
+    });
 
     return NextResponse.json({
       ok: true,
-      url: `/${relativeDir.replaceAll("\\", "/")}/${filename}`,
+      url: stored.url,
       name: file.name,
     });
   } catch (error) {
     console.error("POST /api/feed/bookings/uploads error", error);
-    return NextResponse.json({ error: "Unable to upload that file." }, { status: 500 });
+    const message =
+      error instanceof Error && error.message.includes("Blob store")
+        ? error.message
+        : "Unable to upload that file.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

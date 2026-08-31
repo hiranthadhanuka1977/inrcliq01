@@ -277,6 +277,9 @@ export default function MyBookingsCalendar({
                       {booking.category ? ` · ${booking.category}` : ""}
                       {` · ${booking.totalLabel}`}
                     </span>
+                    {booking.deliverByLabel ? (
+                      <span>Deliver by {booking.deliverByLabel}</span>
+                    ) : null}
                     <span className="my-bookings-calendar__detail-ref">
                       Ref {booking.reference}
                     </span>
