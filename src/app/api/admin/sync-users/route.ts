@@ -59,6 +59,19 @@ const JSON_COLUMNS: Partial<Record<(typeof TABLE_ORDER)[number], string[]>> = {
   SpecialRequest: ["detailsJson"],
 };
 
+const CONFLICT_TARGETS: Partial<Record<(typeof TABLE_ORDER)[number], string[]>> = {
+  UserProfile: ["userId"],
+  CreatorUser: ["email"],
+  SpecialRequestCatalog: ["userId"],
+  CreatorCollection: ["slug"],
+  CollectionProduct: ["collectionId", "productKey"],
+  CreatorSubscription: ["userId", "creatorId"],
+  CreatorFollow: ["userId", "creatorId"],
+  GuardianChildLink: ["guardianUserId", "childUserId"],
+  GuardianDmContactControl: ["childUserId", "childThreadId"],
+  ChatThread: ["id"],
+};
+
 function serializeRow(table: string, row: Record<string, unknown>) {
   const jsonColumns = JSON_COLUMNS[table as (typeof TABLE_ORDER)[number]] ?? [];
   const next = { ...row };
@@ -96,8 +109,10 @@ async function upsertRows(pool: Pool, table: string, rows: Record<string, unknow
 
     const columns = Object.keys(rows[0]);
     const colSql = columns.map((column) => `"${column}"`).join(", ");
+    const conflictColumns = CONFLICT_TARGETS[table as (typeof TABLE_ORDER)[number]] ?? ["id"];
+    const conflictSql = conflictColumns.map((column) => `"${column}"`).join(", ");
     const updateSql = columns
-      .filter((column) => column !== "id")
+      .filter((column) => !conflictColumns.includes(column))
       .map((column) => `"${column}" = EXCLUDED."${column}"`)
       .join(", ");
 
@@ -107,9 +122,10 @@ async function upsertRows(pool: Pool, table: string, rows: Record<string, unknow
       const normalized = serializeRow(table, row);
       const values = columns.map((column) => normalized[column]);
       const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
+      const updateClause = updateSql ? ` DO UPDATE SET ${updateSql}` : " DO NOTHING";
       await client.query(
         `INSERT INTO public."${table}" (${colSql}) VALUES (${placeholders})
-         ON CONFLICT ("id") DO UPDATE SET ${updateSql}`,
+         ON CONFLICT (${conflictSql})${updateClause}`,
         values,
       );
       upserted += 1;
