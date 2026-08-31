@@ -61,7 +61,6 @@ const JSON_COLUMNS: Partial<Record<(typeof TABLE_ORDER)[number], string[]>> = {
 
 const CONFLICT_TARGETS: Partial<Record<(typeof TABLE_ORDER)[number], string[]>> = {
   UserProfile: ["userId"],
-  CreatorUser: ["email"],
   SpecialRequestCatalog: ["userId"],
   CreatorCollection: ["slug"],
   CollectionProduct: ["collectionId", "productKey"],

@@ -208,6 +208,27 @@ async function main() {
     [[...userIds], [...creatorIds]],
   );
 
+  for (const row of [...subscriptions, ...follows]) {
+    if (row.creatorId && !creatorIds.has(row.creatorId)) {
+      creatorIds.add(row.creatorId);
+    }
+  }
+
+  const extraCreators = await queryRows(client, "CreatorUser", [...creatorIds], "id");
+  for (const row of extraCreators) {
+    if (!creators.some((item) => item.id === row.id)) creators.push(row);
+    if (row.userId) userIds.add(row.userId);
+  }
+
+  const extraUsers = await queryRows(client, "User", [...userIds], "id");
+  for (const row of extraUsers) {
+    if (!users.some((item) => item.id === row.id)) users.push(row);
+  }
+  const extraProfiles = await queryRows(client, "UserProfile", [...userIds], "userId");
+  for (const row of extraProfiles) {
+    if (!profiles.some((item) => item.id === row.id)) profiles.push(row);
+  }
+
   const payload = {
     User: users,
     UserProfile: profiles,
