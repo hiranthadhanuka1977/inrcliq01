@@ -51,6 +51,26 @@ function getPool() {
   });
 }
 
+const JSON_COLUMNS: Partial<Record<(typeof TABLE_ORDER)[number], string[]>> = {
+  UserProfile: ["popularPostsJson"],
+  SpecialRequestCatalog: ["content"],
+  FeedPost: ["mediaJson", "audioJson"],
+  CollectionProduct: ["offerJson", "detailJson"],
+  SpecialRequest: ["detailsJson"],
+};
+
+function serializeRow(table: string, row: Record<string, unknown>) {
+  const jsonColumns = JSON_COLUMNS[table as (typeof TABLE_ORDER)[number]] ?? [];
+  const next = { ...row };
+  for (const column of jsonColumns) {
+    const value = next[column];
+    if (value !== null && value !== undefined && typeof value !== "string") {
+      next[column] = JSON.stringify(value);
+    }
+  }
+  return next;
+}
+
 async function upsertRows(pool: Pool, table: string, rows: Record<string, unknown>[]) {
   if (!rows.length) return { upserted: 0 };
 
@@ -84,7 +104,8 @@ async function upsertRows(pool: Pool, table: string, rows: Record<string, unknow
     await client.query("BEGIN");
     let upserted = 0;
     for (const row of rows) {
-      const values = columns.map((column) => row[column]);
+      const normalized = serializeRow(table, row);
+      const values = columns.map((column) => normalized[column]);
       const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
       await client.query(
         `INSERT INTO public."${table}" (${colSql}) VALUES (${placeholders})
