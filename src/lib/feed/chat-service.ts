@@ -263,7 +263,7 @@ async function peerDisplayFromCreatorOwner(userId: string): Promise<PeerDisplay 
   };
 }
 
-async function resolveReceiverUserId(thread: {
+export async function resolveReceiverUserId(thread: {
   peerCreatorId: string | null;
   peerSlug: string | null;
   peerHandle: string;
@@ -415,6 +415,15 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
 
   const trimmed = body.trim();
   if (!trimmed) return null;
+
+  const { getDirectMessagingRestriction } = await import("@/lib/guardian/dm-contact-controls");
+  const restriction = await getDirectMessagingRestriction(userId, thread);
+  if (restriction.restricted) {
+    return {
+      restricted: true as const,
+      message: restriction.message ?? "Direct messaging is restricted for this contact.",
+    };
+  }
 
   const [message] = await prisma.$transaction([
     prisma.chatMessage.create({

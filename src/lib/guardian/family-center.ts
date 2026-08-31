@@ -1,5 +1,9 @@
 import { AccountType } from "@/generated/prisma/client";
 import {
+  listChildDmContacts,
+  type ChildDmContact,
+} from "@/lib/guardian/child-detail";
+import {
   PROTECTION_TIER_LABELS,
   type ProtectionTier,
 } from "@/lib/guardian/constants";
@@ -26,6 +30,7 @@ export type FamilyCenterChild = {
   onboardingStep: string | null;
   statusLabel: string;
   messagesHref: string;
+  dmContacts: Pick<ChildDmContact, "id" | "name" | "avatarInitials" | "avatarColor" | "avatarUrl">[];
 };
 
 export type FamilyCenterData = {
@@ -130,6 +135,8 @@ export async function getFamilyCenterForSession(): Promise<FamilyCenterData | nu
         slug,
       });
 
+      const dmContacts = await listChildDmContacts(child.id, firstName);
+
       return {
         id: child.id,
         firstName,
@@ -152,6 +159,13 @@ export async function getFamilyCenterForSession(): Promise<FamilyCenterData | nu
         onboardingStep: child.onboardingStep,
         statusLabel: childStatusLabel(child.onboardingStep),
         messagesHref: `/feed/messages?thread=${thread.id}`,
+        dmContacts: dmContacts.map(({ id, name, avatarInitials, avatarColor, avatarUrl }) => ({
+          id,
+          name,
+          avatarInitials,
+          avatarColor,
+          avatarUrl,
+        })),
       };
     }),
   );

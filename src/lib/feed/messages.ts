@@ -33,6 +33,8 @@ export type Conversation = {
   previewTime: string;
   unread: number;
   messages: ChatMessage[];
+  dmRestricted?: boolean;
+  dmRestrictedMessage?: string;
 };
 
 /** Seed templates for first-time chat inbox (copied into ChatThread/ChatMessage per user). */

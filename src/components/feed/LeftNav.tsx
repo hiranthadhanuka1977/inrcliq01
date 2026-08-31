@@ -28,9 +28,9 @@ const navItems: {
 ];
 
 const familyCenterNavItem = {
-  label: "Family Center",
-  href: "/feed/family-center",
-  icon: "family-center" as const,
+  label: "Family Circle",
+  href: "/family-circle",
+  icon: "family-circle" as const,
 };
 
 function isActive(pathname: string, href: string): boolean {
@@ -42,8 +42,8 @@ function isActive(pathname: string, href: string): boolean {
     return pathname === "/seller" || pathname.startsWith("/seller/");
   }
 
-  if (href === "/feed/family-center") {
-    return pathname === "/feed/family-center" || pathname.startsWith("/feed/family-center/");
+  if (href === "/family-circle") {
+    return pathname === "/family-circle" || pathname.startsWith("/family-circle/");
   }
 
   if (href === "#") {

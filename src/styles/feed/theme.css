@@ -67,6 +67,7 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-nav,
 html[data-feed-theme="light"]:has(.feed-path-shell) .mobile-more__sheet,
 html[data-feed-theme="light"]:has(.feed-path-shell) .messages-sidebar,
 html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__head,
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__footer,
 html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer {
   border-color: var(--feed-card-border);
 }
@@ -238,6 +239,7 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__head {
   border-bottom: 1px solid var(--feed-card-border);
 }
 
+html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__footer,
 html[data-feed-theme="light"]:has(.feed-path-shell) .messages-composer {
   background: var(--feed-card-bg);
   border-top: 1px solid var(--feed-card-border);

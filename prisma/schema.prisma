@@ -60,6 +60,8 @@ model User {
   guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
   guardianChildren       GuardianChildLink[]     @relation("GuardianChildren")
   childGuardians         GuardianChildLink[]     @relation("ChildGuardians")
+  guardianDmControlsAsChild GuardianDmContactControl[] @relation("GuardianDmControlsChild")
+  guardianDmControlsAsPeer  GuardianDmContactControl[] @relation("GuardianDmControlsPeer")
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
   follows                CreatorFollow[]
@@ -171,6 +173,27 @@ model GuardianChildLink {
   @@unique([guardianUserId, childUserId])
   @@index([guardianUserId])
   @@index([childUserId])
+}
+
+/// Guardian controls for a minor's direct message contact (per child inbox thread).
+model GuardianDmContactControl {
+  id               String   @id @default(cuid())
+  childUserId      String
+  childThreadId    String
+  peerUserId       String?
+  peerSlug         String?
+  peerHandle       String?
+  dmRestricted     Boolean  @default(false)
+  requiresApproval Boolean  @default(false)
+  blocked          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  childUser User  @relation("GuardianDmControlsChild", fields: [childUserId], references: [id], onDelete: Cascade)
+  peerUser  User? @relation("GuardianDmControlsPeer", fields: [peerUserId], references: [id], onDelete: SetNull)
+
+  @@unique([childUserId, childThreadId])
+  @@index([childUserId, peerUserId])
 }
 
 /// Public profile for an auth `User` (1:1). Rich rows come from profile JSON;
