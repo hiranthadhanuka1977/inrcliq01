@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createLoginCode, findUserForLogin, sendLoginCodeEmail } from "@/lib/auth/login-code";
 import { parseEmail } from "@/lib/validation";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveSendLoginCode } from "@/lib/backend/routes";
 
 const LOGIN_ERRORS = {
   not_found:
@@ -10,6 +12,8 @@ const LOGIN_ERRORS = {
 } as const;
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveSendLoginCode(request);
+
   try {
     const body = await request.json();
     const parsed = parseEmail(body.email);

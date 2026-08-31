@@ -3,8 +3,12 @@ import { requireSessionUser } from "@/lib/api-helpers";
 import { sendProfileCompleteEmail } from "@/lib/email/notifications";
 import { seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveOnboardingInterests } from "@/lib/backend/routes";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveOnboardingInterests(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

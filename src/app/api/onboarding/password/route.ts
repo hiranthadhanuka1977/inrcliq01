@@ -3,8 +3,12 @@ import { hashPassword } from "@/lib/auth/credentials";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { parsePassword } from "@/lib/validation";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveOnboardingPassword } from "@/lib/backend/routes";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveOnboardingPassword(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

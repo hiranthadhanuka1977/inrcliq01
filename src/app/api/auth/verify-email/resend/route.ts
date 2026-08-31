@@ -5,8 +5,12 @@ import {
   sendVerificationEmail,
 } from "@/lib/auth/email-verification";
 import { parseEmail } from "@/lib/validation";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveResendVerification } from "@/lib/backend/routes";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveResendVerification(request);
+
   try {
     const body = await request.json();
     const emailResult = parseEmail(body.email);

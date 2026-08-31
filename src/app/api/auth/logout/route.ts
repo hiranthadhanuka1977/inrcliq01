@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { destroySession, SESSION_COOKIE } from "@/lib/session";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveLogout } from "@/lib/backend/routes";
 
 export async function POST() {
+  if (isLiveBackend()) return liveLogout();
+
   try {
     await destroySession();
 

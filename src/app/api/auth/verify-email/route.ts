@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { completeEmailVerification } from "@/lib/auth/complete-email-verification";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveVerifyEmail } from "@/lib/backend/routes";
 
 export async function GET(request: NextRequest) {
+  if (isLiveBackend()) return liveVerifyEmail(request);
+
   const token = request.nextUrl.searchParams.get("token");
 
   if (!token) {

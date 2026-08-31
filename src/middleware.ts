@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SETTINGS_ACCESS_COOKIE } from "@/lib/settings/access";
+import { BACKEND_SESSION_COOKIE } from "@/lib/backend/config";
 
 /** Demo gate credentials — override with BASIC_AUTH_USER / BASIC_AUTH_PASSWORD on Vercel. */
 const DEFAULT_USER = "demo@inrcliq.com";
@@ -80,7 +81,12 @@ export function middleware(request: NextRequest) {
     return unauthorized();
   }
 
-  const session = request.cookies.get("inrcliq_session");
+  // Either session counts: the mock keeps its own row-backed cookie, live mode
+  // stores the backend's JWTs under a different name. This is only a presence
+  // check to keep signed-out visitors off these routes — the pages behind it
+  // still resolve and validate the session properly.
+  const session =
+    request.cookies.get("inrcliq_session") ?? request.cookies.get(BACKEND_SESSION_COOKIE);
 
   if (pathname.startsWith("/family-center")) {
     const url = request.nextUrl.clone();

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
+import { FALLBACK_LOCATIONS, type LocationCountry } from "@/lib/constants/locations";
 import { EMAIL_VERIFY_COOLDOWN_SECONDS } from "@/lib/auth/email-verification.constants";
 import {
   DOB_MONTHS,
@@ -66,7 +66,10 @@ export function SignupFlow() {
   const [day, setDay] = useState("");
   const [year, setYear] = useState("");
   const [country, setCountry] = useState("LK");
-  const [region, setRegion] = useState("California");
+  // ISO 3166-2 subdivision code (e.g. "CA"), not the display name — Decca keys its
+  // age and tax rules on the code.
+  const [region, setRegion] = useState("");
+  const [locations, setLocations] = useState<LocationCountry[]>(FALLBACK_LOCATIONS);
 
   const [emailError, setEmailError] = useState({ visible: false, message: "" });
   const [nameError, setNameError] = useState({
@@ -84,6 +87,17 @@ export function SignupFlow() {
 
   const years = useMemo(() => buildYearOptions(), []);
   const days = useMemo(() => buildDayOptions(), []);
+
+  const selectedCountry = useMemo(
+    () => locations.find((item) => item.code === country) ?? null,
+    [locations, country],
+  );
+  // Whether a country has subdivisions is data, not a hardcoded country check.
+  const availableStates = selectedCountry?.states ?? [];
+  const stateLabel = selectedCountry?.state_label ?? "State";
+  // A code from a previously selected country, or one absent from a freshly
+  // loaded list, reads as unselected rather than silently submitting.
+  const selectedRegion = availableStates.some((item) => item.code === region) ? region : "";
 
   const cardClass = step === 3 ? "auth-center__card--wide" : "";
   const innerClass = [
@@ -103,6 +117,27 @@ export function SignupFlow() {
         setVerifyUrl(savedVerifyUrl);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/locations");
+        if (!response.ok) return;
+        const data = (await response.json()) as { countries?: LocationCountry[] };
+        if (!cancelled && Array.isArray(data.countries) && data.countries.length > 0) {
+          setLocations(data.countries);
+        }
+      } catch {
+        // Keep the bundled fallback — a reference lookup must not block signup.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -233,8 +268,8 @@ export function SignupFlow() {
       return;
     }
 
-    if (country === "US" && !region) {
-      window.alert("Please select your state.");
+    if (availableStates.length > 0 && !selectedRegion) {
+      window.alert(`Please select your ${stateLabel.toLowerCase()}.`);
       document.getElementById("landing-state")?.focus();
       return;
     }
@@ -254,7 +289,7 @@ export function SignupFlow() {
           day: Number(day),
           year: Number(year),
           country,
-          region: country === "US" ? region : undefined,
+          region: availableStates.length > 0 ? selectedRegion : undefined,
         }),
       });
 
@@ -597,41 +632,38 @@ export function SignupFlow() {
                     aria-label="Country"
                     value={country}
                     onChange={(event) => {
-                      const nextCountry = event.target.value;
-                      setCountry(nextCountry);
-                      if (nextCountry === "US") {
-                        setRegion("California");
-                      } else {
-                        setRegion("");
-                      }
+                      setCountry(event.target.value);
+                      // Codes are not unique across countries — always re-pick.
+                      setRegion("");
                     }}
                   >
-                    {COUNTRIES.map((item) => (
+                    {locations.map((item) => (
                       <option key={item.code} value={item.code}>
-                        {item.flag} {item.label}
+                        {item.flag_emoji ? `${item.flag_emoji} ` : ""}
+                        {item.name}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {country === "US" ? (
+                {availableStates.length > 0 ? (
                   <div className="field mt-6" id="landing-state-field">
                     <label className="field-label" htmlFor="landing-state">
-                      State
+                      {stateLabel}
                     </label>
                     <select
                       className="select"
                       id="landing-state"
-                      aria-label="State"
-                      value={region}
+                      aria-label={stateLabel}
+                      value={selectedRegion}
                       onChange={(event) => setRegion(event.target.value)}
                     >
                       <option value="" disabled>
-                        Select state
+                        Select {stateLabel.toLowerCase()}
                       </option>
-                      {US_STATES.map((state) => (
-                        <option key={state} value={state}>
-                          {state}
+                      {availableStates.map((item) => (
+                        <option key={item.code} value={item.code}>
+                          {item.name}
                         </option>
                       ))}
                     </select>

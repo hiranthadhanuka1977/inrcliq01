@@ -5,8 +5,12 @@ import { getOnboardingRedirect } from "@/lib/auth/onboarding";
 import { getLatestParentRequest } from "@/lib/auth/parent-invite";
 import { createSession } from "@/lib/session";
 import { parseEmail } from "@/lib/validation";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveLoginPassword } from "@/lib/backend/routes";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveLoginPassword(request);
+
   try {
     const body = await request.json();
     const emailResult = parseEmail(body.email);
