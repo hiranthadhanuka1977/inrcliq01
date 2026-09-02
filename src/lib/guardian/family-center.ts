@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { AccountType } from "@/generated/prisma/client";
 import {
   listChildDmContacts,
@@ -59,7 +60,7 @@ function childStatusLabel(onboardingStep: string | null) {
   return "Pending setup";
 }
 
-export async function getFamilyCenterForSession(): Promise<FamilyCenterData | null> {
+export const getFamilyCenterForSession = cache(async function getFamilyCenterForSession(): Promise<FamilyCenterData | null> {
   const user = await getSessionUser();
   if (!user || user.accountType !== AccountType.GUARDIAN) return null;
 
@@ -171,4 +172,4 @@ export async function getFamilyCenterForSession(): Promise<FamilyCenterData | nu
   );
 
   return { guardianName, children };
-}
+});

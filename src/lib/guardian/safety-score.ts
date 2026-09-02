@@ -4,6 +4,16 @@ import type { FamilyCenterChild } from "@/lib/guardian/family-center";
 
 export type SafetyScoreTone = "excellent" | "good" | "watch";
 
+const TONE_LABELS: Record<SafetyScoreTone, string> = {
+  excellent: "Excellent",
+  good: "Good",
+  watch: "Needs attention",
+};
+
+export function safetyScoreToneLabel(tone: SafetyScoreTone): string {
+  return TONE_LABELS[tone];
+}
+
 export function computeSafetySecureScore(items: ControlHealthItem[]): {
   score: number;
   tone: SafetyScoreTone;

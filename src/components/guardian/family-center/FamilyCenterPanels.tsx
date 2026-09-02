@@ -109,28 +109,28 @@ export function ChildCard({ child }: { child: FamilyCenterChild }) {
   return (
     <li className="family-center__child">
       <div className="family-center__child-row">
+        <ChildSafetyScoreRing
+          score={safetyScore.score}
+          tone={safetyScore.tone}
+          childName={child.fullName}
+          protectionLabel={child.protectionLevelLabel}
+          controlItems={controlHealth.items}
+        />
         <Link
           href={`/family-circle/accounts/${child.id}`}
           className="family-center__child-main"
         >
-          <span className="family-center__child-identity">
-            <ChildSafetyScoreRing
-              score={safetyScore.score}
-              tone={safetyScore.tone}
-              childName={child.fullName}
-            />
-            <span
-              className="family-center__avatar"
-              style={{ "--story-color": child.avatarColor } as CSSProperties}
-              aria-hidden="true"
-            >
-              {child.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={child.avatarUrl} alt="" width={48} height={48} />
-              ) : (
-                child.avatarInitials
-              )}
-            </span>
+          <span
+            className="family-center__avatar"
+            style={{ "--story-color": child.avatarColor } as CSSProperties}
+            aria-hidden="true"
+          >
+            {child.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={child.avatarUrl} alt="" width={48} height={48} />
+            ) : (
+              child.avatarInitials
+            )}
           </span>
           <span className="family-center__child-copy">
             <span className="family-center__child-name">{child.fullName}</span>

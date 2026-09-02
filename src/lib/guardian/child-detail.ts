@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { AccountType } from "@/generated/prisma/client";
 import type { AccountSocialPerson } from "@/lib/feed/account-profile";
 import { ensureChildChatThreadForGuardian, seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
@@ -216,7 +217,7 @@ function notifyLevelLabel(level: string) {
   }
 }
 
-export async function getChildDetailForGuardian(
+export const getChildDetailForGuardian = cache(async function getChildDetailForGuardian(
   childUserId: string,
 ): Promise<ChildDetailData | null> {
   const user = await getSessionUser();
@@ -419,7 +420,7 @@ export async function getChildDetailForGuardian(
       subscriptions,
     },
   };
-}
+});
 
 export type DmContactActivityItem = {
   id: string;
