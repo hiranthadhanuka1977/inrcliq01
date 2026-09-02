@@ -4,6 +4,7 @@
 
 .seller-path-shell {
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--color-bg-page);
   color: var(--color-text-primary);
 }
@@ -142,6 +143,15 @@ html:not([data-feed-theme="light"]) .seller-header__brand .logo__img {
 .seller-nav__icon svg {
   width: 100%;
   height: 100%;
+}
+
+.seller-nav__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.seller-nav__text-short {
+  display: none;
 }
 
 .seller-nav__link:hover,
@@ -2388,16 +2398,42 @@ a.seller-calendar__detail-item:focus-visible {
   color: var(--color-text-secondary);
 }
 
-@media (max-width: 767px) {
+.seller-header__back-short {
+  display: none;
+}
+
+@media (max-width: 900px) {
   .seller-shell {
     grid-template-columns: 1fr;
-    gap: var(--space-5);
+    gap: var(--space-4);
+    padding: var(--space-4) var(--layout-content-padding-sm)
+      calc(var(--space-10) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .seller-shell--marketing {
     padding-top: var(--space-5);
   }
 
-  .seller-verify__paths,
-  .seller-verify__benefit-grid {
-    grid-template-columns: 1fr;
+  .seller-header__inner {
+    padding-inline: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .seller-header__brand .logo__img {
+    width: 96px;
+    height: auto;
+  }
+
+  .seller-header__portal {
+    display: none;
+  }
+
+  .seller-header__back-short {
+    display: inline;
+  }
+
+  .seller-header__back-long {
+    display: none;
   }
 
   .seller-nav {
@@ -2405,16 +2441,16 @@ a.seller-calendar__detail-item:focus-visible {
   }
 
   .seller-nav__list {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: var(--space-2);
-    padding-bottom: var(--space-1);
-    scrollbar-width: none;
+    display: grid;
+    gap: var(--space-1);
   }
 
-  .seller-nav__list::-webkit-scrollbar {
-    display: none;
+  .seller-nav__list[data-count="5"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .seller-nav__list[data-count="6"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .seller-nav__label {
@@ -2422,10 +2458,50 @@ a.seller-calendar__detail-item:focus-visible {
   }
 
   .seller-nav__link {
-    white-space: nowrap;
-    padding: var(--space-2) var(--space-3);
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.35rem;
+    min-height: 4.5rem;
+    padding: var(--space-2) 0.15rem;
+    text-align: center;
     border: 1px solid var(--color-border-default);
     background: var(--color-bg-subtle);
+  }
+
+  .seller-nav__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+  }
+
+  .seller-nav__icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .seller-nav__link.is-active .seller-nav__icon {
+    background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
+  }
+
+  .seller-nav__text {
+    flex: none;
+    width: 100%;
+    font-size: 0.625rem;
+    line-height: 1.15;
+  }
+
+  .seller-nav__text-short {
+    display: inline;
+  }
+
+  .seller-nav__text:has(.seller-nav__text-short) .seller-nav__text-full {
+    display: none;
   }
 
   .seller-nav__link.is-active {
@@ -2434,16 +2510,86 @@ a.seller-calendar__detail-item:focus-visible {
     color: var(--color-brand-primary);
   }
 
+  .seller-content {
+    min-width: 0;
+  }
+
+  .seller-panel__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .seller-panel__subtitle {
+    font-size: var(--font-size-sm);
+  }
+
+  .seller-verify__paths,
+  .seller-verify__benefit-grid {
+    grid-template-columns: 1fr;
+  }
+
   .seller-dash-grid {
     gap: var(--space-3);
+  }
+
+  .seller-dash-card {
+    padding: var(--space-4);
   }
 
   .seller-dash-card__top {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
+  .seller-dash-card__stats {
+    grid-template-columns: 1fr;
+  }
+
   .seller-dash-card__stat {
-    padding: var(--space-3) var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .seller-dash-chart {
+    padding-inline: var(--space-3);
+  }
+
+  .seller-dash-chart__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .seller-requests-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .seller-requests-head__actions {
+    justify-content: flex-start;
+  }
+
+  .seller-requests-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .seller-tabs {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--layout-content-padding-sm));
+    padding-inline: var(--layout-content-padding-sm);
+    flex-wrap: nowrap;
+  }
+
+  .seller-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seller-tabs__tab {
+    flex-shrink: 0;
+    padding-inline: var(--space-3);
+  }
+
+  .seller-calendar__toolbar {
+    flex-wrap: wrap;
   }
 
   .seller-calendar__cell {
@@ -2479,18 +2625,6 @@ a.seller-calendar__detail-item:focus-visible {
     align-items: stretch;
   }
 
-  .seller-header__portal {
-    display: none;
-  }
-
-  .seller-requests-head {
-    flex-direction: column;
-  }
-
-  .seller-requests-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .seller-form-grid {
     grid-template-columns: 1fr;
   }
@@ -2523,7 +2657,7 @@ a.seller-calendar__detail-item:focus-visible {
   }
 
   .seller-category__stat {
-    padding: var(--space-3) var(--space-3);
+    padding: var(--space-3);
   }
 
   .seller-manage-section__head {
@@ -2554,5 +2688,53 @@ a.seller-calendar__detail-item:focus-visible {
 
   .seller-image-field__frame--square {
     max-width: none;
+  }
+
+  .seller-table-wrap {
+    margin-inline: calc(-1 * var(--layout-content-padding-sm));
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .seller-shell {
+    padding-top: var(--space-3);
+  }
+
+  .seller-panel__title {
+    font-size: 1.35rem;
+  }
+
+  .seller-requests-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .seller-category__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .seller-dash-chart__bars {
+    height: 4.25rem;
+    min-height: 4.25rem;
+  }
+
+  .seller-nav__link {
+    min-height: 4.25rem;
+    padding-inline: 0.1rem;
+  }
+
+  .seller-nav__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .seller-nav__icon svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .seller-nav__list[data-count="6"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

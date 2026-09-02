@@ -5,13 +5,16 @@ import type { CSSProperties } from "react";
 import ProtectionTierIcon from "@/components/guardian/ProtectionTierIcon";
 import { ControlHealthInfoIcon } from "@/components/guardian/family-center/ControlHealthInfoIcon";
 import { ChildCardDmAvatars } from "@/components/guardian/family-center/ChildCardDmAvatars";
+import { ChildSafetyScoreRing } from "@/components/guardian/family-center/ChildSafetyScoreRing";
 import { FamilyActivityLog } from "@/components/guardian/family-center/FamilyActivityLog";
 import type { FamilyCenterChild, FamilyCenterData } from "@/lib/guardian/family-center";
 import {
+  buildControlHealthForChild,
   staticDashboardExtras,
   staticFamilyActivityHistory,
   zoneLabelForAge,
 } from "@/lib/guardian/family-center-static";
+import { computeChildSafetySecureScore } from "@/lib/guardian/safety-score";
 
 export function SummaryStat({
   label,
@@ -100,6 +103,8 @@ export function LinkedAccountsSummaryStat({ linkedChildren }: { linkedChildren: 
 
 export function ChildCard({ child }: { child: FamilyCenterChild }) {
   const zone = zoneLabelForAge(child.age);
+  const controlHealth = buildControlHealthForChild(child);
+  const safetyScore = computeChildSafetySecureScore(child, controlHealth.items);
 
   return (
     <li className="family-center__child">
@@ -108,17 +113,24 @@ export function ChildCard({ child }: { child: FamilyCenterChild }) {
           href={`/family-circle/accounts/${child.id}`}
           className="family-center__child-main"
         >
-          <span
-            className="family-center__avatar"
-            style={{ "--story-color": child.avatarColor } as CSSProperties}
-            aria-hidden="true"
-          >
-            {child.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={child.avatarUrl} alt="" width={48} height={48} />
-            ) : (
-              child.avatarInitials
-            )}
+          <span className="family-center__child-identity">
+            <ChildSafetyScoreRing
+              score={safetyScore.score}
+              tone={safetyScore.tone}
+              childName={child.fullName}
+            />
+            <span
+              className="family-center__avatar"
+              style={{ "--story-color": child.avatarColor } as CSSProperties}
+              aria-hidden="true"
+            >
+              {child.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={child.avatarUrl} alt="" width={48} height={48} />
+              ) : (
+                child.avatarInitials
+              )}
+            </span>
           </span>
           <span className="family-center__child-copy">
             <span className="family-center__child-name">{child.fullName}</span>

@@ -9,6 +9,50 @@ export function zoneLabelForAge(age: number | null): string | null {
   return null;
 }
 
+export type ControlHealthStatus = "ok" | "watch";
+
+export type ControlHealthItem = {
+  label: string;
+  value: string;
+  status: ControlHealthStatus;
+  info: string;
+};
+
+export function buildControlHealthForChild(child: FamilyCenterChild) {
+  return {
+    childId: child.id,
+    childName: child.firstName,
+    zone: zoneLabelForAge(child.age),
+    tier: child.protectionLevelLabel,
+    items: [
+      {
+        label: "Discoverability",
+        value: "Private",
+        status: "ok" as const,
+        info: "Controls who can find this account in search, suggestions, and public listings.",
+      },
+      {
+        label: "Direct messaging",
+        value: child.protectionLevel === "strict" ? "Off" : "Restricted",
+        status: "ok" as const,
+        info: "Limits who can send or receive private messages with this account.",
+      },
+      {
+        label: "Safety alerts",
+        value: "On",
+        status: "ok" as const,
+        info: "Notifies you when a qualifying safety event needs your attention.",
+      },
+      {
+        label: "Location sharing",
+        value: "Off",
+        status: child.protectionLevel === "relaxed" ? ("watch" as const) : ("ok" as const),
+        info: "Controls whether location can appear in posts, stories, or on the profile.",
+      },
+    ] satisfies ControlHealthItem[],
+  };
+}
+
 /** Static prototype content — not wired to backend yet. */
 export function staticDashboardExtras(children: FamilyCenterChild[]) {
   const primaryChild = children[0];
@@ -46,38 +90,7 @@ export function staticDashboardExtras(children: FamilyCenterChild[]) {
             },
           ]
         : [],
-    controlHealth: children.map((child) => ({
-      childId: child.id,
-      childName: child.firstName,
-      zone: zoneLabelForAge(child.age),
-      tier: child.protectionLevelLabel,
-      items: [
-        {
-          label: "Discoverability",
-          value: "Private",
-          status: "ok" as const,
-          info: "Controls who can find this account in search, suggestions, and public listings.",
-        },
-        {
-          label: "Direct messaging",
-          value: child.protectionLevel === "strict" ? "Off" : "Restricted",
-          status: "ok" as const,
-          info: "Limits who can send or receive private messages with this account.",
-        },
-        {
-          label: "Safety alerts",
-          value: "On",
-          status: "ok" as const,
-          info: "Notifies you when a qualifying safety event needs your attention.",
-        },
-        {
-          label: "Location sharing",
-          value: "Off",
-          status: child.protectionLevel === "relaxed" ? ("watch" as const) : ("ok" as const),
-          info: "Controls whether location can appear in posts, stories, or on the profile.",
-        },
-      ],
-    })),
+    controlHealth: children.map((child) => buildControlHealthForChild(child)),
   };
 }
 

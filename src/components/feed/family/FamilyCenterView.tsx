@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import LeftNav from "@/components/feed/LeftNav";
 import MobileNav from "@/components/feed/MobileNav";
-import ProtectionTierIcon from "@/components/guardian/ProtectionTierIcon";
-import { ChildCardDmAvatars } from "@/components/guardian/family-center/ChildCardDmAvatars";
+import { ChildCard } from "@/components/guardian/family-center/FamilyCenterPanels";
 import type { FamilyCenterChild, FamilyCenterData } from "@/lib/guardian/family-center";
 
 type FamilyCenterTab = "overview" | "accounts" | "controls" | "alerts" | "requests";
@@ -120,65 +119,6 @@ function SummaryStat({
       <span className="family-center__summary-stat-label">{label}</span>
       <span className="family-center__summary-stat-hint">{hint}</span>
     </div>
-  );
-}
-
-function ChildCard({ child }: { child: FamilyCenterChild }) {
-  const zone = zoneLabelForAge(child.age);
-
-  const avatar = (
-    <span
-      className="family-center__avatar"
-      style={{ "--story-color": child.avatarColor } as CSSProperties}
-      aria-hidden="true"
-    >
-      {child.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={child.avatarUrl} alt="" width={48} height={48} />
-      ) : (
-        child.avatarInitials
-      )}
-    </span>
-  );
-
-  return (
-    <li className="family-center__child">
-      <div className="family-center__child-row">
-        <Link href={`/family-circle/accounts/${child.id}`} className="family-center__child-main">
-          {avatar}
-          <span className="family-center__child-copy">
-            <span className="family-center__child-name">{child.fullName}</span>
-            <span className="family-center__child-meta">
-              {child.handleLabel}
-              {child.age != null ? ` · ${child.age} years old` : ""}
-              {zone ? ` · ${zone}` : ""}
-            </span>
-            <span className="family-center__child-details">
-              <span className="family-center__protection">
-                <ProtectionTierIcon tier={child.protectionLevel} />
-                <span>{child.protectionLevelLabel} protection</span>
-              </span>
-              <span className="family-center__child-linked">· Linked {child.linkedAtDisplay}</span>
-            </span>
-          </span>
-        </Link>
-        <ChildCardDmAvatars childId={child.id} contacts={child.dmContacts} />
-        <div className="family-center__child-aside">
-          <span className="family-center__status-badge">{child.statusLabel}</span>
-          <Link
-            href={child.messagesHref}
-            className="family-center__child-message"
-            aria-label={`Message ${child.fullName}`}
-            title={`Message ${child.fullName}`}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-    </li>
   );
 }
 

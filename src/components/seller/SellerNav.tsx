@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 const NAV_ITEMS: ReadonlyArray<{
   href: string;
   label: string;
+  shortLabel?: string;
   exact?: boolean;
   requiresSpecialRequests?: boolean;
   icon: ReactNode;
@@ -14,6 +15,7 @@ const NAV_ITEMS: ReadonlyArray<{
   {
     href: "/seller",
     label: "Dashboard",
+    shortLabel: "Home",
     exact: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -38,6 +40,7 @@ const NAV_ITEMS: ReadonlyArray<{
   {
     href: "/seller/service-requests",
     label: "Service requests",
+    shortLabel: "Requests",
     requiresSpecialRequests: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -52,6 +55,7 @@ const NAV_ITEMS: ReadonlyArray<{
   {
     href: "/seller/subscriptions",
     label: "Subscriptions",
+    shortLabel: "Subs",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <path d="M12 2l2.4 4.86L20 8.27l-4 3.9.94 5.5L12 15.77 7.06 17.67 8 12.17l-4-3.9 5.6-.41L12 2z" />
@@ -61,6 +65,7 @@ const NAV_ITEMS: ReadonlyArray<{
   {
     href: "/seller/wallet",
     label: "My Money (Wallet)",
+    shortLabel: "Wallet",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <path d="M19 7H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
@@ -90,7 +95,7 @@ export function SellerNav({ hasSpecialRequests = false }: { hasSpecialRequests?:
   return (
     <nav className="seller-nav" aria-label="Seller Tools">
       <p className="seller-nav__label">Manage</p>
-      <ul className="seller-nav__list">
+      <ul className="seller-nav__list" data-count={items.length}>
         {items.map((item) => {
           const isActive = item.exact
             ? pathname === item.href || pathname === `${item.href}/`
@@ -102,9 +107,15 @@ export function SellerNav({ hasSpecialRequests = false }: { hasSpecialRequests?:
                 href={item.href}
                 className={`seller-nav__link${isActive ? " is-active" : ""}`}
                 aria-current={isActive ? "page" : undefined}
+                aria-label={item.label}
               >
                 <span className="seller-nav__icon">{item.icon}</span>
-                {item.label}
+                <span className="seller-nav__text">
+                  <span className="seller-nav__text-full">{item.label}</span>
+                  {item.shortLabel ? (
+                    <span className="seller-nav__text-short">{item.shortLabel}</span>
+                  ) : null}
+                </span>
               </Link>
             </li>
           );
