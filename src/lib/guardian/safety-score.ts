@@ -12,7 +12,7 @@ const TONE_LABELS: Record<SafetyScoreTone, string> = {
 
 /** Prototype/demo scores for linked accounts shown in Family Circle. */
 const DEMO_CHILD_SAFETY_SCORES: Record<string, { score: number; tone: SafetyScoreTone }> = {
-  anulkad26: { score: 33, tone: "watch" },
+  alexanders: { score: 33, tone: "watch" },
 };
 
 function normalizeChildHandle(handle: string | null): string | null {
