@@ -133,6 +133,9 @@
 }
 
 .account-profile__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   flex-shrink: 0;
   align-self: flex-start;
 }
@@ -143,7 +146,6 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  margin-left: auto;
   border: 1px solid var(--color-neutral-200);
   border-radius: var(--radius-full);
   background: var(--color-bg-page);
@@ -273,6 +275,22 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-3);
+}
+
+.account-profile__public-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-3);
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--color-brand-primary);
+  text-decoration: none;
+}
+
+.account-profile__public-link:hover,
+.account-profile__public-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .account-profile__guardian {

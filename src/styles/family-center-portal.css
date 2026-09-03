@@ -243,6 +243,33 @@ html:not([data-feed-theme="light"]) .family-portal-header__brand .logo__img {
   max-width: 40rem;
 }
 
+.family-portal-panel__back {
+  display: inline-block;
+  margin-bottom: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.family-portal-panel__back:hover,
+.family-portal-panel__back:focus-visible {
+  color: var(--color-brand-primary);
+}
+
+.family-portal-panel__filter-clear {
+  display: inline-block;
+  margin-top: var(--space-3);
+  color: var(--color-brand-primary);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.family-portal-panel__filter-clear:hover,
+.family-portal-panel__filter-clear:focus-visible {
+  text-decoration: underline;
+}
+
 .family-portal-panel .family-center__privacy-note {
   margin-top: var(--space-8);
 }

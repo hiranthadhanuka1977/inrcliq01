@@ -7,11 +7,26 @@ export type SafetyScoreTone = "excellent" | "good" | "watch";
 const TONE_LABELS: Record<SafetyScoreTone, string> = {
   excellent: "Excellent",
   good: "Good",
-  watch: "Needs attention",
+  watch: "Low",
 };
+
+/** Prototype/demo scores for linked accounts shown in Family Circle. */
+const DEMO_CHILD_SAFETY_SCORES: Record<string, { score: number; tone: SafetyScoreTone }> = {
+  anulkad26: { score: 33, tone: "watch" },
+};
+
+function normalizeChildHandle(handle: string | null): string | null {
+  const trimmed = handle?.trim();
+  if (!trimmed) return null;
+  return trimmed.replace(/^@/, "").toLowerCase();
+}
 
 export function safetyScoreToneLabel(tone: SafetyScoreTone): string {
   return TONE_LABELS[tone];
+}
+
+export function safetyScoreRingCaption(tone: SafetyScoreTone): string | null {
+  return tone === "watch" ? "Low" : null;
 }
 
 export function computeSafetySecureScore(items: ControlHealthItem[]): {
@@ -33,6 +48,11 @@ export function computeChildSafetySecureScore(
   child: FamilyCenterChild,
   controlItems: ControlHealthItem[],
 ): { score: number; tone: SafetyScoreTone } {
+  const demoHandle = normalizeChildHandle(child.handle);
+  if (demoHandle && DEMO_CHILD_SAFETY_SCORES[demoHandle]) {
+    return DEMO_CHILD_SAFETY_SCORES[demoHandle];
+  }
+
   const base = computeSafetySecureScore(controlItems);
   const attentionContacts = child.dmContacts.filter(
     (contact) => dmContactSafetyStatus(contact.id) === "attention",

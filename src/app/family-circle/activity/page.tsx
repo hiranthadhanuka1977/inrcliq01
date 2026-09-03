@@ -3,7 +3,13 @@ import { requireFamilyCenterSession } from "@/lib/guardian/require-family-center
 
 export const dynamic = "force-dynamic";
 
-export default async function FamilyCenterActivityRoute() {
+export default async function FamilyCenterActivityRoute({
+  searchParams,
+}: {
+  searchParams: Promise<{ child?: string }>;
+}) {
   const { data } = await requireFamilyCenterSession();
-  return <FamilyCenterActivityPage data={data} />;
+  const { child: childId } = await searchParams;
+
+  return <FamilyCenterActivityPage data={data} childId={childId?.trim() || undefined} />;
 }

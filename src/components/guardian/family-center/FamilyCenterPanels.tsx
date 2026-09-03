@@ -10,6 +10,7 @@ import { FamilyActivityLog } from "@/components/guardian/family-center/FamilyAct
 import type { FamilyCenterChild, FamilyCenterData } from "@/lib/guardian/family-center";
 import {
   buildControlHealthForChild,
+  filterFamilyActivityForChild,
   staticDashboardExtras,
   staticFamilyActivityHistory,
   zoneLabelForAge,
@@ -536,20 +537,41 @@ export function FamilyCenterRequestsPage({ data }: { data: FamilyCenterData }) {
   );
 }
 
-export function FamilyCenterActivityPage({ data }: { data: FamilyCenterData }) {
-  const items = staticFamilyActivityHistory(data.children);
+export function FamilyCenterActivityPage({
+  data,
+  childId,
+}: {
+  data: FamilyCenterData;
+  childId?: string;
+}) {
+  const allItems = staticFamilyActivityHistory(data.children);
+  const filteredChild = childId ? data.children.find((child) => child.id === childId) : null;
+  const items =
+    filteredChild != null ? filterFamilyActivityForChild(allItems, filteredChild.id) : allItems;
 
   return (
     <section className="family-portal-panel" aria-labelledby="family-activity-title">
       <div className="family-portal-panel__head">
+        {filteredChild ? (
+          <Link href={`/family-circle/accounts/${filteredChild.id}`} className="family-portal-panel__back">
+            ← {filteredChild.firstName}&apos;s account
+          </Link>
+        ) : null}
         <h1 className="family-portal-panel__title" id="family-activity-title">
-          Activity
+          {filteredChild ? `Activity · ${filteredChild.fullName}` : "Activity"}
         </h1>
         <p className="family-portal-panel__subtitle">
-          Complete family activity history across linked accounts — alerts, requests, controls, and account events.
+          {filteredChild
+            ? `Safety events, control changes, and account updates for ${filteredChild.firstName}.`
+            : "Complete family activity history across linked accounts — alerts, requests, controls, and account events."}
         </p>
+        {filteredChild ? (
+          <Link href="/family-circle/activity" className="family-portal-panel__filter-clear">
+            View all family activity
+          </Link>
+        ) : null}
       </div>
-      <FamilyActivityLog items={items} />
+      <FamilyActivityLog items={items} showChildName={!filteredChild} />
       <FamilyCenterPrivacyNote />
     </section>
   );

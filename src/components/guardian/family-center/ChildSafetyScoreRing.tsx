@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import type { ControlHealthItem } from "@/lib/guardian/family-center-static";
-import { safetyScoreToneLabel, type SafetyScoreTone } from "@/lib/guardian/safety-score";
+import { safetyScoreRingCaption, safetyScoreToneLabel, type SafetyScoreTone } from "@/lib/guardian/safety-score";
 
 const RADIUS = 15;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -26,6 +26,7 @@ export function ChildSafetyScoreRing({
   const clampedScore = Math.max(0, Math.min(100, score));
   const dashOffset = CIRCUMFERENCE * (1 - clampedScore / 100);
   const toneLabel = safetyScoreToneLabel(tone);
+  const ringCaption = safetyScoreRingCaption(tone);
   const triggerLabel = `Safety and security score for ${childName}: ${clampedScore} out of 100. ${toneLabel}.`;
 
   return (
@@ -58,8 +59,11 @@ export function ChildSafetyScoreRing({
             transform="rotate(-90 18 18)"
           />
         </svg>
-        <span className="family-center__safety-score-value" aria-hidden="true">
-          {clampedScore}
+        <span className="family-center__safety-score-center" aria-hidden="true">
+          <span className="family-center__safety-score-value">{clampedScore}</span>
+          {ringCaption ? (
+            <span className="family-center__safety-score-caption">{ringCaption}</span>
+          ) : null}
         </span>
       </button>
 

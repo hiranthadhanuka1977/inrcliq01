@@ -31,7 +31,13 @@ function buildLogRows(items: FamilyActivityItem[]): ActivityLogRow[] {
   return rows;
 }
 
-export function FamilyActivityLog({ items }: { items: FamilyActivityItem[] }) {
+export function FamilyActivityLog({
+  items,
+  showChildName = true,
+}: {
+  items: FamilyActivityItem[];
+  showChildName?: boolean;
+}) {
   const [visibleItemCount, setVisibleItemCount] = useState(PAGE_SIZE);
   const [isLoading, setIsLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -98,10 +104,14 @@ export function FamilyActivityLog({ items }: { items: FamilyActivityItem[] }) {
                 <div className="family-center__activity-log-copy">
                   <p className="family-center__activity-log-title">
                     <span className="family-center__activity-log-event">{row.item.title}</span>
-                    <span className="family-center__activity-log-sep" aria-hidden="true">
-                      ·
-                    </span>
-                    <span className="family-center__activity-log-child">{row.item.childName}</span>
+                    {showChildName ? (
+                      <>
+                        <span className="family-center__activity-log-sep" aria-hidden="true">
+                          ·
+                        </span>
+                        <span className="family-center__activity-log-child">{row.item.childName}</span>
+                      </>
+                    ) : null}
                   </p>
                   <p className="family-center__activity-log-detail">{row.item.detail}</p>
                 </div>
