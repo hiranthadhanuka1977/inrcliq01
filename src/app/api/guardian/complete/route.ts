@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveGuardianComplete } from "@/lib/backend/routes";
 import { completeGuardianApproval } from "@/lib/auth/guardian-flow";
 import { resolveParentApprovalRequestByToken } from "@/lib/auth/parent-invite";
 import type { ProtectionTier } from "@/lib/guardian/constants";
@@ -6,6 +8,8 @@ import { PROTECTION_TIER_LABELS } from "@/lib/guardian/constants";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveGuardianComplete(request);
+
   try {
     const body = await request.json();
     const token = typeof body.token === "string" ? body.token.trim() : "";

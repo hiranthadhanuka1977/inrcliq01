@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveParentInviteResend, liveParentInviteStatus } from "@/lib/backend/routes";
 import { AccountType } from "@/generated/prisma/client";
 import {
   createParentApprovalRequest,
@@ -9,6 +11,8 @@ import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
+  if (isLiveBackend()) return liveParentInviteResend();
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;
@@ -49,6 +53,8 @@ export async function POST() {
 }
 
 export async function GET() {
+  if (isLiveBackend()) return liveParentInviteStatus();
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

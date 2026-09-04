@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveParentInvite } from "@/lib/backend/routes";
 import { AccountType } from "@/generated/prisma/client";
 import {
   createParentApprovalRequest,
@@ -9,6 +11,8 @@ import { prisma } from "@/lib/prisma";
 import { parseParentEmail } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveParentInvite(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

@@ -23,6 +23,36 @@ export interface BackendSession {
   idToken?: string;
 }
 
+/**
+ * A minor waiting on a guardian.
+ *
+ * They are not signed in — a PENDING_GUARDIAN account has no access token at
+ * all — but they are not anonymous either: they hold a pending-consent token
+ * that works on `/consent/*` and nothing else. That is enough to name a
+ * guardian, poll for the answer, and continue once it arrives, which is the
+ * whole of what those screens do.
+ *
+ * Kept in the same cookie under its own key, so one read tells a route which of
+ * the two kinds of session it has.
+ */
+export interface PendingConsentSession {
+  pendingConsentToken: string;
+  userId: string;
+  email: string;
+  firstName: string;
+}
+
+type StoredSession = Partial<BackendSession> & Partial<PendingConsentSession>;
+
+/** Where a minor is in the guardian journey. Null means no invite sent yet. */
+export interface GuardianConsentSummary {
+  status: "PENDING" | "APPROVED" | "DENIED" | "EXPIRED" | "REVOKED";
+  guardianEmail: string;
+  requestedAt: string;
+  expiresAt: string;
+  respondedAt: string | null;
+}
+
 export interface BackendUser {
   userId: string;
   username: string;
@@ -36,9 +66,15 @@ export interface BackendUser {
   hasPassword: boolean;
   profilePictureUrl: string | null;
   coverPictureUrl: string | null;
+  /**
+   * Present for minors only, and null until they name a guardian. Absent for
+   * adults. The three states are three different screens, which is why a null
+   * has to be distinguishable from an absent key.
+   */
+  guardianConsent?: GuardianConsentSummary | null;
 }
 
-export async function setBackendSession(session: BackendSession) {
+export async function setBackendSession(session: BackendSession | PendingConsentSession) {
   const cookieStore = await cookies();
   cookieStore.set(BACKEND_SESSION_COOKIE, JSON.stringify(session), {
     httpOnly: true,
@@ -49,19 +85,36 @@ export async function setBackendSession(session: BackendSession) {
   });
 }
 
-export async function readBackendSession(): Promise<BackendSession | null> {
-  const cookieStore = await cookies();
-  const raw = cookieStore.get(BACKEND_SESSION_COOKIE)?.value;
+function readStoredSession(raw: string | undefined): StoredSession | null {
   if (!raw) return null;
   try {
     // `cookies().set()` percent-encodes the value on the way out, but
     // `cookies().get()` hands it back exactly as it appeared in the header —
     // still encoded. Decode when it clearly is, so the round trip is symmetric.
-    const parsed = JSON.parse(raw.startsWith("{") ? raw : decodeURIComponent(raw)) as BackendSession;
-    return parsed.accessToken && parsed.refreshToken ? parsed : null;
+    return JSON.parse(raw.startsWith("{") ? raw : decodeURIComponent(raw)) as StoredSession;
   } catch {
     return null;
   }
+}
+
+export async function readBackendSession(): Promise<BackendSession | null> {
+  const cookieStore = await cookies();
+  const parsed = readStoredSession(cookieStore.get(BACKEND_SESSION_COOKIE)?.value);
+  if (!parsed?.accessToken || !parsed.refreshToken) return null;
+  return parsed as BackendSession;
+}
+
+/**
+ * The pending-consent session, if that is what the cookie holds.
+ *
+ * Returns null for a fully signed-in user: the two are mutually exclusive, and
+ * a route that wants "either" should check this first, then `getBackendUser`.
+ */
+export async function readPendingConsentSession(): Promise<PendingConsentSession | null> {
+  const cookieStore = await cookies();
+  const parsed = readStoredSession(cookieStore.get(BACKEND_SESSION_COOKIE)?.value);
+  if (!parsed?.pendingConsentToken || parsed.accessToken) return null;
+  return parsed as PendingConsentSession;
 }
 
 export async function clearBackendSession() {
