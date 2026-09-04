@@ -67,6 +67,17 @@ export function GuardianFlow() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [completion, setCompletion] = useState<GuardianCompletion | null>(null);
+  /**
+   * What the identity steps read off the document. It comes from the API rather
+   * than being invented here, so the review screen shows whatever the
+   * verification actually produced — a stub today, a real extraction once the
+   * identity model is wired, with no change to this component.
+   */
+  const [extracted, setExtracted] = useState<{
+    name: string;
+    dateOfBirth: string;
+    idNumber: string;
+  } | null>(null);
 
   const applyLoadedContext = useCallback((data: GuardianContext) => {
     setContext(data);
@@ -271,7 +282,78 @@ export function GuardianFlow() {
     }
   }
 
-  const handleVerifyComplete = useCallback(() => setStep("review"), []);
+  /**
+   * The identity steps, each backed by the API.
+   *
+   * A failure here must not strand the guardian mid-journey: the capture is a
+   * step in a longer flow, so the error is surfaced and the screen holds rather
+   * than advancing on a call that did not happen.
+   */
+  async function captureId() {
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/guardian/identity/id-capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, idDocType }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setSubmitError(data.error ?? "Unable to read that document. Please try again.");
+        return;
+      }
+      if (data.extracted) setExtracted(data.extracted);
+      setIdCapturedOpen(true);
+    } catch {
+      setSubmitError("Unable to read that document. Please try again.");
+    }
+  }
+
+  async function captureFace() {
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/guardian/identity/face-capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setSubmitError(data.error ?? "Unable to capture that selfie. Please try again.");
+        return;
+      }
+      setSelfieCapturedOpen(true);
+    } catch {
+      setSubmitError("Unable to capture that selfie. Please try again.");
+    }
+  }
+
+  /**
+   * The verifying screen's terminal call. It is what marks the guardian
+   * identity-verified, which is what lets them approve their next child in one
+   * tap — so a silent failure here has consequences well beyond this journey.
+   */
+  const handleVerifyComplete = useCallback(async () => {
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/guardian/identity/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.status !== "VERIFIED") {
+        setSubmitError(data.error ?? "We could not verify that identity. Please try again.");
+        setStep("verify-intro");
+        return;
+      }
+      if (data.extracted) setExtracted(data.extracted);
+      setStep("review");
+    } catch {
+      setSubmitError("We could not verify that identity. Please try again.");
+      setStep("verify-intro");
+    }
+  }, [token]);
 
   if (loading) {
     return (
@@ -427,14 +509,18 @@ export function GuardianFlow() {
             docType={idDocType}
             onDocTypeChange={setIdDocType}
             onBack={() => setStep("verify-intro")}
-            onCaptured={() => setIdCapturedOpen(true)}
+            onCaptured={() => {
+              void captureId();
+            }}
           />
         ) : null}
 
         {step === "face-scan" ? (
           <ParentFaceScanStep
             onBack={() => setStep("id-capture")}
-            onCaptured={() => setSelfieCapturedOpen(true)}
+            onCaptured={() => {
+              void captureFace();
+            }}
           />
         ) : null}
 
@@ -448,11 +534,11 @@ export function GuardianFlow() {
         {step === "review" ? (
           <ParentIdentityReviewStep
             child={context.child}
-            parentName={context.simulatedParentName}
-            parentDob={context.simulatedParentDob}
+            parentName={extracted?.name ?? context.simulatedParentName ?? ""}
+            parentDob={extracted?.dateOfBirth ?? context.simulatedParentDob ?? ""}
             idDocType={idDocType}
             guardianCountry={guardianCountry}
-            idNumber={context.simulatedIdNumber}
+            idNumber={extracted?.idNumber ?? context.simulatedIdNumber ?? ""}
             onContinue={(data) => {
               setReviewLocation(data);
               setStep("protection");

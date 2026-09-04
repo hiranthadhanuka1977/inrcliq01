@@ -79,6 +79,8 @@ export function SignupFlow() {
     lastEmpty: false,
   });
   const [apiError, setApiError] = useState("");
+  /** Non-error information, e.g. the address turned out to be verified already. */
+  const [apiNotice, setApiNotice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -262,6 +264,7 @@ export function SignupFlow() {
     clearEmailErrors();
     clearNameErrors();
     setApiError("");
+    setApiNotice("");
     setStep(2);
     window.setTimeout(() => monthRef.current?.focus(), 0);
   }
@@ -272,6 +275,7 @@ export function SignupFlow() {
     setStep(1);
     setSignupMethod(null);
     setApiError("");
+    setApiNotice("");
     clearEmailErrors();
     clearNameErrors();
   }
@@ -293,6 +297,7 @@ export function SignupFlow() {
   async function handleJoinSubmit(event: FormEvent) {
     event.preventDefault();
     setApiError("");
+    setApiNotice("");
     clearEmailErrors();
     clearNameErrors();
 
@@ -377,6 +382,17 @@ export function SignupFlow() {
 
       if (!response.ok) {
         setApiError(data.error ?? "Unable to resend verification email.");
+        return;
+      }
+
+      // Verified in another tab while this one sat on step 3. Nothing was sent
+      // and nothing is wrong — this tab is simply behind, so catch it up rather
+      // than reporting a failure. The API decides the destination: an onboarding
+      // step when the session survived in this browser, login when it did not.
+      if (data.alreadyVerified) {
+        setApiError("");
+        setApiNotice("This email is already verified — taking you to the next step…");
+        router.push(data.redirectTo ?? "/");
         return;
       }
 
@@ -820,6 +836,12 @@ export function SignupFlow() {
                 We&apos;ll never ask for your password by email. This quick check just helps us make sure it&apos;s really
                 you.
               </p>
+
+              {apiNotice ? (
+                <p className="subtitle mt-4" role="status">
+                  {apiNotice}
+                </p>
+              ) : null}
 
               {apiError ? (
                 <p className="field-error mt-4" role="alert">
