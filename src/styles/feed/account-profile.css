@@ -277,22 +277,6 @@
   margin-top: var(--space-3);
 }
 
-.account-profile__public-link {
-  display: inline-flex;
-  align-items: center;
-  margin-top: var(--space-3);
-  font-size: 0.88rem;
-  font-weight: 650;
-  color: var(--color-brand-primary);
-  text-decoration: none;
-}
-
-.account-profile__public-link:hover,
-.account-profile__public-link:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 .account-profile__guardian {
   display: flex;
   align-items: center;

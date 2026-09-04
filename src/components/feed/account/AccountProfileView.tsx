@@ -327,11 +327,6 @@ export default function AccountProfileView({
                 Privacy: {profile.privacyTierLabel}
               </span>
             </div>
-            {profile.profileHref && hasHandle ? (
-              <Link href={profile.profileHref} className="account-profile__public-link">
-                View public profile
-              </Link>
-            ) : null}
             {profile.guardian ? (
               <div className="account-profile__guardian">
                 <span className="account-profile__guardian-icon" aria-label="Guardian" title="Guardian">
