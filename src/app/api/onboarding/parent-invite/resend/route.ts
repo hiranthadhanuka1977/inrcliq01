@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveParentInviteResend, liveParentInviteStatus } from "@/lib/backend/routes";
 import { AccountType } from "@/generated/prisma/client";
 import { createApprovalWatchToken, verifyApprovalWatchToken } from "@/lib/auth/approval-watch-token";
 import {
@@ -10,6 +12,8 @@ import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
+  if (isLiveBackend()) return liveParentInviteResend();
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;
@@ -51,6 +55,8 @@ export async function POST() {
 }
 
 export async function GET(request: Request) {
+  if (isLiveBackend()) return liveParentInviteStatus();
+
   try {
     const watch = new URL(request.url).searchParams.get("watch")?.trim() ?? "";
     const watchChildId = watch ? verifyApprovalWatchToken(watch) : null;

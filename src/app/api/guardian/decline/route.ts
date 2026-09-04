@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveGuardianDecline } from "@/lib/backend/routes";
 import { declineParentRequestById, resolveGuardianToken } from "@/lib/auth/guardian-flow";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveGuardianDecline(request);
+
   try {
     const body = await request.json();
     const token = typeof body.token === "string" ? body.token.trim() : "";

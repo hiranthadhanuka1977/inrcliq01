@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveAcknowledgeApproval } from "@/lib/backend/routes";
 import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { getLatestParentRequest } from "@/lib/auth/parent-invite";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
+  if (isLiveBackend()) return liveAcknowledgeApproval();
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

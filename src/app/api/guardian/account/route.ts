@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveGuardianAccount } from "@/lib/backend/routes";
 import { createGuardianAccount, resolveGuardianToken } from "@/lib/auth/guardian-flow";
 import { isPasswordRequirementMet } from "@/lib/form-validation";
 import type { IdDocType } from "@/lib/guardian/constants";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveGuardianAccount(request);
+
   try {
     const body = await request.json();
     const token = typeof body.token === "string" ? body.token.trim() : "";

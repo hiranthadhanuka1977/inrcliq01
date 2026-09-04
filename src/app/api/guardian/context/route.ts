@@ -1,5 +1,8 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { AccountType } from "@/generated/prisma/client";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveGuardianContext } from "@/lib/backend/routes";
 import {
   buildAuthenticatedGuardianProfile,
   buildGuardianContext,
@@ -12,6 +15,8 @@ function emailsMatch(a: string | null | undefined, b: string | null | undefined)
 }
 
 export async function GET(request: Request) {
+  if (isLiveBackend()) return liveGuardianContext(request as NextRequest);
+
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get("token")?.trim() ?? "";

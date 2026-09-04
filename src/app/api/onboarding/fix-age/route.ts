@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveFixAge } from "@/lib/backend/routes";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { calculateAge, parseDateOfBirth } from "@/lib/utils/age";
 import { prisma } from "@/lib/prisma";
@@ -14,6 +16,8 @@ function parseDobPart(value: unknown) {
 }
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveFixAge();
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;
