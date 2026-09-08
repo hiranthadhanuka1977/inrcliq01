@@ -251,30 +251,71 @@ export async function liveSendLoginCode(request: Request) {
   return NextResponse.json({ ok: true, cooldownRemaining: result.data.cooldownRemaining });
 }
 
+/**
+ * A login that lands on the guardian journey instead of a session.
+ *
+ * A minor awaiting approval authenticates like anyone else, but gets a
+ * consent-scoped token rather than an access token — so the ordinary path here
+ * would store a session with an undefined token and route them to the feed they
+ * cannot open. Detected by `pendingConsentToken`, not by status code: the API
+ * answers 201 either way, because from its side nothing went wrong.
+ */
+type PendingConsentLogin = {
+  nextStep: string;
+  pendingConsentToken: string;
+  userId: string;
+  email: string;
+  name: string;
+};
+
+function isPendingConsentLogin(data: unknown): data is PendingConsentLogin {
+  return typeof (data as PendingConsentLogin)?.pendingConsentToken === "string";
+}
+
+/** Parks the consent token as a session and says where the minor belongs. */
+async function enterGuardianJourney(data: PendingConsentLogin) {
+  await setBackendSession({
+    pendingConsentToken: data.pendingConsentToken,
+    userId: data.userId,
+    email: data.email,
+    firstName: data.name?.split(/\s+/)[0] ?? "",
+  });
+
+  // Read the destination back through the shared rule rather than mapping
+  // nextStep here, so this agrees with the landing page and the session route.
+  return NextResponse.json({ ok: true, redirectTo: (await currentDestination()) ?? "/onboarding/parent" });
+}
+
 export async function liveVerifyLoginCode(request: Request) {
   const { email, code } = (await request.json()) as { email: string; code: string };
-  const result = await callBackend<BackendUser & Session>("/auth/login/verify-code", {
+  const result = await callBackend<(BackendUser & Session) | PendingConsentLogin>("/auth/login/verify-code", {
     method: "POST",
     body: { email, code },
   });
 
   if (!result.ok) return fail(result.errorCode, result.message, result.status);
+  if (isPendingConsentLogin(result.data)) return enterGuardianJourney(result.data);
 
-  await startSession(result.data, result.data.userId);
-  return NextResponse.json({ ok: true, redirectTo: await redirectAfterLogin(result.data.accessToken) });
+  const session = result.data as BackendUser & Session;
+  await startSession(session, session.userId);
+  return NextResponse.json({ ok: true, redirectTo: await redirectAfterLogin(session.accessToken) });
 }
 
 export async function liveLoginPassword(request: Request) {
   const { email, password } = (await request.json()) as { email: string; password: string };
-  const result = await callBackend<BackendUser & Session>("/auth/login", {
+  const result = await callBackend<(BackendUser & Session) | PendingConsentLogin>("/auth/login", {
     method: "POST",
     body: { emailOrUsername: email, password },
   });
 
   if (!result.ok) return fail(result.errorCode, result.message, result.status);
+  // Not reachable today — a minor cannot hold a password, since password setup
+  // happens after approval — but the two login paths should not diverge.
+  if (isPendingConsentLogin(result.data)) return enterGuardianJourney(result.data);
 
-  await startSession(result.data, result.data.userId);
-  return NextResponse.json({ ok: true, redirectTo: await redirectAfterLogin(result.data.accessToken) });
+  const session = result.data as BackendUser & Session;
+  await startSession(session, session.userId);
+  return NextResponse.json({ ok: true, redirectTo: await redirectAfterLogin(session.accessToken) });
 }
 
 /** Login responses carry no onboarding progress, so read it back before routing. */
