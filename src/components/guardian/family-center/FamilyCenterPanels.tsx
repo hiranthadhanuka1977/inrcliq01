@@ -7,6 +7,7 @@ import { ControlHealthInfoIcon } from "@/components/guardian/family-center/Contr
 import { ChildCardDmAvatars } from "@/components/guardian/family-center/ChildCardDmAvatars";
 import { ChildSafetyScoreRing } from "@/components/guardian/family-center/ChildSafetyScoreRing";
 import { FamilyActivityLog } from "@/components/guardian/family-center/FamilyActivityLog";
+import { SafeContactCircle } from "@/components/guardian/family-center/SafeContactCircle";
 import type { FamilyCenterChild, FamilyCenterData } from "@/lib/guardian/family-center";
 import {
   buildControlHealthForChild,
@@ -432,6 +433,8 @@ export function FamilyCenterOverview({ data }: { data: FamilyCenterData }) {
           />
         </div>
       </section>
+
+      <SafeContactCircle linkedChildren={data.children} guardian={data.guardian} />
 
       {extras.alerts.length > 0 ? (
         <section className="family-center__panel" aria-labelledby="family-center-overview-alerts">

@@ -34,8 +34,18 @@ export type FamilyCenterChild = {
   dmContacts: Pick<ChildDmContact, "id" | "name" | "avatarInitials" | "avatarColor" | "avatarUrl">[];
 };
 
+export type FamilyCenterGuardian = {
+  id: string;
+  name: string;
+  firstName: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+};
+
 export type FamilyCenterData = {
   guardianName: string;
+  guardian: FamilyCenterGuardian;
   children: FamilyCenterChild[];
 };
 
@@ -68,6 +78,28 @@ export const getFamilyCenterForSession = cache(async function getFamilyCenterFor
     [user.firstName?.trim(), user.lastName?.trim()].filter(Boolean).join(" ") ||
     user.email.split("@")[0] ||
     "Guardian";
+
+  const guardianProfile = await prisma.userProfile.findUnique({
+    where: { userId: user.id },
+    select: {
+      displayName: true,
+      avatarUrl: true,
+      avatarColor: true,
+      avatarInitials: true,
+    },
+  });
+
+  const guardianFirstName = user.firstName?.trim() || guardianName.split(/\s+/)[0] || "Guardian";
+  const guardian: FamilyCenterGuardian = {
+    id: user.id,
+    name: guardianProfile?.displayName?.trim() || guardianName,
+    firstName: guardianFirstName,
+    avatarInitials:
+      guardianProfile?.avatarInitials?.trim() ||
+      childInitials(guardianProfile?.displayName?.trim() || guardianName),
+    avatarColor: guardianProfile?.avatarColor?.trim() || "#0d9488",
+    avatarUrl: guardianProfile?.avatarUrl?.trim() || null,
+  };
 
   const links = await prisma.guardianChildLink.findMany({
     where: { guardianUserId: user.id },
@@ -171,5 +203,5 @@ export const getFamilyCenterForSession = cache(async function getFamilyCenterFor
     }),
   );
 
-  return { guardianName, children };
+  return { guardianName, guardian, children };
 });

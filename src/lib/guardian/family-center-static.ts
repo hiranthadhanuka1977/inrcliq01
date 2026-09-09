@@ -1,4 +1,5 @@
 import type { FamilyCenterChild } from "@/lib/guardian/family-center";
+import { dmContactSafetyStatus } from "@/lib/guardian/dm-contact-safety";
 
 /** Private zone label for guardian overview only (spec §3). */
 export function zoneLabelForAge(age: number | null): string | null {
@@ -265,4 +266,159 @@ export function staticFamilyActivityHistory(children: FamilyCenterChild[]): Fami
 
 export function hasUnreadFamilyActivity(children: FamilyCenterChild[]) {
   return children.length > 0;
+}
+
+/** Trust bands for the Safe Contact Circle prototype graphic. */
+export type ContactTrustBandId =
+  | "immediate_family"
+  | "relatives"
+  | "school_friends"
+  | "approved_wider";
+
+export type ContactTrustBandMeta = {
+  id: ContactTrustBandId;
+  label: string;
+  shortLabel: string;
+  description: string;
+};
+
+export const CONTACT_TRUST_BANDS: ContactTrustBandMeta[] = [
+  {
+    id: "immediate_family",
+    label: "Immediate family",
+    shortLabel: "Family",
+    description: "Guardians and siblings — closest trust.",
+  },
+  {
+    id: "relatives",
+    label: "Relatives",
+    shortLabel: "Relatives",
+    description: "Extended family approved for contact.",
+  },
+  {
+    id: "school_friends",
+    label: "School friends",
+    shortLabel: "School",
+    description: "Peers from school or similar age context.",
+  },
+  {
+    id: "approved_wider",
+    label: "Approved friends & adults",
+    shortLabel: "Wider",
+    description: "Broader approved friends and adult contacts.",
+  },
+];
+
+export type SafeCircleContact = {
+  id: string;
+  name: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  band: ContactTrustBandId;
+  kind: "guardian" | "sibling" | "dm";
+  href: string | null;
+};
+
+const SEED_CONTACT_BANDS: Record<string, ContactTrustBandId> = {
+  hiran: "relatives",
+  "mia chen": "school_friends",
+  miachenruns: "school_friends",
+  "dev weekly": "approved_wider",
+  devweekly: "approved_wider",
+  "planet unfolded": "approved_wider",
+  planetunfolded: "approved_wider",
+  "inrcliq support": "approved_wider",
+  inrcliq: "approved_wider",
+};
+
+function normalizeContactKey(value: string) {
+  return value.trim().toLowerCase().replace(/^@/, "");
+}
+
+function fallbackBandForContact(contactId: string): ContactTrustBandId {
+  let hash = 0;
+  for (let i = 0; i < contactId.length; i += 1) {
+    hash = (hash + contactId.charCodeAt(i) * (i + 1)) % 997;
+  }
+  const bands: ContactTrustBandId[] = ["relatives", "school_friends", "approved_wider"];
+  return bands[hash % bands.length]!;
+}
+
+function bandForDmContact(contact: {
+  id: string;
+  name: string;
+}): ContactTrustBandId {
+  const nameKey = normalizeContactKey(contact.name);
+  if (SEED_CONTACT_BANDS[nameKey]) return SEED_CONTACT_BANDS[nameKey]!;
+  for (const [key, band] of Object.entries(SEED_CONTACT_BANDS)) {
+    if (nameKey.includes(key) || key.includes(nameKey)) return band;
+  }
+  return fallbackBandForContact(contact.id);
+}
+
+/**
+ * Build prototype trust-banded contacts for the Safe Contact Circle.
+ * Guardian + other linked children sit in Immediate family; DM peers are mapped by seed rules.
+ */
+export function buildSafeContactCircleContacts(input: {
+  child: FamilyCenterChild;
+  siblings: FamilyCenterChild[];
+  guardian: {
+    id: string;
+    name: string;
+    avatarInitials: string;
+    avatarColor: string;
+    avatarUrl: string | null;
+  };
+}): SafeCircleContact[] {
+  const { child, siblings, guardian } = input;
+  const contacts: SafeCircleContact[] = [
+    {
+      id: `guardian:${guardian.id}`,
+      name: guardian.name,
+      avatarInitials: guardian.avatarInitials,
+      avatarColor: guardian.avatarColor,
+      avatarUrl: guardian.avatarUrl,
+      band: "immediate_family",
+      kind: "guardian",
+      href: null,
+    },
+    ...siblings
+      .filter((sibling) => sibling.id !== child.id)
+      .map(
+        (sibling): SafeCircleContact => ({
+          id: `sibling:${sibling.id}`,
+          name: sibling.fullName,
+          avatarInitials: sibling.avatarInitials,
+          avatarColor: sibling.avatarColor,
+          avatarUrl: sibling.avatarUrl,
+          band: "immediate_family",
+          kind: "sibling",
+          href: `/family-circle/accounts/${sibling.id}`,
+        }),
+      ),
+    ...child.dmContacts.map(
+      (contact): SafeCircleContact => ({
+        id: contact.id,
+        name: contact.name,
+        avatarInitials: contact.avatarInitials,
+        avatarColor: contact.avatarColor,
+        avatarUrl: contact.avatarUrl,
+        band: bandForDmContact(contact),
+        kind: "dm",
+        href: `/family-circle/accounts/${child.id}/dm/${contact.id}`,
+      }),
+    ),
+  ];
+
+  return contacts;
+}
+
+export function defaultSafeCircleChildId(children: FamilyCenterChild[]): string | null {
+  if (children.length === 0) return null;
+  const withAttention = children.find((child) =>
+    child.dmContacts.some((contact) => dmContactSafetyStatus(contact.id) === "attention"),
+  );
+  return (withAttention ?? children[0])!.id;
 }

@@ -6,6 +6,7 @@ import {
   PROTECTION_TIER_LABELS,
   type ProtectionTier,
 } from "@/lib/guardian/constants";
+import ProtectionTierIcon from "@/components/guardian/ProtectionTierIcon";
 
 export function ParentProtectionStep({
   child,
@@ -71,20 +72,7 @@ export function ParentProtectionStep({
             }}
           >
             <span className={`protection-tier__icon protection-tier__icon--${value}`} aria-hidden="true">
-              {value === "standard" ? (
-                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  {value === "relaxed" ? (
-                    <polygon points="12 7 13.5 10.5 17 11 14.5 13.5 15 17 12 15 9 17 9.5 13.5 7 11 10.5 7 7" />
-                  ) : (
-                    <polyline points="9 12 11 14 15 10" />
-                  )}
-                </svg>
-              )}
+              <ProtectionTierIcon tier={value} />
             </span>
             <span className="protection-tier__heading">
               <strong className="protection-tier__name">{PROTECTION_TIER_LABELS[value]}</strong>
