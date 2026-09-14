@@ -17,10 +17,15 @@ import {
   PROTECTION_TIER_LABELS,
   type ProtectionTier,
 } from "@/lib/guardian/constants";
+import { listContactTrustBandsForChildren } from "@/lib/guardian/contact-trust-band";
 import {
   getDmContactControlsForThread,
   type DmContactGuardianSettings,
 } from "@/lib/guardian/dm-contact-controls";
+import {
+  defaultDmContactTrustBand,
+  type ContactTrustBandId,
+} from "@/lib/guardian/family-center-static";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
@@ -35,6 +40,7 @@ export type ChildDmContact = {
   avatarUrl: string | null;
   lastMessagePreview: string | null;
   lastActiveLabel: string | null;
+  trustBand: ContactTrustBandId;
 };
 
 export type ChildDetailData = {
@@ -135,27 +141,38 @@ function formatDmLastActive(value: Date | null) {
   return `Active ${value.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 }
 
-export async function listChildDmContacts(childUserId: string, firstName: string): Promise<ChildDmContact[]> {
+export async function listChildDmContacts(
+  childUserId: string,
+  firstName: string,
+  options?: { guardianUserId?: string },
+): Promise<ChildDmContact[]> {
   await seedDefaultChatThreadsForUser(childUserId, { firstName });
 
-  const threads = await prisma.chatThread.findMany({
-    where: {
-      userId: childUserId,
-      NOT: { seedKey: { startsWith: "guardian:" } },
-    },
-    orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
-    select: {
-      id: true,
-      peerName: true,
-      peerHandle: true,
-      peerSlug: true,
-      peerInitials: true,
-      peerAvatarColor: true,
-      peerAvatarUrl: true,
-      preview: true,
-      lastMessageAt: true,
-    },
-  });
+  const [threads, bandByChild] = await Promise.all([
+    prisma.chatThread.findMany({
+      where: {
+        userId: childUserId,
+        NOT: { seedKey: { startsWith: "guardian:" } },
+      },
+      orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
+      select: {
+        id: true,
+        peerName: true,
+        peerHandle: true,
+        peerSlug: true,
+        peerInitials: true,
+        peerAvatarColor: true,
+        peerAvatarUrl: true,
+        preview: true,
+        lastMessageAt: true,
+      },
+    }),
+    options?.guardianUserId
+      ? listContactTrustBandsForChildren(options.guardianUserId, [childUserId])
+      : Promise.resolve({} as Record<string, Record<string, ContactTrustBandId>>),
+  ]);
+
+  const bandMap = bandByChild[childUserId] ?? {};
 
   return threads.map((thread) => ({
     id: thread.id,
@@ -167,6 +184,7 @@ export async function listChildDmContacts(childUserId: string, firstName: string
     avatarUrl: thread.peerAvatarUrl,
     lastMessagePreview: thread.preview,
     lastActiveLabel: formatDmLastActive(thread.lastMessageAt),
+    trustBand: bandMap[thread.id] ?? defaultDmContactTrustBand({ id: thread.id, name: thread.peerName }),
   }));
 }
 
@@ -323,7 +341,7 @@ export const getChildDetailForGuardian = cache(async function getChildDetailForG
       avatarUrl,
       slug,
     }),
-    listChildDmContacts(child.id, firstName),
+    listChildDmContacts(child.id, firstName, { guardianUserId: user.id }),
   ]);
 
   const subscriptions: AccountSocialPerson[] = subscriptionRows.map((row) => ({
@@ -580,6 +598,9 @@ export async function getChildDmContactDetailForGuardian(
 
   if (!thread) return null;
 
+  const bandByChild = await listContactTrustBandsForChildren(user.id, [childUserId]);
+  const storedBand = bandByChild[childUserId]?.[thread.id];
+
   const contact: ChildDmContact = {
     id: thread.id,
     name: thread.peerName,
@@ -590,6 +611,8 @@ export async function getChildDmContactDetailForGuardian(
     avatarUrl: thread.peerAvatarUrl,
     lastMessagePreview: thread.preview,
     lastActiveLabel: formatDmLastActive(thread.lastMessageAt),
+    trustBand:
+      storedBand ?? defaultDmContactTrustBand({ id: thread.id, name: thread.peerName }),
   };
 
   return {

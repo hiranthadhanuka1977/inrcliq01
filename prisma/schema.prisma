@@ -62,6 +62,8 @@ model User {
   childGuardians         GuardianChildLink[]     @relation("ChildGuardians")
   guardianDmControlsAsChild GuardianDmContactControl[] @relation("GuardianDmControlsChild")
   guardianDmControlsAsPeer  GuardianDmContactControl[] @relation("GuardianDmControlsPeer")
+  guardianContactTrustBands ChildContactTrustBand[] @relation("GuardianContactTrustBands")
+  childContactTrustBands    ChildContactTrustBand[] @relation("ChildContactTrustBands")
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
   follows                CreatorFollow[]
@@ -194,6 +196,26 @@ model GuardianDmContactControl {
 
   @@unique([childUserId, childThreadId])
   @@index([childUserId, peerUserId])
+}
+
+/// Guardian-assigned trust band for a contact in a child's Safe Contact Circle.
+/// contactKey is the chat thread id for DMs, or `sibling:<userId>` for linked siblings.
+model ChildContactTrustBand {
+  id             String   @id @default(cuid())
+  guardianUserId String
+  childUserId    String
+  contactKey     String
+  contactKind    String
+  trustBand      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  guardianUser User @relation("GuardianContactTrustBands", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  childUser    User @relation("ChildContactTrustBands", fields: [childUserId], references: [id], onDelete: Cascade)
+
+  @@unique([childUserId, contactKey])
+  @@index([guardianUserId, childUserId])
+  @@index([childUserId, trustBand])
 }
 
 /// Public profile for an auth `User` (1:1). Rich rows come from profile JSON;

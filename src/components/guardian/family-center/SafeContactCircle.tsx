@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+} from "react";
 import type { FamilyCenterChild, FamilyCenterGuardian } from "@/lib/guardian/family-center";
 import {
   buildSafeContactCircleContacts,
@@ -20,6 +28,7 @@ import {
   toDangerTrustSummary,
   type TrustSafetyScoreSummary,
 } from "@/lib/guardian/safety-score";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 /** Mid-radius of each band as % of half-viewbox (outer rings farther apart for clarity). */
 const BAND_RADIUS: Record<ContactTrustBandId, number> = {
@@ -50,8 +59,30 @@ const BAND_ANGLE_OFFSET: Record<ContactTrustBandId, number> = {
   approved_wider: 0.15,
 };
 
+/** Keep focused profiles inside the canvas so outer bands do not spill onto the legend. */
+const FOCUS_RADIUS_SCALE: Record<ContactTrustBandId, number> = {
+  immediate_family: 1.26,
+  relatives: 1.14,
+  school_friends: 1.06,
+  approved_wider: 1.02,
+};
+
+const FOCUS_RADIUS_CAP: Record<ContactTrustBandId, number> = {
+  immediate_family: 72,
+  relatives: 68,
+  school_friends: 64,
+  approved_wider: 60,
+};
+
 const VIEWBOX = 200;
 const CENTER = VIEWBOX / 2;
+const CONTACT_DRAG_MIME = "application/x-safe-circle-contact";
+
+type PendingBandMove = {
+  contact: SafeCircleContact;
+  fromBand: ContactTrustBandId;
+  toBand: ContactTrustBandId;
+};
 
 function pctToPx(percent: number) {
   return (percent / 100) * (VIEWBOX / 2);
@@ -84,6 +115,14 @@ function annulusPath(innerPct: number, outerPct: number) {
 function shortName(name: string) {
   const first = name.trim().split(/\s+/)[0];
   return first || name;
+}
+
+function bandLabel(bandId: ContactTrustBandId) {
+  return CONTACT_TRUST_BANDS.find((band) => band.id === bandId)?.label ?? bandId;
+}
+
+function canMoveContact(contact: SafeCircleContact) {
+  return contact.kind !== "guardian";
 }
 
 function ScoreWarningBadge({
@@ -157,16 +196,78 @@ function TrustSafetyPopover({
   );
 }
 
+function MoveBandConfirmModal({
+  open,
+  pending,
+  childName,
+  isSaving,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  pending: PendingBandMove | null;
+  childName: string;
+  isSaving: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { dialogRef } = useDialogA11y(open, onCancel);
+  if (!open || !pending) return null;
+
+  return (
+    <div
+      className="modal-backdrop is-open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="safe-circle-move-title"
+    >
+      <div className="modal safe-circle-move-modal text-center" ref={dialogRef} tabIndex={-1}>
+        <h2 id="safe-circle-move-title">Move contact?</h2>
+        <p className="subtitle mt-4">
+          Move <strong>{pending.contact.name}</strong> from{" "}
+          <strong>{bandLabel(pending.fromBand)}</strong> to{" "}
+          <strong>{bandLabel(pending.toBand)}</strong> in {childName}&apos;s safe contact circle?
+        </p>
+        {error ? (
+          <p className="field-error mt-4" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className="btn btn--primary mt-8"
+          onClick={onConfirm}
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving…" : "Yes, move contact"}
+        </button>
+        <button
+          type="button"
+          className="btn btn--outline-info mt-3"
+          onClick={onCancel}
+          disabled={isSaving}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ContactAvatar({
   contact,
   highlighted,
   dimmed,
   trustSummary,
+  shouldSuppressNavigate,
 }: {
   contact: SafeCircleContact;
   highlighted: boolean;
   dimmed: boolean;
   trustSummary: TrustSafetyScoreSummary;
+  shouldSuppressNavigate: () => boolean;
 }) {
   const popoverId = useId();
   const attention =
@@ -200,7 +301,7 @@ function ContactAvatar({
         >
           {contact.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={contact.avatarUrl} alt="" width={40} height={40} />
+            <img src={contact.avatarUrl} alt="" width={40} height={40} draggable={false} />
           ) : (
             contact.avatarInitials
           )}
@@ -231,6 +332,12 @@ function ContactAvatar({
       className="safe-circle__avatar-wrap"
       aria-label={title}
       aria-describedby={popoverId}
+      draggable={false}
+      onClick={(event) => {
+        if (shouldSuppressNavigate()) {
+          event.preventDefault();
+        }
+      }}
     >
       {body}
     </Link>
@@ -240,14 +347,27 @@ function ContactAvatar({
 export function SafeContactCircle({
   linkedChildren,
   guardian,
+  contactTrustBandsByChild = {},
 }: {
   linkedChildren: FamilyCenterChild[];
   guardian: FamilyCenterGuardian;
+  contactTrustBandsByChild?: Record<string, Record<string, ContactTrustBandId>>;
 }) {
   const corePopoverId = useId();
   const initialId = defaultSafeCircleChildId(linkedChildren);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(initialId);
   const [activeBand, setActiveBand] = useState<ContactTrustBandId | null>(null);
+  const [bandOverridesByChild, setBandOverridesByChild] = useState(contactTrustBandsByChild);
+  const [draggingContactId, setDraggingContactId] = useState<string | null>(null);
+  const [dropTargetBand, setDropTargetBand] = useState<ContactTrustBandId | null>(null);
+  const [pendingMove, setPendingMove] = useState<PendingBandMove | null>(null);
+  const [isSavingMove, setIsSavingMove] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
+  const suppressNavigateRef = useRef(false);
+
+  useEffect(() => {
+    setBandOverridesByChild(contactTrustBandsByChild);
+  }, [contactTrustBandsByChild]);
 
   const selectedChild =
     linkedChildren.find((child) => child.id === selectedChildId) ?? linkedChildren[0] ?? null;
@@ -258,8 +378,9 @@ export function SafeContactCircle({
       child: selectedChild,
       siblings: linkedChildren,
       guardian,
+      bandByContactKey: bandOverridesByChild[selectedChild.id] ?? {},
     });
-  }, [selectedChild, linkedChildren, guardian]);
+  }, [selectedChild, linkedChildren, guardian, bandOverridesByChild]);
 
   const byBand = useMemo(() => {
     const map = Object.fromEntries(
@@ -303,16 +424,108 @@ export function SafeContactCircle({
     }).join(". ");
   }, [byBand]);
 
+  function clearDragState() {
+    setDraggingContactId(null);
+    setDropTargetBand(null);
+  }
+
+  function requestMoveToBand(contactId: string, toBand: ContactTrustBandId) {
+    const contact = contacts.find((item) => item.id === contactId);
+    if (!contact || !canMoveContact(contact) || contact.band === toBand) {
+      clearDragState();
+      return;
+    }
+    setMoveError(null);
+    setPendingMove({
+      contact,
+      fromBand: contact.band,
+      toBand,
+    });
+    clearDragState();
+  }
+
+  async function confirmPendingMove() {
+    if (!pendingMove || !selectedChild) {
+      setPendingMove(null);
+      return;
+    }
+
+    setIsSavingMove(true);
+    setMoveError(null);
+    try {
+      const response = await fetch("/api/guardian/contact-trust-band", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          childUserId: selectedChild.id,
+          contactKey: pendingMove.contact.id,
+          contactKind: pendingMove.contact.kind === "sibling" ? "sibling" : "dm",
+          trustBand: pendingMove.toBand,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        setMoveError(payload?.error || "Unable to save trust band.");
+        return;
+      }
+
+      setBandOverridesByChild((current) => ({
+        ...current,
+        [selectedChild.id]: {
+          ...(current[selectedChild.id] ?? {}),
+          [pendingMove.contact.id]: pendingMove.toBand,
+        },
+      }));
+      setPendingMove(null);
+    } catch {
+      setMoveError("Unable to save trust band.");
+    } finally {
+      setIsSavingMove(false);
+    }
+  }
+
+  function handleContactDragStart(event: DragEvent<HTMLDivElement>, contact: SafeCircleContact) {
+    if (!canMoveContact(contact)) {
+      event.preventDefault();
+      return;
+    }
+    suppressNavigateRef.current = true;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData(CONTACT_DRAG_MIME, contact.id);
+    event.dataTransfer.setData("text/plain", contact.id);
+    setDraggingContactId(contact.id);
+  }
+
+  function handleBandDragOver(event: DragEvent, bandId: ContactTrustBandId) {
+    if (!draggingContactId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    if (dropTargetBand !== bandId) setDropTargetBand(bandId);
+  }
+
+  function handleBandDrop(event: DragEvent, bandId: ContactTrustBandId) {
+    event.preventDefault();
+    const contactId =
+      event.dataTransfer.getData(CONTACT_DRAG_MIME) ||
+      event.dataTransfer.getData("text/plain") ||
+      draggingContactId;
+    if (!contactId) {
+      clearDragState();
+      return;
+    }
+    requestMoveToBand(contactId, bandId);
+  }
+
   if (!selectedChild || !coreTrustSummary) {
     return (
       <section className="family-center__panel safe-circle" aria-labelledby="safe-circle-title">
         <div className="family-center__panel-head">
           <h2 id="safe-circle-title" className="family-center__panel-title">
-            Safe contact circle
+            Threat Radar
           </h2>
         </div>
         <p className="safe-circle__empty">
-          Link a child account to see their approved contact circle here.
+          Link a child account to see their threat radar here.
         </p>
       </section>
     );
@@ -327,17 +540,19 @@ export function SafeContactCircle({
   const coreTitle = `${selectedChild.fullName} · Trust and safety ${coreTrustSummary.score}/100${
     coreIsDanger ? " · Danger — needs review" : coreNeedsWarning ? " · Attention needed" : ""
   }`;
+  const isDragging = draggingContactId != null;
 
   return (
     <section className="family-center__panel safe-circle" aria-labelledby="safe-circle-title">
       <div className="family-center__panel-head">
         <div className="safe-circle__head-copy">
           <h2 id="safe-circle-title" className="family-center__panel-title">
-            Safe contact circle
+            Threat Radar
           </h2>
           <p className="safe-circle__subtitle">
-            Who is close to {selectedChild.firstName} — family nearest the centre, wider approved
-            contacts farther out. Hover a profile to see their trust and safety score.
+            A live scan of who surrounds {selectedChild.firstName} — trusted contacts stay near the
+            centre; wider or higher-caution contacts sit farther out. Drag someone onto another band
+            to reclassify them, then confirm.
           </p>
         </div>
         <Link href={`${childHref}#child-detail-dm`} className="family-center__panel-link">
@@ -359,6 +574,9 @@ export function SafeContactCircle({
                 onClick={() => {
                   setSelectedChildId(child.id);
                   setActiveBand(null);
+                  clearDragState();
+                  setPendingMove(null);
+                  setMoveError(null);
                 }}
               >
                 <span
@@ -382,16 +600,27 @@ export function SafeContactCircle({
 
       <p className="sr-only">{srSummary}</p>
 
-      <div className={`safe-circle__stage${activeBand ? " is-band-focused" : ""}`}>
-        <div className={`safe-circle__canvas-wrap${activeBand ? " is-band-focused" : ""}`}>
+      <div
+        className={`safe-circle__stage${activeBand ? " is-band-focused" : ""}${
+          isDragging ? " is-dragging" : ""
+        }`}
+      >
+        <div
+          className={`safe-circle__canvas-wrap${activeBand ? " is-band-focused" : ""}${
+            isDragging ? " is-dragging" : ""
+          }`}
+        >
           <svg
-            className={`safe-circle__rings${activeBand ? " is-band-focused" : ""}`}
+            className={`safe-circle__rings${activeBand ? " is-band-focused" : ""}${
+              isDragging ? " is-dragging" : ""
+            }`}
             viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}
-            aria-hidden="true"
+            aria-hidden={isDragging ? undefined : true}
           >
             {[...CONTACT_TRUST_BANDS].reverse().map((band) => {
               const isActive = activeBand === band.id;
               const isHidden = activeBand != null && !isActive;
+              const isDropTarget = dropTargetBand === band.id;
               return (
                 <path
                   key={band.id}
@@ -401,10 +630,16 @@ export function SafeContactCircle({
                     `safe-circle__band--${band.id}`,
                     isActive ? "is-focus-active" : "",
                     isHidden ? "is-focus-hidden" : "",
+                    isDropTarget ? "is-drop-target" : "",
                     byBand[band.id].length === 0 ? "is-empty" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
+                  onDragOver={(event) => handleBandDragOver(event, band.id)}
+                  onDragLeave={() => {
+                    if (dropTargetBand === band.id) setDropTargetBand(null);
+                  }}
+                  onDrop={(event) => handleBandDrop(event, band.id)}
                 />
               );
             })}
@@ -467,7 +702,10 @@ export function SafeContactCircle({
               const isActive = activeBand === band.id;
               const isHidden = activeBand != null && !isActive;
               const radius = isActive
-                ? Math.min(78, BAND_RADIUS[band.id] * 1.28)
+                ? Math.min(
+                    FOCUS_RADIUS_CAP[band.id],
+                    BAND_RADIUS[band.id] * FOCUS_RADIUS_SCALE[band.id],
+                  )
                 : BAND_RADIUS[band.id];
               return bandContacts.map((contact, index) => {
                 const pos = polarPosition(
@@ -479,6 +717,8 @@ export function SafeContactCircle({
                 const trustSummary =
                   contactTrustById.get(contact.id) ??
                   computeSafeCircleContactTrustSummary(contact, linkedChildren);
+                const movable = canMoveContact(contact);
+                const isDraggingContact = draggingContactId === contact.id;
                 return (
                   <div
                     key={contact.id}
@@ -486,6 +726,8 @@ export function SafeContactCircle({
                       "safe-circle__node",
                       isActive ? "is-focus-active" : "",
                       isHidden ? "is-focus-hidden" : "",
+                      movable ? "is-movable" : "",
+                      isDraggingContact ? "is-dragging" : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}
@@ -498,12 +740,21 @@ export function SafeContactCircle({
                           ? `${90 + Math.min(index * 45, 180)}ms`
                           : "0ms",
                     }}
+                    draggable={movable}
+                    onDragStart={(event) => handleContactDragStart(event, contact)}
+                    onDragEnd={() => {
+                      clearDragState();
+                      window.setTimeout(() => {
+                        suppressNavigateRef.current = false;
+                      }, 0);
+                    }}
                   >
                     <ContactAvatar
                       contact={contact}
-                      highlighted={isActive}
+                      highlighted={isActive || isDraggingContact}
                       dimmed={isHidden}
                       trustSummary={trustSummary}
+                      shouldSuppressNavigate={() => suppressNavigateRef.current}
                     />
                   </div>
                 );
@@ -532,15 +783,26 @@ export function SafeContactCircle({
           {CONTACT_TRUST_BANDS.map((band) => {
             const count = byBand[band.id].length;
             const selected = activeBand === band.id;
+            const isDropTarget = dropTargetBand === band.id;
             return (
               <li key={band.id}>
                 <button
                   type="button"
-                  className={`safe-circle__legend-btn safe-circle__legend-btn--${band.id}${
-                    selected ? " is-selected" : ""
-                  }`}
+                  className={[
+                    "safe-circle__legend-btn",
+                    `safe-circle__legend-btn--${band.id}`,
+                    selected ? "is-selected" : "",
+                    isDropTarget ? "is-drop-target" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   aria-pressed={selected}
                   onClick={() => setActiveBand(band.id)}
+                  onDragOver={(event) => handleBandDragOver(event, band.id)}
+                  onDragLeave={() => {
+                    if (dropTargetBand === band.id) setDropTargetBand(null);
+                  }}
+                  onDrop={(event) => handleBandDrop(event, band.id)}
                 >
                   <span className="safe-circle__legend-swatch" aria-hidden="true" />
                   <span className="safe-circle__legend-copy">
@@ -555,6 +817,22 @@ export function SafeContactCircle({
           })}
         </ul>
       </div>
+
+      <MoveBandConfirmModal
+        open={pendingMove != null}
+        pending={pendingMove}
+        childName={selectedChild.firstName}
+        isSaving={isSavingMove}
+        error={moveError}
+        onCancel={() => {
+          if (isSavingMove) return;
+          setPendingMove(null);
+          setMoveError(null);
+        }}
+        onConfirm={() => {
+          void confirmPendingMove();
+        }}
+      />
     </section>
   );
 }

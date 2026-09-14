@@ -4,6 +4,8 @@ import {
   listChildDmContacts,
   type ChildDmContact,
 } from "@/lib/guardian/child-detail";
+import { listContactTrustBandsForChildren } from "@/lib/guardian/contact-trust-band";
+import type { ContactTrustBandId } from "@/lib/guardian/family-center-static";
 import {
   PROTECTION_TIER_LABELS,
   type ProtectionTier,
@@ -47,6 +49,8 @@ export type FamilyCenterData = {
   guardianName: string;
   guardian: FamilyCenterGuardian;
   children: FamilyCenterChild[];
+  /** Persisted Safe Contact Circle band assignments, keyed by child id then contact key. */
+  contactTrustBandsByChild: Record<string, Record<string, ContactTrustBandId>>;
 };
 
 function childFullName(firstName: string | null, lastName: string | null, email: string) {
@@ -203,5 +207,10 @@ export const getFamilyCenterForSession = cache(async function getFamilyCenterFor
     }),
   );
 
-  return { guardianName, guardian, children };
+  const contactTrustBandsByChild = await listContactTrustBandsForChildren(
+    user.id,
+    children.map((child) => child.id),
+  );
+
+  return { guardianName, guardian, children, contactTrustBandsByChild };
 });

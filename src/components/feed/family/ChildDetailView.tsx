@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type CSSProperties } from "react";
 import ProtectionTierIcon from "@/components/guardian/ProtectionTierIcon";
+import ContactTrustBandControl from "@/components/guardian/family-center/ContactTrustBandControl";
 import { DmContactStatus, dmContactSafetyStatus } from "@/components/guardian/family-center/DmContactStatus";
 import type { AccountSocialPerson, AccountSocialTab } from "@/lib/feed/account-profile";
 import { formatCount } from "@/lib/feed/format";
@@ -10,20 +11,19 @@ import type { ChildDetailData } from "@/lib/guardian/child-detail";
 
 function DmContactRow({
   childId,
+  childFirstName,
   contact,
 }: {
   childId: string;
+  childFirstName: string;
   contact: ChildDetailData["dmContacts"][number];
 }) {
   const status = dmContactSafetyStatus(contact.id);
   const detailHref = `/family-circle/accounts/${childId}/dm/${contact.id}`;
 
   return (
-    <Link
-      href={detailHref}
-      className="account-profile__person account-profile__person--row child-detail__dm-row child-detail__dm-row--link"
-    >
-      <span className="account-profile__person-main">
+    <div className="account-profile__person account-profile__person--row child-detail__dm-row">
+      <Link href={detailHref} className="account-profile__person-main child-detail__dm-row-link">
         <span
           className="account-profile__person-avatar"
           style={{ "--story-color": contact.avatarColor } as CSSProperties}
@@ -43,9 +43,18 @@ function DmContactRow({
             <span className="account-profile__person-meta">{contact.lastActiveLabel}</span>
           ) : null}
         </span>
-      </span>
+      </Link>
+      <ContactTrustBandControl
+        childUserId={childId}
+        childName={childFirstName}
+        contactKey={contact.id}
+        contactKind="dm"
+        contactName={contact.name}
+        initialBand={contact.trustBand}
+        compact
+      />
       <DmContactStatus status={status} />
-    </Link>
+    </div>
   );
 }
 
@@ -287,7 +296,11 @@ export default function ChildDetailView({
               <ul className="account-profile__people child-detail__dm-list">
                 {child.dmContacts.map((contact) => (
                   <li key={contact.id}>
-                    <DmContactRow childId={child.id} contact={contact} />
+                    <DmContactRow
+                      childId={child.id}
+                      childFirstName={child.firstName}
+                      contact={contact}
+                    />
                   </li>
                 ))}
               </ul>

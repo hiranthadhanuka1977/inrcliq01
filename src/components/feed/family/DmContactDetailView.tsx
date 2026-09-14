@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
+import ContactTrustBandControl from "@/components/guardian/family-center/ContactTrustBandControl";
 import { DmContactStatus, dmContactSafetyStatus } from "@/components/guardian/family-center/DmContactStatus";
 import type { ChildDmContactDetailData } from "@/lib/guardian/child-detail";
 import type { DmContactGuardianSettings } from "@/lib/guardian/dm-contact-controls";
@@ -109,6 +110,14 @@ export default function DmContactDetailView({ data }: { data: ChildDmContactDeta
               {contact.name}
             </h1>
             <p className="child-detail__handle">{contact.handle}</p>
+            <ContactTrustBandControl
+              childUserId={child.id}
+              childName={child.firstName}
+              contactKey={contact.id}
+              contactKind="dm"
+              contactName={contact.name}
+              initialBand={contact.trustBand}
+            />
             {contact.lastActiveLabel ? (
               <p className="dm-contact-detail__meta">{contact.lastActiveLabel}</p>
             ) : null}

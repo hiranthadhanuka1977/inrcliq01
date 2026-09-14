@@ -20,7 +20,18 @@ export default async function ParentPage() {
 
   return (
     <AuthCenterLayout signupStep progressStep={4} screenId="screen-ONB-03">
-      <ParentInviteForm firstName={user.firstName ?? "Your child"} />
+      <ParentInviteForm
+        firstName={user.firstName ?? "Your child"}
+        initialDob={
+          user.dateOfBirth
+            ? {
+                month: user.dateOfBirth.getMonth() + 1,
+                day: user.dateOfBirth.getDate(),
+                year: user.dateOfBirth.getFullYear(),
+              }
+            : null
+        }
+      />
     </AuthCenterLayout>
   );
 }

@@ -15,6 +15,7 @@ const TABLE_ORDER = [
   "ParentApprovalRequest",
   "GuardianChildLink",
   "GuardianDmContactControl",
+  "ChildContactTrustBand",
   "ChatThread",
   "ChatMessage",
   "SpecialRequest",
@@ -68,6 +69,7 @@ const CONFLICT_TARGETS: Partial<Record<(typeof TABLE_ORDER)[number], string[]>> 
   CreatorFollow: ["userId", "creatorId"],
   GuardianChildLink: ["guardianUserId", "childUserId"],
   GuardianDmContactControl: ["childUserId", "childThreadId"],
+  ChildContactTrustBand: ["childUserId", "contactKey"],
   ChatThread: ["id"],
 };
 

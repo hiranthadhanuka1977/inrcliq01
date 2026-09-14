@@ -345,7 +345,8 @@ function fallbackBandForContact(contactId: string): ContactTrustBandId {
   return bands[hash % bands.length]!;
 }
 
-function bandForDmContact(contact: {
+/** Default trust band for a DM contact when no guardian override is stored. */
+export function defaultDmContactTrustBand(contact: {
   id: string;
   name: string;
 }): ContactTrustBandId {
@@ -355,6 +356,13 @@ function bandForDmContact(contact: {
     if (nameKey.includes(key) || key.includes(nameKey)) return band;
   }
   return fallbackBandForContact(contact.id);
+}
+
+function bandForDmContact(contact: {
+  id: string;
+  name: string;
+}): ContactTrustBandId {
+  return defaultDmContactTrustBand(contact);
 }
 
 /**
@@ -371,8 +379,10 @@ export function buildSafeContactCircleContacts(input: {
     avatarColor: string;
     avatarUrl: string | null;
   };
+  /** Persisted guardian overrides keyed by contact id / sibling key. */
+  bandByContactKey?: Record<string, ContactTrustBandId>;
 }): SafeCircleContact[] {
-  const { child, siblings, guardian } = input;
+  const { child, siblings, guardian, bandByContactKey = {} } = input;
   const contacts: SafeCircleContact[] = [
     {
       id: `guardian:${guardian.id}`,
@@ -386,30 +396,31 @@ export function buildSafeContactCircleContacts(input: {
     },
     ...siblings
       .filter((sibling) => sibling.id !== child.id)
-      .map(
-        (sibling): SafeCircleContact => ({
-          id: `sibling:${sibling.id}`,
+      .map((sibling): SafeCircleContact => {
+        const contactKey = `sibling:${sibling.id}`;
+        return {
+          id: contactKey,
           name: sibling.fullName,
           avatarInitials: sibling.avatarInitials,
           avatarColor: sibling.avatarColor,
           avatarUrl: sibling.avatarUrl,
-          band: "immediate_family",
+          band: bandByContactKey[contactKey] ?? "immediate_family",
           kind: "sibling",
           href: `/family-circle/accounts/${sibling.id}`,
-        }),
-      ),
-    ...child.dmContacts.map(
-      (contact): SafeCircleContact => ({
+        };
+      }),
+    ...child.dmContacts.map((contact): SafeCircleContact => {
+      return {
         id: contact.id,
         name: contact.name,
         avatarInitials: contact.avatarInitials,
         avatarColor: contact.avatarColor,
         avatarUrl: contact.avatarUrl,
-        band: bandForDmContact(contact),
+        band: bandByContactKey[contact.id] ?? bandForDmContact(contact),
         kind: "dm",
         href: `/family-circle/accounts/${child.id}/dm/${contact.id}`,
-      }),
-    ),
+      };
+    }),
   ];
 
   return contacts;

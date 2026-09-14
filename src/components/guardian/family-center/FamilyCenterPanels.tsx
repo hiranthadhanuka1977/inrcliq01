@@ -434,7 +434,11 @@ export function FamilyCenterOverview({ data }: { data: FamilyCenterData }) {
         </div>
       </section>
 
-      <SafeContactCircle linkedChildren={data.children} guardian={data.guardian} />
+      <SafeContactCircle
+        linkedChildren={data.children}
+        guardian={data.guardian}
+        contactTrustBandsByChild={data.contactTrustBandsByChild}
+      />
 
       {extras.alerts.length > 0 ? (
         <section className="family-center__panel" aria-labelledby="family-center-overview-alerts">
