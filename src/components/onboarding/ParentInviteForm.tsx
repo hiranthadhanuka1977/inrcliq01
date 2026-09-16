@@ -8,6 +8,7 @@ import { Disclosure } from "@/components/auth/Disclosure";
 import { FieldError } from "@/components/ui/FieldError";
 
 const PARENT_APPROVE_URL_KEY = "inrcliq_parent_approve_url";
+const PARENT_WATCH_TOKEN_KEY = "inrcliq_parent_approval_watch";
 
 function buildYearOptions() {
   const currentYear = new Date().getFullYear();
@@ -108,6 +109,9 @@ export function ParentInviteForm({
 
       if (data.approveUrl) {
         sessionStorage.setItem(PARENT_APPROVE_URL_KEY, data.approveUrl);
+      }
+      if (typeof data.watchToken === "string" && data.watchToken) {
+        sessionStorage.setItem(PARENT_WATCH_TOKEN_KEY, data.watchToken);
       }
 
       router.push(data.redirectTo ?? "/onboarding/waiting");

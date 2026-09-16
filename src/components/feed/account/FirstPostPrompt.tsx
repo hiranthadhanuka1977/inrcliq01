@@ -844,7 +844,7 @@ export default function FirstPostPrompt({
             <p className="composer-image-warning__meta">
               {imageWarning.verificationFailed
                 ? "This photo was not added to your post."
-                : `Flagged as ${imageWarning.category.toLowerCase()} (${Math.round(imageWarning.confidence * 100)}% confidence). This photo was not added to your post.`}
+                : `Flagged as ${imageWarning.category.toLowerCase()} (severity ${Math.round(imageWarning.confidence * 6)}/6). This photo was not added to your post.`}
             </p>
           </div>
         ) : null}

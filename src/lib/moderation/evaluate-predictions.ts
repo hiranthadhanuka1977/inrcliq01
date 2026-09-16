@@ -1,62 +1,76 @@
 import type {
+  ContentSafetyCategory,
   ImageModerationBlock,
   ImageModerationPrediction,
   ImageModerationResult,
-  NsfwClassName,
 } from "@/lib/moderation/image-moderation-types";
 
-const THRESHOLDS: Record<Exclude<NsfwClassName, "Drawing" | "Neutral">, number> = {
-  Porn: 0.35,
-  Hentai: 0.35,
-  Sexy: 0.7,
-};
+const CONTENT_CATEGORIES = ["Hate", "SelfHarm", "Sexual", "Violence"] as const satisfies readonly ContentSafetyCategory[];
 
-const EXPLICIT_TOP_CLASS_MIN = 0.28;
-const COMBINED_EXPLICIT_MIN = 0.38;
-
-const BLOCK_MESSAGES: Record<Exclude<NsfwClassName, "Drawing" | "Neutral">, { title: string; message: string }> = {
-  Porn: {
+const BLOCK_MESSAGES: Record<
+  Exclude<ContentSafetyCategory, "Neutral">,
+  { title: string; message: string }
+> = {
+  Hate: {
+    title: "Image not allowed",
+    message:
+      "Our safety check flagged hate-related content in this photo. Please choose a different image that follows community guidelines.",
+  },
+  SelfHarm: {
+    title: "Image not allowed",
+    message:
+      "Our safety check flagged self-harm related content in this photo. Please choose a different image.",
+  },
+  Sexual: {
     title: "Inappropriate image",
     message:
-      "Our safety check detected likely explicit adult content in this photo. InrCliq does not allow pornographic images in posts — please choose a different photo.",
+      "Our safety check detected sexual or explicit content in this photo. InrCliq does not allow that in posts — please choose a different photo.",
   },
-  Hentai: {
-    title: "Inappropriate image",
+  Violence: {
+    title: "Image not allowed",
     message:
-      "Our safety check detected likely explicit illustrated adult content. Please choose a different image that follows community guidelines.",
-  },
-  Sexy: {
-    title: "Image too suggestive",
-    message:
-      "This photo scored highly for suggestive content and does not meet our posting guidelines. Please choose a less suggestive image.",
+      "Our safety check flagged violent content in this photo. Please choose a different image that follows community guidelines.",
   },
 };
 
-function normalizeClassName(className: string): NsfwClassName {
-  const normalized = className.trim().toLowerCase();
-  switch (normalized) {
-    case "porn":
-      return "Porn";
-    case "hentai":
-      return "Hentai";
-    case "sexy":
-      return "Sexy";
-    case "drawing":
-      return "Drawing";
+function defaultBlockSeverity(): number {
+  const raw = process.env.CONTENT_SAFETY_BLOCK_SEVERITY?.trim();
+  const parsed = raw ? Number.parseInt(raw, 10) : 2;
+  if (parsed === 2 || parsed === 4 || parsed === 6) return parsed;
+  return 2;
+}
+
+function thresholdFor(category: Exclude<ContentSafetyCategory, "Neutral">): number {
+  const envKey = `CONTENT_SAFETY_BLOCK_SEVERITY_${category.toUpperCase()}`;
+  const raw = process.env[envKey]?.trim();
+  if (raw) {
+    const parsed = Number.parseInt(raw, 10);
+    if (parsed === 2 || parsed === 4 || parsed === 6) return parsed;
+  }
+  // Sexual content is blocked at a lower bar by default for feed uploads.
+  if (category === "Sexual") return Math.min(defaultBlockSeverity(), 2);
+  return defaultBlockSeverity();
+}
+
+function normalizeCategory(value: string): ContentSafetyCategory {
+  switch (value.trim().toLowerCase()) {
+    case "hate":
+      return "Hate";
+    case "selfharm":
+    case "self-harm":
+      return "SelfHarm";
+    case "sexual":
+      return "Sexual";
+    case "violence":
+      return "Violence";
     default:
       return "Neutral";
   }
 }
 
-function probabilityFor(predictions: ImageModerationPrediction[], className: NsfwClassName): number {
-  return predictions
-    .filter((entry) => normalizeClassName(entry.className) === className)
-    .reduce((max, entry) => Math.max(max, entry.probability), 0);
-}
-
 function blockResult(
-  category: Exclude<NsfwClassName, "Drawing" | "Neutral">,
-  confidence: number,
+  category: Exclude<ContentSafetyCategory, "Neutral">,
+  severity: number,
   predictions: ImageModerationPrediction[],
 ): ImageModerationBlock {
   const copy = BLOCK_MESSAGES[category];
@@ -65,13 +79,15 @@ function blockResult(
     title: copy.title,
     message: copy.message,
     category,
-    confidence,
+    confidence: severity / 6,
     predictions,
   };
 }
 
-export function evaluatePredictions(predictions: ImageModerationPrediction[]): ImageModerationResult {
-  if (!predictions.length) {
+export function evaluateContentSafetyCategories(
+  analysis: Array<{ category?: string | null; severity?: number | null }>,
+): ImageModerationResult {
+  if (!analysis.length) {
     return {
       allowed: false,
       title: "Unable to verify image",
@@ -84,44 +100,46 @@ export function evaluatePredictions(predictions: ImageModerationPrediction[]): I
     };
   }
 
-  const normalized = predictions.map((entry) => ({
-    className: normalizeClassName(entry.className),
-    probability: entry.probability,
-  }));
+  const predictions: ImageModerationPrediction[] = analysis.map((entry) => {
+    const category = normalizeCategory(entry.category ?? "");
+    const severity = typeof entry.severity === "number" ? entry.severity : 0;
+    return {
+      className: category,
+      severity,
+      probability: Math.max(0, Math.min(1, severity / 6)),
+    };
+  });
 
-  const sorted = [...normalized].sort((a, b) => b.probability - a.probability);
-  const top = sorted[0];
-  const porn = probabilityFor(normalized, "Porn");
-  const hentai = probabilityFor(normalized, "Hentai");
-
-  if (
-    (top.className === "Porn" || top.className === "Hentai") &&
-    top.probability >= EXPLICIT_TOP_CLASS_MIN
-  ) {
-    return blockResult(top.className, top.probability, normalized);
-  }
-
-  if (porn + hentai >= COMBINED_EXPLICIT_MIN) {
-    const category = porn >= hentai ? "Porn" : "Hentai";
-    return blockResult(category, Math.max(porn, hentai), normalized);
-  }
-
-  const flagged = normalized
-    .filter(
-      (entry): entry is ImageModerationPrediction & { className: keyof typeof THRESHOLDS } =>
-        entry.className in THRESHOLDS &&
-        entry.probability >= THRESHOLDS[entry.className as keyof typeof THRESHOLDS],
-    )
-    .sort((a, b) => b.probability - a.probability);
+  const flagged = CONTENT_CATEGORIES.map((category) => {
+    const match = predictions.find((entry) => entry.className === category);
+    const severity = match?.severity ?? 0;
+    return { category, severity };
+  })
+    .filter((entry) => entry.severity >= thresholdFor(entry.category))
+    .sort((a, b) => b.severity - a.severity);
 
   if (!flagged.length) {
     return { allowed: true };
   }
 
-  return blockResult(flagged[0].className, flagged[0].probability, normalized);
+  const top = flagged[0]!;
+  return blockResult(top.category, top.severity, predictions);
+}
+
+/** @deprecated Use evaluateContentSafetyCategories for Azure results. */
+export function evaluatePredictions(predictions: ImageModerationPrediction[]): ImageModerationResult {
+  return evaluateContentSafetyCategories(
+    predictions.map((entry) => ({
+      category: entry.className,
+      severity: entry.severity ?? Math.round((entry.probability ?? 0) * 6),
+    })),
+  );
 }
 
 export function formatImageModerationError(result: ImageModerationBlock): string {
-  const confidence = Math.round(result.confidence * 100);
-  return `${result.title}: ${result.message} (flagged as ${result.category.toLowerCase()}, ${confidence}% confidence)`;
+  if (result.verificationFailed) {
+    return `${result.title}: ${result.message}`;
+  }
+  const severity = Math.round(result.confidence * 6);
+  return `${result.title}: ${result.message} (flagged as ${result.category.toLowerCase()}, severity ${severity}/6)`;
 }

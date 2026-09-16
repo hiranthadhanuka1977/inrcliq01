@@ -4,7 +4,7 @@ import {
   buildAuthenticatedGuardianProfile,
   buildGuardianContext,
 } from "@/lib/auth/guardian-flow";
-import { destroySession, getSessionUser } from "@/lib/session";
+import { getSessionUser } from "@/lib/session";
 
 function emailsMatch(a: string | null | undefined, b: string | null | undefined) {
   if (!a || !b) return false;
@@ -38,13 +38,13 @@ export async function GET(request: Request) {
         sessionUser.accountType === AccountType.MINOR ||
         emailsMatch(sessionUser.email, result.context.child.email);
 
-      // Parent approval should not reuse the child's browser session.
-      // Default to logged out so the parent can sign in / create their own account.
-      if (isChildSession) {
-        await destroySession();
-      } else if (
-        emailsMatch(sessionUser.email, result.context.parentEmail) ||
-        sessionUser.accountType === AccountType.GUARDIAN
+      // Do not treat the child's browser session as the guardian, and do not
+      // destroy it — the waiting tab still needs that session (or a watch token)
+      // to advance after approval.
+      if (
+        !isChildSession &&
+        (emailsMatch(sessionUser.email, result.context.parentEmail) ||
+          sessionUser.accountType === AccountType.GUARDIAN)
       ) {
         const profile = buildAuthenticatedGuardianProfile(sessionUser);
         result.context.authenticatedGuardian = true;
