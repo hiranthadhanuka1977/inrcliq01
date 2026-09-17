@@ -2835,7 +2835,12 @@ html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__status
   color: var(--color-icon-badge-fg);
 }
 
-.protection-tier__icon svg {
+.protection-tier__icon .protection-tier-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.protection-tier__icon .protection-tier-icon img {
   width: 28px;
   height: 28px;
 }

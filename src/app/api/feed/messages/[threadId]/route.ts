@@ -5,6 +5,7 @@ import {
   markThreadRead,
   sendChatMessage,
 } from "@/lib/feed/chat-service";
+import { getDirectMessagingRestriction } from "@/lib/guardian/dm-contact-controls";
 import { getSessionUser } from "@/lib/session";
 
 interface RouteContext {
@@ -25,7 +26,18 @@ export async function GET(_request: Request, context: RouteContext) {
 
   await markThreadRead(user.id, threadId);
   const fresh = await getChatThreadForUser(user.id, threadId);
-  return NextResponse.json({ conversation: mapThreadToConversation(fresh!) });
+  if (!fresh) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const restriction = await getDirectMessagingRestriction(user.id, fresh);
+  return NextResponse.json({
+    conversation: {
+      ...mapThreadToConversation(fresh),
+      dmRestricted: restriction.restricted,
+      dmRestrictedMessage: restriction.message,
+    },
+  });
 }
 
 export async function POST(request: Request, context: RouteContext) {
@@ -42,7 +54,18 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const result = await sendChatMessage(user.id, threadId, body);
-  if (!result?.thread) {
+  if (!result) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if ("restricted" in result && result.restricted) {
+    return NextResponse.json(
+      { error: result.message, code: "DM_RESTRICTED" },
+      { status: 403 },
+    );
+  }
+
+  if (!("thread" in result) || !result.thread) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

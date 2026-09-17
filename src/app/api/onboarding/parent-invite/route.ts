@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isLiveBackend } from "@/lib/backend/config";
 import { liveParentInvite } from "@/lib/backend/routes";
 import { AccountType } from "@/generated/prisma/client";
+import { createApprovalWatchToken } from "@/lib/auth/approval-watch-token";
 import {
   createParentApprovalRequest,
   sendParentInviteEmail,
@@ -60,14 +61,13 @@ export async function POST(request: Request) {
       data: { onboardingStep: "waiting" },
     });
 
-    const response: Record<string, unknown> = {
+    return NextResponse.json({
       ok: true,
       redirectTo: "/onboarding/waiting",
       cooldownRemaining: invite.cooldownRemaining,
       approveUrl: invite.approveUrl,
-    };
-
-    return NextResponse.json(response);
+      watchToken: createApprovalWatchToken(user.id),
+    });
   } catch (error) {
     console.error("onboarding/parent-invite error", error);
     return NextResponse.json({ error: "Unable to send parent invite." }, { status: 500 });

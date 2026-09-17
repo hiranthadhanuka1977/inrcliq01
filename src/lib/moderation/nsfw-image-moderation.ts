@@ -4,6 +4,7 @@ import { formatImageModerationError } from "@/lib/moderation/evaluate-prediction
 import type { ImageModerationBlock, ImageModerationResult } from "@/lib/moderation/image-moderation-types";
 
 export type {
+  ContentSafetyCategory,
   ImageModerationBlock,
   ImageModerationPrediction,
   ImageModerationResult,

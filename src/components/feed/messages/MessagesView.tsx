@@ -16,6 +16,7 @@ import PageBodyClass from "@/components/feed/PageBodyClass";
 import BookingConfirmationCard from "@/components/feed/messages/BookingConfirmationCard";
 import BookingStatusNote from "@/components/feed/messages/BookingStatusNote";
 import type { Conversation } from "@/lib/feed/messages";
+import { mergeConversationLists } from "@/lib/feed/messages-merge";
 
 function ConversationAvatar({
   participant,
@@ -104,7 +105,7 @@ export default function MessagesView({
   const [loading, setLoading] = useState(initialConversations.length === 0);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deepLinkApplied, setDeepLinkApplied] = useState(false);
+  const deepLinkAppliedRef = useRef(false);
   const [pendingScroll, setPendingScroll] = useState<{
     bookingId: string;
     latest: boolean;
@@ -127,7 +128,6 @@ export default function MessagesView({
         }
         const data = (await response.json()) as { conversations: Conversation[] };
         if (cancelled) return;
-        setConversations(data.conversations);
 
         const slugMatch = focusSlug
           ? data.conversations.find((item) => item.participant.slug?.toLowerCase() === focusSlug)
@@ -143,10 +143,19 @@ export default function MessagesView({
           return data.conversations[0]?.id || "";
         });
 
+        setConversations((current) => {
+          const nextActiveId = target
+            ? target.id
+            : current.some((item) => item.id === activeId) && data.conversations.some((item) => item.id === activeId)
+              ? activeId
+              : data.conversations[0]?.id ?? "";
+          return mergeConversationLists(data.conversations, current, nextActiveId, null);
+        });
+
         if (target) {
           setMobileChatOpen(true);
-          if (!deepLinkApplied) {
-            setDeepLinkApplied(true);
+          if (!deepLinkAppliedRef.current) {
+            deepLinkAppliedRef.current = true;
             if (focusBooking || focusLatest) {
               setPendingScroll({
                 bookingId: focusBooking,
@@ -158,9 +167,7 @@ export default function MessagesView({
                 if (!res.ok || cancelled) return;
                 const payload = (await res.json()) as { conversation: Conversation };
                 setConversations((current) =>
-                  current.map((conversation) =>
-                    conversation.id === payload.conversation.id ? payload.conversation : conversation,
-                  ),
+                  mergeConversationLists(current, current, target.id, payload.conversation),
                 );
                 setPendingScroll((current) =>
                   current?.bookingId ? current : { bookingId: "", latest: true },
@@ -189,7 +196,6 @@ export default function MessagesView({
       cancelled = true;
     };
   }, [
-    deepLinkApplied,
     focusBooking,
     focusLatest,
     focusSlug,
@@ -199,6 +205,32 @@ export default function MessagesView({
   ]);
 
   useEffect(() => {
+    if (!activeId) return;
+
+    let cancelled = false;
+
+    async function loadActiveThread() {
+      try {
+        const response = await fetch(`/api/feed/messages/${activeId}`, { cache: "no-store" });
+        if (!response.ok || cancelled) return;
+        const data = (await response.json()) as { conversation: Conversation };
+        if (cancelled) return;
+        setConversations((current) =>
+          mergeConversationLists(current, current, activeId, data.conversation),
+        );
+      } catch {
+        // Keep the current thread state on transient errors.
+      }
+    }
+
+    void loadActiveThread();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function refreshInbox() {
@@ -206,33 +238,22 @@ export default function MessagesView({
         const listResponse = await fetch("/api/feed/messages", { cache: "no-store" });
         if (!listResponse.ok || cancelled) return;
         const listData = (await listResponse.json()) as { conversations: Conversation[] };
-        if (cancelled) return;
 
-        setConversations((current) => {
-          const localActive = current.find((item) => item.id === activeId);
-          return listData.conversations.map((item) => {
-            if (item.id !== activeId) return item;
-            return {
-              ...item,
-              messages: localActive?.messages ?? item.messages,
-              unread: 0,
-            };
+        let activeConversation: Conversation | null = null;
+        if (activeId) {
+          const threadResponse = await fetch(`/api/feed/messages/${activeId}`, {
+            cache: "no-store",
           });
-        });
+          if (threadResponse.ok && !cancelled) {
+            const threadData = (await threadResponse.json()) as { conversation: Conversation };
+            activeConversation = threadData.conversation;
+          }
+        }
 
-        if (!activeId) return;
-        const threadResponse = await fetch(`/api/feed/messages/${activeId}`, {
-          cache: "no-store",
-        });
-        if (!threadResponse.ok || cancelled) return;
-        const threadData = (await threadResponse.json()) as { conversation: Conversation };
         if (cancelled) return;
+
         setConversations((current) =>
-          current.map((conversation) =>
-            conversation.id === threadData.conversation.id
-              ? { ...threadData.conversation, unread: 0 }
-              : conversation,
-          ),
+          mergeConversationLists(listData.conversations, current, activeId, activeConversation),
         );
       } catch {
         // Ignore transient poll errors.
@@ -253,6 +274,7 @@ export default function MessagesView({
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
     [activeId, conversations],
   );
+  const isDmRestricted = Boolean(activeConversation?.dmRestricted);
 
   useEffect(() => {
     if (!pendingScroll || !activeConversation || loading) return;
@@ -319,9 +341,7 @@ export default function MessagesView({
       if (!response.ok) return;
       const data = (await response.json()) as { conversation: Conversation };
       setConversations((current) =>
-        current.map((conversation) =>
-          conversation.id === id ? data.conversation : conversation,
-        ),
+        mergeConversationLists(current, current, id, data.conversation),
       );
       setPendingScroll({ bookingId: "", latest: true });
     } catch {
@@ -349,7 +369,8 @@ export default function MessagesView({
         body: JSON.stringify({ body: trimmed }),
       });
       if (!response.ok) {
-        throw new Error("Could not send message.");
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error ?? "Could not send message.");
       }
       const data = (await response.json()) as { conversation: Conversation };
       setConversations((current) => {
@@ -544,28 +565,51 @@ export default function MessagesView({
                     })}
                   </div>
 
-                  <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>
-                    <label className="sr-only" htmlFor="messages-composer-input">
-                      Write a message
-                    </label>
-                    <input
-                      id="messages-composer-input"
-                      className="messages-composer__input"
-                      type="text"
-                      value={draft}
-                      onChange={(event) => setDraft(event.target.value)}
-                      placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
-                      autoComplete="off"
-                      disabled={sending}
-                    />
-                    <button
-                      type="submit"
-                      className="btn btn--primary btn--sm messages-composer__send"
-                      disabled={!draft.trim() || sending}
-                    >
-                      Send
-                    </button>
-                  </form>
+                  <footer className="messages-chat__footer">
+                    {isDmRestricted ? (
+                      <div className="messages-chat__restricted" role="status">
+                        <svg
+                          className="messages-chat__restricted-icon"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <span>
+                          {activeConversation.dmRestrictedMessage ??
+                            "Direct messaging with this contact is restricted by a guardian."}
+                        </span>
+                      </div>
+                    ) : (
+                      <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>
+                        <label className="sr-only" htmlFor="messages-composer-input">
+                          Write a message
+                        </label>
+                        <input
+                          id="messages-composer-input"
+                          className="messages-composer__input"
+                          type="text"
+                          value={draft}
+                          onChange={(event) => setDraft(event.target.value)}
+                          placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
+                          autoComplete="off"
+                          disabled={sending}
+                        />
+                        <button
+                          type="submit"
+                          className="btn btn--primary btn--sm messages-composer__send"
+                          disabled={!draft.trim() || sending}
+                        >
+                          Send
+                        </button>
+                      </form>
+                    )}
+                  </footer>
                 </>
               ) : (
                 <div className="messages-chat__empty">

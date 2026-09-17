@@ -33,7 +33,7 @@ export type NavIconName =
   | "purchases"
   | "bookings"
   | "seller"
-  | "family-center";
+  | "family-circle";
 
 export function NavIcon({ name }: { name: NavIconName }) {
   switch (name) {
@@ -126,7 +126,7 @@ export function NavIcon({ name }: { name: NavIconName }) {
           <path d="M7 16l4-5 4 3 5-7" />
         </svg>
       );
-    case "family-center":
+    case "family-circle":
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />

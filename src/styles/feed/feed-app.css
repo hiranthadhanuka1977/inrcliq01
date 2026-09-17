@@ -64,6 +64,13 @@ body.page-messages .app-shell.page-messages,
   body.page-messages {
     padding-bottom: 0;
   }
+
+  body.page-messages .app-shell.page-messages,
+  .page-messages.app-shell {
+    height: calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px));
+    min-height: 0;
+  }
 }
 
 .feed-load-sentinel {

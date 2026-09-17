@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3002",
     "dev:prepare": "prisma generate",
-    "build": "node scripts/migrate-deploy.mjs && prisma generate && node scripts/setup-nsfw-model.mjs && next build",
+    "build": "node scripts/migrate-deploy.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
@@ -24,16 +24,16 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@azure-rest/ai-content-safety": "^1.0.1",
+    "@azure/core-auth": "^1.11.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@tensorflow/tfjs": "^4.22.0",
     "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "jimp": "^1.6.1",
     "next": "16.2.10",
     "nodemailer": "^9.0.3",
-    "nsfwjs": "^4.3.0",
     "pg": "^8.22.0",
     "prisma": "^7.8.0",
     "react": "19.2.4",

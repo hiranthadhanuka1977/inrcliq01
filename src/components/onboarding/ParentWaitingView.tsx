@@ -8,6 +8,7 @@ import { VerifyEmailInboxButton } from "@/components/auth/VerifyEmailInboxButton
 import { ParentApprovalEmailInbox } from "@/components/onboarding/ParentApprovalEmailInbox";
 
 const PARENT_APPROVE_URL_KEY = "inrcliq_parent_approve_url";
+const PARENT_WATCH_TOKEN_KEY = "inrcliq_parent_approval_watch";
 
 type InviteStatus = {
   status: string;
@@ -15,6 +16,7 @@ type InviteStatus = {
   sentAt: string;
   expiresAt: string;
   childFirstName: string;
+  resumeUrl?: string;
 };
 
 function formatRelativeExpiry(expiresAt: string) {
@@ -33,6 +35,7 @@ export function ParentWaitingView() {
   const [error, setError] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [approveUrl, setApproveUrl] = useState("");
+  const [watchToken, setWatchToken] = useState("");
   const [inboxOpen, setInboxOpen] = useState(false);
 
   function persistApproveUrl(url: string) {
@@ -40,29 +43,64 @@ export function ParentWaitingView() {
     sessionStorage.setItem(PARENT_APPROVE_URL_KEY, url);
   }
 
+  function persistWatchToken(token: string) {
+    setWatchToken(token);
+    sessionStorage.setItem(PARENT_WATCH_TOKEN_KEY, token);
+  }
+
   useEffect(() => {
     const savedApproveUrl = sessionStorage.getItem(PARENT_APPROVE_URL_KEY);
     if (savedApproveUrl) {
       setApproveUrl(savedApproveUrl);
     }
+    const savedWatchToken = sessionStorage.getItem(PARENT_WATCH_TOKEN_KEY);
+    if (savedWatchToken) {
+      setWatchToken(savedWatchToken);
+    }
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadStatus() {
-      const response = await fetch("/api/onboarding/parent-invite/resend");
-      if (!response.ok) return;
-      const data = await response.json();
+      const storedWatch = sessionStorage.getItem(PARENT_WATCH_TOKEN_KEY) || watchToken;
+      const statusUrl = storedWatch
+        ? `/api/onboarding/parent-invite/resend?watch=${encodeURIComponent(storedWatch)}`
+        : "/api/onboarding/parent-invite/resend";
+
+      const response = await fetch(statusUrl);
+      if (!response.ok || cancelled) return;
+
+      const data = (await response.json()) as InviteStatus & {
+        resumeUrl?: string;
+        watchToken?: string;
+      };
+      if (cancelled) return;
+
+      if (typeof data.watchToken === "string" && data.watchToken) {
+        persistWatchToken(data.watchToken);
+      }
+
       if (data.status) setStatus(data);
+
       if (data.status === "APPROVED") {
-        router.push("/onboarding/approved");
-        router.refresh();
+        if (data.resumeUrl) {
+          window.location.assign(data.resumeUrl);
+          return;
+        }
+        window.location.assign("/onboarding/approved");
       }
     }
 
-    loadStatus();
-    const timer = window.setInterval(loadStatus, 10000);
-    return () => window.clearInterval(timer);
-  }, [router]);
+    void loadStatus();
+    const timer = window.setInterval(() => {
+      void loadStatus();
+    }, 4000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [router, watchToken]);
 
   const isDeclined = status?.status === "DECLINED";
 
@@ -97,6 +135,9 @@ export function ParentWaitingView() {
 
       if (data.approveUrl) {
         persistApproveUrl(data.approveUrl);
+      }
+      if (typeof data.watchToken === "string" && data.watchToken) {
+        persistWatchToken(data.watchToken);
       }
     } catch {
       setError("Unable to resend invite.");

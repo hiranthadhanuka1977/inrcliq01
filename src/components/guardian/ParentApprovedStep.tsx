@@ -99,13 +99,13 @@ export function ParentApprovedStep({
         </svg>
         <p>
           You can adjust {childFirstName}&apos;s protection level, pause their account, or remove access anytime from
-          your Family Center dashboard.
+          your Family Circle dashboard.
         </p>
       </div>
 
       <div className="parent-approved__actions mt-8">
-        <Link href="/feed/family-center" className="btn btn--primary">
-          Go to family center
+        <Link href="/family-circle" className="btn btn--primary">
+          Go to Family Circle
         </Link>
         <button type="button" className="btn btn--outline-info" onClick={onDone}>
           I am done for now

@@ -17,7 +17,8 @@ export function SellerHeader() {
         </Link>
         <div className="seller-header__actions">
           <Link href="/feed" className="seller-header__back">
-            ← Back to feed
+            <span className="seller-header__back-long">← Back to feed</span>
+            <span className="seller-header__back-short">← Feed</span>
           </Link>
         </div>
       </div>

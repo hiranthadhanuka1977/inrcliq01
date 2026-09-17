@@ -29,18 +29,30 @@ export default async function ParentPage() {
     redirect(redirectTo);
   }
 
-  return renderPage({
-    firstName: user.firstName ?? "",
-    lastName: user.lastName ?? "",
-    email: user.email,
-  });
+  return renderPage(
+    {
+      firstName: user.firstName ?? "",
+      lastName: user.lastName ?? "",
+      email: user.email,
+    },
+    user.dateOfBirth
+      ? {
+          month: user.dateOfBirth.getMonth() + 1,
+          day: user.dateOfBirth.getDate(),
+          year: user.dateOfBirth.getFullYear(),
+        }
+      : null,
+  );
 }
 
 /** The page itself. Both session models render exactly the same screen. */
-function renderPage(viewer: OnboardingViewer) {
+function renderPage(
+  viewer: OnboardingViewer,
+  initialDob?: { month: number; day: number; year: number } | null,
+) {
   return (
     <AuthCenterLayout signupStep progressStep={4} screenId="screen-ONB-03">
-      <ParentInviteForm firstName={viewer.firstName || "Your child"} />
+      <ParentInviteForm firstName={viewer.firstName || "Your child"} initialDob={initialDob} />
     </AuthCenterLayout>
   );
 }

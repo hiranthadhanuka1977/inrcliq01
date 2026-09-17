@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthCenterLayout } from "@/components/auth/AuthCenterLayout";
 
@@ -18,11 +17,9 @@ export default async function VerifyEmailPage({
       <AuthCenterLayout>
         <h1>Link expired or invalid</h1>
         <p className="subtitle mt-2">This verification link is invalid or has expired.</p>
-        <p className="auth-switch mt-8">
-          <Link href="/signup" className="link-btn">
-            Back to signup
-          </Link>
-        </p>
+        <a href="/api/auth/restart-signup" className="btn btn--primary mt-8">
+          Back to signup
+        </a>
       </AuthCenterLayout>
     );
   }
@@ -31,11 +28,9 @@ export default async function VerifyEmailPage({
     <AuthCenterLayout>
       <h1>Invalid verification link</h1>
       <p className="subtitle mt-2">This link is missing required information.</p>
-      <p className="auth-switch mt-8">
-        <Link href="/signup" className="link-btn">
-          Back to signup
-        </Link>
-      </p>
+      <a href="/api/auth/restart-signup" className="btn btn--primary mt-8">
+        Back to signup
+      </a>
     </AuthCenterLayout>
   );
 }

@@ -1,4 +1,11 @@
+import { cache } from "react";
 import { AccountType } from "@/generated/prisma/client";
+import {
+  listChildDmContacts,
+  type ChildDmContact,
+} from "@/lib/guardian/child-detail";
+import { listContactTrustBandsForChildren } from "@/lib/guardian/contact-trust-band";
+import type { ContactTrustBandId } from "@/lib/guardian/family-center-static";
 import {
   PROTECTION_TIER_LABELS,
   type ProtectionTier,
@@ -26,11 +33,24 @@ export type FamilyCenterChild = {
   onboardingStep: string | null;
   statusLabel: string;
   messagesHref: string;
+  dmContacts: Pick<ChildDmContact, "id" | "name" | "avatarInitials" | "avatarColor" | "avatarUrl">[];
+};
+
+export type FamilyCenterGuardian = {
+  id: string;
+  name: string;
+  firstName: string;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
 };
 
 export type FamilyCenterData = {
   guardianName: string;
+  guardian: FamilyCenterGuardian;
   children: FamilyCenterChild[];
+  /** Persisted Safe Contact Circle band assignments, keyed by child id then contact key. */
+  contactTrustBandsByChild: Record<string, Record<string, ContactTrustBandId>>;
 };
 
 function childFullName(firstName: string | null, lastName: string | null, email: string) {
@@ -54,7 +74,7 @@ function childStatusLabel(onboardingStep: string | null) {
   return "Pending setup";
 }
 
-export async function getFamilyCenterForSession(): Promise<FamilyCenterData | null> {
+export const getFamilyCenterForSession = cache(async function getFamilyCenterForSession(): Promise<FamilyCenterData | null> {
   const user = await getSessionUser();
   if (!user || user.accountType !== AccountType.GUARDIAN) return null;
 
@@ -62,6 +82,28 @@ export async function getFamilyCenterForSession(): Promise<FamilyCenterData | nu
     [user.firstName?.trim(), user.lastName?.trim()].filter(Boolean).join(" ") ||
     user.email.split("@")[0] ||
     "Guardian";
+
+  const guardianProfile = await prisma.userProfile.findUnique({
+    where: { userId: user.id },
+    select: {
+      displayName: true,
+      avatarUrl: true,
+      avatarColor: true,
+      avatarInitials: true,
+    },
+  });
+
+  const guardianFirstName = user.firstName?.trim() || guardianName.split(/\s+/)[0] || "Guardian";
+  const guardian: FamilyCenterGuardian = {
+    id: user.id,
+    name: guardianProfile?.displayName?.trim() || guardianName,
+    firstName: guardianFirstName,
+    avatarInitials:
+      guardianProfile?.avatarInitials?.trim() ||
+      childInitials(guardianProfile?.displayName?.trim() || guardianName),
+    avatarColor: guardianProfile?.avatarColor?.trim() || "#0d9488",
+    avatarUrl: guardianProfile?.avatarUrl?.trim() || null,
+  };
 
   const links = await prisma.guardianChildLink.findMany({
     where: { guardianUserId: user.id },
@@ -130,6 +172,8 @@ export async function getFamilyCenterForSession(): Promise<FamilyCenterData | nu
         slug,
       });
 
+      const dmContacts = await listChildDmContacts(child.id, firstName);
+
       return {
         id: child.id,
         firstName,
@@ -152,9 +196,21 @@ export async function getFamilyCenterForSession(): Promise<FamilyCenterData | nu
         onboardingStep: child.onboardingStep,
         statusLabel: childStatusLabel(child.onboardingStep),
         messagesHref: `/feed/messages?thread=${thread.id}`,
+        dmContacts: dmContacts.map(({ id, name, avatarInitials, avatarColor, avatarUrl }) => ({
+          id,
+          name,
+          avatarInitials,
+          avatarColor,
+          avatarUrl,
+        })),
       };
     }),
   );
 
-  return { guardianName, children };
-}
+  const contactTrustBandsByChild = await listContactTrustBandsForChildren(
+    user.id,
+    children.map((child) => child.id),
+  );
+
+  return { guardianName, guardian, children, contactTrustBandsByChild };
+});

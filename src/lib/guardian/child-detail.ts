@@ -1,6 +1,7 @@
+import { cache } from "react";
 import { AccountType } from "@/generated/prisma/client";
 import type { AccountSocialPerson } from "@/lib/feed/account-profile";
-import { ensureChildChatThreadForGuardian } from "@/lib/feed/chat-service";
+import { ensureChildChatThreadForGuardian, seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
 import {
   countFollowedCreatorsForUser,
   countInboundFollowersForUser,
@@ -16,9 +17,31 @@ import {
   PROTECTION_TIER_LABELS,
   type ProtectionTier,
 } from "@/lib/guardian/constants";
+import { listContactTrustBandsForChildren } from "@/lib/guardian/contact-trust-band";
+import {
+  getDmContactControlsForThread,
+  type DmContactGuardianSettings,
+} from "@/lib/guardian/dm-contact-controls";
+import {
+  defaultDmContactTrustBand,
+  type ContactTrustBandId,
+} from "@/lib/guardian/family-center-static";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
+
+export type ChildDmContact = {
+  id: string;
+  name: string;
+  handle: string;
+  href: string | null;
+  avatarInitials: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  lastMessagePreview: string | null;
+  lastActiveLabel: string | null;
+  trustBand: ContactTrustBandId;
+};
 
 export type ChildDetailData = {
   id: string;
@@ -44,6 +67,8 @@ export type ChildDetailData = {
   avatarUrl: string | null;
   statusLabel: string;
   messagesHref: string;
+  dmPolicySummary: string;
+  dmContacts: ChildDmContact[];
   activity: {
     postCount: number;
     followersCount: number;
@@ -89,6 +114,78 @@ function protectionDescription(tier: ProtectionTier | null) {
     return "DMs allowed with standard moderation. Safety alerts to guardian.";
   }
   return "DMs limited to approved contacts. Comment filters on. Safety alerts to guardian.";
+}
+
+function dmPolicySummary(tier: ProtectionTier | null) {
+  if (!tier) return "Direct messaging status is not set for this account.";
+  if (tier === "strict") return "Direct messaging is off under strict protection.";
+  if (tier === "relaxed") return "Direct messaging is allowed with standard moderation.";
+  return "Direct messaging is limited to approved contacts.";
+}
+
+function formatDmLastActive(value: Date | null) {
+  if (!value) return null;
+
+  const diffMs = Date.now() - value.getTime();
+  const diffMinutes = Math.floor(diffMs / (60 * 1000));
+  if (diffMinutes < 1) return "Active just now";
+  if (diffMinutes < 60) return `Active ${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Active ${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Active yesterday";
+  if (diffDays < 7) return `Active ${diffDays}d ago`;
+
+  return `Active ${value.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
+export async function listChildDmContacts(
+  childUserId: string,
+  firstName: string,
+  options?: { guardianUserId?: string },
+): Promise<ChildDmContact[]> {
+  await seedDefaultChatThreadsForUser(childUserId, { firstName });
+
+  const [threads, bandByChild] = await Promise.all([
+    prisma.chatThread.findMany({
+      where: {
+        userId: childUserId,
+        NOT: { seedKey: { startsWith: "guardian:" } },
+      },
+      orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
+      select: {
+        id: true,
+        peerName: true,
+        peerHandle: true,
+        peerSlug: true,
+        peerInitials: true,
+        peerAvatarColor: true,
+        peerAvatarUrl: true,
+        preview: true,
+        lastMessageAt: true,
+      },
+    }),
+    options?.guardianUserId
+      ? listContactTrustBandsForChildren(options.guardianUserId, [childUserId])
+      : Promise.resolve({} as Record<string, Record<string, ContactTrustBandId>>),
+  ]);
+
+  const bandMap = bandByChild[childUserId] ?? {};
+
+  return threads.map((thread) => ({
+    id: thread.id,
+    name: thread.peerName,
+    handle: thread.peerHandle,
+    href: thread.peerSlug ? `/feed/profile/${thread.peerSlug}` : null,
+    avatarInitials: thread.peerInitials,
+    avatarColor: thread.peerAvatarColor?.trim() || "#6b9fff",
+    avatarUrl: thread.peerAvatarUrl,
+    lastMessagePreview: thread.preview,
+    lastActiveLabel: formatDmLastActive(thread.lastMessageAt),
+    trustBand: bandMap[thread.id] ?? defaultDmContactTrustBand({ id: thread.id, name: thread.peerName }),
+  }));
 }
 
 function displayHandle(handle: string | null | undefined, fallbackEmail?: string | null) {
@@ -138,7 +235,7 @@ function notifyLevelLabel(level: string) {
   }
 }
 
-export async function getChildDetailForGuardian(
+export const getChildDetailForGuardian = cache(async function getChildDetailForGuardian(
   childUserId: string,
 ): Promise<ChildDetailData | null> {
   const user = await getSessionUser();
@@ -226,6 +323,7 @@ export async function getChildDetailForGuardian(
     followersCount,
     postCount,
     thread,
+    dmContacts,
   ] = await Promise.all([
     listActiveSubscriptionsForUser(child.id),
     countActiveSubscriptionsForUser(child.id),
@@ -243,6 +341,7 @@ export async function getChildDetailForGuardian(
       avatarUrl,
       slug,
     }),
+    listChildDmContacts(child.id, firstName, { guardianUserId: user.id }),
   ]);
 
   const subscriptions: AccountSocialPerson[] = subscriptionRows.map((row) => ({
@@ -325,6 +424,8 @@ export async function getChildDetailForGuardian(
     avatarUrl,
     statusLabel: childStatusLabel(child.onboardingStep),
     messagesHref: `/feed/messages?thread=${thread.id}`,
+    dmPolicySummary: dmPolicySummary(tier),
+    dmContacts,
     activity: {
       postCount,
       followersCount,
@@ -336,5 +437,193 @@ export async function getChildDetailForGuardian(
       following,
       subscriptions,
     },
+  };
+});
+
+export type DmContactActivityItem = {
+  id: string;
+  title: string;
+  detail: string;
+  timeAgo: string;
+  dayLabel: string;
+  type: "message" | "media" | "reaction" | "system";
+};
+
+export type ChildDmContactDetailData = {
+  child: {
+    id: string;
+    firstName: string;
+    fullName: string;
+    handleLabel: string;
+  };
+  contact: ChildDmContact;
+  activity: DmContactActivityItem[];
+  settings: DmContactGuardianSettings;
+};
+
+function hashContactSeed(contactId: string) {
+  let hash = 0;
+  for (let i = 0; i < contactId.length; i += 1) {
+    hash = (hash + contactId.charCodeAt(i) * (i + 1)) % 997;
+  }
+  return hash;
+}
+
+function staticDmContactActivity(
+  contactId: string,
+  contactName: string,
+  childFirstName: string,
+): DmContactActivityItem[] {
+  const hash = hashContactSeed(contactId);
+
+  const templates: Omit<DmContactActivityItem, "id">[] = [
+    {
+      title: "Message activity",
+      detail: `${childFirstName} sent a message in this conversation. Content is not shown here.`,
+      timeAgo: "2h ago",
+      dayLabel: "Today",
+      type: "message",
+    },
+    {
+      title: "Message activity",
+      detail: `${contactName} replied in this thread. Content is not shown here.`,
+      timeAgo: "5h ago",
+      dayLabel: "Today",
+      type: "message",
+    },
+    {
+      title: "Reaction added",
+      detail: `${childFirstName} reacted to a message in this conversation.`,
+      timeAgo: "Yesterday",
+      dayLabel: "Yesterday",
+      type: "reaction",
+    },
+    {
+      title: "Photo shared",
+      detail: "An image was shared in this thread. A safe preview is available in Safety alerts if needed.",
+      timeAgo: "2d ago",
+      dayLabel: "Yesterday",
+      type: "media",
+    },
+    {
+      title: "Conversation started",
+      detail: `${childFirstName} opened a direct message thread with ${contactName}.`,
+      timeAgo: "Jul 31",
+      dayLabel: "Jul 31",
+      type: "system",
+    },
+    {
+      title: "Contact approved",
+      detail: "This contact was added to the approved messaging list for this account.",
+      timeAgo: "Aug 1",
+      dayLabel: "Aug 1",
+      type: "system",
+    },
+  ];
+
+  const count = 4 + (hash % 2);
+  const start = hash % templates.length;
+
+  return Array.from({ length: count }, (_, index) => {
+    const template = templates[(start + index) % templates.length]!;
+    return {
+      id: `${contactId}-activity-${index}`,
+      ...template,
+    };
+  });
+}
+
+export async function getChildDmContactDetailForGuardian(
+  childUserId: string,
+  threadId: string,
+): Promise<ChildDmContactDetailData | null> {
+  const user = await getSessionUser();
+  if (!user || user.accountType !== AccountType.GUARDIAN) return null;
+
+  const link = await prisma.guardianChildLink.findUnique({
+    where: {
+      guardianUserId_childUserId: {
+        guardianUserId: user.id,
+        childUserId,
+      },
+    },
+    include: {
+      childUser: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          handle: true,
+          accountType: true,
+          profile: {
+            select: {
+              displayName: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!link || link.childUser.accountType !== AccountType.MINOR) return null;
+
+  const child = link.childUser;
+  const fullName =
+    child.profile?.displayName?.trim() ||
+    childFullName(child.firstName, child.lastName, child.email);
+  const firstName = child.firstName?.trim() || fullName.split(/\s+/)[0] || "Child";
+  const handle = child.handle?.trim() || child.profile?.slug?.trim() || null;
+  const handleLabel = handle ? `@${handle.replace(/^@/, "")}` : "No handle";
+
+  const thread = await prisma.chatThread.findFirst({
+    where: {
+      id: threadId,
+      userId: childUserId,
+      NOT: { seedKey: { startsWith: "guardian:" } },
+    },
+    select: {
+      id: true,
+      peerName: true,
+      peerHandle: true,
+      peerSlug: true,
+      peerInitials: true,
+      peerAvatarColor: true,
+      peerAvatarUrl: true,
+      preview: true,
+      lastMessageAt: true,
+    },
+  });
+
+  if (!thread) return null;
+
+  const bandByChild = await listContactTrustBandsForChildren(user.id, [childUserId]);
+  const storedBand = bandByChild[childUserId]?.[thread.id];
+
+  const contact: ChildDmContact = {
+    id: thread.id,
+    name: thread.peerName,
+    handle: thread.peerHandle,
+    href: thread.peerSlug ? `/feed/profile/${thread.peerSlug}` : null,
+    avatarInitials: thread.peerInitials,
+    avatarColor: thread.peerAvatarColor?.trim() || "#6b9fff",
+    avatarUrl: thread.peerAvatarUrl,
+    lastMessagePreview: thread.preview,
+    lastActiveLabel: formatDmLastActive(thread.lastMessageAt),
+    trustBand:
+      storedBand ?? defaultDmContactTrustBand({ id: thread.id, name: thread.peerName }),
+  };
+
+  return {
+    child: {
+      id: child.id,
+      firstName,
+      fullName,
+      handleLabel,
+    },
+    contact,
+    activity: staticDmContactActivity(thread.id, contact.name, firstName),
+    settings: await getDmContactControlsForThread(child.id, thread.id),
   };
 }

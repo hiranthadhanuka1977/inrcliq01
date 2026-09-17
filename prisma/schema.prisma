@@ -60,6 +60,10 @@ model User {
   guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
   guardianChildren       GuardianChildLink[]     @relation("GuardianChildren")
   childGuardians         GuardianChildLink[]     @relation("ChildGuardians")
+  guardianDmControlsAsChild GuardianDmContactControl[] @relation("GuardianDmControlsChild")
+  guardianDmControlsAsPeer  GuardianDmContactControl[] @relation("GuardianDmControlsPeer")
+  guardianContactTrustBands ChildContactTrustBand[] @relation("GuardianContactTrustBands")
+  childContactTrustBands    ChildContactTrustBand[] @relation("ChildContactTrustBands")
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
   follows                CreatorFollow[]
@@ -171,6 +175,47 @@ model GuardianChildLink {
   @@unique([guardianUserId, childUserId])
   @@index([guardianUserId])
   @@index([childUserId])
+}
+
+/// Guardian controls for a minor's direct message contact (per child inbox thread).
+model GuardianDmContactControl {
+  id               String   @id @default(cuid())
+  childUserId      String
+  childThreadId    String
+  peerUserId       String?
+  peerSlug         String?
+  peerHandle       String?
+  dmRestricted     Boolean  @default(false)
+  requiresApproval Boolean  @default(false)
+  blocked          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  childUser User  @relation("GuardianDmControlsChild", fields: [childUserId], references: [id], onDelete: Cascade)
+  peerUser  User? @relation("GuardianDmControlsPeer", fields: [peerUserId], references: [id], onDelete: SetNull)
+
+  @@unique([childUserId, childThreadId])
+  @@index([childUserId, peerUserId])
+}
+
+/// Guardian-assigned trust band for a contact in a child's Safe Contact Circle.
+/// contactKey is the chat thread id for DMs, or `sibling:<userId>` for linked siblings.
+model ChildContactTrustBand {
+  id             String   @id @default(cuid())
+  guardianUserId String
+  childUserId    String
+  contactKey     String
+  contactKind    String
+  trustBand      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  guardianUser User @relation("GuardianContactTrustBands", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  childUser    User @relation("ChildContactTrustBands", fields: [childUserId], references: [id], onDelete: Cascade)
+
+  @@unique([childUserId, contactKey])
+  @@index([guardianUserId, childUserId])
+  @@index([childUserId, trustBand])
 }
 
 /// Public profile for an auth `User` (1:1). Rich rows come from profile JSON;

@@ -56,6 +56,7 @@ next-env.d.ts
 /web/
 /.sync-backup/
 /data/db-export/
+/data/user-sync-export/
 .vercel
 .env*
 
@@ -74,3 +75,12 @@ next-env.d.ts
 /public/uploads/covers/*
 !/public/uploads/covers/.gitkeep
 
+# local-only artifacts (never commit)
+/scripts/debug-guardian-*.mjs
+/data/seller-service-requests/*.json
+/public/models/
+/US-BA-Specification/pg-plan.md
+
+
+.vercel
+.env*

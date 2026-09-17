@@ -8,6 +8,36 @@ type SeedMessage = {
   createdAt: Date;
 };
 
+function isUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "P2002"
+  );
+}
+
+async function createChatThreadOrFind(
+  data: Parameters<typeof prisma.chatThread.create>[0]["data"],
+  where: { userId: string; seedKey: string },
+) {
+  try {
+    return await prisma.chatThread.create({
+      data,
+      select: { id: true },
+    });
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error;
+
+    const existing = await prisma.chatThread.findFirst({
+      where,
+      select: { id: true },
+    });
+    if (!existing) throw error;
+    return existing;
+  }
+}
+
 function hoursAgo(hours: number) {
   return new Date(Date.now() - hours * 60 * 60 * 1000);
 }
@@ -103,33 +133,37 @@ export async function seedDefaultChatThreadsForUser(
 
     const last = messages[messages.length - 1];
 
-    await prisma.chatThread.create({
-      data: {
-        userId,
-        seedKey: conversation.id,
-        peerCreatorId: creator?.id ?? null,
-        peerName: creator?.name ?? conversation.participant.name,
-        peerHandle: creator?.handle ?? conversation.participant.handle,
-        peerInitials: creator?.avatarInitials ?? conversation.participant.initials,
-        peerAvatarColor: creator?.avatarColor ?? conversation.participant.avatarColor,
-        peerAvatarUrl: creator?.avatarUrl ?? conversation.participant.avatarUrl,
-        peerSlug:
-          creator?.slug ??
-          conversation.participant.slug ??
-          resolveAuthorProfileSlug(conversation.participant.handle),
-        peerOnline: Boolean(conversation.participant.online),
-        preview: last ? personalizeSeedBody(last.body, firstName) : conversation.preview,
-        lastMessageAt: last?.createdAt ?? new Date(),
-        unreadCount: conversation.unread,
-        messages: {
-          create: messages.map((message) => ({
-            body: message.body,
-            fromMe: message.fromMe,
-            createdAt: message.createdAt,
-          })),
+    try {
+      await prisma.chatThread.create({
+        data: {
+          userId,
+          seedKey: conversation.id,
+          peerCreatorId: creator?.id ?? null,
+          peerName: creator?.name ?? conversation.participant.name,
+          peerHandle: creator?.handle ?? conversation.participant.handle,
+          peerInitials: creator?.avatarInitials ?? conversation.participant.initials,
+          peerAvatarColor: creator?.avatarColor ?? conversation.participant.avatarColor,
+          peerAvatarUrl: creator?.avatarUrl ?? conversation.participant.avatarUrl,
+          peerSlug:
+            creator?.slug ??
+            conversation.participant.slug ??
+            resolveAuthorProfileSlug(conversation.participant.handle),
+          peerOnline: Boolean(conversation.participant.online),
+          preview: last ? personalizeSeedBody(last.body, firstName) : conversation.preview,
+          lastMessageAt: last?.createdAt ?? new Date(),
+          unreadCount: conversation.unread,
+          messages: {
+            create: messages.map((message) => ({
+              body: message.body,
+              fromMe: message.fromMe,
+              createdAt: message.createdAt,
+            })),
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) throw error;
+    }
   }
 }
 
@@ -263,7 +297,7 @@ async function peerDisplayFromCreatorOwner(userId: string): Promise<PeerDisplay 
   };
 }
 
-async function resolveReceiverUserId(thread: {
+export async function resolveReceiverUserId(thread: {
   peerCreatorId: string | null;
   peerSlug: string | null;
   peerHandle: string;
@@ -415,6 +449,15 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
 
   const trimmed = body.trim();
   if (!trimmed) return null;
+
+  const { getDirectMessagingRestriction } = await import("@/lib/guardian/dm-contact-controls");
+  const restriction = await getDirectMessagingRestriction(userId, thread);
+  if (restriction.restricted) {
+    return {
+      restricted: true as const,
+      message: restriction.message ?? "Direct messaging is restricted for this contact.",
+    };
+  }
 
   const [message] = await prisma.$transaction([
     prisma.chatMessage.create({
@@ -572,8 +615,8 @@ export async function ensureGuardianChatThreadForMinor(
   });
   if (existing) return existing;
 
-  return prisma.chatThread.create({
-    data: {
+  return createChatThreadOrFind(
+    {
       userId: minorUserId,
       seedKey,
       peerName: peer.fullName,
@@ -587,8 +630,8 @@ export async function ensureGuardianChatThreadForMinor(
       lastMessageAt: null,
       unreadCount: 0,
     },
-    select: { id: true },
-  });
+    { userId: minorUserId, seedKey },
+  );
 }
 
 type ChildChatPeer = {
@@ -614,8 +657,8 @@ export async function ensureChildChatThreadForGuardian(
   });
   if (existing) return existing;
 
-  return prisma.chatThread.create({
-    data: {
+  return createChatThreadOrFind(
+    {
       userId: guardianUserId,
       seedKey,
       peerName: peer.fullName,
@@ -629,6 +672,6 @@ export async function ensureChildChatThreadForGuardian(
       lastMessageAt: null,
       unreadCount: 0,
     },
-    select: { id: true },
-  });
+    { userId: guardianUserId, seedKey },
+  );
 }
