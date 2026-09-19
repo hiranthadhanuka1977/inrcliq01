@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getFollowedCreatorIdsForUser } from "@/lib/feed/follow-service";
+import { getHiddenPostIdsForUser } from "@/lib/feed/post-actions";
 import { getProfileSlugFromHandle, resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
@@ -205,6 +206,19 @@ async function getSubscribedCreatorIds(creatorIds: string[]): Promise<Set<string
   return subscribedCreatorIds;
 }
 
+async function excludeHiddenPosts(items: FeedItem[]): Promise<FeedItem[]> {
+  try {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) return items;
+    const hiddenIds = await getHiddenPostIdsForUser(sessionUser.id);
+    if (hiddenIds.size === 0) return items;
+    return items.filter((item) => !hiddenIds.has(item.id));
+  } catch (error) {
+    console.error("excludeHiddenPosts: skipping hide filter", error);
+    return items;
+  }
+}
+
 export async function getFeedData(): Promise<FeedData> {
   try {
     const [posts, postCount] = await Promise.all([
@@ -247,9 +261,11 @@ export async function getFeedData(): Promise<FeedData> {
           },
         };
       });
+      const items = await excludeHiddenPosts(await applyFollowState(withSlugs));
       return {
         ...json,
-        items: await applyFollowState(withSlugs),
+        total_items: items.length,
+        items,
       };
     }
 
@@ -258,11 +274,13 @@ export async function getFeedData(): Promise<FeedData> {
 
     const categories = Array.from(new Set(posts.map((post) => post.category)));
     const jsonMeta = getFeedDataFromJson();
-    const items = await applyFollowState(
-      posts.map((post) =>
-        mapPostToFeedItem(post, {
-          subscribed: subscribedCreatorIds.has(post.creatorId),
-        }),
+    const items = await excludeHiddenPosts(
+      await applyFollowState(
+        posts.map((post) =>
+          mapPostToFeedItem(post, {
+            subscribed: subscribedCreatorIds.has(post.creatorId),
+          }),
+        ),
       ),
     );
 
@@ -270,7 +288,7 @@ export async function getFeedData(): Promise<FeedData> {
       version: jsonMeta.version ?? "1.0",
       description: "INRCLIQ feed dataset (loaded from database)",
       generated_at: new Date().toISOString(),
-      total_items: posts.length,
+      total_items: items.length,
       categories: jsonMeta.categories?.length ? jsonMeta.categories : categories,
       items,
     };
@@ -284,9 +302,11 @@ export async function getFeedData(): Promise<FeedData> {
         slug: resolveAuthorProfileSlug(item.author.handle, item.author.slug),
       },
     }));
+    const items = await excludeHiddenPosts(await applyFollowState(withSlugs));
     return {
       ...json,
-      items: await applyFollowState(withSlugs),
+      total_items: items.length,
+      items,
     };
   }
 }

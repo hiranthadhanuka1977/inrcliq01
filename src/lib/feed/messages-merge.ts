@@ -16,9 +16,18 @@ export function mergeConversationLists(
     const previous = currentById.get(item.id);
     if (!previous) return item;
 
+    // Prefer whichever side has the newer/longer message list so newly mirrored
+    // (and masked) messages are not stuck behind a stale client cache.
+    const incomingCount = item.messages?.length ?? 0;
+    const previousCount = previous.messages?.length ?? 0;
+    const messages =
+      item.id === activeId && previousCount > incomingCount
+        ? previous.messages
+        : item.messages;
+
     return {
       ...item,
-      messages: item.id === activeId ? (previous.messages ?? item.messages) : item.messages,
+      messages,
       dmRestricted: item.dmRestricted ?? previous.dmRestricted,
       dmRestrictedMessage: item.dmRestrictedMessage ?? previous.dmRestrictedMessage,
     };

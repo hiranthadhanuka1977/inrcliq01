@@ -2,6 +2,9 @@ import { randomBytes } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureCreatorUserForAuthUser } from "@/lib/feed/creator-user-bridge";
+import { formatContentModerationError } from "@/lib/moderation/evaluate-predictions";
+import { moderatePostText } from "@/lib/moderation/server-text-moderation";
+import type { ImageModerationBlock } from "@/lib/moderation/image-moderation-types";
 import type { FeedMedia } from "@/types/feed/feed";
 
 const MAX_TEXT_LENGTH = 2000;
@@ -126,6 +129,27 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
 
   if (!text && !media) {
     return { ok: false as const, status: 400, error: "Write an update or add something to your post." };
+  }
+
+  if (text) {
+    const moderation = await moderatePostText(text);
+    if (!moderation.allowed) {
+      return {
+        ok: false as const,
+        status: 422,
+        error: formatContentModerationError(moderation),
+        moderation: {
+          title: moderation.title,
+          message: moderation.message,
+          category: moderation.category,
+          confidence: moderation.confidence,
+          verificationFailed: moderation.verificationFailed,
+        } satisfies Pick<
+          ImageModerationBlock,
+          "title" | "message" | "category" | "confidence" | "verificationFailed"
+        >,
+      };
+    }
   }
 
   const creator = await ensureCreatorUserForAuthUser(userId);

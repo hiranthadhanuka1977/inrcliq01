@@ -305,9 +305,10 @@ export async function resolveReceiverUserId(thread: {
   if (thread.peerCreatorId) {
     const creator = await prisma.creatorUser.findUnique({
       where: { id: thread.peerCreatorId },
-      select: { userId: true },
+      select: { userId: true, slug: true, handle: true },
     });
-    return creator?.userId ?? null;
+    if (creator?.userId) return creator.userId;
+    // Fall through to slug/handle when the creator row is not linked to a User yet.
   }
 
   const slug = thread.peerSlug?.trim();
@@ -317,6 +318,18 @@ export async function resolveReceiverUserId(thread: {
       select: { userId: true },
     });
     if (bySlug?.userId) return bySlug.userId;
+
+    const creatorBySlug = await prisma.creatorUser.findFirst({
+      where: {
+        OR: [
+          { slug: { equals: slug, mode: "insensitive" } },
+          { handle: { equals: slug, mode: "insensitive" } },
+          { handle: { equals: `@${slug}`, mode: "insensitive" } },
+        ],
+      },
+      select: { userId: true },
+    });
+    if (creatorBySlug?.userId) return creatorBySlug.userId;
   }
 
   const handle = thread.peerHandle?.trim();
@@ -338,7 +351,13 @@ export async function resolveReceiverUserId(thread: {
     where: { OR: handleFilters.map((equals) => ({ handle: equals })) },
     select: { userId: true },
   });
-  return byProfileHandle?.userId ?? null;
+  if (byProfileHandle?.userId) return byProfileHandle.userId;
+
+  const creatorByHandle = await prisma.creatorUser.findFirst({
+    where: { OR: handleFilters.map((equals) => ({ handle: equals })) },
+    select: { userId: true },
+  });
+  return creatorByHandle?.userId ?? null;
 }
 
 async function findOrCreatePeerInboxThread(receiverUserId: string, peer: PeerDisplay) {
@@ -401,26 +420,42 @@ async function mirrorChatMessageToPeer(
     peerHandle: string;
   },
   body: string,
+  contentMasked = false,
 ) {
   const receiverUserId = await resolveReceiverUserId(senderThread);
-  if (!receiverUserId || receiverUserId === senderUserId) return;
+  if (!receiverUserId || receiverUserId === senderUserId) {
+    console.warn("[chat] mirror skipped — receiver unresolved or self", {
+      senderUserId,
+      receiverUserId,
+      peerSlug: senderThread.peerSlug,
+      peerHandle: senderThread.peerHandle,
+    });
+    return;
+  }
 
   // Messaging a creator → peer inbox shows the fan. Messaging a fan → show the creator when possible.
   const peer = senderThread.peerCreatorId
     ? await peerDisplayFromUser(senderUserId)
     : (await peerDisplayFromCreatorOwner(senderUserId)) ||
       (await peerDisplayFromUser(senderUserId));
-  if (!peer) return;
+  if (!peer) {
+    console.warn("[chat] mirror skipped — could not build peer display", senderUserId);
+    return;
+  }
 
   const receiverThread = await findOrCreatePeerInboxThread(receiverUserId, peer);
-  const preview = previewFromBody(body);
+  const { MASKED_DM_BODY, MASKED_DM_PREVIEW } = await import("@/lib/guardian/is-user-minor");
+  // Never store the raw flagged text on the recipient thread.
+  const recipientBody = contentMasked ? MASKED_DM_BODY : body;
+  const preview = previewFromBody(contentMasked ? MASKED_DM_PREVIEW : body);
 
   await prisma.$transaction([
     prisma.chatMessage.create({
       data: {
         threadId: receiverThread.id,
-        body,
+        body: recipientBody,
         fromMe: false,
+        contentMasked,
       },
     }),
     prisma.chatThread.update({
@@ -441,7 +476,17 @@ async function mirrorChatMessageToPeer(
   ]);
 }
 
-export async function sendChatMessage(userId: string, threadId: string, body: string) {
+export type SendChatMessageOptions = {
+  /** Sender confirmed sending after a content-safety warning. */
+  acceptModeration?: boolean;
+};
+
+export async function sendChatMessage(
+  userId: string,
+  threadId: string,
+  body: string,
+  options: SendChatMessageOptions = {},
+) {
   const thread = await prisma.chatThread.findFirst({
     where: { id: threadId, userId },
   });
@@ -459,12 +504,46 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
     };
   }
 
+  let contentMasked = false;
+  const receiverUserId = await resolveReceiverUserId(thread);
+  if (!receiverUserId) {
+    console.warn("[moderation] DM receiver unresolved for thread", threadId);
+  }
+
+  const { isUserMinor } = await import("@/lib/guardian/is-user-minor");
+  const recipientIsMinor = Boolean(
+    receiverUserId && receiverUserId !== userId && (await isUserMinor(receiverUserId)),
+  );
+
+  if (!options.acceptModeration) {
+    const { moderateDmText } = await import("@/lib/moderation/dm-text-moderation");
+    const moderation = await moderateDmText(trimmed, { recipientIsMinor });
+    if (!moderation.allowed) {
+      return {
+        moderationRequired: true as const,
+        moderation: {
+          title: moderation.title,
+          message: moderation.message,
+          category: moderation.category,
+          confidence: moderation.confidence,
+          verificationFailed: Boolean(moderation.verificationFailed),
+          recipientIsMinor,
+          maskOnAccept: true,
+        },
+      };
+    }
+  } else {
+    // Sender confirmed the safety warning — always deliver a masked copy to the recipient.
+    contentMasked = true;
+  }
+
   const [message] = await prisma.$transaction([
     prisma.chatMessage.create({
       data: {
         threadId,
         body: trimmed,
         fromMe: true,
+        contentMasked,
       },
     }),
     prisma.chatThread.update({
@@ -478,7 +557,7 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
   ]);
 
   try {
-    await mirrorChatMessageToPeer(userId, thread, trimmed);
+    await mirrorChatMessageToPeer(userId, thread, trimmed, contentMasked);
   } catch (error) {
     console.error("chat mirror to peer failed", error);
   }
@@ -487,6 +566,41 @@ export async function sendChatMessage(userId: string, threadId: string, body: st
     thread: fresh,
     message,
   }));
+}
+
+/** Delete all messages in a thread for the current user (clears their local chat history). */
+export async function clearChatThreadMessages(userId: string, threadId: string) {
+  const thread = await prisma.chatThread.findFirst({
+    where: { id: threadId, userId },
+    select: { id: true },
+  });
+  if (!thread) return null;
+
+  await prisma.$transaction([
+    prisma.chatMessage.deleteMany({ where: { threadId } }),
+    prisma.chatThread.update({
+      where: { id: threadId },
+      data: {
+        preview: null,
+        lastMessageAt: null,
+        unreadCount: 0,
+      },
+    }),
+  ]);
+
+  return getChatThreadForUser(userId, threadId);
+}
+
+/** Remove the conversation from the current user's inbox entirely. */
+export async function deleteChatThread(userId: string, threadId: string) {
+  const thread = await prisma.chatThread.findFirst({
+    where: { id: threadId, userId },
+    select: { id: true },
+  });
+  if (!thread) return null;
+
+  await prisma.chatThread.delete({ where: { id: threadId } });
+  return { id: threadId };
 }
 
 export async function ensureChatThreadForCreatorSlug(userId: string, slug: string) {
@@ -518,28 +632,73 @@ export async function ensureChatThreadForCreatorSlug(userId: string, slug: strin
       ],
     },
   });
-  if (!creator) return null;
 
-  if (creator.id) {
-    const byCreator = await prisma.chatThread.findFirst({
-      where: { userId, peerCreatorId: creator.id },
+  if (creator) {
+    // Don't open a DM thread with yourself.
+    if (creator.userId && creator.userId === userId) return null;
+
+    if (creator.id) {
+      const byCreator = await prisma.chatThread.findFirst({
+        where: { userId, peerCreatorId: creator.id },
+        include: {
+          messages: { orderBy: { createdAt: "asc" } },
+        },
+      });
+      if (byCreator) return byCreator;
+    }
+
+    return prisma.chatThread.create({
+      data: {
+        userId,
+        peerCreatorId: creator.id,
+        peerName: creator.name,
+        peerHandle: creator.handle,
+        peerInitials: creator.avatarInitials,
+        peerAvatarColor: creator.avatarColor,
+        peerAvatarUrl: creator.avatarUrl,
+        peerSlug: creator.slug ?? normalized,
+        peerOnline: false,
+        preview: null,
+        lastMessageAt: null,
+        unreadCount: 0,
+      },
       include: {
         messages: { orderBy: { createdAt: "asc" } },
       },
     });
-    if (byCreator) return byCreator;
   }
+
+  // Regular member profiles (UserProfile) without a CreatorUser row.
+  const profile = await prisma.userProfile.findFirst({
+    where: { slug: { equals: normalized, mode: "insensitive" } },
+    select: { userId: true },
+  });
+  if (!profile?.userId || profile.userId === userId) return null;
+
+  const peer = await peerDisplayFromUser(profile.userId);
+  if (!peer) return null;
+
+  const byPeerSlug = await prisma.chatThread.findFirst({
+    where: {
+      userId,
+      peerSlug: { equals: peer.peerSlug || normalized, mode: "insensitive" },
+    },
+    include: {
+      messages: { orderBy: { createdAt: "asc" } },
+    },
+  });
+  if (byPeerSlug) return byPeerSlug;
 
   return prisma.chatThread.create({
     data: {
       userId,
-      peerCreatorId: creator.id,
-      peerName: creator.name,
-      peerHandle: creator.handle,
-      peerInitials: creator.avatarInitials,
-      peerAvatarColor: creator.avatarColor,
-      peerAvatarUrl: creator.avatarUrl,
-      peerSlug: creator.slug ?? normalized,
+      peerCreatorId: null,
+      peerName: peer.peerName,
+      peerHandle: peer.peerHandle,
+      peerInitials: peer.peerInitials,
+      peerAvatarColor: peer.peerAvatarColor,
+      peerAvatarUrl: peer.peerAvatarUrl,
+      peerSlug: peer.peerSlug ?? normalized,
       peerOnline: false,
       preview: null,
       lastMessageAt: null,
@@ -550,6 +709,9 @@ export async function ensureChatThreadForCreatorSlug(userId: string, slug: strin
     },
   });
 }
+
+/** Alias used when opening a DM from a public profile page. */
+export const ensureChatThreadForProfileSlug = ensureChatThreadForCreatorSlug;
 
 export async function sendBookingConfirmationMessage(
   userId: string,

@@ -17,6 +17,7 @@ import BookingConfirmationCard from "@/components/feed/messages/BookingConfirmat
 import BookingStatusNote from "@/components/feed/messages/BookingStatusNote";
 import type { Conversation } from "@/lib/feed/messages";
 import { mergeConversationLists } from "@/lib/feed/messages-merge";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
 function ConversationAvatar({
   participant,
@@ -84,6 +85,10 @@ export default function MessagesView({
   const focusLatest = searchParams.get("focus")?.trim().toLowerCase() === "latest";
 
   const streamRef = useRef<HTMLDivElement>(null);
+  const composerInputRef = useRef<HTMLInputElement>(null);
+  const chatMenuRef = useRef<HTMLDivElement>(null);
+  const refocusComposerRef = useRef(false);
+  const lastMessageIdRef = useRef<string>("");
   const [conversations, setConversations] = useState(initialConversations);
   const [activeId, setActiveId] = useState(() => {
     if (focusThread && initialConversations.some((item) => item.id === focusThread)) {
@@ -104,7 +109,18 @@ export default function MessagesView({
   );
   const [loading, setLoading] = useState(initialConversations.length === 0);
   const [sending, setSending] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [chatMenuOpen, setChatMenuOpen] = useState(false);
+  const [chatConfirm, setChatConfirm] = useState<"clear" | "delete" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [moderationWarning, setModerationWarning] = useState<{
+    title: string;
+    message: string;
+    category: string;
+    confidence: number;
+    verificationFailed?: boolean;
+    pendingBody: string;
+  } | null>(null);
   const deepLinkAppliedRef = useRef(false);
   const [pendingScroll, setPendingScroll] = useState<{
     bookingId: string;
@@ -129,27 +145,51 @@ export default function MessagesView({
         const data = (await response.json()) as { conversations: Conversation[] };
         if (cancelled) return;
 
-        const slugMatch = focusSlug
-          ? data.conversations.find((item) => item.participant.slug?.toLowerCase() === focusSlug)
+        let conversations = data.conversations;
+        let slugMatch = focusSlug
+          ? conversations.find((item) => item.participant.slug?.toLowerCase() === focusSlug)
           : null;
+
+        // Profile message button: create/open a thread when none exists yet.
+        if (focusSlug && !slugMatch && !focusThread) {
+          const openResponse = await fetch("/api/feed/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ slug: focusSlug }),
+          });
+          if (openResponse.ok) {
+            const opened = (await openResponse.json()) as { conversation: Conversation };
+            conversations = [
+              opened.conversation,
+              ...conversations.filter((item) => item.id !== opened.conversation.id),
+            ];
+            slugMatch = opened.conversation;
+          } else if (!cancelled) {
+            const openedError = (await openResponse.json().catch(() => null)) as {
+              error?: string;
+            } | null;
+            setError(openedError?.error ?? "Unable to open a conversation with this profile.");
+          }
+        }
+
         const threadMatch = focusThread
-          ? data.conversations.find((item) => item.id === focusThread)
+          ? conversations.find((item) => item.id === focusThread)
           : null;
         const target = threadMatch ?? slugMatch ?? null;
 
         setActiveId((current) => {
           if (target) return target.id;
-          if (current && data.conversations.some((item) => item.id === current)) return current;
-          return data.conversations[0]?.id || "";
+          if (current && conversations.some((item) => item.id === current)) return current;
+          return conversations[0]?.id || "";
         });
 
         setConversations((current) => {
           const nextActiveId = target
             ? target.id
-            : current.some((item) => item.id === activeId) && data.conversations.some((item) => item.id === activeId)
+            : current.some((item) => item.id === activeId) && conversations.some((item) => item.id === activeId)
               ? activeId
-              : data.conversations[0]?.id ?? "";
-          return mergeConversationLists(data.conversations, current, nextActiveId, null);
+              : conversations[0]?.id ?? "";
+          return mergeConversationLists(conversations, current, nextActiveId, null);
         });
 
         if (target) {
@@ -275,6 +315,21 @@ export default function MessagesView({
     [activeId, conversations],
   );
   const isDmRestricted = Boolean(activeConversation?.dmRestricted);
+  const activeMessageCount = activeConversation?.messages.length ?? 0;
+  const latestMessageId = activeConversation?.messages[activeMessageCount - 1]?.id ?? "";
+
+  function closeChatConfirm() {
+    if (clearing) return;
+    setChatConfirm(null);
+  }
+
+  const { dialogRef: clearDialogRef } = useDialogA11y(Boolean(chatConfirm), closeChatConfirm);
+
+  function scrollStreamToBottom(behavior: ScrollBehavior = "auto") {
+    const stream = streamRef.current;
+    if (!stream) return;
+    stream.scrollTo({ top: stream.scrollHeight, behavior });
+  }
 
   useEffect(() => {
     if (!pendingScroll || !activeConversation || loading) return;
@@ -299,7 +354,7 @@ export default function MessagesView({
         if (activeConversation.messages.length === 0) return;
       }
 
-      stream.scrollTop = stream.scrollHeight;
+      scrollStreamToBottom("auto");
       setPendingScroll(null);
     };
 
@@ -311,7 +366,39 @@ export default function MessagesView({
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, [pendingScroll, activeConversation, activeConversation?.messages.length, loading]);
+  }, [pendingScroll, activeConversation, activeMessageCount, loading]);
+
+  // Reset tracking when switching conversations.
+  useEffect(() => {
+    lastMessageIdRef.current = "";
+  }, [activeId]);
+
+  // Keep the latest message in view when the thread grows (sent or received).
+  useEffect(() => {
+    if (!activeId || loading || !latestMessageId) return;
+
+    const previousId = lastMessageIdRef.current;
+    if (previousId === latestMessageId) return;
+    lastMessageIdRef.current = latestMessageId;
+
+    // First paint for this thread — jump; later messages — ease to the bottom.
+    const behavior: ScrollBehavior = previousId ? "smooth" : "auto";
+    const frame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => scrollStreamToBottom(behavior));
+    });
+    return () => window.cancelAnimationFrame(frame);
+    // latestMessageId alone tracks new messages; do not depend on the messages array.
+  }, [activeId, latestMessageId, loading]);
+
+  useEffect(() => {
+    if (sending || pendingScroll || !refocusComposerRef.current) return;
+    if (isDmRestricted) return;
+    refocusComposerRef.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      composerInputRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [sending, pendingScroll, isDmRestricted, activeId]);
 
   const filteredConversations = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -328,6 +415,7 @@ export default function MessagesView({
 
   async function openConversation(id: string) {
     setActiveId(id);
+    setModerationWarning(null);
     setMobileChatOpen(true);
     setPendingScroll({ bookingId: "", latest: true });
     setConversations((current) =>
@@ -353,33 +441,169 @@ export default function MessagesView({
     setMobileChatOpen(false);
   }
 
-  async function sendMessage(event?: FormEvent) {
+  useEffect(() => {
+    setChatMenuOpen(false);
+    setChatConfirm(null);
+  }, [activeId]);
+
+  useEffect(() => {
+    if (!chatMenuOpen) return;
+    function onPointerDown(event: PointerEvent) {
+      if (!chatMenuRef.current?.contains(event.target as Node)) {
+        setChatMenuOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setChatMenuOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [chatMenuOpen]);
+
+  function requestClearMessages() {
+    if (!activeConversation || clearing) return;
+    setChatMenuOpen(false);
+    setChatConfirm("clear");
+  }
+
+  function requestDeleteChat() {
+    if (!activeConversation || clearing) return;
+    setChatMenuOpen(false);
+    setChatConfirm("delete");
+  }
+
+  async function confirmChatAction() {
+    if (!activeConversation || clearing || !chatConfirm) return;
+
+    setClearing(true);
+    setError(null);
+    try {
+      const scopeQuery = chatConfirm === "delete" ? "?scope=thread" : "";
+      const response = await fetch(`/api/feed/messages/${activeConversation.id}${scopeQuery}`, {
+        method: "DELETE",
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        conversation?: Conversation;
+        deleted?: boolean;
+        threadId?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(
+          payload?.error?.trim() ||
+            (chatConfirm === "delete" ? "Could not delete chat." : "Could not clear messages."),
+        );
+      }
+
+      if (chatConfirm === "delete") {
+        const removedId = activeConversation.id;
+        const remaining = conversations.filter((conversation) => conversation.id !== removedId);
+        setConversations(remaining);
+        setActiveId(remaining[0]?.id ?? "");
+        if (remaining.length === 0) setMobileChatOpen(false);
+        setModerationWarning(null);
+        setDraft("");
+        lastMessageIdRef.current = "";
+      } else if (payload?.conversation) {
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === payload.conversation!.id ? payload.conversation! : conversation,
+          ),
+        );
+        setModerationWarning(null);
+        setDraft("");
+        lastMessageIdRef.current = "";
+      } else {
+        throw new Error("Could not clear messages.");
+      }
+      setChatConfirm(null);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : chatConfirm === "delete"
+            ? "Could not delete chat."
+            : "Could not clear messages.",
+      );
+      setChatConfirm(null);
+    } finally {
+      setClearing(false);
+    }
+  }
+
+  async function sendMessage(event?: FormEvent, opts?: { acceptModeration?: boolean; body?: string }) {
     event?.preventDefault();
-    const trimmed = draft.trim();
+    const trimmed = (opts?.body ?? draft).trim();
     if (!trimmed || !activeConversation || sending) return;
 
     setSending(true);
-    setDraft("");
     setError(null);
+    if (!opts?.acceptModeration) {
+      setModerationWarning(null);
+    }
 
     try {
       const response = await fetch(`/api/feed/messages/${activeConversation.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: trimmed }),
+        body: JSON.stringify({
+          body: trimmed,
+          ...(opts?.acceptModeration ? { acceptModeration: true } : {}),
+        }),
       });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? "Could not send message.");
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        code?: string;
+        conversation?: Conversation;
+        moderation?: {
+          title: string;
+          message: string;
+          category: string;
+          confidence: number;
+          verificationFailed?: boolean;
+        };
+      } | null;
+
+      if (
+        response.status === 422 &&
+        payload?.moderation &&
+        (payload.code === "DM_MODERATION_WARNING" || !payload.conversation)
+      ) {
+        setDraft(trimmed);
+        setModerationWarning({
+          title: payload.moderation.title,
+          message: payload.moderation.message,
+          category: payload.moderation.category,
+          confidence: payload.moderation.confidence,
+          verificationFailed: payload.moderation.verificationFailed,
+          pendingBody: trimmed,
+        });
+        setError(null);
+        return;
       }
-      const data = (await response.json()) as { conversation: Conversation };
+
+      if (!response.ok || !payload?.conversation) {
+        throw new Error(
+          payload?.error?.trim() ||
+            (response.status === 500
+              ? "Could not send message. If this keeps happening, restart the app and try again."
+              : "Could not send message."),
+        );
+      }
+
+      setDraft("");
+      setModerationWarning(null);
       setConversations((current) => {
         const updated = current.map((conversation) =>
-          conversation.id === data.conversation.id ? data.conversation : conversation,
+          conversation.id === payload.conversation!.id ? payload.conversation! : conversation,
         );
         return [...updated].sort((a, b) => {
-          if (a.id === data.conversation.id) return -1;
-          if (b.id === data.conversation.id) return 1;
+          if (a.id === payload.conversation!.id) return -1;
+          if (b.id === payload.conversation!.id) return 1;
           return 0;
         });
       });
@@ -388,6 +612,7 @@ export default function MessagesView({
       setDraft(trimmed);
       setError(err instanceof Error ? err.message : "Could not send message.");
     } finally {
+      refocusComposerRef.current = true;
       setSending(false);
     }
   }
@@ -500,14 +725,81 @@ export default function MessagesView({
                       </div>
                     </div>
 
-                    <div className="messages-chat__actions">
-                      <button type="button" className="btn btn--sm btn--icon btn--secondary" aria-label="More options">
+                    <div className="messages-chat__actions" ref={chatMenuRef}>
+                      <button
+                        type="button"
+                        className="btn btn--sm btn--icon btn--secondary"
+                        aria-label="More options"
+                        aria-haspopup="menu"
+                        aria-expanded={chatMenuOpen}
+                        disabled={clearing}
+                        onClick={() => setChatMenuOpen((open) => !open)}
+                      >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                           <circle cx="12" cy="5" r="1.75" />
                           <circle cx="12" cy="12" r="1.75" />
                           <circle cx="12" cy="19" r="1.75" />
                         </svg>
                       </button>
+                      {chatMenuOpen ? (
+                        <div className="messages-chat__menu" role="menu" aria-label="Chat options">
+                          <button
+                            type="button"
+                            className="messages-chat__menu-item"
+                            role="menuitem"
+                            disabled={clearing}
+                            onClick={requestClearMessages}
+                          >
+                            <svg
+                              className="messages-chat__menu-icon"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4h8v2" />
+                              <path d="M19 6l-1 14H6L5 6" />
+                              <path d="M10 11v6" />
+                              <path d="M14 11v6" />
+                            </svg>
+                            <span>Clear Messages</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="messages-chat__menu-item messages-chat__menu-item--danger"
+                            role="menuitem"
+                            disabled={clearing}
+                            onClick={requestDeleteChat}
+                          >
+                            <svg
+                              className="messages-chat__menu-icon"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4h8v2" />
+                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                              <path d="M10 11v6" />
+                              <path d="M14 11v6" />
+                              <path d="M4 6l1-2h14l1 2" />
+                            </svg>
+                            <span>Delete Chat</span>
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </header>
 
@@ -556,9 +848,37 @@ export default function MessagesView({
                       return (
                         <article
                           key={message.id}
-                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}`}
+                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}`}
                         >
-                          <p>{message.body}</p>
+                          {message.contentMasked && message.sender === "them" ? (
+                            <div className="messages-bubble__masked">
+                              <span className="messages-bubble__masked-icon" aria-hidden="true">
+                                <svg
+                                  width="15"
+                                  height="15"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.25"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                  <line x1="12" y1="9" x2="12" y2="13" />
+                                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                                </svg>
+                              </span>
+                              <div className="messages-bubble__masked-copy">
+                                <p className="messages-bubble__masked-label">Hidden by safety filter</p>
+                                <p className="messages-bubble__masked-body">{message.body}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p>{message.body}</p>
+                          )}
+                          {message.contentMasked && message.sender === "me" ? (
+                            <span className="messages-bubble__masked-note">Shown masked to recipient</span>
+                          ) : null}
                           <time>{message.time}</time>
                         </article>
                       );
@@ -586,28 +906,81 @@ export default function MessagesView({
                         </span>
                       </div>
                     ) : (
-                      <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>
-                        <label className="sr-only" htmlFor="messages-composer-input">
-                          Write a message
-                        </label>
-                        <input
-                          id="messages-composer-input"
-                          className="messages-composer__input"
-                          type="text"
-                          value={draft}
-                          onChange={(event) => setDraft(event.target.value)}
-                          placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
-                          autoComplete="off"
-                          disabled={sending}
-                        />
-                        <button
-                          type="submit"
-                          className="btn btn--primary btn--sm messages-composer__send"
-                          disabled={!draft.trim() || sending}
-                        >
-                          Send
-                        </button>
-                      </form>
+                      <>
+                        {moderationWarning ? (
+                          <div
+                            className="messages-chat__moderation"
+                            role="alertdialog"
+                            aria-labelledby="dm-moderation-title"
+                          >
+                            <strong id="dm-moderation-title" className="messages-chat__moderation-title">
+                              {moderationWarning.title}
+                            </strong>
+                            <p className="messages-chat__moderation-body">{moderationWarning.message}</p>
+                            {!moderationWarning.verificationFailed ? (
+                              <p className="messages-chat__moderation-meta">
+                                Flagged as {moderationWarning.category.toLowerCase()} (severity{" "}
+                                {Math.round(moderationWarning.confidence * 6)}/6)
+                              </p>
+                            ) : null}
+                            <div className="messages-chat__moderation-actions">
+                              <button
+                                type="button"
+                                className="btn btn--sm btn--secondary"
+                                disabled={sending}
+                                onClick={() => setModerationWarning(null)}
+                              >
+                                Edit message
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--sm btn--primary"
+                                disabled={sending}
+                                onClick={() =>
+                                  void sendMessage(undefined, {
+                                    acceptModeration: true,
+                                    body: moderationWarning.pendingBody,
+                                  })
+                                }
+                              >
+                                {sending ? "Sending…" : "Send anyway"}
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+                        <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>
+                          <label className="sr-only" htmlFor="messages-composer-input">
+                            Write a message
+                          </label>
+                          <input
+                            id="messages-composer-input"
+                            ref={composerInputRef}
+                            className="messages-composer__input"
+                            type="text"
+                            value={draft}
+                            onChange={(event) => {
+                              const next = event.target.value;
+                              setDraft(next);
+                              // Only dismiss the warning once the user actually edits the flagged text.
+                              if (
+                                moderationWarning &&
+                                next.trim() !== moderationWarning.pendingBody.trim()
+                              ) {
+                                setModerationWarning(null);
+                              }
+                            }}
+                            placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
+                            autoComplete="off"
+                          />
+                          <button
+                            type="submit"
+                            className="btn btn--primary btn--sm messages-composer__send"
+                            disabled={!draft.trim() || sending}
+                          >
+                            {sending ? "Sending…" : "Send"}
+                          </button>
+                        </form>
+                      </>
                     )}
                   </footer>
                 </>
@@ -621,6 +994,58 @@ export default function MessagesView({
         </main>
         <MobileNav />
       </div>
+      {chatConfirm && activeConversation ? (
+        <div
+          className="modal-backdrop is-open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="chat-confirm-title"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeChatConfirm();
+          }}
+        >
+          <div className="modal messages-clear-modal text-center" ref={clearDialogRef} tabIndex={-1}>
+            <h2 id="chat-confirm-title">
+              {chatConfirm === "delete" ? "Delete chat?" : "Clear messages?"}
+            </h2>
+            <p className="subtitle mt-4">
+              {chatConfirm === "delete" ? (
+                <>
+                  Delete your chat with <strong>{activeConversation.participant.name}</strong> and remove
+                  them from your messages list? This only affects your inbox and can’t be undone.
+                </>
+              ) : (
+                <>
+                  Clear all messages in your chat with <strong>{activeConversation.participant.name}</strong>?
+                  This only clears the conversation on your side and can’t be undone.
+                </>
+              )}
+            </p>
+            <button
+              type="button"
+              className="btn btn--primary mt-8"
+              onClick={() => void confirmChatAction()}
+              disabled={clearing}
+            >
+              {clearing
+                ? chatConfirm === "delete"
+                  ? "Deleting…"
+                  : "Clearing…"
+                : chatConfirm === "delete"
+                  ? "Yes, delete chat"
+                  : "Yes, clear messages"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--outline-info mt-3"
+              onClick={closeChatConfirm}
+              disabled={clearing}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

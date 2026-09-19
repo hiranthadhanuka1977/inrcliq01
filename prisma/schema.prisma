@@ -67,6 +67,7 @@ model User {
   chatThreads            ChatThread[]
   subscriptions          CreatorSubscription[]
   follows                CreatorFollow[]
+  hiddenFeedPosts        FeedHiddenPost[]
   specialRequests        SpecialRequest[]
   creatorProfile         CreatorUser?
   authoredFeedPosts      FeedPost[]
@@ -426,6 +427,8 @@ model ChatMessage {
   threadId         String
   body             String
   fromMe           Boolean
+  /// When true, recipients (fromMe=false) see a masked placeholder instead of `body`.
+  contentMasked    Boolean  @default(false)
   specialRequestId String?
   createdAt        DateTime @default(now())
 
@@ -516,4 +519,18 @@ model CreatorFollow {
   @@unique([userId, creatorId])
   @@index([userId, createdAt])
   @@index([creatorId])
+}
+
+/// Per-user feed dismissals (“Remove this post from my feed”).
+model FeedHiddenPost {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+  @@index([postId])
 }

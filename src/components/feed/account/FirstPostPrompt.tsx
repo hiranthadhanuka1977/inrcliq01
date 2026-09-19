@@ -251,11 +251,13 @@ export default function FirstPostPrompt({
   const rootRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageWarningRef = useRef<HTMLDivElement>(null);
+  const textWarningRef = useRef<HTMLDivElement>(null);
 
   const [visible, setVisible] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [imageWarning, setImageWarning] = useState<ImageModerationBlock | null>(null);
+  const [textWarning, setTextWarning] = useState<ImageModerationBlock | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [moderating, setModerating] = useState(false);
@@ -316,6 +318,11 @@ export default function FirstPostPrompt({
     if (!imageWarning) return;
     imageWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [imageWarning]);
+
+  useEffect(() => {
+    if (!textWarning) return;
+    textWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [textWarning]);
 
   useEffect(() => {
     if (!panel) return;
@@ -552,6 +559,7 @@ export default function FirstPostPrompt({
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    setTextWarning(null);
     const unverifiedImage = media.find((item) => item.kind === "image" && !item.moderationPassed);
     if (unverifiedImage) {
       setError("One or more photos did not pass the safety check. Remove them and try again.");
@@ -587,12 +595,20 @@ export default function FirstPostPrompt({
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
         profileHref?: string | null;
+        moderation?: UploadModerationPayload;
       };
+      if (response.status === 422 && data.moderation) {
+        const block = uploadModerationToBlock(data.moderation);
+        setTextWarning(block);
+        setError("");
+        return;
+      }
       if (!response.ok) {
         setError(data.error ?? "Unable to publish your post.");
         return;
       }
       setImageWarning(null);
+      setTextWarning(null);
       try {
         window.localStorage.setItem(storageKey, "1");
       } catch {
@@ -683,9 +699,25 @@ export default function FirstPostPrompt({
           maxLength={2000}
           placeholder={firstName ? `What’s on your mind, ${firstName}?` : "What’s on your mind?"}
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            setText(event.target.value);
+            if (textWarning) setTextWarning(null);
+          }}
           disabled={submitting}
+          aria-invalid={Boolean(textWarning)}
         />
+
+        {textWarning ? (
+          <div ref={textWarningRef} className="composer-image-warning" role="alert" aria-live="assertive">
+            <strong className="composer-image-warning__title">{textWarning.title}</strong>
+            <p className="composer-image-warning__body">{textWarning.message}</p>
+            <p className="composer-image-warning__meta">
+              {textWarning.verificationFailed
+                ? "Your post was not published. Edit the text and try again."
+                : `Flagged as ${textWarning.category.toLowerCase()} (severity ${Math.round(textWarning.confidence * 6)}/6). Your post was not published.`}
+            </p>
+          </div>
+        ) : null}
 
         {hasAttachment ? (
           <div className="composer-chips" aria-label="Added to this post">

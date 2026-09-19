@@ -227,6 +227,7 @@
   gap: 0.125rem;
   flex-shrink: 0;
   align-self: center;
+  position: relative;
 }
 
 .feed-surface--simple .more,
@@ -271,6 +272,87 @@
 .feed-surface--simple .post-head__close:hover {
   background: var(--color-brand-primary-subtle);
   color: var(--color-text-primary);
+}
+
+.feed-surface--simple .post-head__close-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 20;
+  min-width: 15.5rem;
+  max-width: min(18rem, calc(100vw - 2rem));
+  padding: 0.35rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+  box-shadow: 0 10px 28px color-mix(in srgb, #000 28%, transparent);
+  color: var(--color-text-primary);
+}
+
+.feed-surface--simple .post-head__close-menu-item {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.feed-surface--simple .post-head__close-menu-item:hover,
+.feed-surface--simple .post-head__close-menu-item:focus-visible {
+  background: color-mix(in srgb, var(--color-neutral-100) 80%, transparent);
+  outline: none;
+}
+
+.feed-surface--simple .post-head__close-menu-item--danger {
+  color: #f87171;
+}
+
+.feed-surface--simple .post-head__close-menu-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feed-surface--simple .post-head__close-menu-error {
+  margin: 0.25rem 0.55rem 0.45rem;
+  color: #f87171;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.post-delete-modal {
+  max-width: 22rem;
+}
+
+.post-delete-modal .subtitle {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.post-delete-modal .btn + .btn {
+  display: block;
+  width: 100%;
+}
+
+.post-delete-modal .btn--primary {
+  width: 100%;
+}
+
+.post-delete-modal__error {
+  margin: 0;
+  color: #f87171;
+  font-size: 0.88rem;
+  line-height: 1.4;
 }
 
 /* Body copy */

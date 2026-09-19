@@ -11,6 +11,8 @@ export type ChatMessage = {
   sender: MessageSender;
   body: string;
   time: string;
+  /** True when the peer sees a safety-masked placeholder instead of the raw body. */
+  contentMasked?: boolean;
   booking?: BookingConfirmationPayload;
   bookingNote?: BookingNotePayload;
 };

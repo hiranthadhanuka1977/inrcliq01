@@ -6,12 +6,14 @@ import {
   parseBookingNote,
   withCreatorName,
 } from "@/lib/feed/booking-confirmation";
+import { MASKED_DM_BODY, MASKED_DM_PREVIEW } from "@/lib/guardian/is-user-minor";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type DbMessage = {
   id: string;
   body: string;
   fromMe: boolean;
+  contentMasked?: boolean;
   createdAt: Date;
 };
 
@@ -78,19 +80,27 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
       : undefined;
 
     const isStructured = Boolean(booking || bookingNote);
+    const contentMasked = Boolean(message.contentMasked);
+    // Never expose the raw body to the recipient when the message is safety-masked.
+    const displayBody =
+      contentMasked && !message.fromMe
+        ? MASKED_DM_BODY
+        : booking
+          ? bookingMessagePreview(
+              booking,
+              message.fromMe ? "requester" : "provider",
+              message.fromMe ? undefined : thread.peerName,
+            )
+          : bookingNote
+            ? bookingNotePreview(bookingNote)
+            : message.body;
+
     return {
       id: message.id,
       sender: message.fromMe ? "me" : "them",
-      body: booking
-        ? bookingMessagePreview(
-            booking,
-            message.fromMe ? "requester" : "provider",
-            message.fromMe ? undefined : thread.peerName,
-          )
-        : bookingNote
-          ? bookingNotePreview(bookingNote)
-          : message.body,
+      body: displayBody,
       time: isStructured ? formatChatClock(message.createdAt) : formatChatTime(message.createdAt),
+      contentMasked: contentMasked || undefined,
       booking,
       bookingNote,
     };
@@ -113,16 +123,21 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
 
   const last = messages[messages.length - 1];
   const previewSource = thread.preview ?? last?.body ?? "";
-  const previewBookingRaw = parseBookingMessage(previewSource);
+  const lastDb = thread.messages[thread.messages.length - 1];
+  const previewIsMasked =
+    Boolean(lastDb?.contentMasked) && lastDb?.fromMe === false && !last?.booking && !last?.bookingNote;
+  const previewBookingRaw = previewIsMasked ? null : parseBookingMessage(previewSource);
   const previewBooking = previewBookingRaw
     ? withCreatorName(previewBookingRaw, thread.peerName)
     : null;
-  const previewNote = previewBooking ? null : parseBookingNote(previewSource);
+  const previewNote = previewIsMasked || previewBooking ? null : parseBookingNote(previewSource);
 
   return {
     id: thread.id,
     participant,
-    preview: previewBooking
+    preview: previewIsMasked
+      ? MASKED_DM_PREVIEW
+      : previewBooking
       ? bookingMessagePreview(
           previewBooking,
           last?.sender === "me" ? "requester" : "provider",

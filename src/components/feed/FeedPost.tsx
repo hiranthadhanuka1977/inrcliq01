@@ -276,24 +276,111 @@ type FeedPostProps = {
 export default function FeedPost({ item, following, onFollowingChange, hideFollow = false }: FeedPostProps) {
   const { author } = item;
   const [hidden, setHidden] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [localFollowing, setLocalFollowing] = useState(item.relationship.following);
   const [reaction, setReaction] = useState<FeedReactionId | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerMode, setViewerMode] = useState<"media" | "comments">("media");
   const [videoIndex, setVideoIndex] = useState(0);
+  const toolsRef = useRef<HTMLDivElement | null>(null);
+  const deleteDialogRef = useRef<HTMLDivElement | null>(null);
+  const isOwnPost = Boolean(item.is_own);
 
   useEffect(() => {
     setLocalFollowing(item.relationship.following);
   }, [item.id, item.relationship.following]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node | null;
+      if (!target || toolsRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!deleteConfirmOpen) return;
+    deleteDialogRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !actionBusy) {
+        setDeleteConfirmOpen(false);
+        setActionError(null);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [deleteConfirmOpen, actionBusy]);
+
   if (hidden) return null;
+
+  async function removeFromFeed() {
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      const response = await fetch("/api/feed/posts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: item.id }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to remove this post from your feed.");
+      }
+      setMenuOpen(false);
+      setHidden(true);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Unable to remove this post from your feed.");
+      setActionBusy(false);
+    }
+  }
+
+  async function confirmDeletePost() {
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      const response = await fetch("/api/feed/posts", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: item.id }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to delete this post.");
+      }
+      setDeleteConfirmOpen(false);
+      setHidden(true);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Unable to delete this post.");
+      setActionBusy(false);
+    }
+  }
 
   const handle = author.handle.startsWith("@") ? author.handle : `@${author.handle}`;
   const profileSlug = resolveAuthorProfileSlug(author.handle, author.slug);
   const creatorSlug = profileSlug;
   const isFollowing = following ?? localFollowing;
-  const showFollow = !hideFollow && !item.is_own;
+  const showFollow = !hideFollow && !isOwnPost;
   const canOpenMedia = item.media ? canOpenMediaViewer(item.media, item.members_only) : false;
   const playableVideo = item.media ? isPlayableVideoMedia(item.media, item.members_only) : false;
   const canOpenComments = !item.members_only;
@@ -393,7 +480,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             </div>
           </div>
         </div>
-        <div className="post-head__tools">
+        <div className="post-head__tools" ref={toolsRef}>
           <button type="button" className="more" aria-label="More options">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <circle cx="5" cy="12" r="1.75" />
@@ -404,14 +491,54 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
           <button
             type="button"
             className="post-head__close"
-            aria-label="Hide post"
-            onClick={() => setHidden(true)}
+            aria-label="Close post options"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            disabled={actionBusy}
+            onClick={() => {
+              setActionError(null);
+              setMenuOpen((open) => !open);
+            }}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M18 6 6 18" />
               <path d="m6 6 12 12" />
             </svg>
           </button>
+          {menuOpen ? (
+            <div className="post-head__close-menu" role="menu" aria-label="Post options">
+              {isOwnPost ? (
+                <button
+                  type="button"
+                  className="post-head__close-menu-item post-head__close-menu-item--danger"
+                  role="menuitem"
+                  disabled={actionBusy}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setActionError(null);
+                    setDeleteConfirmOpen(true);
+                  }}
+                >
+                  Delete my post completely
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="post-head__close-menu-item"
+                  role="menuitem"
+                  disabled={actionBusy}
+                  onClick={() => void removeFromFeed()}
+                >
+                  Remove this post from my feed
+                </button>
+              )}
+              {actionError && !deleteConfirmOpen ? (
+                <p className="post-head__close-menu-error" role="alert">
+                  {actionError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -499,6 +626,52 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
           }
           onClose={() => setViewerOpen(false)}
         />
+      ) : null}
+
+      {deleteConfirmOpen ? (
+        <div
+          className="modal-backdrop is-open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`delete-post-title-${item.id}`}
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !actionBusy) {
+              setDeleteConfirmOpen(false);
+              setActionError(null);
+            }
+          }}
+        >
+          <div className="modal post-delete-modal text-center" ref={deleteDialogRef} tabIndex={-1}>
+            <h2 id={`delete-post-title-${item.id}`}>Delete this post?</h2>
+            <p className="subtitle mt-4">
+              Delete this post completely from INRCLIQ? This removes it for everyone and can’t be undone.
+            </p>
+            {actionError ? (
+              <p className="post-delete-modal__error mt-4" role="alert">
+                {actionError}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              className="btn btn--primary mt-8"
+              onClick={() => void confirmDeletePost()}
+              disabled={actionBusy}
+            >
+              {actionBusy ? "Deleting…" : "Yes, delete my post"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--outline-info mt-3"
+              onClick={() => {
+                setDeleteConfirmOpen(false);
+                setActionError(null);
+              }}
+              disabled={actionBusy}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       ) : null}
     </article>
   );
