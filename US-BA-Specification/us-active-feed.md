@@ -1,116 +1,12 @@
-# Regular Feed Post
+# InrCliq Feed/Post Item
 
-Brief feature list for a regular Main Feed post.
-
----
-
-## ERD
-
-```mermaid
-erDiagram
-  User ||--o{ FeedPost : authors
-  User ||--o{ Follow : follows
-  User ||--o{ Like : gives
-  User ||--o{ Comment : writes
-  User ||--o{ Share : shares
-  User ||--o{ Bookmark : bookmarks
-
-  FeedPost ||--o{ PostImage : has
-  FeedPost ||--o{ PostVideo : has
-  FeedPost ||--o{ PostGif : has
-  FeedPost ||--o{ PersonTag : tags
-  FeedPost ||--o| FeelingActivity : may_have
-  FeedPost ||--o| Location : may_have
-  FeedPost ||--o{ Like : receives
-  FeedPost ||--o{ Comment : receives
-  FeedPost ||--o{ Share : receives
-  FeedPost ||--o{ Bookmark : saved_as
-
-  User {
-    string id PK
-    string userName
-    string userHandle
-    boolean verified
-  }
-
-  FeedPost {
-    string id PK
-    string text
-    datetime postedAt
-    boolean exclusive
-    string authorId FK
-  }
-
-  PostImage {
-    string id PK
-    string postId FK
-    string url
-  }
-
-  PostVideo {
-    string id PK
-    string postId FK
-    string url
-  }
-
-  PostGif {
-    string id PK
-    string postId FK
-    string url
-  }
-
-  PersonTag {
-    string id PK
-    string postId FK
-    string personHandle
-  }
-
-  FeelingActivity {
-    string postId PK
-    string label
-  }
-
-  Location {
-    string postId PK
-    string placeName
-  }
-
-  Like {
-    string id PK
-    string postId FK
-    string userId FK
-  }
-
-  Comment {
-    string id PK
-    string postId FK
-    string userId FK
-  }
-
-  Follow {
-    string id PK
-    string followerId FK
-    string followedUserId FK
-  }
-
-  Bookmark {
-    string id PK
-    string postId FK
-    string userId FK
-  }
-
-  Share {
-    string id PK
-    string postId FK
-    string userId FK
-  }
-```
+Brief feature list for an InrCliq Feed/Post item.
 
 ---
 
-## 1. Add to your post
+## 1. Creating a Post and Adding Content
 
-What the author can attach when creating a post.
+What the author can include when creating a post and adding content.
 
 ### 1.1 Text
 Short or longer caption / description lines on the post.
@@ -133,6 +29,9 @@ Tag a place where the post is from.
 ### 1.7 GIF
 Pick a GIF from the library and add it to the post.
 
+### 1.8 Exclusive content option
+Mark the post as exclusive (members-only) content — Yes / No. Available to verified users only.
+
 ---
 
 ## 2. Posted date / time
@@ -142,32 +41,35 @@ Shows when the post was published in relative form (e.g. Just now, 2h, 30m, 1d, 
 Like icon plus like count. The control supports a maximum number of clicks.
 
 ## 4. Comments
-Shows how many comments the post has.
+Shows how many comments the post has. Clicking the comments icon opens a popup with comments.
 
-## 5. User name
-Author’s display name.
+## 5. Profile image
+Author’s profile photo on the post. Clicking it takes the viewer to that user’s public profile.
 
-## 6. User handle
+## 6. User name
+Author’s display name. Clicking it takes the viewer to that user’s public profile.
+
+## 7. User handle
 Author’s @handle.
 
-## 7. Verified state
+## 8. Verified state
 If the author is verified, a star icon is shown.
 
-## 8. Follow user
+## 9. Follow user
 Button to follow that author.
 
-## 9. Share
+## 10. Share
 Share icon to share the post.
 
-## 10. Bookmark
+## 11. Bookmark
 Bookmark icon to save the post.
 
-## 11. Exclusive content flag
-Yes / No flag showing whether the post is exclusive (members-only) content.
+## 12. Exclusive content flag
+If the content is exclusive, a locked icon is shown. Indicates whether a subscription is required to view the content.
 
 ---
 
-## User stories — adding a feed item
+## User stories — creating a feed item
 
 Actors:
 
@@ -179,13 +81,13 @@ Actors:
 ### US-FEED-ADD-01 — Open create post (normal or verified)
 
 **As a** normal or verified user  
-**I want to** open “Add to your post”  
+**I want to** open “Creating a Post and Adding Content”  
 **So that** I can compose a new feed item.
 
 **Acceptance criteria**
 
 1. I can open the create-post composer from the feed.
-2. The composer shows the add-to-post options listed in §1.
+2. The composer shows the options listed under Creating a Post and Adding Content (§1).
 
 ---
 
@@ -290,12 +192,13 @@ Actors:
 
 **Acceptance criteria**
 
-1. After publish, the post shows my user name and user handle.
+1. After publish, the post shows my profile image, user name, and user handle.
 2. Verified star is **not** shown on my post (I am not verified).
 3. Exclusive content flag is **No** — I cannot mark the post as exclusive.
 4. Posted date/time shows in relative form (e.g. Just now).
 5. Likes, comments, share, and bookmark controls are available on the post for viewers.
 6. Other users see a Follow button on my post.
+7. Clicking my profile image on the post opens my public profile.
 
 ---
 
@@ -307,13 +210,14 @@ Actors:
 
 **Acceptance criteria**
 
-1. After publish, the post shows my user name and user handle.
+1. After publish, the post shows my profile image, user name, and user handle.
 2. Verified state is shown with a **star icon**.
 3. I can set Exclusive content flag to **Yes** or leave it **No**.
 4. If Exclusive = Yes, the post is treated as members-only exclusive content.
 5. Posted date/time shows in relative form (e.g. Just now).
 6. Likes, comments, share, and bookmark controls are available on the post for viewers.
 7. Other users see a Follow button on my post.
+8. Clicking my profile image on the post opens my public profile.
 
 ---
 
@@ -334,7 +238,7 @@ Actors:
 ### US-FEED-ADD-12 — Combined add-ons on one post
 
 **As a** normal or verified user  
-**I want to** combine several add-to-post options in one item  
+**I want to** combine several options from Creating a Post and Adding Content in one item  
 **So that** a single post can include text, media, tags, and context together.
 
 **Acceptance criteria**
@@ -342,3 +246,108 @@ Actors:
 1. I can publish any allowed combination of text, images, videos, people tags, feeling/activity, location, and GIF.
 2. All selected add-ons appear on the published feed item.
 3. Verified-only exclusive flag still follows US-FEED-ADD-10 / US-FEED-ADD-11.
+
+---
+
+## ERD
+
+```mermaid
+erDiagram
+  User ||--o{ FeedPost : authors
+  User ||--o{ Follow : follows
+  User ||--o{ Like : gives
+  User ||--o{ Comment : writes
+  User ||--o{ Share : shares
+  User ||--o{ Bookmark : bookmarks
+
+  FeedPost ||--o{ PostImage : has
+  FeedPost ||--o{ PostVideo : has
+  FeedPost ||--o{ PostGif : has
+  FeedPost ||--o{ PersonTag : tags
+  FeedPost ||--o| FeelingActivity : may_have
+  FeedPost ||--o| Location : may_have
+  FeedPost ||--o{ Like : receives
+  FeedPost ||--o{ Comment : receives
+  FeedPost ||--o{ Share : receives
+  FeedPost ||--o{ Bookmark : saved_as
+
+  User {
+    string id PK
+    string userName
+    string userHandle
+    string profileImage
+    boolean verified
+  }
+
+  FeedPost {
+    string id PK
+    string text
+    datetime postedAt
+    boolean exclusive
+    string authorId FK
+  }
+
+  PostImage {
+    string id PK
+    string postId FK
+    string url
+  }
+
+  PostVideo {
+    string id PK
+    string postId FK
+    string url
+  }
+
+  PostGif {
+    string id PK
+    string postId FK
+    string url
+  }
+
+  PersonTag {
+    string id PK
+    string postId FK
+    string personHandle
+  }
+
+  FeelingActivity {
+    string postId PK
+    string label
+  }
+
+  Location {
+    string postId PK
+    string placeName
+  }
+
+  Like {
+    string id PK
+    string postId FK
+    string userId FK
+  }
+
+  Comment {
+    string id PK
+    string postId FK
+    string userId FK
+  }
+
+  Follow {
+    string id PK
+    string followerId FK
+    string followedUserId FK
+  }
+
+  Bookmark {
+    string id PK
+    string postId FK
+    string userId FK
+  }
+
+  Share {
+    string id PK
+    string postId FK
+    string userId FK
+  }
+```
