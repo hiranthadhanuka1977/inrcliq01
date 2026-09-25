@@ -14,6 +14,12 @@ import { ensureChildChatThreadForGuardian } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
+import {
+  AGE_ZONE_DESCRIPTIONS,
+  resolveAgeZoneFromDateOfBirth,
+  type AgeZoneCode,
+} from "@/lib/utils/age-zone";
+import { listAgeZoneDefinitions } from "@/lib/guardian/user-age-zone";
 
 export type FamilyCenterChild = {
   id: string;
@@ -22,6 +28,10 @@ export type FamilyCenterChild = {
   handle: string | null;
   handleLabel: string;
   age: number | null;
+  ageZone: AgeZoneCode | null;
+  ageZoneLabel: string | null;
+  ageZoneIconBadgeKey: string | null;
+  ageZoneIntro: string | null;
   protectionLevel: ProtectionTier | null;
   protectionLevelLabel: string;
   linkedAt: string;
@@ -132,6 +142,11 @@ export const getFamilyCenterForSession = cache(async function getFamilyCenterFor
     },
   });
 
+  const ageZoneDefinitions = await listAgeZoneDefinitions();
+  const ageZoneByCode = Object.fromEntries(
+    ageZoneDefinitions.map((definition) => [definition.zone, definition]),
+  ) as Partial<Record<AgeZoneCode, (typeof ageZoneDefinitions)[number]>>;
+
   const children: FamilyCenterChild[] = await Promise.all(
     links.map(async (link) => {
       const child = link.childUser;
@@ -150,6 +165,9 @@ export const getFamilyCenterForSession = cache(async function getFamilyCenterFor
           child.dateOfBirth.getFullYear(),
         );
       }
+
+      const ageZone = resolveAgeZoneFromDateOfBirth(child.dateOfBirth);
+      const ageZoneDefinition = ageZone ? ageZoneByCode[ageZone] : null;
 
       const tier =
         link.protectionLevel && link.protectionLevel in PROTECTION_TIER_LABELS
@@ -181,6 +199,12 @@ export const getFamilyCenterForSession = cache(async function getFamilyCenterFor
         handle,
         handleLabel,
         age,
+        ageZone,
+        ageZoneLabel: ageZoneDefinition?.label ?? null,
+        ageZoneIconBadgeKey: ageZoneDefinition?.iconBadgeKey ?? null,
+        ageZoneIntro:
+          ageZoneDefinition?.description ??
+          (ageZone ? AGE_ZONE_DESCRIPTIONS[ageZone] : null),
         protectionLevel: tier,
         protectionLevelLabel: tier ? PROTECTION_TIER_LABELS[tier] : "Not set",
         linkedAt: linkedAt.toISOString(),

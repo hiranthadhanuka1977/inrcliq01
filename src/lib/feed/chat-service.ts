@@ -505,6 +505,7 @@ export async function sendChatMessage(
   }
 
   let contentMasked = false;
+  let moderationCategory: string | null = null;
   const receiverUserId = await resolveReceiverUserId(thread);
   if (!receiverUserId) {
     console.warn("[moderation] DM receiver unresolved for thread", threadId);
@@ -535,6 +536,11 @@ export async function sendChatMessage(
   } else {
     // Sender confirmed the safety warning — always deliver a masked copy to the recipient.
     contentMasked = true;
+    const { moderateDmText } = await import("@/lib/moderation/dm-text-moderation");
+    const moderation = await moderateDmText(trimmed, { recipientIsMinor });
+    if (!moderation.allowed) {
+      moderationCategory = moderation.category;
+    }
   }
 
   const [message] = await prisma.$transaction([
@@ -560,6 +566,21 @@ export async function sendChatMessage(
     await mirrorChatMessageToPeer(userId, thread, trimmed, contentMasked);
   } catch (error) {
     console.error("chat mirror to peer failed", error);
+  }
+
+  if (contentMasked) {
+    try {
+      const { createDmModerationSafetyAlerts } = await import("@/lib/guardian/safety-alerts");
+      await createDmModerationSafetyAlerts({
+        senderUserId: userId,
+        receiverUserId,
+        chatThreadId: threadId,
+        chatMessageId: message.id,
+        category: moderationCategory,
+      });
+    } catch (error) {
+      console.error("guardian safety alert create failed", error);
+    }
   }
 
   return getChatThreadForUser(userId, threadId).then((fresh) => ({

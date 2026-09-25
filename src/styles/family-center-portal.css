@@ -213,6 +213,11 @@ html:not([data-feed-theme="light"]) .family-portal-header__brand .logo__img {
   flex-shrink: 0;
 }
 
+.family-portal-nav__badge--alert {
+  background: var(--color-warning);
+  color: #1a1a1a;
+}
+
 .family-portal-nav__link:hover,
 .family-portal-nav__link.is-active {
   background: var(--color-bg-subtle);

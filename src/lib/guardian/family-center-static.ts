@@ -23,7 +23,7 @@ export function buildControlHealthForChild(child: FamilyCenterChild) {
   return {
     childId: child.id,
     childName: child.firstName,
-    zone: zoneLabelForAge(child.age),
+    zone: child.ageZoneLabel ?? zoneLabelForAge(child.age),
     tier: child.protectionLevelLabel,
     items: [
       {
@@ -54,31 +54,24 @@ export function buildControlHealthForChild(child: FamilyCenterChild) {
   };
 }
 
-/** Static prototype content — not wired to backend yet. */
-export function staticDashboardExtras(children: FamilyCenterChild[]) {
+/** Dashboard extras — alerts come from persisted GuardianSafetyAlert rows when provided. */
+export function staticDashboardExtras(
+  children: FamilyCenterChild[],
+  options?: { alerts?: import("@/lib/guardian/safety-alerts").FamilySafetyAlertCard[] },
+) {
   const primaryChild = children[0];
   const childName = primaryChild?.firstName ?? "your child";
+  const alerts = options?.alerts ?? [];
+  const unresolvedAlerts = alerts.filter((alert) =>
+    alert.status.toLowerCase().includes("awaiting"),
+  ).length;
 
   return {
-    unresolvedAlerts: children.length > 0 ? 1 : 0,
+    unresolvedAlerts,
     pendingRequests: children.length > 0 ? 1 : 0,
     controlsHealthyCount: children.length,
     controlsTotal: children.length,
-    alerts:
-      children.length > 0
-        ? [
-            {
-              id: "alert-demo-1",
-              priority: "high" as const,
-              priorityLabel: "High priority",
-              childName: primaryChild?.fullName ?? "Linked account",
-              category: "Wellbeing safety concern",
-              actionTaken: "Content was not shared and is under review.",
-              timeAgo: "2h ago",
-              status: "Awaiting acknowledgement",
-            },
-          ]
-        : [],
+    alerts,
     requests:
       children.length > 0
         ? [
@@ -124,7 +117,7 @@ export function filterFamilyActivityForChild(
   return items.filter((item) => item.childId === childId);
 }
 
-/** Static prototype activity feed — not wired to backend yet. */
+/** Static prototype activity feed — not wired to backend yet (except safety, which is merged live). */
 export function staticFamilyActivityHistory(children: FamilyCenterChild[]): FamilyActivityItem[] {
   if (children.length === 0) return [];
 
@@ -134,14 +127,6 @@ export function staticFamilyActivityHistory(children: FamilyCenterChild[]): Fami
   const firstName = primaryChild.firstName;
 
   const base: FamilyActivityItem[] = [
-    activityForChild(primaryChild, {
-      id: "activity-1",
-      type: "safety",
-      title: "Safety alert raised",
-      detail: "Wellbeing safety concern detected. Content was not shared and is under review.",
-      timeAgo: "2h ago",
-      dayLabel: "Today",
-    }),
     activityForChild(primaryChild, {
       id: "activity-2",
       type: "request",
@@ -183,14 +168,6 @@ export function staticFamilyActivityHistory(children: FamilyCenterChild[]): Fami
       dayLabel: "Earlier this week",
     }),
     activityForChild(primaryChild, {
-      id: "activity-7",
-      type: "safety",
-      title: "Safety alert acknowledged",
-      detail: "You reviewed a prior wellbeing alert and marked it as acknowledged.",
-      timeAgo: "5 days ago",
-      dayLabel: "Earlier this week",
-    }),
-    activityForChild(primaryChild, {
       id: "activity-8",
       type: "control",
       title: "Direct messaging restricted",
@@ -217,14 +194,6 @@ export function staticFamilyActivityHistory(children: FamilyCenterChild[]): Fami
       dayLabel: "Last month",
     },
     activityForChild(primaryChild, {
-      id: "activity-11",
-      type: "safety",
-      title: "Routine safety scan completed",
-      detail: "No new high-priority safety events were detected for this account.",
-      timeAgo: "2 weeks ago",
-      dayLabel: "Last month",
-    }),
-    activityForChild(primaryChild, {
       id: "activity-12",
       type: "control",
       title: "Safety alerts enabled",
@@ -243,14 +212,6 @@ export function staticFamilyActivityHistory(children: FamilyCenterChild[]): Fami
       timeAgo: "2 days ago",
       dayLabel: "Earlier this week",
     }));
-    base.splice(1, 0, activityForChild(secondaryChild, {
-      id: "activity-2b",
-      type: "safety",
-      title: "Safety alert raised",
-      detail: "Wellbeing safety concern detected. Content was not shared and is under review.",
-      timeAgo: "3h ago",
-      dayLabel: "Today",
-    }));
     base.splice(4, 0, activityForChild(secondaryChild, {
       id: "activity-4b",
       type: "control",
@@ -262,6 +223,41 @@ export function staticFamilyActivityHistory(children: FamilyCenterChild[]): Fami
   }
 
   return base;
+}
+
+/** Live safety alerts first, then remaining prototype activity (non-safety), grouped by day. */
+export function buildFamilyActivityHistory(
+  children: FamilyCenterChild[],
+  safetyItems: FamilyActivityItem[],
+): FamilyActivityItem[] {
+  const staticItems = staticFamilyActivityHistory(children);
+  const merged = [...safetyItems, ...staticItems];
+
+  const dayRank = (label: string) => {
+    switch (label) {
+      case "Today":
+        return 0;
+      case "Yesterday":
+        return 1;
+      case "Earlier this week":
+        return 2;
+      case "Last week":
+        return 3;
+      case "Last month":
+        return 4;
+      default:
+        return 5;
+    }
+  };
+
+  return merged.sort((a, b) => {
+    const byDay = dayRank(a.dayLabel) - dayRank(b.dayLabel);
+    if (byDay !== 0) return byDay;
+    // Keep safety events ahead of prototype items within the same day.
+    if (a.type === "safety" && b.type !== "safety") return -1;
+    if (b.type === "safety" && a.type !== "safety") return 1;
+    return 0;
+  });
 }
 
 export function hasUnreadFamilyActivity(children: FamilyCenterChild[]) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { FamilyCenterChild } from "@/lib/guardian/family-center";
 
 const NAV_ITEMS: ReadonlyArray<{
@@ -80,6 +80,8 @@ const NAV_ITEMS: ReadonlyArray<{
   },
 ];
 
+const ALERT_COUNT_POLL_MS = 30_000;
+
 function NavAccountAvatars({ linkedChildren }: { linkedChildren: FamilyCenterChild[] }) {
   const visible = linkedChildren.slice(0, 3);
   const overflow = linkedChildren.length - visible.length;
@@ -127,9 +129,61 @@ export function FamilyCenterNav({
   linkedChildren?: FamilyCenterChild[];
 }) {
   const pathname = usePathname();
+  const [liveAlertCount, setLiveAlertCount] = useState(alertCount);
+
+  useEffect(() => {
+    setLiveAlertCount(alertCount);
+  }, [alertCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshAlertCount() {
+      try {
+        const response = await fetch("/api/family-circle/alerts", {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+        const data = (await response.json()) as { unresolvedCount?: number };
+        if (!cancelled && typeof data.unresolvedCount === "number") {
+          setLiveAlertCount(data.unresolvedCount);
+        }
+      } catch {
+        // Keep the last known count if the poll fails.
+      }
+    }
+
+    void refreshAlertCount();
+    const intervalId = window.setInterval(() => {
+      void refreshAlertCount();
+    }, ALERT_COUNT_POLL_MS);
+
+    function onVisibility() {
+      if (document.visibilityState === "visible") {
+        void refreshAlertCount();
+      }
+    }
+
+    function onAlertsChanged() {
+      void refreshAlertCount();
+    }
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onVisibility);
+    window.addEventListener("family-circle:alerts-changed", onAlertsChanged);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onVisibility);
+      window.removeEventListener("family-circle:alerts-changed", onAlertsChanged);
+    };
+  }, [pathname]);
 
   function badgeFor(key?: "alerts" | "requests" | "accounts") {
-    if (key === "alerts" && alertCount > 0) return alertCount;
+    if (key === "alerts" && liveAlertCount > 0) return liveAlertCount;
     if (key === "requests" && requestCount > 0) return requestCount;
     if (key === "accounts" && accountCount > 0 && linkedChildren.length === 0) return accountCount;
     return null;
@@ -148,6 +202,10 @@ export function FamilyCenterNav({
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const badge = badgeFor(item.badgeKey);
           const showAccountAvatars = item.badgeKey === "accounts" && linkedChildren.length > 0;
+          const ariaLabel =
+            item.badgeKey === "alerts" && badge != null
+              ? `${item.label}, ${badge} new`
+              : item.label;
 
           return (
             <li key={item.href}>
@@ -155,7 +213,7 @@ export function FamilyCenterNav({
                 href={item.href}
                 className={`family-portal-nav__link${isActive ? " is-active" : ""}${showAccountAvatars ? " family-portal-nav__link--accounts" : ""}`}
                 aria-current={isActive ? "page" : undefined}
-                aria-label={item.label}
+                aria-label={ariaLabel}
               >
                 <span
                   className={`family-portal-nav__icon${showAccountAvatars ? " family-portal-nav__icon--accounts" : ""}`}
@@ -170,8 +228,13 @@ export function FamilyCenterNav({
                   ) : null}
                 </span>
                 {badge != null ? (
-                  <span className="family-portal-nav__badge" aria-hidden="true">
-                    {badge}
+                  <span
+                    className={`family-portal-nav__badge${
+                      item.badgeKey === "alerts" ? " family-portal-nav__badge--alert" : ""
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {badge > 99 ? "99+" : badge}
                   </span>
                 ) : null}
               </Link>

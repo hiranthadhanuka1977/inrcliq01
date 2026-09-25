@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { FamilyCenterHeader } from "@/components/guardian/family-center/FamilyCenterHeader";
 import { FamilyCenterNav } from "@/components/guardian/family-center/FamilyCenterNav";
 import { FeedSessionProvider } from "@/context/feed/FeedSessionContext";
-import { hasUnreadFamilyActivity, staticDashboardExtras } from "@/lib/guardian/family-center-static";
+import { getFamilyCenterDashboardExtras } from "@/lib/guardian/family-center-dashboard";
+import { hasUnreadFamilyActivity } from "@/lib/guardian/family-center-static";
 import { requireFamilyCenterSession } from "@/lib/guardian/require-family-center";
 import { getSessionNavProfile } from "@/lib/feed/session-nav-profile";
 import "@/styles/feed/account-profile.css";
 import "@/styles/feed/family-center.css";
 import "@/styles/family-center-portal.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "INRCLIQ · Family Circle",
@@ -23,7 +26,7 @@ export default async function FamilyCenterLayout({
     getSessionNavProfile(),
     requireFamilyCenterSession(),
   ]);
-  const extras = staticDashboardExtras(data.children);
+  const extras = await getFamilyCenterDashboardExtras(data);
   const firstName =
     navProfile.firstName || data.guardianName?.split(/\s+/)[0] || null;
 

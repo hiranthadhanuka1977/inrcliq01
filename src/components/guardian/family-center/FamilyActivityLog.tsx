@@ -19,11 +19,18 @@ type ActivityLogRow =
 function buildLogRows(items: FamilyActivityItem[]): ActivityLogRow[] {
   const rows: ActivityLogRow[] = [];
   let lastDay = "";
+  let dayHeaderIndex = 0;
 
   for (const item of items) {
     if (item.dayLabel !== lastDay) {
       lastDay = item.dayLabel;
-      rows.push({ kind: "day", id: `day-${item.dayLabel}`, label: item.dayLabel });
+      dayHeaderIndex += 1;
+      // Index keeps keys unique when the same day label reappears after a merge.
+      rows.push({
+        kind: "day",
+        id: `day-${dayHeaderIndex}-${item.dayLabel}`,
+        label: item.dayLabel,
+      });
     }
     rows.push({ kind: "entry", item });
   }

@@ -22,7 +22,7 @@ const TAB_META: Record<FamilyCenterTab, { label: string; title: string; subtitle
   overview: {
     label: "Overview",
     title: "Overview",
-    subtitle: "Protection status, safety alerts, and control requests at a glance.",
+    subtitle: "Look after your linked family’s safety here.",
   },
   accounts: {
     label: "Linked accounts",
@@ -394,7 +394,7 @@ export default function FamilyCenterView({
               <>
                 <section className="family-center__summary" aria-labelledby="family-center-summary">
                   <h2 id="family-center-summary" className="family-center__summary-title">
-                    Dashboard summary
+                    Summary
                   </h2>
                   <div className="family-center__summary-grid">
                     <SummaryStat

@@ -13,6 +13,31 @@ enum AccountType {
   GUARDIAN
 }
 
+/** Developmental / content zone derived from date of birth (current age). */
+enum AgeZone {
+  KIDS
+  TEENS
+  MATURE_TEENS
+  ADULT
+}
+
+/** Lookup row per age zone: label, age bounds, and UI icon badge key. */
+model AgeZoneDefinition {
+  zone            AgeZone  @id
+  label           String
+  /// Stable key used by the UI to render this zone's icon badge.
+  iconBadgeKey    String   @unique
+  description     String?
+  minAgeInclusive Int
+  /// Exclusive upper bound in years; null means no upper limit (Adult).
+  maxAgeExclusive Int?
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users User[]
+}
+
 enum ApprovalStatus {
   PENDING
   APPROVED
@@ -45,6 +70,9 @@ model User {
   lastName      String?
   handle        String?     @unique
   dateOfBirth   DateTime?
+  /// Current age zone from dateOfBirth. Recompute when DOB changes or on birthday refresh.
+  ageZone       AgeZone?
+  ageZoneDefinition AgeZoneDefinition? @relation(fields: [ageZone], references: [zone])
   country       String?
   region        String?
   accountType   AccountType @default(ADULT)
@@ -68,11 +96,15 @@ model User {
   subscriptions          CreatorSubscription[]
   follows                CreatorFollow[]
   hiddenFeedPosts        FeedHiddenPost[]
+  guardianSafetyAlertsAsGuardian GuardianSafetyAlert[] @relation("GuardianSafetyAlertsGuardian")
+  guardianSafetyAlertsAsChild    GuardianSafetyAlert[] @relation("GuardianSafetyAlertsChild")
   specialRequests        SpecialRequest[]
   creatorProfile         CreatorUser?
   authoredFeedPosts      FeedPost[]
   profile                UserProfile?
   specialRequestCatalog  SpecialRequestCatalog?
+
+  @@index([ageZone])
 }
 
 model Account {
@@ -533,4 +565,30 @@ model FeedHiddenPost {
   @@unique([userId, postId])
   @@index([userId, createdAt])
   @@index([postId])
+}
+
+/// Guardian-facing safety alert (e.g. DM text moderation involving a linked child).
+/// Never store raw message bodies here — safe summaries only.
+model GuardianSafetyAlert {
+  id            String   @id @default(cuid())
+  guardianUserId String
+  childUserId   String
+  priority      String   @default("high")
+  category      String
+  actionTaken   String
+  status        String   @default("awaiting_acknowledgement")
+  source        String   @default("dm_text_moderation")
+  chatThreadId  String?
+  chatMessageId String
+  peerUserId    String?
+  createdAt     DateTime @default(now())
+  acknowledgedAt DateTime?
+
+  guardian User @relation("GuardianSafetyAlertsGuardian", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  child    User @relation("GuardianSafetyAlertsChild", fields: [childUserId], references: [id], onDelete: Cascade)
+
+  @@unique([guardianUserId, chatMessageId])
+  @@index([guardianUserId, status, createdAt])
+  @@index([childUserId, createdAt])
+  @@index([chatMessageId])
 }

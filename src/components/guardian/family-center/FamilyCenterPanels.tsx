@@ -6,18 +6,20 @@ import ProtectionTierIcon from "@/components/guardian/ProtectionTierIcon";
 import { ControlHealthInfoIcon } from "@/components/guardian/family-center/ControlHealthInfoIcon";
 import { ChildCardDmAvatars } from "@/components/guardian/family-center/ChildCardDmAvatars";
 import { ChildSafetyScoreRing } from "@/components/guardian/family-center/ChildSafetyScoreRing";
+import AgeZoneBadge from "@/components/guardian/family-center/AgeZoneBadge";
 import { FamilyActivityLog } from "@/components/guardian/family-center/FamilyActivityLog";
 import { SafeContactCircle } from "@/components/guardian/family-center/SafeContactCircle";
+import SafetyAlertAcknowledgeButton from "@/components/guardian/family-center/SafetyAlertAcknowledgeButton";
 import type { FamilyCenterChild, FamilyCenterData } from "@/lib/guardian/family-center";
 import {
   buildControlHealthForChild,
+  buildFamilyActivityHistory,
   filterFamilyActivityForChild,
   staticDashboardExtras,
-  staticFamilyActivityHistory,
-  zoneLabelForAge,
+  type FamilyActivityItem,
 } from "@/lib/guardian/family-center-static";
 import { computeChildSafetySecureScore } from "@/lib/guardian/safety-score";
-
+import type { FamilySafetyAlertCard } from "@/lib/guardian/safety-alerts";
 export function SummaryStat({
   label,
   value,
@@ -104,7 +106,6 @@ export function LinkedAccountsSummaryStat({ linkedChildren }: { linkedChildren: 
 }
 
 export function ChildCard({ child }: { child: FamilyCenterChild }) {
-  const zone = zoneLabelForAge(child.age);
   const controlHealth = buildControlHealthForChild(child);
   const safetyScore = computeChildSafetySecureScore(child, controlHealth.items);
 
@@ -137,16 +138,42 @@ export function ChildCard({ child }: { child: FamilyCenterChild }) {
           <span className="family-center__child-copy">
             <span className="family-center__child-name">{child.fullName}</span>
             <span className="family-center__child-meta">
-              {child.handleLabel}
-              {child.age != null ? ` · ${child.age} years old` : ""}
-              {zone ? ` · ${zone}` : ""}
+              <span className="family-center__child-handle">{child.handleLabel}</span>
+              {child.ageZoneIconBadgeKey && child.ageZoneLabel ? (
+                <AgeZoneBadge
+                  iconBadgeKey={child.ageZoneIconBadgeKey}
+                  zone={child.ageZone}
+                  zoneLabel={child.ageZoneLabel}
+                  age={child.age}
+                  description={child.ageZoneIntro}
+                />
+              ) : null}
             </span>
             <span className="family-center__child-details">
-              <span className="family-center__protection">
+              <span
+                className={`family-center__detail-chip family-center__detail-chip--protection family-center__detail-chip--${child.protectionLevel ?? "unset"}`}
+              >
                 <ProtectionTierIcon tier={child.protectionLevel} />
                 <span>{child.protectionLevelLabel} protection</span>
               </span>
-              <span className="family-center__child-linked">· Linked {child.linkedAtDisplay}</span>
+              <span className="family-center__detail-chip family-center__detail-chip--linked">
+                <svg
+                  className="family-center__detail-chip-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span>Linked {child.linkedAtDisplay}</span>
+              </span>
             </span>
           </span>
         </Link>
@@ -176,7 +203,7 @@ export function AlertsPanel({
   alerts,
   showHead = true,
 }: {
-  alerts: Extras["alerts"];
+  alerts: FamilySafetyAlertCard[];
   showHead?: boolean;
 }) {
   if (alerts.length === 0) {
@@ -198,43 +225,53 @@ export function AlertsPanel({
           <h2 id="family-center-alerts" className="family-center__panel-title">
             Safety alerts
           </h2>
-          <span className="family-center__panel-meta">Prototype preview</span>
         </div>
       ) : null}
       <ul className="family-center__alert-list">
-        {alerts.map((alert) => (
-          <li key={alert.id}>
-            <article className="family-center__alert-card family-center__alert-card--high">
-              <div className="family-center__alert-banner" role="status">
-                <span className="family-center__alert-priority-icon" aria-hidden="true">
-                  !
-                </span>
-                <span>{alert.priorityLabel}</span>
-              </div>
-              <div className="family-center__alert-body">
-                <p className="family-center__alert-child">{alert.childName}</p>
-                <p className="family-center__alert-category">{alert.category}</p>
-                <p className="family-center__alert-action">{alert.actionTaken}</p>
-                <div className="family-center__alert-meta">
-                  <time>{alert.timeAgo}</time>
-                  <span className="family-center__alert-status">{alert.status}</span>
+        {alerts.map((alert) => {
+          const awaiting = alert.status.toLowerCase().includes("awaiting");
+          return (
+            <li key={alert.id}>
+              <article
+                className={`family-center__alert-card${alert.priority === "high" ? " family-center__alert-card--high" : ""}`}
+              >
+                <div className="family-center__alert-banner" role="status">
+                  <span className="family-center__alert-priority-icon" aria-hidden="true">
+                    !
+                  </span>
+                  <span>{alert.priorityLabel}</span>
                 </div>
-                <div className="family-center__safe-preview" aria-label="Safe preview placeholder">
-                  <span className="family-center__safe-preview-blur" aria-hidden="true" />
-                  <span className="family-center__safe-preview-label">Safe preview · blurred by default</span>
+                <div className="family-center__alert-body">
+                  <p className="family-center__alert-child">{alert.childName}</p>
+                  <p className="family-center__alert-category">{alert.category}</p>
+                  <p className="family-center__alert-action">{alert.actionTaken}</p>
+                  <div className="family-center__alert-meta">
+                    <time>{alert.timeAgo}</time>
+                    <span className="family-center__alert-status">{alert.status}</span>
+                  </div>
+                  <div className="family-center__safe-preview" aria-label="Safe preview">
+                    <span className="family-center__safe-preview-blur" aria-hidden="true" />
+                    <span className="family-center__safe-preview-label">
+                      Safe preview · message content is not shown
+                    </span>
+                  </div>
+                  <div className="family-center__alert-actions">
+                    {awaiting ? (
+                      <SafetyAlertAcknowledgeButton alertId={alert.id} />
+                    ) : (
+                      <button type="button" className="btn btn--outline-brand btn--sm" disabled>
+                        Acknowledged
+                      </button>
+                    )}
+                    <button type="button" className="btn btn--ghost btn--sm" disabled>
+                      View guidance
+                    </button>
+                  </div>
                 </div>
-                <div className="family-center__alert-actions">
-                  <button type="button" className="btn btn--outline-brand btn--sm" disabled>
-                    Acknowledge
-                  </button>
-                  <button type="button" className="btn btn--ghost btn--sm" disabled>
-                    View guidance
-                  </button>
-                </div>
-              </div>
-            </article>
-          </li>
-        ))}
+              </article>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
@@ -385,12 +422,18 @@ export function FamilyCenterPrivacyNote() {
   );
 }
 
-export function useFamilyCenterExtras(data: FamilyCenterData) {
-  return staticDashboardExtras(data.children);
+export function useFamilyCenterExtras(data: FamilyCenterData, extras?: Extras) {
+  return extras ?? staticDashboardExtras(data.children);
 }
 
-export function FamilyCenterOverview({ data }: { data: FamilyCenterData }) {
-  const extras = staticDashboardExtras(data.children);
+export function FamilyCenterOverview({
+  data,
+  extras: extrasProp,
+}: {
+  data: FamilyCenterData;
+  extras?: Extras;
+}) {
+  const extras = extrasProp ?? staticDashboardExtras(data.children);
   const linkedCount = data.children.length;
   const controlsSummary =
     linkedCount > 0 ? `${extras.controlsHealthyCount} of ${extras.controlsTotal}` : "—";
@@ -403,14 +446,15 @@ export function FamilyCenterOverview({ data }: { data: FamilyCenterData }) {
           Overview
         </h1>
         <p className="family-portal-panel__subtitle">
-          {guardianFirstName ? `Welcome back, ${guardianFirstName}. ` : ""}
-          Protection status, safety alerts, and control requests at a glance.
+          {guardianFirstName
+            ? `Welcome back, ${guardianFirstName}. Look after your linked family’s safety here.`
+            : "Look after your linked family’s safety here."}
         </p>
       </div>
 
       <section className="family-center__summary" aria-labelledby="family-center-summary">
         <h2 id="family-center-summary" className="family-center__summary-title">
-          Dashboard summary
+          Summary
         </h2>
         <div className="family-center__summary-grid">
           <LinkedAccountsSummaryStat linkedChildren={data.children} />
@@ -423,27 +467,21 @@ export function FamilyCenterOverview({ data }: { data: FamilyCenterData }) {
           <SummaryStat
             label="Pending requests"
             value={extras.pendingRequests}
-            hint="Setting changes to review"
+            hint="Control changes awaiting review"
             tone={extras.pendingRequests > 0 ? "accent" : "default"}
           />
           <SummaryStat
-            label="Controls health"
+            label="Controls healthy"
             value={controlsSummary}
-            hint={linkedCount > 0 ? "Accounts using recommended defaults" : "No linked accounts"}
+            hint="Linked accounts with recommended defaults"
           />
         </div>
       </section>
 
-      <SafeContactCircle
-        linkedChildren={data.children}
-        guardian={data.guardian}
-        contactTrustBandsByChild={data.contactTrustBandsByChild}
-      />
-
       {extras.alerts.length > 0 ? (
-        <section className="family-center__panel" aria-labelledby="family-center-overview-alerts">
+        <section className="family-center__panel" aria-labelledby="family-overview-alerts">
           <div className="family-center__panel-head">
-            <h2 id="family-center-overview-alerts" className="family-center__panel-title">
+            <h2 id="family-overview-alerts" className="family-center__panel-title">
               Recent safety alerts
             </h2>
             <Link href="/family-circle/alerts" className="family-center__panel-link">
@@ -453,6 +491,12 @@ export function FamilyCenterOverview({ data }: { data: FamilyCenterData }) {
           <AlertsPanel alerts={extras.alerts.slice(0, 1)} showHead={false} />
         </section>
       ) : null}
+
+      <SafeContactCircle
+        linkedChildren={data.children}
+        guardian={data.guardian}
+        contactTrustBandsByChild={data.contactTrustBandsByChild}
+      />
 
       {extras.requests.length > 0 ? (
         <section className="family-center__panel" aria-labelledby="family-center-overview-requests">
@@ -508,8 +552,14 @@ export function FamilyCenterControlsPage({ data }: { data: FamilyCenterData }) {
   );
 }
 
-export function FamilyCenterAlertsPage({ data }: { data: FamilyCenterData }) {
-  const extras = staticDashboardExtras(data.children);
+export function FamilyCenterAlertsPage({
+  data,
+  extras: extrasProp,
+}: {
+  data: FamilyCenterData;
+  extras?: Extras;
+}) {
+  const extras = extrasProp ?? staticDashboardExtras(data.children);
   return (
     <section className="family-portal-panel" aria-labelledby="family-alerts-title">
       <div className="family-portal-panel__head">
@@ -547,11 +597,15 @@ export function FamilyCenterRequestsPage({ data }: { data: FamilyCenterData }) {
 export function FamilyCenterActivityPage({
   data,
   childId,
+  activityItems,
 }: {
   data: FamilyCenterData;
   childId?: string;
+  /** When provided (server-loaded), includes live DM safety alerts. */
+  activityItems?: FamilyActivityItem[];
 }) {
-  const allItems = staticFamilyActivityHistory(data.children);
+  const allItems =
+    activityItems ?? buildFamilyActivityHistory(data.children, []);
   const filteredChild = childId ? data.children.find((child) => child.id === childId) : null;
   const items =
     filteredChild != null ? filterFamilyActivityForChild(allItems, filteredChild.id) : allItems;
