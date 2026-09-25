@@ -1,4 +1,4 @@
-import { AgeZone, type Prisma } from "@/generated/prisma/client";
+import { AgeZone } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   type AgeZoneCode,
@@ -33,7 +33,7 @@ export function ageZoneToPrisma(zone: AgeZoneCode | null): AgeZone | null {
 /** Prisma write payload when creating/updating a user with a known DOB. */
 export function ageZoneWriteData(
   dateOfBirth: Date | null | undefined,
-): Pick<Prisma.UserCreateInput, "ageZone"> {
+): { ageZone: AgeZone | null } {
   return {
     ageZone: ageZoneToPrisma(resolveAgeZoneFromDateOfBirth(dateOfBirth ?? null)),
   };
