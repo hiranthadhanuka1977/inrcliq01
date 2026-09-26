@@ -16,7 +16,7 @@ function parseDobPart(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  if (isLiveBackend()) return liveFixAge();
+  if (isLiveBackend()) return liveFixAge(request);
 
   try {
     const { user, error } = await requireSessionUser();

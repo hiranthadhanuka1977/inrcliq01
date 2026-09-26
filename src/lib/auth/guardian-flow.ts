@@ -58,6 +58,12 @@ export type GuardianContext = {
   guardianRegion: string | null;
   idDocType: IdDocType | null;
   protectionLevel: ProtectionTier | null;
+  /**
+   * When the guardian responded, in live mode. Read only to date the
+   * already-approved screen a returning parent sees; the mock path has its own
+   * approval record and leaves it undefined.
+   */
+  respondedAt?: string | null;
   simulatedParentName: string;
   simulatedParentDob: string;
   simulatedIdNumber: string;

@@ -84,6 +84,35 @@ export function GuardianFlow() {
     setIdDocType(data.idDocType ?? "passport");
     setGuardianCountry(data.guardianCountry);
     setLoadError("");
+
+    // A parent re-opening the link in their inbox is the common case, not an
+    // edge one — mail clients prefetch, people forward it to themselves, and
+    // anyone who approved yesterday clicks it again to check. Without this they
+    // were put back at step one and walked through identity verification a
+    // second time, only to be refused at the final call. What they already
+    // decided is a terminal screen, and both of those screens already exist.
+    if (data.status === "APPROVED") {
+      setCompletion({
+        childFullName: data.child.fullName,
+        childFirstName: data.child.firstName,
+        childHandle: data.child.handle,
+        childAge: data.child.age,
+        parentEmail: data.parentEmail,
+        protectionLevel: data.protectionLevel ?? "standard",
+        activatedAt: data.respondedAt ?? new Date().toISOString(),
+      });
+      setStep("approved");
+      return;
+    }
+
+    if (data.status === "DECLINED") {
+      setStep("declined");
+      return;
+    }
+
+    if (data.status === "EXPIRED") {
+      setLoadError("This approval link has expired. Ask your child to send a new one.");
+    }
   }, []);
 
   const reloadContext = useCallback(async () => {

@@ -105,6 +105,8 @@ const ERROR_COPY: Record<string, string> = {
   GUARDIAN_EMAIL_IS_SELF: "Please enter your parent or guardian's email, not your own.",
   GUARDIAN_ACCOUNT_NOT_ACTIVE: "That email belongs to an account that can't approve a child.",
   GUARDIAN_MUST_BE_ADULT: "That email belongs to a minor's account, which can't act as a guardian.",
+  STILL_A_MINOR:
+    "That date of birth is still under 18, so a parent or guardian still needs to approve your account.",
   SSO_ACCOUNT_NOT_FOUND: "We couldn't find an account for that sign-in.",
   SSO_TOKEN_INVALID: "That sign-in expired. Please try again.",
   BACKEND_UNREACHABLE: "We can't reach InrCliq right now. Please try again.",

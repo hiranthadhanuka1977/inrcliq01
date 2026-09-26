@@ -458,7 +458,18 @@ export async function liveGuardianContext(request: NextRequest) {
     return NextResponse.json({ error: errorCopy(result.errorCode, result.message) }, { status });
   }
 
-  return NextResponse.json(result.data);
+  // The API's consent vocabulary is wider than the prototype's: it says DENIED
+  // where the components say DECLINED, and it has a REVOKED the components have
+  // no screen for. REVOKED and EXPIRED mean the same thing to a guardian — the
+  // invite is dead and the child has to send a new one — which is how the
+  // landing rules already treat the pair.
+  const CONSENT_STATUS: Record<string, string> = { DENIED: "DECLINED", REVOKED: "EXPIRED" };
+  const raw = result.data as Record<string, unknown> & { status?: string };
+
+  return NextResponse.json({
+    ...raw,
+    ...(raw.status ? { status: CONSENT_STATUS[raw.status] ?? raw.status } : {}),
+  });
 }
 
 /** GET /api/guardian/protection-tiers?childFirstName=… */
@@ -623,17 +634,40 @@ export async function liveAcknowledgeApproval() {
   return finishConsentExit(result.data, auth.session.userId);
 }
 
-/** POST /api/onboarding/fix-age — "that's the wrong date of birth". */
-export async function liveFixAge() {
+/**
+ * POST /api/onboarding/fix-age — "that's the wrong date of birth".
+ *
+ * The form collects the corrected date as three fields; the API takes one ISO
+ * date, and requires it. Dropping it here is what made the correction a no-op
+ * in live mode: the account became an adult while the date it was disputing
+ * stayed on file.
+ */
+export async function liveFixAge(request: Request) {
   const auth = await requirePendingConsent();
   if ("error" in auth) return auth.error;
+
+  const { month, day, year } = (await request.json()) as {
+    month?: number;
+    day?: number;
+    year?: number;
+  };
+
+  if (!month || !day || !year) {
+    return NextResponse.json({ error: "Please enter a valid date of birth." }, { status: 400 });
+  }
+
+  const dateOfBirth = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
   const result = await callBackend<{
     nextStep: string;
     autoLogin: boolean;
     accessToken?: string;
     refreshToken?: string;
-  }>("/consent/fix-age", { method: "POST", token: auth.session.pendingConsentToken });
+  }>("/consent/fix-age", {
+    method: "POST",
+    token: auth.session.pendingConsentToken,
+    body: { dateOfBirth },
+  });
 
   if (!result.ok) return fail(result.errorCode, result.message, result.status);
 
