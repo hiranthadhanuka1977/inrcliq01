@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { setUserHandle } from "@/lib/feed/set-user-handle";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveSetHandle } from "@/lib/backend/profile";
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveSetHandle(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

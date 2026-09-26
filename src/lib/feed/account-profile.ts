@@ -19,6 +19,8 @@ import {
 } from "@/lib/feed/follow-service";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveAccountProfile } from "@/lib/backend/profile";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
 import { getMinorGuardianSummary, type MinorGuardianSummary } from "@/lib/guardian/minor-guardian-profile";
@@ -154,6 +156,10 @@ function notifyLevelLabel(level: string) {
 }
 
 export async function getAccountProfile(): Promise<AccountProfile | null> {
+  // Live mode has none of the tables below — the same view is assembled from
+  // the API in src/lib/backend/profile.ts.
+  if (isLiveBackend()) return liveAccountProfile();
+
   const user = await getSessionUser();
   if (!user) return null;
 

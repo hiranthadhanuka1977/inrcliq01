@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { storeUploadedFile } from "@/lib/uploads/store-upload";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveSetAvatar } from "@/lib/backend/profile";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -15,6 +17,8 @@ function extensionFor(type: string) {
 }
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveSetAvatar(request);
+
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
