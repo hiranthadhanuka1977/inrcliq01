@@ -61,7 +61,7 @@ export function holdActionTakenCopy(
 }
 
 export function senderInformationalActionTakenCopy(childFirstName: string) {
-  return `${childFirstName} tried to send a message that was flagged. It was not delivered.`;
+  return `${childFirstName} tried to send a message that was flagged. It was held for a safety review instead of being delivered.`;
 }
 
 export function maskedDeliveryActionTakenCopy(childFirstName: string, childIsSender: boolean) {

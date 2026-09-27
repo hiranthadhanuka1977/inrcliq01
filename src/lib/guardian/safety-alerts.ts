@@ -666,7 +666,7 @@ export async function listSafetyActivityItemsForGuardian(
             meta.kind === "hold"
               ? `Blocked DM to ${childFirst} from ${counterpart}.`
               : meta.kind === "informational"
-                ? `A message from ${childFirst} was flagged and not delivered.`
+                ? `A message from ${childFirst} was flagged and held for a safety review.`
                 : `A message to ${childFirst} from ${counterpart} was flagged and shown masked.`;
           break;
         case SAFETY_AUDIT_ACTIONS.CONTENT_VIEWED:

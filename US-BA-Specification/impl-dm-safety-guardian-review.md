@@ -684,7 +684,7 @@ Copy constants in `src/lib/guardian/is-user-minor.ts`:
 |---|---|
 | Hold, `WITHHELD` | "The message was blocked. {Child} has not seen it." |
 | Hold, `MASKED_PLACEHOLDER` | "The message was hidden. {Child} sees a masked placeholder until you decide." |
-| Informational alert to a minor sender's guardian | "{Child} tried to send a message that was flagged. It was not delivered." |
+| Informational alert to a minor sender's guardian | "{Child} tried to send a message that was flagged. It was held for a safety review instead of being delivered." |
 | Legacy masked delivery (R5) | "The message was masked so {Child} did not see the full content." (existing) |
 
 **Body line (hold alerts):** "{Counterpart} tried to send {Child} a direct message flagged as sexual in nature."
@@ -731,7 +731,7 @@ Build entries from `SafetyAuditEvent` for the child (replaces `listSafetyActivit
 | Audit action | Title | Detail |
 |---|---|---|
 | `ALERT_RAISED` (hold) | "Safety alert raised" | "Blocked DM to {Child} from {counterpart}." |
-| `ALERT_RAISED` (informational) | "Safety alert raised" | "A message from {Child} was flagged and not delivered." |
+| `ALERT_RAISED` (informational) | "Safety alert raised" | "A message from {Child} was flagged and held for a safety review." |
 | `CONTENT_VIEWED` | "Flagged message viewed" | "{Guardian} viewed the flagged message." |
 | `ALERT_ACKNOWLEDGED` | "Safety alert acknowledged" | — |
 | `HOLD_ALLOWED` | "Message allowed" | "{Guardian} delivered a held message from {counterpart}." |
