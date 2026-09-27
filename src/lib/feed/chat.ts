@@ -6,7 +6,13 @@ import {
   parseBookingNote,
   withCreatorName,
 } from "@/lib/feed/booking-confirmation";
-import { MASKED_DM_BODY, MASKED_DM_PREVIEW } from "@/lib/guardian/is-user-minor";
+import {
+  MASKED_DM_BODY,
+  MASKED_DM_PREVIEW,
+  MASKED_PENDING_BODY,
+  REMOVED_BODY,
+  REMOVED_DM_PREVIEW,
+} from "@/lib/guardian/is-user-minor";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type DbMessage = {
@@ -14,8 +20,15 @@ type DbMessage = {
   body: string;
   fromMe: boolean;
   contentMasked?: boolean;
+  deliveryStatus?: "DELIVERED" | "PENDING_REVIEW" | "NOT_DELIVERED";
   createdAt: Date;
 };
+
+function recipientMaskedBody(message: DbMessage) {
+  if (message.deliveryStatus === "PENDING_REVIEW") return MASKED_PENDING_BODY;
+  if (message.deliveryStatus === "NOT_DELIVERED") return REMOVED_BODY;
+  return MASKED_DM_BODY;
+}
 
 type DbThread = {
   id: string;
@@ -84,7 +97,7 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
     // Never expose the raw body to the recipient when the message is safety-masked.
     const displayBody =
       contentMasked && !message.fromMe
-        ? MASKED_DM_BODY
+        ? recipientMaskedBody(message)
         : booking
           ? bookingMessagePreview(
               booking,
@@ -101,6 +114,10 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
       body: displayBody,
       time: isStructured ? formatChatClock(message.createdAt) : formatChatTime(message.createdAt),
       contentMasked: contentMasked || undefined,
+      deliveryStatus:
+        message.deliveryStatus === "PENDING_REVIEW" || message.deliveryStatus === "NOT_DELIVERED"
+          ? message.deliveryStatus
+          : undefined,
       booking,
       bookingNote,
     };
@@ -136,7 +153,9 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
     id: thread.id,
     participant,
     preview: previewIsMasked
-      ? MASKED_DM_PREVIEW
+      ? lastDb?.deliveryStatus === "NOT_DELIVERED"
+        ? REMOVED_DM_PREVIEW
+        : MASKED_DM_PREVIEW
       : previewBooking
       ? bookingMessagePreview(
           previewBooking,

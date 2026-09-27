@@ -21,6 +21,50 @@ enum AgeZone {
   ADULT
 }
 
+enum DmDeliveryStatus {
+  DELIVERED
+  PENDING_REVIEW
+  NOT_DELIVERED
+}
+
+enum DmHoldStatus {
+  PENDING
+  ALLOWED
+  REJECTED
+  EXPIRED
+}
+
+enum DmRecipientTreatment {
+  WITHHELD
+  MASKED_PLACEHOLDER
+}
+
+enum SafetyAlertStatus {
+  AWAITING_DECISION
+  AWAITING_ACKNOWLEDGEMENT
+  ACKNOWLEDGED
+  ALLOWED
+  REJECTED
+  EXPIRED
+}
+
+enum DmRestrictionScope {
+  MINORS
+}
+
+enum SafetyReviewStatus {
+  NONE
+  PENDING_REVIEW
+  CLEARED
+  ACTIONED
+}
+
+enum SafetyReportStatus {
+  OPEN
+  IN_REVIEW
+  CLOSED
+}
+
 /** Lookup row per age zone: label, age bounds, and UI icon badge key. */
 model AgeZoneDefinition {
   zone            AgeZone  @id
@@ -98,6 +142,13 @@ model User {
   hiddenFeedPosts        FeedHiddenPost[]
   guardianSafetyAlertsAsGuardian GuardianSafetyAlert[] @relation("GuardianSafetyAlertsGuardian")
   guardianSafetyAlertsAsChild    GuardianSafetyAlert[] @relation("GuardianSafetyAlertsChild")
+  dmHoldsAsSender        DmModerationHold[]     @relation("DmHoldSender")
+  dmHoldsAsRecipient     DmModerationHold[]     @relation("DmHoldRecipient")
+  dmHoldsDecided         DmModerationHold[]     @relation("DmHoldDecidedBy")
+  senderSafetyStrikes    SenderSafetyStrike[]   @relation("SenderSafetyStrikes")
+  dmRestrictions         UserDmRestriction[]    @relation("UserDmRestrictions")
+  safetyReportsFiled     SafetyReport[]         @relation("SafetyReportsFiled")
+  safetyReportsAbout     SafetyReport[]         @relation("SafetyReportsAbout")
   specialRequests        SpecialRequest[]
   creatorProfile         CreatorUser?
   authoredFeedPosts      FeedPost[]
@@ -462,13 +513,140 @@ model ChatMessage {
   /// When true, recipients (fromMe=false) see a masked placeholder instead of `body`.
   contentMasked    Boolean  @default(false)
   specialRequestId String?
+  /// Sender copy: PENDING_REVIEW / NOT_DELIVERED while held or after rejection.
+  /// Mature Teens placeholder copy: PENDING_REVIEW, then DELIVERED (allowed) or NOT_DELIVERED (rejected).
+  deliveryStatus   DmDeliveryStatus @default(DELIVERED)
+  moderationHoldId String?
   createdAt        DateTime @default(now())
 
-  thread         ChatThread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  specialRequest SpecialRequest? @relation(fields: [specialRequestId], references: [id], onDelete: SetNull)
+  thread         ChatThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  specialRequest SpecialRequest?   @relation(fields: [specialRequestId], references: [id], onDelete: SetNull)
+  moderationHold DmModerationHold? @relation(fields: [moderationHoldId], references: [id], onDelete: SetNull)
 
   @@index([threadId, createdAt])
   @@index([specialRequestId])
+  @@index([moderationHoldId])
+}
+
+/// A flagged DM to a monitored minor awaiting guardian decision.
+/// `body` is the only place the raw held text lives; it is purged after the retention window.
+model DmModerationHold {
+  id                 String               @id @default(cuid())
+  senderUserId       String
+  recipientUserId    String
+  senderThreadId     String
+  senderMessageId    String               @unique
+  /// Recipient's inbox thread. Null until the thread exists (created on placeholder or delivery).
+  recipientThreadId  String?
+  /// Mature Teens: the placeholder message. Kids/Teens: set on Allow when delivered.
+  recipientMessageId String?
+  body               String?
+  contentType        String               @default("text")
+  category           String
+  severity           Int
+  senderZone         AgeZone
+  recipientZone      AgeZone
+  recipientTreatment DmRecipientTreatment
+  status             DmHoldStatus         @default(PENDING)
+  decidedByUserId    String?
+  decidedAt          DateTime?
+  expiresAt          DateTime
+  bodyPurgedAt       DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  sender    User  @relation("DmHoldSender", fields: [senderUserId], references: [id], onDelete: Cascade)
+  recipient User  @relation("DmHoldRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade)
+  decidedBy User? @relation("DmHoldDecidedBy", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+
+  messages ChatMessage[]
+  alerts   GuardianSafetyAlert[]
+  strikes  SenderSafetyStrike[]
+
+  @@index([recipientUserId, status])
+  @@index([senderUserId, createdAt])
+  @@index([status, expiresAt])
+}
+
+model SenderSafetyStrike {
+  id         String    @id @default(cuid())
+  userId     String
+  holdId     String?   @unique
+  category   String
+  severity   Int
+  createdAt  DateTime  @default(now())
+  /// Set when a guardian Allows the held message (not an offence).
+  voidedAt   DateTime?
+  voidReason String?
+
+  user User              @relation("SenderSafetyStrikes", fields: [userId], references: [id], onDelete: Cascade)
+  hold DmModerationHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+model UserDmRestriction {
+  id           String             @id @default(cuid())
+  userId       String
+  scope        DmRestrictionScope @default(MINORS)
+  /// "repeat_strikes" | "human_review"
+  reason       String
+  startsAt     DateTime           @default(now())
+  /// Null = indefinite (pending human review).
+  endsAt       DateTime?
+  reviewStatus SafetyReviewStatus @default(NONE)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user User @relation("UserDmRestrictions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scope, endsAt])
+}
+
+model SafetyReport {
+  id                       String             @id @default(cuid())
+  /// Null for system reports.
+  reporterUserId           String?
+  subjectUserId            String
+  holdId                   String?
+  alertId                  String?
+  /// "guardian" | "system"
+  source                   String
+  reason                   String
+  details                  String?
+  /// "normal" | "urgent"
+  priority                 String             @default("normal")
+  mandatoryReportCandidate Boolean            @default(false)
+  status                   SafetyReportStatus @default(OPEN)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  reporter User? @relation("SafetyReportsFiled", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  subject  User  @relation("SafetyReportsAbout", fields: [subjectUserId], references: [id], onDelete: Cascade)
+
+  @@index([status, priority, createdAt])
+  @@index([subjectUserId])
+  @@index([holdId])
+  @@index([reporterUserId, alertId])
+}
+
+/// Append-only audit trail for child-safety actions. Never store raw message text here.
+model SafetyAuditEvent {
+  id            String   @id @default(cuid())
+  action        String
+  /// Null for system actions.
+  actorUserId   String?
+  childUserId   String?
+  /// The sender / counterpart.
+  subjectUserId String?
+  holdId        String?
+  alertId       String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([childUserId, createdAt])
+  @@index([holdId])
+  @@index([subjectUserId, createdAt])
 }
 
 /// Fan special request / booking linked to both requester (`User`) and creator (`CreatorUser`).
@@ -576,19 +754,26 @@ model GuardianSafetyAlert {
   priority      String   @default("high")
   category      String
   actionTaken   String
-  status        String   @default("awaiting_acknowledgement")
+  status        SafetyAlertStatus @default(AWAITING_ACKNOWLEDGEMENT)
   source        String   @default("dm_text_moderation")
   chatThreadId  String?
   chatMessageId String
   peerUserId    String?
+  holdId        String?
+  /// True when the counterpart is an adult; drives the "Adult account" badge.
+  counterpartIsAdult Boolean @default(false)
   createdAt     DateTime @default(now())
   acknowledgedAt DateTime?
+  resolvedAt    DateTime?
+  resolvedByUserId String?
 
   guardian User @relation("GuardianSafetyAlertsGuardian", fields: [guardianUserId], references: [id], onDelete: Cascade)
   child    User @relation("GuardianSafetyAlertsChild", fields: [childUserId], references: [id], onDelete: Cascade)
+  hold     DmModerationHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
 
   @@unique([guardianUserId, chatMessageId])
   @@index([guardianUserId, status, createdAt])
   @@index([childUserId, createdAt])
   @@index([chatMessageId])
+  @@index([holdId])
 }

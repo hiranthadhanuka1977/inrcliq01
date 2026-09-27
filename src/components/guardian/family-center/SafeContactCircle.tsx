@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  useEffect,
   useId,
   useMemo,
   useRef,
@@ -344,10 +343,12 @@ function ContactAvatar({
   );
 }
 
+const NO_TRUST_BANDS: Record<string, Record<string, ContactTrustBandId>> = {};
+
 export function SafeContactCircle({
   linkedChildren,
   guardian,
-  contactTrustBandsByChild = {},
+  contactTrustBandsByChild = NO_TRUST_BANDS,
 }: {
   linkedChildren: FamilyCenterChild[];
   guardian: FamilyCenterGuardian;
@@ -365,9 +366,11 @@ export function SafeContactCircle({
   const [moveError, setMoveError] = useState<string | null>(null);
   const suppressNavigateRef = useRef(false);
 
-  useEffect(() => {
+  const [syncedTrustBands, setSyncedTrustBands] = useState(contactTrustBandsByChild);
+  if (syncedTrustBands !== contactTrustBandsByChild) {
+    setSyncedTrustBands(contactTrustBandsByChild);
     setBandOverridesByChild(contactTrustBandsByChild);
-  }, [contactTrustBandsByChild]);
+  }
 
   const selectedChild =
     linkedChildren.find((child) => child.id === selectedChildId) ?? linkedChildren[0] ?? null;

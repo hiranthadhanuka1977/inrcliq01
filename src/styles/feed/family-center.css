@@ -1341,6 +1341,202 @@
   line-height: 1.35;
 }
 
+.family-center__alert-card--decision {
+  border-width: 2px;
+  border-color: color-mix(in srgb, #ef4444 45%, var(--color-neutral-200));
+  box-shadow: 0 0 0 3px color-mix(in srgb, #ef4444 8%, transparent);
+}
+
+.family-center__alert-card--resolved .family-center__alert-banner {
+  background: var(--color-neutral-100);
+  color: var(--color-text-secondary);
+}
+
+.family-center__alert-card--resolved .family-center__alert-priority-icon {
+  background: var(--color-neutral-400, #9ca3af);
+}
+
+.family-center__alert-channel {
+  margin-left: auto;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  opacity: 0.85;
+}
+
+.family-center__alert-people {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.family-center__alert-people .family-center__alert-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.family-center__alert-counterpart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.family-center__alert-counterpart-label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.family-center__alert-counterpart-name {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.family-center__alert-counterpart-handle {
+  color: var(--color-text-secondary);
+}
+
+.family-center__alert-adult-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, #ef4444 12%, var(--color-bg-page));
+  color: #b91c1c;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.family-center__alert-line {
+  margin: 0 0 0.35rem;
+  color: var(--color-text-primary);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.family-center__alert-status--allowed {
+  color: #15803d;
+}
+
+.family-center__alert-status--acknowledged,
+.family-center__alert-status--rejected,
+.family-center__alert-status--expired {
+  color: var(--color-text-secondary);
+}
+
+.family-center__alert-reject {
+  border: 1px solid color-mix(in srgb, #ef4444 45%, transparent);
+  background: transparent;
+  color: #b91c1c;
+}
+
+.family-center__alert-reject:hover,
+.family-center__alert-reject:focus-visible {
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+}
+
+.family-center__alert-toast {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.family-center__alert-modal {
+  text-align: left;
+}
+
+.family-center__alert-modal:focus {
+  outline: none;
+}
+
+.family-center__alert-modal-title {
+  margin: 0 0 var(--space-3);
+  font-size: 1.15rem;
+}
+
+.family-center__alert-modal-copy {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.family-center__alert-modal-meta {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.family-center__alert-modal-error {
+  margin: 0 0 var(--space-3);
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.family-center__alert-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.family-center__alert-viewer-text {
+  max-height: 16rem;
+  overflow-y: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-100);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  user-select: text;
+}
+
+.family-center__report-reasons {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  border: 0;
+}
+
+.family-center__report-reason {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.family-center__report-details {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.family-center__report-details textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font: inherit;
+  resize: vertical;
+}
+
+.family-center__report-count {
+  justify-self: end;
+  font-size: 0.72rem;
+}
+
 /* Control requests */
 .family-center__request-card {
   padding: var(--space-4);

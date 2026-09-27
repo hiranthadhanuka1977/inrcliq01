@@ -10,6 +10,11 @@ import AgeZoneBadge from "@/components/guardian/family-center/AgeZoneBadge";
 import { FamilyActivityLog } from "@/components/guardian/family-center/FamilyActivityLog";
 import { SafeContactCircle } from "@/components/guardian/family-center/SafeContactCircle";
 import SafetyAlertAcknowledgeButton from "@/components/guardian/family-center/SafetyAlertAcknowledgeButton";
+import SafetyAlertContentViewer from "@/components/guardian/family-center/SafetyAlertContentViewer";
+import SafetyAlertDecisionActions, {
+  SafetyAlertBlockButton,
+} from "@/components/guardian/family-center/SafetyAlertDecisionActions";
+import SafetyAlertReportDialog from "@/components/guardian/family-center/SafetyAlertReportDialog";
 import type { FamilyCenterChild, FamilyCenterData } from "@/lib/guardian/family-center";
 import {
   buildControlHealthForChild,
@@ -199,6 +204,110 @@ export function ChildCard({ child }: { child: FamilyCenterChild }) {
 
 type Extras = ReturnType<typeof staticDashboardExtras>;
 
+function SafetyAlertCardView({ alert }: { alert: FamilySafetyAlertCard }) {
+  const awaitingDecision = alert.statusCode === "AWAITING_DECISION";
+  const awaitingAck = alert.statusCode === "AWAITING_ACKNOWLEDGEMENT";
+  const resolved = !awaitingDecision && !awaitingAck;
+  const counterpartName = alert.counterpart?.name ?? "this contact";
+  const showBlockAndReport = Boolean(alert.counterpart) && (awaitingDecision || resolved);
+
+  return (
+    <article
+      className={`family-center__alert-card${alert.priority === "high" && !resolved ? " family-center__alert-card--high" : ""}${awaitingDecision ? " family-center__alert-card--decision" : ""}${resolved ? " family-center__alert-card--resolved" : ""}`}
+    >
+      <div className="family-center__alert-banner" role="status">
+        <span className="family-center__alert-priority-icon" aria-hidden="true">
+          !
+        </span>
+        <span>{alert.priorityLabel}</span>
+        <span className="family-center__alert-channel">{alert.channel}</span>
+      </div>
+      <div className="family-center__alert-body">
+        <div className="family-center__alert-people">
+          <p className="family-center__alert-child">
+            {alert.childName}
+            {alert.childBadge ? (
+              <AgeZoneBadge
+                iconBadgeKey={alert.childBadge.iconBadgeKey}
+                zone={alert.childBadge.zone}
+                zoneLabel={alert.childBadge.zoneLabel}
+                age={alert.childBadge.age}
+                description={alert.childBadge.description}
+              />
+            ) : null}
+          </p>
+          {alert.counterpart ? (
+            <p className="family-center__alert-counterpart">
+              <span className="family-center__alert-counterpart-label">From</span>
+              <span className="family-center__alert-counterpart-name">{alert.counterpart.name}</span>
+              {alert.counterpart.handle ? (
+                <span className="family-center__alert-counterpart-handle">{alert.counterpart.handle}</span>
+              ) : null}
+              {alert.counterpart.isAdult ? (
+                <span className="family-center__alert-adult-badge">Adult account</span>
+              ) : null}
+            </p>
+          ) : null}
+        </div>
+        <p className="family-center__alert-category">{alert.category}</p>
+        {alert.bodyLine ? <p className="family-center__alert-line">{alert.bodyLine}</p> : null}
+        <p className="family-center__alert-action">{alert.actionTaken}</p>
+        <div className="family-center__alert-meta">
+          <time>{alert.timeAgo}</time>
+          <span
+            className={`family-center__alert-status family-center__alert-status--${alert.statusCode.toLowerCase()}`}
+          >
+            {alert.status}
+          </span>
+        </div>
+        {alert.kind === "informational" ? (
+          <div className="family-center__safe-preview" aria-label="Safe preview">
+            <span className="family-center__safe-preview-blur" aria-hidden="true" />
+            <span className="family-center__safe-preview-label">
+              Safe preview · message content is not shown
+            </span>
+          </div>
+        ) : null}
+        <div className="family-center__alert-actions">
+          {alert.kind === "decision" && alert.contentAvailable ? (
+            <SafetyAlertContentViewer alertId={alert.id} />
+          ) : null}
+          {awaitingDecision && alert.canDecide ? (
+            <SafetyAlertDecisionActions
+              alertId={alert.id}
+              childFirstName={alert.childFirstName}
+              counterpartName={counterpartName}
+              recipientZone={alert.recipientZone}
+            />
+          ) : null}
+          {awaitingAck ? <SafetyAlertAcknowledgeButton alertId={alert.id} /> : null}
+          {showBlockAndReport && alert.canBlock ? (
+            <SafetyAlertBlockButton
+              alertId={alert.id}
+              counterpartName={counterpartName}
+              childFirstName={alert.childFirstName}
+              blocked={alert.counterpartBlocked}
+            />
+          ) : null}
+          {showBlockAndReport ? (
+            <SafetyAlertReportDialog alertId={alert.id} counterpartName={counterpartName} />
+          ) : null}
+          {alert.reviewSettingsHref ? (
+            <Link href={alert.reviewSettingsHref} className="btn btn--ghost btn--sm">
+              Review DM settings
+            </Link>
+          ) : null}
+          {!resolved && alert.messageChildHref ? (
+            <Link href={alert.messageChildHref} className="btn btn--ghost btn--sm">
+              Message {alert.childFirstName}
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export function AlertsPanel({
   alerts,
   showHead = true,
@@ -228,50 +337,11 @@ export function AlertsPanel({
         </div>
       ) : null}
       <ul className="family-center__alert-list">
-        {alerts.map((alert) => {
-          const awaiting = alert.status.toLowerCase().includes("awaiting");
-          return (
-            <li key={alert.id}>
-              <article
-                className={`family-center__alert-card${alert.priority === "high" ? " family-center__alert-card--high" : ""}`}
-              >
-                <div className="family-center__alert-banner" role="status">
-                  <span className="family-center__alert-priority-icon" aria-hidden="true">
-                    !
-                  </span>
-                  <span>{alert.priorityLabel}</span>
-                </div>
-                <div className="family-center__alert-body">
-                  <p className="family-center__alert-child">{alert.childName}</p>
-                  <p className="family-center__alert-category">{alert.category}</p>
-                  <p className="family-center__alert-action">{alert.actionTaken}</p>
-                  <div className="family-center__alert-meta">
-                    <time>{alert.timeAgo}</time>
-                    <span className="family-center__alert-status">{alert.status}</span>
-                  </div>
-                  <div className="family-center__safe-preview" aria-label="Safe preview">
-                    <span className="family-center__safe-preview-blur" aria-hidden="true" />
-                    <span className="family-center__safe-preview-label">
-                      Safe preview · message content is not shown
-                    </span>
-                  </div>
-                  <div className="family-center__alert-actions">
-                    {awaiting ? (
-                      <SafetyAlertAcknowledgeButton alertId={alert.id} />
-                    ) : (
-                      <button type="button" className="btn btn--outline-brand btn--sm" disabled>
-                        Acknowledged
-                      </button>
-                    )}
-                    <button type="button" className="btn btn--ghost btn--sm" disabled>
-                      View guidance
-                    </button>
-                  </div>
-                </div>
-              </article>
-            </li>
-          );
-        })}
+        {alerts.map((alert) => (
+          <li key={alert.id}>
+            <SafetyAlertCardView alert={alert} />
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -417,7 +487,8 @@ export function LinkedAccountsPanel({ linkedChildren }: { linkedChildren: Family
 export function FamilyCenterPrivacyNote() {
   return (
     <p className="family-center__privacy-note">
-      You see safety events and control outcomes for linked accounts — not private message content.
+      You see safety events and control outcomes for linked accounts — not private conversations. Flagged
+      messages are only shown if you choose to view them, with explicit words and contact details partly hidden.
     </p>
   );
 }

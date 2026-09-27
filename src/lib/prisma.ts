@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump whenever Prisma models change so the Next.js global singleton is discarded. */
-const PRISMA_SCHEMA_VERSION = "20260924110000_age_zone_definition_badges";
+const PRISMA_SCHEMA_VERSION = "20260925100000_dm_guardian_review";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -38,7 +38,12 @@ function hasRequiredModels(client: PrismaClient | undefined): client is PrismaCl
       typeof client.guardianDmContactControl?.findUnique === "function" &&
       typeof client.childContactTrustBand?.findMany === "function" &&
       typeof client.feedHiddenPost?.findMany === "function" &&
-      typeof client.guardianSafetyAlert?.findMany === "function",
+      typeof client.guardianSafetyAlert?.findMany === "function" &&
+      typeof client.dmModerationHold?.findMany === "function" &&
+      typeof client.senderSafetyStrike?.findMany === "function" &&
+      typeof client.userDmRestriction?.findFirst === "function" &&
+      typeof client.safetyReport?.create === "function" &&
+      typeof client.safetyAuditEvent?.create === "function",
   );
 }
 

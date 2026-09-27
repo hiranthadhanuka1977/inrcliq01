@@ -130,10 +130,11 @@ export function FamilyCenterNav({
 }) {
   const pathname = usePathname();
   const [liveAlertCount, setLiveAlertCount] = useState(alertCount);
-
-  useEffect(() => {
+  const [serverAlertCount, setServerAlertCount] = useState(alertCount);
+  if (serverAlertCount !== alertCount) {
+    setServerAlertCount(alertCount);
     setLiveAlertCount(alertCount);
-  }, [alertCount]);
+  }
 
   useEffect(() => {
     let cancelled = false;
