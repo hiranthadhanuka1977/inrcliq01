@@ -167,6 +167,18 @@ async function getCreatorFeedPosts(
     .filter((post): post is FeedItem => post !== null);
 }
 
+async function getAllCreatorFeedPosts(
+  slug: string,
+  options?: { following?: boolean; subscribed?: boolean },
+): Promise<FeedItem[]> {
+  const posts = await prisma.feedPost.findMany({
+    where: { creator: { slug } },
+    orderBy: [{ postedAt: "desc" }, { sortOrder: "asc" }],
+    include: { creator: true },
+  });
+  return posts.map((post) => mapDbPostToFeedItem(post, options));
+}
+
 async function getFeedPostsForUser(
   userId: string,
   options?: { following?: boolean; subscribed?: boolean },
@@ -305,7 +317,10 @@ function profileFromDbRow(row: DbUserProfile, feedPosts: FeedItem[]): ProfileDat
   };
 }
 
-/** Prefer DB `UserProfile`, fall back to JSON. Overlays collection / follow / subscribe. */
+/**
+ * Prefer DB `UserProfile`, fall back to JSON for profile details. Feed posts always come
+ * from `FeedPost`. Overlays collection / follow / subscribe.
+ */
 export async function getProfileData(slug: string): Promise<ProfileData | null> {
   const dbProfile = await getDbUserProfile(slug).catch((error) => {
     console.error("getProfileData: UserProfile lookup failed", error);
@@ -356,7 +371,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         following = isFollowing;
       }
 
-      // Rich profiles: pinned JSON order. Stub profiles: all linked FeedPosts.
+      // Rich profiles: pinned order. Stub profiles: all linked FeedPosts.
       if (dbRow.source === "stub") {
         feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
       } else if (dbRow.pinnedFeedPostIds.length > 0) {
@@ -365,22 +380,6 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
           following,
           subscribed,
         });
-
-        const jsonFallback = getProfileDataFromJson(publicSlug);
-        if (!isOwn && jsonFallback?.feed_posts?.length) {
-          const fromDbIds = new Set(feedPosts.map((post) => post.id));
-          const leftovers = jsonFallback.feed_posts
-            .filter((post) => !fromDbIds.has(post.id))
-            .map((post) => ({
-              ...post,
-              relationship: {
-                ...post.relationship,
-                following,
-                subscribed: subscribed || undefined,
-              },
-            }));
-          feedPosts = [...feedPosts, ...leftovers];
-        }
       } else {
         feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
       }
@@ -450,7 +449,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
   if (!profile) return null;
 
   let collection: ProfileCollectionItem[] = [];
-  let feedPosts = profile.feed_posts;
+  let feedPosts: FeedItem[] = [];
   let subscribed = Boolean(profile.relationship?.subscribed);
   let following = Boolean(profile.relationship?.following);
   let isOwn = false;
@@ -458,7 +457,6 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
   let coverUrlOverride: string | null | undefined;
 
   try {
-    const preferredIds = profile.feed_posts.map((post) => post.id);
     const [rawCollection, creator, ownerProfile] = await Promise.all([
       getCreatorCollectionRaw(slug),
       prisma.creatorUser.findFirst({
@@ -512,32 +510,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
       following = false;
     }
 
-    const dbFeed = await getCreatorFeedPosts(slug, preferredIds, { following, subscribed });
-    if (isOwn) {
-      feedPosts = dbFeed;
-    } else if (dbFeed.length) {
-      const fromDbIds = new Set(dbFeed.map((post) => post.id));
-      const leftovers = profile.feed_posts
-        .filter((post) => !fromDbIds.has(post.id))
-        .map((post) => ({
-          ...post,
-          relationship: {
-            ...post.relationship,
-            following,
-            subscribed: subscribed || undefined,
-          },
-        }));
-      feedPosts = [...dbFeed, ...leftovers];
-    } else {
-      feedPosts = profile.feed_posts.map((post) => ({
-        ...post,
-        relationship: {
-          ...post.relationship,
-          following,
-          subscribed: subscribed || undefined,
-        },
-      }));
-    }
+    feedPosts = await getAllCreatorFeedPosts(slug, { following, subscribed });
   } catch (error) {
     console.error("getProfileData: JSON overlay failed", error);
   }

@@ -394,7 +394,7 @@ model CreatorUnavailableDate {
   @@unique([creatorId, date])
 }
 
-/// Feed posts imported from `data/my_feed.json`.
+/// Single source for home feed and profile feed posts (seed JSON merged via `npm run db:merge-feed-json`).
 /// Linked to `CreatorUser` (content author) and optionally to auth `User` via `userId`.
 model FeedPost {
   id          String   @id

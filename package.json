@@ -12,6 +12,7 @@
     "db:migrate-deploy": "node scripts/migrate-deploy.mjs",
     "db:generate": "prisma generate",
     "db:migrate-feed": "node scripts/migrate-feed-to-db.mjs",
+    "db:merge-feed-json": "node scripts/merge-feed-json-into-db.mjs",
     "db:link-creators": "node scripts/link-creators-to-users.mjs",
     "db:migrate-profiles": "node scripts/migrate-profiles-to-db.mjs",
     "db:seed-special-requests": "npx tsx scripts/seed-special-requests-mia.ts",

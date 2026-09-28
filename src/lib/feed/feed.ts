@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { getFollowedCreatorIdsForUser } from "@/lib/feed/follow-service";
 import { getHiddenPostIdsForUser } from "@/lib/feed/post-actions";
 import { getProfileSlugFromHandle, resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
@@ -82,11 +80,20 @@ function mapPostToFeedItem(
   };
 }
 
-function getFeedDataFromJson(): FeedData {
-  const filePath = join(process.cwd(), "data", "my_feed.json");
-  const raw = readFileSync(filePath, "utf-8");
-  return JSON.parse(raw) as FeedData;
-}
+/** Home feed filter tabs, in display order. Posts in other categories appear under "All". */
+const FEED_CATEGORIES = [
+  "sports",
+  "technology",
+  "personal",
+  "food",
+  "hotels",
+  "animals",
+  "discovery",
+  "cars",
+  "travel",
+  "science",
+  "movies",
+];
 
 async function applyFollowState(items: FeedItem[]): Promise<FeedItem[]> {
   const clearFollowing = () =>
@@ -220,93 +227,30 @@ async function excludeHiddenPosts(items: FeedItem[]): Promise<FeedItem[]> {
 }
 
 export async function getFeedData(): Promise<FeedData> {
-  try {
-    const [posts, postCount] = await Promise.all([
-      prisma.feedPost.findMany({
-        orderBy: [{ sortOrder: "asc" }, { postedAt: "desc" }],
-        include: { creator: true },
-      }),
-      prisma.feedPost.count(),
-    ]);
+  const posts = await prisma.feedPost.findMany({
+    orderBy: [{ sortOrder: "asc" }, { postedAt: "desc" }],
+    include: { creator: true },
+  });
 
-    if (postCount === 0) {
-      const json = getFeedDataFromJson();
-      const handles = Array.from(
-        new Set(json.items.map((item) => item.author.handle.toLowerCase())),
-      );
-      const creators = await prisma.creatorUser.findMany({
-        where: {
-          OR: handles.flatMap((handle) => {
-            const withAt = handle.startsWith("@") ? handle : `@${handle}`;
-            const bare = handle.replace(/^@/, "");
-            return [{ handle: withAt }, { handle: bare }, { handle: `@${bare}` }];
-          }),
-        },
-        select: { handle: true, slug: true, verified: true },
-      });
-      const byHandle = new Map(
-        creators.map((creator) => [creator.handle.toLowerCase(), creator]),
-      );
-      const withSlugs = json.items.map((item) => {
-        const key = item.author.handle.toLowerCase();
-        const withAt = key.startsWith("@") ? key : `@${key}`;
-        const match = byHandle.get(key) ?? byHandle.get(withAt) ?? byHandle.get(key.replace(/^@/, ""));
-        const slug = resolveAuthorProfileSlug(item.author.handle, match?.slug);
-        return {
-          ...item,
-          author: {
-            ...item.author,
-            slug,
-            verified: match ? match.verified : item.author.verified,
-          },
-        };
-      });
-      const items = await excludeHiddenPosts(await applyFollowState(withSlugs));
-      return {
-        ...json,
-        total_items: items.length,
-        items,
-      };
-    }
+  const creatorIds = Array.from(new Set(posts.map((post) => post.creatorId)));
+  const subscribedCreatorIds = await getSubscribedCreatorIds(creatorIds).catch(() => new Set<string>());
 
-    const creatorIds = Array.from(new Set(posts.map((post) => post.creatorId)));
-    const subscribedCreatorIds = await getSubscribedCreatorIds(creatorIds).catch(() => new Set<string>());
-
-    const categories = Array.from(new Set(posts.map((post) => post.category)));
-    const jsonMeta = getFeedDataFromJson();
-    const items = await excludeHiddenPosts(
-      await applyFollowState(
-        posts.map((post) =>
-          mapPostToFeedItem(post, {
-            subscribed: subscribedCreatorIds.has(post.creatorId),
-          }),
-        ),
+  const items = await excludeHiddenPosts(
+    await applyFollowState(
+      posts.map((post) =>
+        mapPostToFeedItem(post, {
+          subscribed: subscribedCreatorIds.has(post.creatorId),
+        }),
       ),
-    );
+    ),
+  );
 
-    return {
-      version: jsonMeta.version ?? "1.0",
-      description: "INRCLIQ feed dataset (loaded from database)",
-      generated_at: new Date().toISOString(),
-      total_items: items.length,
-      categories: jsonMeta.categories?.length ? jsonMeta.categories : categories,
-      items,
-    };
-  } catch (error) {
-    console.error("getFeedData: falling back to JSON", error);
-    const json = getFeedDataFromJson();
-    const withSlugs = json.items.map((item) => ({
-      ...item,
-      author: {
-        ...item.author,
-        slug: resolveAuthorProfileSlug(item.author.handle, item.author.slug),
-      },
-    }));
-    const items = await excludeHiddenPosts(await applyFollowState(withSlugs));
-    return {
-      ...json,
-      total_items: items.length,
-      items,
-    };
-  }
+  return {
+    version: "1.0",
+    description: "INRCLIQ feed (database)",
+    generated_at: new Date().toISOString(),
+    total_items: items.length,
+    categories: FEED_CATEGORIES,
+    items,
+  };
 }
