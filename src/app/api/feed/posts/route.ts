@@ -1,3 +1,5 @@
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveCreatePost, liveDeletePost, liveHidePost } from "@/lib/backend/feed";
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { createOwnTextPost } from "@/lib/feed/create-post";
@@ -17,6 +19,8 @@ function readPostId(body: Record<string, unknown>) {
 }
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveCreatePost(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;
@@ -47,6 +51,8 @@ export async function POST(request: Request) {
 
 /** Hide someone else's post from the current user's feed. */
 export async function PATCH(request: Request) {
+  if (isLiveBackend()) return liveHidePost();
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;
@@ -73,6 +79,8 @@ export async function PATCH(request: Request) {
 
 /** Permanently delete the current user's own post. */
 export async function DELETE(request: Request) {
+  if (isLiveBackend()) return liveDeletePost(request);
+
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;

@@ -281,8 +281,53 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [localFollowing, setLocalFollowing] = useState(item.relationship.following);
-  const [reaction, setReaction] = useState<FeedReactionId | null>(null);
-  const [bookmarked, setBookmarked] = useState(false);
+  // Seeded from the server so a like survives a reload. In mock mode these are
+  // undefined and the card starts neutral, exactly as before.
+  const [reaction, setReaction] = useState<FeedReactionId | null>(item.viewer_liked ? "like" : null);
+  const [bookmarked, setBookmarked] = useState(Boolean(item.viewer_bookmarked));
+  const [likeCount, setLikeCount] = useState(item.engagement.likes);
+
+  /**
+   * Engagement is written optimistically and rolled back if the server refuses.
+   * Waiting for the round trip before the heart fills makes every tap feel
+   * broken on a slow connection; leaving it filled after a failure is a lie.
+   */
+  async function persistEngagement(kind: "like" | "bookmark", on: boolean, rollback: () => void) {
+    try {
+      const response = await fetch(`/api/feed/posts/${item.id}/${kind}`, {
+        method: on ? "PUT" : "DELETE",
+      });
+      if (!response.ok) {
+        rollback();
+        return;
+      }
+      const data = (await response.json().catch(() => ({}))) as { likeCount?: number };
+      if (kind === "like" && typeof data.likeCount === "number") setLikeCount(data.likeCount);
+    } catch {
+      rollback();
+    }
+  }
+
+  function handleReactionChange(next: FeedReactionId | null) {
+    const previous = reaction;
+    const previousCount = likeCount;
+    setReaction(next);
+    setLikeCount((count) => count + (next ? (previous ? 0 : 1) : previous ? -1 : 0));
+
+    // Any reaction counts as a like; the API models one, not a set of moods.
+    if (Boolean(next) !== Boolean(previous)) {
+      void persistEngagement("like", Boolean(next), () => {
+        setReaction(previous);
+        setLikeCount(previousCount);
+      });
+    }
+  }
+
+  function handleBookmarkToggle() {
+    const previous = bookmarked;
+    setBookmarked(!previous);
+    void persistEngagement("bookmark", !previous, () => setBookmarked(previous));
+  }
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerMode, setViewerMode] = useState<"media" | "comments">("media");
   const [videoIndex, setVideoIndex] = useState(0);
@@ -573,11 +618,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
 
       <div className="post-footer">
         <div className="post-actions post-actions--engage" role="group" aria-label="Post actions">
-          <FeedReactionButton
-            count={item.engagement.likes}
-            reaction={reaction}
-            onReactionChange={setReaction}
-          />
+          <FeedReactionButton count={likeCount} reaction={reaction} onReactionChange={handleReactionChange} />
           <button
             type="button"
             className="post-action post-action--comment"
@@ -597,7 +638,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             className={`post-action post-action--save${bookmarked ? " is-saved" : ""}`}
             aria-label={bookmarked ? "Remove bookmark" : "Bookmark"}
             aria-pressed={bookmarked}
-            onClick={() => setBookmarked((value) => !value)}
+            onClick={handleBookmarkToggle}
           >
             <svg
               viewBox="0 0 24 24"

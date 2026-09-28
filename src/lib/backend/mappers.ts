@@ -109,6 +109,23 @@ const ERROR_COPY: Record<string, string> = {
     "That date of birth is still under 18, so a parent or guardian still needs to approve your account.",
   SSO_ACCOUNT_NOT_FOUND: "We couldn't find an account for that sign-in.",
   SSO_TOKEN_INVALID: "That sign-in expired. Please try again.",
+  // ── Feed and posts ────────────────────────────────────────────────────────
+  POST_EMPTY: "Write something or add a photo before you post.",
+  POST_NOT_FOUND: "That post is no longer available.",
+  POST_NOT_VISIBLE: "This post is for members only. Subscribe to see it.",
+  NOT_POST_AUTHOR: "You can only edit or delete your own posts.",
+  CONTENT_BLOCKED: "That didn't pass our content check. Try rewording it.",
+  EXCLUSIVE_REQUIRES_VERIFIED_CREATOR:
+    "Members-only posts need a verified creator account. Get verified to publish exclusive content.",
+  MINOR_CANNOT_PUBLISH_EXCLUSIVE: "Members-only posts aren't available on under-18 accounts.",
+  COMMENT_NOT_FOUND: "That comment is no longer available.",
+  ATTACHMENT_NOT_FOUND: "We couldn't find that upload. Try adding the file again.",
+  ATTACHMENT_NOT_OWNED: "That file was uploaded from another account.",
+  ATTACHMENT_PURPOSE_MISMATCH: "That file can't be used here. Try uploading it again.",
+  MIME_TYPE_NOT_ALLOWED: "That file type isn't supported.",
+  FILE_TOO_LARGE: "That file is too large.",
+  INVALID_CURSOR: "We lost your place in the feed. Pull to refresh.",
+  PROFILE_CONTEXT_REQUIRED: "Finish setting up your profile before posting.",
   BACKEND_UNREACHABLE: "We can't reach InrCliq right now. Please try again.",
 };
 

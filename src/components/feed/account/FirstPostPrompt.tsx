@@ -116,6 +116,13 @@ type MediaItem = {
   alt: string;
   kind: "image" | "video";
   moderationPassed: boolean;
+  /**
+   * Live mode only. The API takes an attachment whose owner and purpose it can
+   * check, not a URL it would have to trust, so the upload hands this back and
+   * the composer carries it through to publish. Undefined against the mock
+   * backend, which stores files itself.
+   */
+  attachmentId?: string;
 };
 
 type GifItem = {
@@ -473,6 +480,7 @@ export default function FirstPostPrompt({
           error?: string;
           url?: string;
           kind?: "image" | "video";
+          attachmentId?: string;
           moderation?: UploadModerationPayload;
         };
         if (response.status === 422 && data.moderation) {
@@ -492,6 +500,7 @@ export default function FirstPostPrompt({
               alt: file.name,
               kind: "video",
               moderationPassed: true,
+              attachmentId: data.attachmentId,
             };
             return [videoItem];
           }
@@ -501,6 +510,7 @@ export default function FirstPostPrompt({
             alt: file.name,
             kind: "image",
             moderationPassed: true,
+            attachmentId: data.attachmentId,
           };
           return [...withoutVideo, imageItem].slice(0, 6);
         });
@@ -569,7 +579,7 @@ export default function FirstPostPrompt({
     try {
       const images = media
         .filter((item) => item.kind === "image")
-        .map((item) => ({ url: item.url, alt: item.alt }));
+        .map((item) => ({ url: item.url, alt: item.alt, attachmentId: item.attachmentId }));
       const video = media.find((item) => item.kind === "video");
       const response = await fetch("/api/feed/posts", {
         method: "POST",
@@ -578,6 +588,7 @@ export default function FirstPostPrompt({
           text,
           images,
           videoUrl: video?.url ?? null,
+          videoAttachmentId: video?.attachmentId ?? null,
           gifUrl: gif?.url ?? null,
           gifAlt: gif?.alt ?? null,
           feeling,

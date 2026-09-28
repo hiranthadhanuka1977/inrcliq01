@@ -1,3 +1,5 @@
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveUploadPostMedia } from "@/lib/backend/feed";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
@@ -28,6 +30,8 @@ function extensionFor(type: string, filename: string) {
 }
 
 export async function POST(request: Request) {
+  if (isLiveBackend()) return liveUploadPostMedia(request);
+
   const { user, error } = await requireSessionUser();
   if (error) return error;
 

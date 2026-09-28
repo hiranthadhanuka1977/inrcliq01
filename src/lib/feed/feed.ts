@@ -4,6 +4,8 @@ import { getFollowedCreatorIdsForUser } from "@/lib/feed/follow-service";
 import { getHiddenPostIdsForUser } from "@/lib/feed/post-actions";
 import { getProfileSlugFromHandle, resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
+import { isLiveBackend } from "@/lib/backend/config";
+import { liveFeedData } from "@/lib/backend/feed";
 import { getSessionUser } from "@/lib/session";
 import type { FeedAuthor, FeedAudio, FeedData, FeedItem, FeedMedia } from "@/types/feed/feed";
 
@@ -220,6 +222,10 @@ async function excludeHiddenPosts(items: FeedItem[]): Promise<FeedItem[]> {
 }
 
 export async function getFeedData(): Promise<FeedData> {
+  // Live mode has none of the tables below — the same FeedItem[] is assembled
+  // from the API in src/lib/backend/feed.ts.
+  if (isLiveBackend()) return liveFeedData();
+
   try {
     const [posts, postCount] = await Promise.all([
       prisma.feedPost.findMany({

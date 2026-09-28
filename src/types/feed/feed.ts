@@ -81,6 +81,10 @@ export interface FeedItem {
   members_only?: boolean;
   /** True when the logged-in user authored this post. */
   is_own?: boolean;
+  /** Live mode: whether this viewer has already liked it. */
+  viewer_liked?: boolean;
+  /** Live mode: whether this viewer has already saved it. */
+  viewer_bookmarked?: boolean;
 }
 
 export interface FeedData {
