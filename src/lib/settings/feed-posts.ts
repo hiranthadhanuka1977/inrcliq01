@@ -1,3 +1,4 @@
+import { deleteFeedPosts } from "@/lib/feed/delete-posts";
 import { prisma } from "@/lib/prisma";
 import { isPlayableVideoMedia, SAMPLE_FEED_VIDEO_URL } from "@/lib/feed/sample-video";
 import { SEEDED_CREATOR_SOURCES } from "@/lib/settings/feed-dashboard";
@@ -90,4 +91,28 @@ export async function listSettingsFeedPosts(): Promise<SettingsFeedPostRow[]> {
       video: resolveVideo(media),
     };
   });
+}
+
+export async function deleteSettingsFeedPost(postId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const deleted = await deleteFeedPosts([postId]);
+  return deleted ? { ok: true } : { ok: false, error: "Post not found." };
+}
+
+/** Deletes every post authored by the user or by their linked creator identity. */
+export async function deleteSettingsUserFeedPosts(
+  userId: string,
+): Promise<{ ok: true; deleted: number } | { ok: false; error: string }> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { creatorProfile: { select: { id: true } } },
+  });
+  if (!user) return { ok: false, error: "User not found." };
+
+  const creatorId = user.creatorProfile?.id;
+  const posts = await prisma.feedPost.findMany({
+    where: creatorId ? { OR: [{ userId }, { creatorId }] } : { userId },
+    select: { id: true },
+  });
+
+  return { ok: true, deleted: await deleteFeedPosts(posts.map((post) => post.id)) };
 }

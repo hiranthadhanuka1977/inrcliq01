@@ -1,3 +1,4 @@
+import { deleteFeedPosts } from "@/lib/feed/delete-posts";
 import { prisma } from "@/lib/prisma";
 
 function isMissingHiddenModel(error: unknown) {
@@ -58,33 +59,6 @@ export async function deleteOwnFeedPost(userId: string, postId: string) {
     return { ok: false as const, status: 403, error: "You can only delete your own posts." };
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.feedPost.delete({ where: { id: postId } });
-
-    if (typeof tx.feedHiddenPost?.deleteMany === "function") {
-      await tx.feedHiddenPost.deleteMany({ where: { postId } });
-    }
-
-    const profile = await tx.userProfile.findUnique({
-      where: { userId },
-      select: { pinnedFeedPostIds: true, postsCountLabel: true },
-    });
-
-    if (profile) {
-      const pinned = profile.pinnedFeedPostIds.filter((id) => id !== postId);
-      const nextCount =
-        typeof profile.postsCountLabel === "number"
-          ? Math.max(0, profile.postsCountLabel - 1)
-          : profile.postsCountLabel;
-      await tx.userProfile.update({
-        where: { userId },
-        data: {
-          pinnedFeedPostIds: pinned,
-          postsCountLabel: nextCount,
-        },
-      });
-    }
-  });
-
+  await deleteFeedPosts([postId]);
   return { ok: true as const };
 }

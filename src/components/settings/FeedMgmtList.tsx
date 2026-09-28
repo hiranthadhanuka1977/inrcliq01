@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
+import { CogIcon, CogMenu } from "@/components/settings/CogMenu";
 import { formatCount } from "@/components/settings/DashboardParts";
 import type { SettingsFeedPostRow } from "@/lib/settings/feed-posts";
 
@@ -54,7 +56,45 @@ function Prop({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function FeedPostCard({ post }: { post: SettingsFeedPostRow }) {
+function PostMenu({ post, onDeleted }: { post: SettingsFeedPostRow; onDeleted: (postId: string) => void }) {
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      `Delete post ${post.id} by ${post.creator.name}? It will be removed from the feed and this cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/settings/feed-posts/${encodeURIComponent(post.id)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        window.alert(data.error ?? "Unable to delete post.");
+        return;
+      }
+      onDeleted(post.id);
+    } catch {
+      window.alert("Unable to delete post.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <CogMenu
+      label={`Options for post ${post.id}`}
+      className="settings-feed-item__menu"
+      disabled={deleting}
+      items={[{ label: "Delete post", danger: true, onSelect: handleDelete }]}
+    />
+  );
+}
+
+function FeedPostCard({ post, onDeleted }: { post: SettingsFeedPostRow; onDeleted: (postId: string) => void }) {
   const { media, audio, video, creator } = post;
   const images = media?.images ?? [];
 
@@ -72,6 +112,7 @@ function FeedPostCard({ post }: { post: SettingsFeedPostRow }) {
           <span className="settings-tag">{post.seeded ? "Seeded" : "Member post"}</span>
           {post.membersOnly ? <span className="settings-tag">Members only</span> : null}
         </span>
+        <PostMenu post={post} onDeleted={onDeleted} />
       </header>
 
       {post.text ? (
@@ -187,8 +228,17 @@ function FeedPostCard({ post }: { post: SettingsFeedPostRow }) {
   );
 }
 
-export function FeedMgmtList({ posts }: { posts: SettingsFeedPostRow[] }) {
-  const [searchQuery, setSearchQuery] = useState("");
+export function FeedMgmtList({
+  posts,
+  initialQuery = "",
+}: {
+  posts: SettingsFeedPostRow[];
+  initialQuery?: string;
+}) {
+  const router = useRouter();
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
+  const [message, setMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [category, setCategory] = useState("all");
   const [source, setSource] = useState<SourceFilter>("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -198,15 +248,20 @@ export function FeedMgmtList({ posts }: { posts: SettingsFeedPostRow[] }) {
     [posts],
   );
 
+  const livePosts = useMemo(
+    () => posts.filter((post) => !deletedIds.includes(post.id)),
+    [posts, deletedIds],
+  );
+
   const filteredPosts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return posts.filter(
+    return livePosts.filter(
       (post) =>
         (category === "all" || post.category === category) &&
         (source === "all" || (source === "seeded") === post.seeded) &&
         matchesSearch(post, query),
     );
-  }, [posts, searchQuery, category, source]);
+  }, [livePosts, searchQuery, category, source]);
 
   const visiblePosts = filteredPosts.slice(0, visibleCount);
 
@@ -214,16 +269,38 @@ export function FeedMgmtList({ posts }: { posts: SettingsFeedPostRow[] }) {
     setVisibleCount(PAGE_SIZE);
   }
 
+  function handleDeleted(postId: string) {
+    setDeletedIds((ids) => [...ids, postId]);
+    setMessage(`Deleted post ${postId}.`);
+    router.refresh();
+  }
+
   return (
     <div className="settings-panel">
-      <div className="settings-panel__head">
-        <h1 className="settings-panel__title">Feed Mgmt</h1>
-        <p className="settings-panel__subtitle">
-          Every post in the feed, in the order the home feed shows them.
-        </p>
+      <div className="settings-panel__head settings-panel__head--with-action">
+        <div>
+          <h1 className="settings-panel__title">Feed Mgmt</h1>
+          <p className="settings-panel__subtitle">
+            Every post in the feed, in the order the home feed shows them.
+          </p>
+        </div>
+        <Link
+          href="/settings/feed-mgmt/settings"
+          className="settings-icon-link"
+          aria-label="Seed sample settings"
+          title="Seed sample settings"
+        >
+          <CogIcon />
+        </Link>
       </div>
 
-      {posts.length === 0 ? (
+      {message ? (
+        <p className="settings-message" role="status">
+          {message}
+        </p>
+      ) : null}
+
+      {livePosts.length === 0 ? (
         <p className="settings-empty">There are no feed posts yet.</p>
       ) : (
         <>
@@ -284,7 +361,7 @@ export function FeedMgmtList({ posts }: { posts: SettingsFeedPostRow[] }) {
 
           <p className="settings-message">
             Showing {formatCount(visiblePosts.length)} of {formatCount(filteredPosts.length)} posts
-            {filteredPosts.length !== posts.length ? ` (${formatCount(posts.length)} in total)` : ""}.
+            {filteredPosts.length !== livePosts.length ? ` (${formatCount(livePosts.length)} in total)` : ""}.
           </p>
 
           {filteredPosts.length === 0 ? (
@@ -292,7 +369,7 @@ export function FeedMgmtList({ posts }: { posts: SettingsFeedPostRow[] }) {
           ) : (
             <div className="settings-feed-list">
               {visiblePosts.map((post) => (
-                <FeedPostCard key={post.id} post={post} />
+                <FeedPostCard key={post.id} post={post} onDeleted={handleDeleted} />
               ))}
             </div>
           )}

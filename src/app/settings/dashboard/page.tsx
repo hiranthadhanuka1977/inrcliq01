@@ -1,10 +1,15 @@
-import { DashboardPills, parseDashboardTab } from "@/components/settings/DashboardPills";
 import { FeedDashboard } from "@/components/settings/FeedDashboard";
+import { SettingsPills } from "@/components/settings/SettingsPills";
 import { UsersDashboard } from "@/components/settings/UsersDashboard";
 import { getSettingsUserSummary } from "@/lib/settings/dashboard";
 import { getSettingsFeedSummary } from "@/lib/settings/feed-dashboard";
 
 export const dynamic = "force-dynamic";
+
+const PILLS = [
+  { id: "users", label: "Users", href: "/settings/dashboard" },
+  { id: "feed", label: "Feed", href: "/settings/dashboard?tab=feed" },
+];
 
 const SUBTITLES = {
   users: "A summary of accounts registered on the platform.",
@@ -16,7 +21,7 @@ type PageProps = {
 };
 
 export default async function SettingsDashboardPage({ searchParams }: PageProps) {
-  const tab = parseDashboardTab((await searchParams).tab);
+  const tab = (await searchParams).tab === "feed" ? "feed" : "users";
 
   const content =
     tab === "feed" ? (
@@ -31,7 +36,7 @@ export default async function SettingsDashboardPage({ searchParams }: PageProps)
         <h1 className="settings-panel__title">Dashboard</h1>
         <p className="settings-panel__subtitle">{SUBTITLES[tab]}</p>
       </div>
-      <DashboardPills active={tab} />
+      <SettingsPills pills={PILLS} active={tab} label="Dashboard views" />
       {content}
     </div>
   );

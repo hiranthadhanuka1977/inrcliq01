@@ -3,8 +3,12 @@ import { listSettingsFeedPosts } from "@/lib/settings/feed-posts";
 
 export const dynamic = "force-dynamic";
 
-export default async function SettingsFeedMgmtPage() {
-  const posts = await listSettingsFeedPosts();
+type PageProps = {
+  searchParams: Promise<{ q?: string }>;
+};
 
-  return <FeedMgmtList posts={posts} />;
+export default async function SettingsFeedMgmtPage({ searchParams }: PageProps) {
+  const [posts, { q }] = await Promise.all([listSettingsFeedPosts(), searchParams]);
+
+  return <FeedMgmtList key={q ?? ""} posts={posts} initialQuery={q ?? ""} />;
 }

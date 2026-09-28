@@ -1,10 +1,13 @@
 import type { AccountType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
-import { formatUserName, formatUserType, type SettingsUserRow } from "@/lib/settings/users";
+import {
+  DEMO_SIGNUP_METHOD,
+  formatUserName,
+  formatUserType,
+  type SettingsUserRow,
+} from "@/lib/settings/users";
 
-/** Accounts created by the creator bridge / feed seed rather than a person signing up. */
-const SEEDED_SIGNUP_METHOD = "feed-creator";
 const TREND_DAYS = 14;
 const DAY_MS = 86_400_000;
 
@@ -30,7 +33,7 @@ export type SettingsUserSummary = {
   parentApprovals: SummarySegment[];
   guardianChildLinks: number;
   dailySignups: { date: string; label: string; count: number }[];
-  recentUsers: SettingsUserRow[];
+  recentUsers: Omit<SettingsUserRow, "postCount">[];
 };
 
 const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -39,7 +42,7 @@ const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   GUARDIAN: "Parents / guardians",
 };
 
-const ONBOARDING_STEP_LABELS: Record<string, string> = {
+export const ONBOARDING_STEP_LABELS: Record<string, string> = {
   "guardian-setup": "Parent setting up account",
   waiting: "Waiting for parent approval",
   approved: "Approved, finishing setup",
@@ -48,13 +51,13 @@ const ONBOARDING_STEP_LABELS: Record<string, string> = {
   interests: "Choosing interests",
 };
 
-const SIGNUP_METHOD_LABELS: Record<string, string> = {
+export const SIGNUP_METHOD_LABELS: Record<string, string> = {
   email: "Email",
   google: "Google",
-  [SEEDED_SIGNUP_METHOD]: "Seeded creator accounts",
+  [DEMO_SIGNUP_METHOD]: "Seeded creator accounts",
 };
 
-const APPROVAL_STATUS_LABELS: Record<string, string> = {
+export const APPROVAL_STATUS_LABELS: Record<string, string> = {
   PENDING: "Pending",
   APPROVED: "Approved",
   DECLINED: "Declined",
@@ -117,7 +120,7 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
     recent,
   ] = await Promise.all([
     prisma.user.count(),
-    prisma.user.count({ where: { signupMethod: SEEDED_SIGNUP_METHOD } }),
+    prisma.user.count({ where: { signupMethod: DEMO_SIGNUP_METHOD } }),
     prisma.user.count({ where: { createdAt: { gte: new Date(now - 7 * DAY_MS) } } }),
     prisma.user.count({ where: { createdAt: { gte: new Date(now - 30 * DAY_MS) } } }),
     prisma.user.count({ where: { emailVerified: { not: null } } }),
