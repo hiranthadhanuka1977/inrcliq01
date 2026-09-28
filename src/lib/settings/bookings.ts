@@ -28,18 +28,6 @@ export type SettingsBookingRow = {
   requestedForAt: string | null;
 };
 
-export type SettingsCreatorBookingsGroup = {
-  creatorId: string;
-  creatorName: string;
-  creatorHandle: string;
-  creatorSlug: string | null;
-  avatarUrl: string | null;
-  avatarInitials: string;
-  avatarColor: string;
-  bookingCount: number;
-  bookings: SettingsBookingRow[];
-};
-
 export type SettingsBookingDetail = {
   id: string;
   reference: string;
@@ -152,81 +140,6 @@ function requesterName(user: {
   return user.email;
 }
 
-export async function listSettingsBookingsByCreator(): Promise<SettingsCreatorBookingsGroup[]> {
-  const requests = await prisma.specialRequest.findMany({
-    orderBy: [{ createdAt: "desc" }],
-    include: {
-      creator: {
-        select: {
-          id: true,
-          name: true,
-          handle: true,
-          slug: true,
-          avatarUrl: true,
-          avatarInitials: true,
-          avatarColor: true,
-        },
-      },
-      user: {
-        select: {
-          firstName: true,
-          lastName: true,
-          email: true,
-          handle: true,
-        },
-      },
-    },
-  });
-
-  const groups = new Map<string, SettingsCreatorBookingsGroup>();
-
-  for (const request of requests) {
-    const existing = groups.get(request.creatorId);
-    const row: SettingsBookingRow = {
-      id: request.id,
-      reference: request.reference,
-      status: request.status,
-      statusLabel: statusLabel(request.status),
-      requestLabel: request.requestLabel,
-      category: request.category,
-      contentType: request.contentType,
-      totalFee: request.totalFee,
-      currency: request.currency,
-      totalLabel: `${request.totalFee} ${request.currency}`,
-      requesterName: requesterName(request.user),
-      requesterEmail: request.user.email,
-      createdAt: request.createdAt.toISOString(),
-      createdLabel: formatDate(request.createdAt),
-      deliverBy: request.deliverBy?.toISOString() ?? null,
-      requestedForAt: request.requestedForAt?.toISOString() ?? null,
-    };
-
-    if (existing) {
-      existing.bookings.push(row);
-      existing.bookingCount += 1;
-      continue;
-    }
-
-    groups.set(request.creatorId, {
-      creatorId: request.creator.id,
-      creatorName: request.creator.name,
-      creatorHandle: request.creator.handle,
-      creatorSlug: request.creator.slug,
-      avatarUrl: request.creator.avatarUrl,
-      avatarInitials: request.creator.avatarInitials,
-      avatarColor: request.creator.avatarColor,
-      bookingCount: 1,
-      bookings: [row],
-    });
-  }
-
-  return [...groups.values()].sort((a, b) => {
-    const aLatest = a.bookings[0]?.createdAt ?? "";
-    const bLatest = b.bookings[0]?.createdAt ?? "";
-    return bLatest.localeCompare(aLatest);
-  });
-}
-
 export async function getSettingsBookingById(id: string): Promise<SettingsBookingDetail | null> {
   const request = await prisma.specialRequest.findUnique({
     where: { id },
@@ -321,24 +234,6 @@ export async function getSettingsBookingById(id: string): Promise<SettingsBookin
       handle: request.user.handle,
     },
   };
-}
-
-export async function deleteSettingsBooking(id: string) {
-  const booking = await prisma.specialRequest.findUnique({
-    where: { id },
-    select: { id: true, reference: true },
-  });
-
-  if (!booking) {
-    return { ok: false as const, error: "Booking not found." };
-  }
-
-  await prisma.$transaction([
-    prisma.chatMessage.deleteMany({ where: { specialRequestId: id } }),
-    prisma.specialRequest.delete({ where: { id } }),
-  ]);
-
-  return { ok: true as const, reference: booking.reference };
 }
 
 export type AcceptBookingOptions = {

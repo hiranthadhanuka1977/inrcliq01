@@ -101,10 +101,6 @@
   .settings-panel__title {
     font-size: var(--font-size-xl);
   }
-
-  .settings-booking-detail__head-actions {
-    flex-wrap: wrap;
-  }
 }
 
 /* ——— Feed landscape phones ——— */

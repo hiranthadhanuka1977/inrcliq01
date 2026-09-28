@@ -7,7 +7,7 @@ import { AuthCenterLayout } from "@/components/auth/AuthCenterLayout";
 export function SettingsUnlockForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/settings/users";
+  const nextPath = searchParams.get("next") || "/settings/dashboard";
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -37,7 +37,7 @@ export function SettingsUnlockForm() {
       const safeNext =
         nextPath.startsWith("/settings") && !nextPath.startsWith("/settings/unlock")
           ? nextPath
-          : "/settings/users";
+          : "/settings/dashboard";
       router.replace(safeNext);
       router.refresh();
     } catch {
