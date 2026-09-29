@@ -115,7 +115,11 @@ BA user stories for this module: [`US-BA-Specification/us-service-requests.md`](
 
 ### Settings (platform admin)
 
-- `/settings/bookings` — search and manage bookings across creators
+- `/settings/dashboard` — default page with two pills: Users (the default: signups, account types, age zones, onboarding, parent approvals) and Feed (`?tab=feed`: posts, member vs seeded content, categories, post types, engagement, top creators)
+- `/settings/users` — registered accounts, with Users (default) and Demo users (`?tab=demo`: seeded creator accounts) pills; click a name for `/settings/users/[id]` (account, profile, creator identity, family links and feed posts; the feed posts cog menu deletes all of that user's posts after confirmation)
+- `/settings/feed-mgmt` — Feed Mgmt: every feed post in home feed order, with links to its images, video, audio and creator profile plus all stored properties (search, category and member/seeded filters); each post's cog menu has Delete post (with confirmation)
+- `/settings/feed-mgmt/settings` — seed sample settings (gear icon on Feed Mgmt): delete every seed post from `data/my_feed.json` and the profile `feed_posts` (confirmation, then type a random word), or restore only the missing ones in their original order from `data/feed-seed-order.json`; member posts are never touched
+- `/settings/reset` — clear all users and platform data (development)
 
 ## Email (SendGrid)
 
@@ -124,6 +128,8 @@ Set `EMAIL_PROVIDER=sendgrid` with `EMAIL_FROM` and `SENDGRID_API_KEY` for real 
 Emails are sent for signup verification, login OTPs, guardian invites, child notifications on approve/decline, and profile-completion prompts after handle setup.
 
 ## Seed / one-off scripts (optional)
+
+Feed posts (`FeedPost`) and profile details (`UserProfile`) are read only from the database; the profile and feed JSON files under `data/` are seed input for these scripts. Creator collections can still fall back to their JSON files.
 
 ```bash
 npm run db:migrate-feed

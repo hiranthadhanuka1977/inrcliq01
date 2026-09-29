@@ -6,5 +6,11 @@
     "src/app/api/feed/uploads/route.ts": {
       "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/expire-dm-holds",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

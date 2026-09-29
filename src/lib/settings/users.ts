@@ -1,5 +1,15 @@
-import type { AccountType } from "@/generated/prisma/client";
+import type { AccountType, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+
+/** `User.signupMethod` of seeded demo accounts (created for feed creators). */
+export const DEMO_SIGNUP_METHOD = "feed-creator";
+
+export type SettingsUsersGroup = "members" | "demo";
+
+const USER_GROUP_WHERE: Record<SettingsUsersGroup, Prisma.UserWhereInput> = {
+  members: { OR: [{ signupMethod: null }, { signupMethod: { not: DEMO_SIGNUP_METHOD } }] },
+  demo: { signupMethod: DEMO_SIGNUP_METHOD },
+};
 
 export type SettingsUserRow = {
   id: string;
@@ -8,6 +18,8 @@ export type SettingsUserRow = {
   typeLabel: "Parent user" | "Standard user";
   accountType: AccountType;
   createdAt: Date;
+  /** Feed posts authored by the user or by their linked creator identity. */
+  postCount: number;
 };
 
 export function formatUserType(accountType: AccountType): SettingsUserRow["typeLabel"] {
@@ -19,18 +31,39 @@ export function formatUserName(firstName: string | null, lastName: string | null
   return name || "—";
 }
 
-export async function listSettingsUsers(): Promise<SettingsUserRow[]> {
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      accountType: true,
-      createdAt: true,
-    },
-  });
+export async function countSettingsUsersByGroup(): Promise<Record<SettingsUsersGroup, number>> {
+  const [members, demo] = await Promise.all([
+    prisma.user.count({ where: USER_GROUP_WHERE.members }),
+    prisma.user.count({ where: USER_GROUP_WHERE.demo }),
+  ]);
+  return { members, demo };
+}
+
+/** All users, or only one group when `group` is given. */
+export async function listSettingsUsers(group?: SettingsUsersGroup): Promise<SettingsUserRow[]> {
+  const [users, postCounts] = await Promise.all([
+    prisma.user.findMany({
+      where: group ? USER_GROUP_WHERE[group] : undefined,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        accountType: true,
+        createdAt: true,
+      },
+    }),
+    prisma.$queryRaw<{ userId: string; posts: number }[]>`
+      SELECT u.id AS "userId", COUNT(DISTINCT p.id)::int AS posts
+      FROM "User" u
+      LEFT JOIN "CreatorUser" c ON c."userId" = u.id
+      JOIN "FeedPost" p ON p."userId" = u.id OR p."creatorId" = c.id
+      GROUP BY u.id
+    `,
+  ]);
+
+  const postsByUser = new Map(postCounts.map((row) => [row.userId, row.posts]));
 
   return users.map((user) => ({
     id: user.id,
@@ -39,6 +72,7 @@ export async function listSettingsUsers(): Promise<SettingsUserRow[]> {
     typeLabel: formatUserType(user.accountType),
     accountType: user.accountType,
     createdAt: user.createdAt,
+    postCount: postsByUser.get(user.id) ?? 0,
   }));
 }
 

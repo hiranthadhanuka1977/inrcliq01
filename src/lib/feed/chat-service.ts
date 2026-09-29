@@ -1,5 +1,7 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CONVERSATIONS } from "@/lib/feed/messages";
+import type { SenderEnforcement } from "@/lib/guardian/sender-enforcement";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type SeedMessage = {
@@ -167,8 +169,18 @@ export async function seedDefaultChatThreadsForUser(
   }
 }
 
+async function expireOverdueHoldsForUser(userId: string) {
+  try {
+    const { expireOverdueHolds } = await import("@/lib/guardian/dm-moderation-hold");
+    await expireOverdueHolds({ userIds: [userId] });
+  } catch (error) {
+    console.error("lazy DM hold expiry failed", error);
+  }
+}
+
 export async function listChatThreadsForUser(userId: string) {
   await seedDefaultChatThreadsForUser(userId);
+  await expireOverdueHoldsForUser(userId);
 
   return prisma.chatThread.findMany({
     where: { userId },
@@ -180,6 +192,7 @@ export async function listChatThreadsForUser(userId: string) {
 }
 
 export async function getChatThreadForUser(userId: string, threadId: string) {
+  await expireOverdueHoldsForUser(userId);
   return prisma.chatThread.findFirst({
     where: { id: threadId, userId },
     include: {
@@ -214,13 +227,15 @@ function normalizeHandle(value: string | null | undefined, fallback: string) {
   return `@${cleaned}`;
 }
 
-function previewFromBody(body: string) {
+export function previewFromBody(body: string) {
   const trimmed = body.trim();
   if (trimmed.length <= 140) return trimmed;
   return `${trimmed.slice(0, 137)}…`;
 }
 
-type PeerDisplay = {
+type ChatDb = Pick<Prisma.TransactionClient, "chatThread" | "chatMessage">;
+
+export type PeerDisplay = {
   peerCreatorId: string | null;
   peerName: string;
   peerHandle: string;
@@ -360,9 +375,14 @@ export async function resolveReceiverUserId(thread: {
   return creatorByHandle?.userId ?? null;
 }
 
-async function findOrCreatePeerInboxThread(receiverUserId: string, peer: PeerDisplay) {
+/** Find the receiver's inbox thread for this peer without creating one. */
+export async function findPeerInboxThread(
+  receiverUserId: string,
+  peer: PeerDisplay,
+  db: ChatDb = prisma,
+): Promise<{ id: string } | null> {
   if (peer.peerCreatorId) {
-    const byCreator = await prisma.chatThread.findFirst({
+    const byCreator = await db.chatThread.findFirst({
       where: { userId: receiverUserId, peerCreatorId: peer.peerCreatorId },
       select: { id: true },
     });
@@ -382,14 +402,25 @@ async function findOrCreatePeerInboxThread(receiverUserId: string, peer: PeerDis
   >;
 
   if (orFilters.length > 0) {
-    const existing = await prisma.chatThread.findFirst({
+    const existing = await db.chatThread.findFirst({
       where: { userId: receiverUserId, OR: orFilters },
       select: { id: true },
     });
     if (existing) return existing;
   }
 
-  return prisma.chatThread.create({
+  return null;
+}
+
+export async function findOrCreatePeerInboxThread(
+  receiverUserId: string,
+  peer: PeerDisplay,
+  db: ChatDb = prisma,
+) {
+  const existing = await findPeerInboxThread(receiverUserId, peer, db);
+  if (existing) return existing;
+
+  return db.chatThread.create({
     data: {
       userId: receiverUserId,
       peerCreatorId: peer.peerCreatorId,
@@ -406,6 +437,31 @@ async function findOrCreatePeerInboxThread(receiverUserId: string, peer: PeerDis
     },
     select: { id: true },
   });
+}
+
+/**
+ * How the sender appears in the receiver's inbox. Messaging a creator → the receiver sees the fan;
+ * messaging a fan → the receiver sees the creator when possible.
+ */
+export async function resolveSenderPeerDisplay(
+  senderUserId: string,
+  senderThread: { peerCreatorId: string | null } | null,
+): Promise<PeerDisplay | null> {
+  if (senderThread?.peerCreatorId) return peerDisplayFromUser(senderUserId);
+  return (await peerDisplayFromCreatorOwner(senderUserId)) || (await peerDisplayFromUser(senderUserId));
+}
+
+/** Display fields refreshed on the receiver's thread whenever a message is delivered into it. */
+export function peerThreadDisplayUpdate(peer: PeerDisplay) {
+  return {
+    peerName: peer.peerName,
+    peerHandle: peer.peerHandle,
+    peerInitials: peer.peerInitials,
+    peerAvatarColor: peer.peerAvatarColor,
+    peerAvatarUrl: peer.peerAvatarUrl,
+    peerSlug: peer.peerSlug,
+    ...(peer.peerCreatorId ? { peerCreatorId: peer.peerCreatorId } : {}),
+  };
 }
 
 /**
@@ -433,11 +489,7 @@ async function mirrorChatMessageToPeer(
     return;
   }
 
-  // Messaging a creator → peer inbox shows the fan. Messaging a fan → show the creator when possible.
-  const peer = senderThread.peerCreatorId
-    ? await peerDisplayFromUser(senderUserId)
-    : (await peerDisplayFromCreatorOwner(senderUserId)) ||
-      (await peerDisplayFromUser(senderUserId));
+  const peer = await resolveSenderPeerDisplay(senderUserId, senderThread);
   if (!peer) {
     console.warn("[chat] mirror skipped — could not build peer display", senderUserId);
     return;
@@ -464,13 +516,7 @@ async function mirrorChatMessageToPeer(
         preview,
         lastMessageAt: new Date(),
         unreadCount: { increment: 1 },
-        peerName: peer.peerName,
-        peerHandle: peer.peerHandle,
-        peerInitials: peer.peerInitials,
-        peerAvatarColor: peer.peerAvatarColor,
-        peerAvatarUrl: peer.peerAvatarUrl,
-        peerSlug: peer.peerSlug,
-        ...(peer.peerCreatorId ? { peerCreatorId: peer.peerCreatorId } : {}),
+        ...peerThreadDisplayUpdate(peer),
       },
     }),
   ]);
@@ -481,12 +527,37 @@ export type SendChatMessageOptions = {
   acceptModeration?: boolean;
 };
 
+export type DmModerationWarningPayload = {
+  title: string;
+  message: string;
+  category: string;
+  confidence: number;
+  verificationFailed: boolean;
+  recipientIsMinor: boolean;
+  canSendAnyway: boolean;
+  sendAnywayOutcome: "guardian_review" | "masked" | null;
+};
+
+export type SendChatMessageResult =
+  | {
+      restricted: true;
+      code: "DM_RESTRICTED" | "DM_MINOR_RESTRICTED";
+      message: string;
+      restrictionEndsAt?: string | null;
+    }
+  | { moderationRequired: true; moderation: DmModerationWarningPayload }
+  | {
+      thread: Awaited<ReturnType<typeof getChatThreadForUser>>;
+      message: { id: string };
+      enforcement?: SenderEnforcement;
+    };
+
 export async function sendChatMessage(
   userId: string,
   threadId: string,
   body: string,
   options: SendChatMessageOptions = {},
-) {
+): Promise<SendChatMessageResult | null> {
   const thread = await prisma.chatThread.findFirst({
     where: { id: threadId, userId },
   });
@@ -499,50 +570,177 @@ export async function sendChatMessage(
   const restriction = await getDirectMessagingRestriction(userId, thread);
   if (restriction.restricted) {
     return {
-      restricted: true as const,
+      restricted: true,
+      code: "DM_RESTRICTED",
       message: restriction.message ?? "Direct messaging is restricted for this contact.",
     };
   }
 
-  let contentMasked = false;
-  let moderationCategory: string | null = null;
   const receiverUserId = await resolveReceiverUserId(thread);
   if (!receiverUserId) {
     console.warn("[moderation] DM receiver unresolved for thread", threadId);
   }
+  const recipientUserId = receiverUserId && receiverUserId !== userId ? receiverUserId : null;
 
-  const { isUserMinor } = await import("@/lib/guardian/is-user-minor");
+  const [
+    { loadDmSafetyParticipants },
+    { evaluateDmSafetyPolicy, normalizeDmSafetyCategory, severityFromConfidence, DM_MINOR_WARNING_COPY },
+    { minorRestrictionMessage },
+    { moderateDmText },
+    { isMinorAgeZone },
+  ] = await Promise.all([
+    import("@/lib/guardian/dm-moderation-hold"),
+    import("@/lib/guardian/dm-safety-policy"),
+    import("@/lib/guardian/sender-enforcement"),
+    import("@/lib/moderation/dm-text-moderation"),
+    import("@/lib/utils/age-zone"),
+  ]);
+
+  const participants = await loadDmSafetyParticipants(userId, recipientUserId);
   const recipientIsMinor = Boolean(
-    receiverUserId && receiverUserId !== userId && (await isUserMinor(receiverUserId)),
+    participants.recipient && isMinorAgeZone(participants.recipient.zone),
   );
 
-  if (!options.acceptModeration) {
-    const { moderateDmText } = await import("@/lib/moderation/dm-text-moderation");
-    const moderation = await moderateDmText(trimmed, { recipientIsMinor });
-    if (!moderation.allowed) {
-      return {
-        moderationRequired: true as const,
-        moderation: {
-          title: moderation.title,
-          message: moderation.message,
-          category: moderation.category,
-          confidence: moderation.confidence,
-          verificationFailed: Boolean(moderation.verificationFailed),
-          recipientIsMinor,
-          maskOnAccept: true,
-        },
-      };
-    }
-  } else {
-    // Sender confirmed the safety warning — always deliver a masked copy to the recipient.
-    contentMasked = true;
-    const { moderateDmText } = await import("@/lib/moderation/dm-text-moderation");
-    const moderation = await moderateDmText(trimmed, { recipientIsMinor });
-    if (!moderation.allowed) {
-      moderationCategory = moderation.category;
-    }
+  const minorRestricted = (endsAt: Date | null): SendChatMessageResult => ({
+    restricted: true,
+    code: "DM_MINOR_RESTRICTED",
+    message: minorRestrictionMessage(endsAt),
+    restrictionEndsAt: endsAt ? endsAt.toISOString() : null,
+  });
+
+  if (recipientIsMinor && participants.senderRestriction) {
+    return minorRestricted(participants.senderRestriction.endsAt);
   }
 
+  // Always re-moderate: `acceptModeration` only expresses the sender's intent.
+  const moderation = await moderateDmText(trimmed, { recipientIsMinor });
+  const verificationFailed = !moderation.allowed && Boolean(moderation.verificationFailed);
+  const flagged = !moderation.allowed && !verificationFailed;
+  const category = moderation.allowed ? "Neutral" : normalizeDmSafetyCategory(moderation.category);
+  const severity = moderation.allowed ? 0 : severityFromConfidence(moderation.confidence);
+
+  const decision = evaluateDmSafetyPolicy({
+    flagged,
+    verificationFailed,
+    category,
+    severity,
+    senderZone: participants.sender.zone,
+    senderAgeYears: participants.sender.ageYears,
+    senderMonitored: participants.sender.monitored,
+    recipientZone: participants.recipient?.zone ?? "ADULT",
+    recipientAgeYears: participants.recipient?.ageYears ?? null,
+    recipientMonitored: participants.recipient?.monitored ?? false,
+    senderRestrictedFromMinors: Boolean(participants.senderRestriction),
+    senderIsRecipientGuardian: participants.senderIsRecipientGuardian,
+  });
+
+  if (decision.outcome === "restricted") {
+    return minorRestricted(participants.senderRestriction?.endsAt ?? null);
+  }
+
+  if (decision.outcome === "deliver" || moderation.allowed) {
+    return deliverChatMessage(userId, thread, trimmed, false);
+  }
+
+  const canSendAnyway = decision.outcome === "warn";
+  const warning: DmModerationWarningPayload = {
+    title: moderation.title,
+    message: moderation.message,
+    category: moderation.category,
+    confidence: moderation.confidence,
+    verificationFailed,
+    recipientIsMinor,
+    canSendAnyway,
+    sendAnywayOutcome:
+      decision.onSendAnyway === "hold_withheld" || decision.onSendAnyway === "hold_masked_placeholder"
+        ? "guardian_review"
+        : decision.onSendAnyway === "masked_delivery"
+          ? "masked"
+          : null,
+  };
+  if (recipientIsMinor) {
+    // Never reveal category, severity, or guardian involvement to someone messaging a minor.
+    warning.category = "";
+    warning.confidence = 0;
+    warning.sendAnywayOutcome = null;
+    warning.title = verificationFailed
+      ? DM_MINOR_WARNING_COPY.verificationFailedTitle
+      : DM_MINOR_WARNING_COPY.title;
+    warning.message = verificationFailed
+      ? DM_MINOR_WARNING_COPY.verificationFailedMessage
+      : DM_MINOR_WARNING_COPY.message;
+  }
+
+  if (!options.acceptModeration || decision.onSendAnyway === "not_allowed") {
+    if (options.acceptModeration && decision.autoReport && recipientUserId) {
+      try {
+        const { createSystemSafetyReport } = await import("@/lib/guardian/safety-reports");
+        await createSystemSafetyReport({
+          subjectUserId: userId,
+          reason: "sexual_content_to_minor",
+          childUserId: recipientUserId,
+          mandatoryReportCandidate: true,
+          dedupeSince: new Date(Date.now() - 86_400_000),
+        });
+      } catch (error) {
+        console.error("system safety report create failed", error);
+      }
+    }
+    return { moderationRequired: true, moderation: warning };
+  }
+
+  if (decision.onSendAnyway === "masked_delivery") {
+    const result = await deliverChatMessage(userId, thread, trimmed, true);
+    try {
+      const { createDmModerationSafetyAlerts } = await import("@/lib/guardian/safety-alerts");
+      await createDmModerationSafetyAlerts({
+        senderUserId: userId,
+        receiverUserId: recipientUserId,
+        chatThreadId: threadId,
+        chatMessageId: result.message.id,
+        category: moderation.category,
+        priority: decision.alertPriority,
+        senderIsAdult: participants.sender.zone === "ADULT",
+        recipientIsAdult: !recipientIsMinor,
+      });
+    } catch (error) {
+      console.error("guardian safety alert create failed", error);
+    }
+    return result;
+  }
+
+  if (!recipientUserId || !participants.recipient) {
+    return { moderationRequired: true, moderation: { ...warning, canSendAnyway: false, sendAnywayOutcome: null } };
+  }
+
+  const { createDmModerationHold } = await import("@/lib/guardian/dm-moderation-hold");
+  const hold = await createDmModerationHold({
+    senderUserId: userId,
+    recipientUserId,
+    senderThread: thread,
+    body: trimmed,
+    category: moderation.category,
+    severity,
+    senderZone: participants.sender.zone,
+    recipientZone: participants.recipient.zone,
+    treatment: decision.onSendAnyway === "hold_masked_placeholder" ? "MASKED_PLACEHOLDER" : "WITHHELD",
+    decision,
+  });
+
+  return {
+    thread: await getChatThreadForUser(userId, threadId),
+    message: { id: hold.senderMessageId },
+    ...(hold.enforcement ? { enforcement: hold.enforcement } : {}),
+  };
+}
+
+async function deliverChatMessage(
+  userId: string,
+  thread: { id: string; peerCreatorId: string | null; peerSlug: string | null; peerHandle: string },
+  trimmed: string,
+  contentMasked: boolean,
+) {
+  const threadId = thread.id;
   const [message] = await prisma.$transaction([
     prisma.chatMessage.create({
       data: {
@@ -568,25 +766,10 @@ export async function sendChatMessage(
     console.error("chat mirror to peer failed", error);
   }
 
-  if (contentMasked) {
-    try {
-      const { createDmModerationSafetyAlerts } = await import("@/lib/guardian/safety-alerts");
-      await createDmModerationSafetyAlerts({
-        senderUserId: userId,
-        receiverUserId,
-        chatThreadId: threadId,
-        chatMessageId: message.id,
-        category: moderationCategory,
-      });
-    } catch (error) {
-      console.error("guardian safety alert create failed", error);
-    }
-  }
-
-  return getChatThreadForUser(userId, threadId).then((fresh) => ({
-    thread: fresh,
-    message,
-  }));
+  return {
+    thread: await getChatThreadForUser(userId, threadId),
+    message: { id: message.id },
+  };
 }
 
 /** Delete all messages in a thread for the current user (clears their local chat history). */

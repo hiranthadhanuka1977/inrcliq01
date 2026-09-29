@@ -1,11 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import type { SettingsUserRow } from "@/lib/settings/users";
+import type { SettingsUserRow, SettingsUsersGroup } from "@/lib/settings/users";
 
 type UsersTableProps = {
   users: SettingsUserRow[];
+  group: SettingsUsersGroup;
+  pills: ReactNode;
+};
+
+const GROUP_COPY: Record<SettingsUsersGroup, { subtitle: string; empty: string }> = {
+  members: {
+    subtitle: "Accounts people registered on the platform.",
+    empty: "No users registered yet.",
+  },
+  demo: {
+    subtitle: "Seeded accounts created for demo feed creators.",
+    empty: "There are no demo users.",
+  },
 };
 
 function matchesSearch(user: SettingsUserRow, query: string) {
@@ -18,7 +32,7 @@ function matchesSearch(user: SettingsUserRow, query: string) {
   );
 }
 
-export function UsersTable({ users: initialUsers }: UsersTableProps) {
+export function UsersTable({ users: initialUsers, group, pills }: UsersTableProps) {
   const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,8 +76,10 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
     <div className="settings-panel">
       <div className="settings-panel__head">
         <h1 className="settings-panel__title">Users</h1>
-        <p className="settings-panel__subtitle">All accounts registered on the platform.</p>
+        <p className="settings-panel__subtitle">{GROUP_COPY[group].subtitle}</p>
       </div>
+
+      {pills}
 
       {error ? (
         <p className="field-error settings-panel__error" role="alert">
@@ -89,7 +105,7 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
       ) : null}
 
       {users.length === 0 ? (
-        <p className="settings-empty">No users registered yet.</p>
+        <p className="settings-empty">{GROUP_COPY[group].empty}</p>
       ) : filteredUsers.length === 0 ? (
         <p className="settings-empty">No users match your search.</p>
       ) : (
@@ -100,6 +116,9 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
                 <th scope="col">Name</th>
                 <th scope="col">Email</th>
                 <th scope="col">Type</th>
+                <th scope="col" className="settings-table__number">
+                  Feed posts
+                </th>
                 <th scope="col">
                   <span className="sr-only">Actions</span>
                 </th>
@@ -108,9 +127,14 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
             <tbody>
               {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td>{user.name}</td>
+                  <td>
+                    <Link href={`/settings/users/${user.id}`}>
+                      {user.name !== "—" ? user.name : "Unnamed user"}
+                    </Link>
+                  </td>
                   <td>{user.email}</td>
                   <td>{user.typeLabel}</td>
+                  <td className="settings-table__number">{user.postCount}</td>
                   <td className="settings-table__actions">
                     <button
                       type="button"

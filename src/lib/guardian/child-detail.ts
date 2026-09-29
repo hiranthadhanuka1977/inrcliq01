@@ -152,7 +152,7 @@ export async function listChildDmContacts(
     prisma.chatThread.findMany({
       where: {
         userId: childUserId,
-        NOT: { seedKey: { startsWith: "guardian:" } },
+        OR: [{ seedKey: null }, { NOT: { seedKey: { startsWith: "guardian:" } } }],
       },
       orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
       select: {
@@ -581,7 +581,7 @@ export async function getChildDmContactDetailForGuardian(
     where: {
       id: threadId,
       userId: childUserId,
-      NOT: { seedKey: { startsWith: "guardian:" } },
+      OR: [{ seedKey: null }, { NOT: { seedKey: { startsWith: "guardian:" } } }],
     },
     select: {
       id: true,

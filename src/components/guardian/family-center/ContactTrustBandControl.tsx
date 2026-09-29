@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type MouseEvent } from "react";
+import { useId, useState, type MouseEvent } from "react";
 import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 import {
   CONTACT_TRUST_BANDS,
@@ -55,10 +55,12 @@ export default function ContactTrustBandControl({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [syncedInitialBand, setSyncedInitialBand] = useState(initialBand);
+  if (syncedInitialBand !== initialBand) {
+    setSyncedInitialBand(initialBand);
     setBand(initialBand);
     setSelected(initialBand);
-  }, [initialBand]);
+  }
 
   function closeModal() {
     if (isSaving) return;

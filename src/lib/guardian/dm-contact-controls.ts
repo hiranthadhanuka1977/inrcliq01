@@ -1,6 +1,7 @@
 import { AccountType } from "@/generated/prisma/client";
 import { resolveReceiverUserId } from "@/lib/feed/chat-service";
 import { prisma } from "@/lib/prisma";
+import { recordSafetyAuditSafe, SAFETY_AUDIT_ACTIONS } from "@/lib/guardian/safety-audit";
 import { getSessionUser } from "@/lib/session";
 
 export type DmContactGuardianSettings = {
@@ -71,7 +72,7 @@ export async function upsertDmContactControlsForGuardian(input: {
     where: {
       id: input.childThreadId,
       userId: input.childUserId,
-      NOT: { seedKey: { startsWith: "guardian:" } },
+      OR: [{ seedKey: null }, { NOT: { seedKey: { startsWith: "guardian:" } } }],
     },
     select: {
       id: true,
@@ -83,6 +84,7 @@ export async function upsertDmContactControlsForGuardian(input: {
   if (!thread) return null;
 
   const peerUserId = await resolveReceiverUserId(thread);
+  const previous = await getDmContactControlsForThread(input.childUserId, input.childThreadId);
 
   const record = await prisma.guardianDmContactControl.upsert({
     where: {
@@ -120,7 +122,26 @@ export async function upsertDmContactControlsForGuardian(input: {
     },
   });
 
-  return settingsFromRecord(record);
+  const next = settingsFromRecord(record);
+  const changed = (Object.keys(next) as Array<keyof DmContactGuardianSettings>).filter(
+    (key) => previous[key] !== next[key],
+  );
+  if (changed.length > 0) {
+    const becameBlocked = !previous.blocked && next.blocked;
+    await recordSafetyAuditSafe({
+      action: becameBlocked ? SAFETY_AUDIT_ACTIONS.SENDER_BLOCKED : SAFETY_AUDIT_ACTIONS.CONTROLS_CHANGED,
+      actorUserId: input.guardianUserId,
+      childUserId: input.childUserId,
+      subjectUserId: peerUserId,
+      metadata: {
+        childThreadId: input.childThreadId,
+        changed,
+        settings: next,
+      },
+    });
+  }
+
+  return next;
 }
 
 export async function updateDmContactControlsForSession(input: {

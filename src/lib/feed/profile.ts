@@ -44,15 +44,16 @@ function resolveIsOwnProfile(
   return Boolean(sessionHandle && targetHandle && sessionHandle === targetHandle);
 }
 
-function getProfileDataFromJson(slug: string): ProfileData | null {
+/** Shop preview from the seed profile JSON; used only when the creator has no collection catalog. */
+function getProfileJsonCollection(slug: string): ProfileCollectionItem[] {
   const fileName = PROFILE_FILES[slug];
-  if (!fileName) return null;
+  if (!fileName) return [];
 
   const filePath = join(process.cwd(), "data", fileName);
-  if (!existsSync(filePath)) return null;
+  if (!existsSync(filePath)) return [];
 
-  const raw = readFileSync(filePath, "utf-8");
-  return JSON.parse(raw) as ProfileData;
+  const raw = JSON.parse(readFileSync(filePath, "utf-8")) as { collection?: ProfileCollectionItem[] };
+  return Array.isArray(raw.collection) ? raw.collection : [];
 }
 
 function mapCollectionPreview(products: {
@@ -305,7 +306,10 @@ function profileFromDbRow(row: DbUserProfile, feedPosts: FeedItem[]): ProfileDat
   };
 }
 
-/** Prefer DB `UserProfile`, fall back to JSON. Overlays collection / follow / subscribe. */
+/**
+ * Profile details come from `UserProfile` and feed posts from `FeedPost`.
+ * Overlays collection / follow / subscribe.
+ */
 export async function getProfileData(slug: string): Promise<ProfileData | null> {
   const dbProfile = await getDbUserProfile(slug).catch((error) => {
     console.error("getProfileData: UserProfile lookup failed", error);
@@ -356,7 +360,7 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         following = isFollowing;
       }
 
-      // Rich profiles: pinned JSON order. Stub profiles: all linked FeedPosts.
+      // Rich profiles: pinned order. Stub profiles: all linked FeedPosts.
       if (dbRow.source === "stub") {
         feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
       } else if (dbRow.pinnedFeedPostIds.length > 0) {
@@ -365,22 +369,6 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
           following,
           subscribed,
         });
-
-        const jsonFallback = getProfileDataFromJson(publicSlug);
-        if (!isOwn && jsonFallback?.feed_posts?.length) {
-          const fromDbIds = new Set(feedPosts.map((post) => post.id));
-          const leftovers = jsonFallback.feed_posts
-            .filter((post) => !fromDbIds.has(post.id))
-            .map((post) => ({
-              ...post,
-              relationship: {
-                ...post.relationship,
-                following,
-                subscribed: subscribed || undefined,
-              },
-            }));
-          feedPosts = [...feedPosts, ...leftovers];
-        }
       } else {
         feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
       }
@@ -396,20 +384,16 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         base.stats.posts = Math.max(postCount, feedPosts.length);
       }
 
-      const jsonFallback = getProfileDataFromJson(publicSlug);
-      // Only use profile JSON shop preview when no collection catalog exists at all.
-      if (!collection.length && !rawCollection && jsonFallback?.collection?.length) {
-        collection = jsonFallback.collection;
+      if (!collection.length && !rawCollection) {
+        collection = getProfileJsonCollection(publicSlug);
       }
 
       const specialRequestsAvailable = await resolveSpecialRequestsAvailable(publicSlug);
       const specialRequestsEnabled =
         specialRequestsAvailable &&
         (await resolveSpecialRequestsEnabled(publicSlug, dbRow.specialRequests));
-      // Own profile: keep the Special Requests entry visible from seed/catalog even if
-      // the public toggle is currently off.
-      const showSpecialRequests =
-        specialRequestsAvailable || (isOwn && Boolean(jsonFallback?.special_requests));
+      // Own profile: keep the Special Requests entry visible even if the public toggle is off.
+      const showSpecialRequests = specialRequestsAvailable || (isOwn && dbRow.specialRequests);
       const collectionEnabled = rawCollection
         ? rawCollection.enabled !== false
         : collection.length > 0
@@ -446,123 +430,5 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     }
   }
 
-  const profile = getProfileDataFromJson(slug);
-  if (!profile) return null;
-
-  let collection: ProfileCollectionItem[] = [];
-  let feedPosts = profile.feed_posts;
-  let subscribed = Boolean(profile.relationship?.subscribed);
-  let following = Boolean(profile.relationship?.following);
-  let isOwn = false;
-  let collectionEnabled: boolean | undefined;
-  let coverUrlOverride: string | null | undefined;
-
-  try {
-    const preferredIds = profile.feed_posts.map((post) => post.id);
-    const [rawCollection, creator, ownerProfile] = await Promise.all([
-      getCreatorCollectionRaw(slug),
-      prisma.creatorUser.findFirst({
-        where: { slug },
-        select: { id: true, userId: true, coverUrl: true },
-      }),
-      prisma.userProfile.findFirst({
-        where: { slug },
-        select: { coverUrl: true, userId: true },
-      }),
-    ]);
-
-    coverUrlOverride =
-      ownerProfile || creator
-        ? ownerProfile?.coverUrl?.trim() || creator?.coverUrl?.trim() || null
-        : undefined;
-
-    if (rawCollection) {
-      const previewProducts = getCollectionPreviewProducts(rawCollection);
-      if (previewProducts.length) {
-        collection = mapCollectionPreview(previewProducts);
-      }
-      collectionEnabled = rawCollection.enabled !== false;
-    } else if (profile.collection.length) {
-      collection = profile.collection;
-      collectionEnabled = true;
-    }
-
-    let sessionUser: Awaited<ReturnType<typeof getSessionUser>> = null;
-    try {
-      sessionUser = await getSessionUser();
-    } catch {
-      sessionUser = null;
-    }
-
-    isOwn = resolveIsOwnProfile(
-      sessionUser,
-      creator?.userId ?? ownerProfile?.userId,
-      profile.handle,
-    );
-
-    if (sessionUser && creator && !isOwn) {
-      const [subscription, isFollowing] = await Promise.all([
-        getSubscriptionForUser(sessionUser.id, creator.id),
-        isFollowingCreator(sessionUser.id, creator.id),
-      ]);
-      subscribed = subscription?.status === "ACTIVE";
-      following = isFollowing;
-    } else if (!sessionUser || isOwn) {
-      subscribed = false;
-      following = false;
-    }
-
-    const dbFeed = await getCreatorFeedPosts(slug, preferredIds, { following, subscribed });
-    if (isOwn) {
-      feedPosts = dbFeed;
-    } else if (dbFeed.length) {
-      const fromDbIds = new Set(dbFeed.map((post) => post.id));
-      const leftovers = profile.feed_posts
-        .filter((post) => !fromDbIds.has(post.id))
-        .map((post) => ({
-          ...post,
-          relationship: {
-            ...post.relationship,
-            following,
-            subscribed: subscribed || undefined,
-          },
-        }));
-      feedPosts = [...dbFeed, ...leftovers];
-    } else {
-      feedPosts = profile.feed_posts.map((post) => ({
-        ...post,
-        relationship: {
-          ...post.relationship,
-          following,
-          subscribed: subscribed || undefined,
-        },
-      }));
-    }
-  } catch (error) {
-    console.error("getProfileData: JSON overlay failed", error);
-  }
-
-  const specialRequestsAvailable = await resolveSpecialRequestsAvailable(slug);
-  const specialRequestsEnabled =
-    specialRequestsAvailable &&
-    (await resolveSpecialRequestsEnabled(slug, profile.special_requests));
-
-  return {
-    ...profile,
-    cover_url: coverUrlOverride !== undefined ? coverUrlOverride || null : profile.cover_url,
-    special_requests: specialRequestsAvailable || undefined,
-    special_requests_enabled: specialRequestsEnabled,
-    collection_enabled: collectionEnabled,
-    is_own: isOwn || undefined,
-    collection,
-    popular_posts: isOwn ? [] : profile.popular_posts,
-    feed_posts: isOwn
-      ? feedPosts.map((post) => ({ ...post, is_own: true }))
-      : feedPosts,
-    relationship: {
-      ...profile.relationship,
-      subscribed,
-      following,
-    },
-  };
+  return null;
 }

@@ -7,7 +7,7 @@ import {
   markThreadRead,
   sendChatMessage,
 } from "@/lib/feed/chat-service";
-import { getDirectMessagingRestriction } from "@/lib/guardian/dm-contact-controls";
+import { getConversationRestriction } from "@/lib/feed/messages-with-restrictions";
 import { getSessionUser } from "@/lib/session";
 
 interface RouteContext {
@@ -32,7 +32,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const restriction = await getDirectMessagingRestriction(user.id, fresh);
+  const restriction = await getConversationRestriction(user.id, fresh);
   return NextResponse.json({
     conversation: {
       ...mapThreadToConversation(fresh),
@@ -68,7 +68,13 @@ export async function POST(request: Request, context: RouteContext) {
 
     if ("restricted" in result && result.restricted) {
       return NextResponse.json(
-        { error: result.message, code: "DM_RESTRICTED" },
+        {
+          error: result.message,
+          code: result.code,
+          ...(result.code === "DM_MINOR_RESTRICTED"
+            ? { restrictionEndsAt: result.restrictionEndsAt ?? null }
+            : {}),
+        },
         { status: 403 },
       );
     }
@@ -88,7 +94,10 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ conversation: mapThreadToConversation(result.thread) });
+    return NextResponse.json({
+      conversation: mapThreadToConversation(result.thread),
+      ...(result.enforcement ? { enforcement: result.enforcement } : {}),
+    });
   } catch (error) {
     console.error("POST /api/feed/messages/[threadId] error", error);
     const message =
@@ -122,7 +131,7 @@ export async function DELETE(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const restriction = await getDirectMessagingRestriction(user.id, thread);
+    const restriction = await getConversationRestriction(user.id, thread);
     return NextResponse.json({
       ok: true,
       conversation: {

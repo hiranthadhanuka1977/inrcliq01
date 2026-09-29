@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // The seed sample routes list data/*.json at runtime, which tracing cannot detect.
+  outputFileTracingIncludes: {
+    "/api/settings/feed-seed": ["./data/*.json"],
+    "/settings/feed-mgmt/settings": ["./data/*.json"],
+  },
 };
 
 export default nextConfig;

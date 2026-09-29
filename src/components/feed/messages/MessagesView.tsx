@@ -72,6 +72,26 @@ function bookingDetailsTab(
   return actor === participant ? "outbound" : "inbound";
 }
 
+function enforcementNoticeCopy(notice: {
+  level: "warning" | "restricted" | "under_review";
+  endsAt?: string;
+}) {
+  if (notice.level === "restricted") {
+    const date = notice.endsAt
+      ? new Date(notice.endsAt).toLocaleDateString(undefined, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "later";
+    return `You can't message accounts under 18 until ${date} because of repeated safety flags.`;
+  }
+  if (notice.level === "under_review") {
+    return "Your ability to message accounts under 18 is paused while our team reviews your account.";
+  }
+  return "Messages to accounts under 18 are reviewed for safety. More flagged messages may stop you messaging under-18 accounts.";
+}
+
 export default function MessagesView({
   initialConversations = [],
 }: {
@@ -119,9 +139,30 @@ export default function MessagesView({
     category: string;
     confidence: number;
     verificationFailed?: boolean;
+    recipientIsMinor?: boolean;
+    canSendAnyway: boolean;
     pendingBody: string;
   } | null>(null);
+  const [minorRestriction, setMinorRestriction] = useState<{
+    threadId: string;
+    message: string;
+  } | null>(null);
+  const [enforcementNotice, setEnforcementNotice] = useState<{
+    threadId: string;
+    level: "warning" | "restricted" | "under_review";
+    endsAt?: string;
+  } | null>(null);
   const deepLinkAppliedRef = useRef(false);
+  const activeIdRef = useRef(activeId);
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+  const [menuThreadId, setMenuThreadId] = useState(activeId);
+  if (menuThreadId !== activeId) {
+    setMenuThreadId(activeId);
+    setChatMenuOpen(false);
+    setChatConfirm(null);
+  }
   const [pendingScroll, setPendingScroll] = useState<{
     bookingId: string;
     latest: boolean;
@@ -184,6 +225,7 @@ export default function MessagesView({
         });
 
         setConversations((current) => {
+          const activeId = activeIdRef.current;
           const nextActiveId = target
             ? target.id
             : current.some((item) => item.id === activeId) && conversations.some((item) => item.id === activeId)
@@ -314,7 +356,11 @@ export default function MessagesView({
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
     [activeId, conversations],
   );
-  const isDmRestricted = Boolean(activeConversation?.dmRestricted);
+  const activeMinorRestriction =
+    minorRestriction && minorRestriction.threadId === activeConversation?.id ? minorRestriction : null;
+  const isDmRestricted = Boolean(activeConversation?.dmRestricted || activeMinorRestriction);
+  const activeEnforcementNotice =
+    enforcementNotice && enforcementNotice.threadId === activeConversation?.id ? enforcementNotice : null;
   const activeMessageCount = activeConversation?.messages.length ?? 0;
   const latestMessageId = activeConversation?.messages[activeMessageCount - 1]?.id ?? "";
 
@@ -442,11 +488,6 @@ export default function MessagesView({
   }
 
   useEffect(() => {
-    setChatMenuOpen(false);
-    setChatConfirm(null);
-  }, [activeId]);
-
-  useEffect(() => {
     if (!chatMenuOpen) return;
     function onPointerDown(event: PointerEvent) {
       if (!chatMenuRef.current?.contains(event.target as Node)) {
@@ -559,12 +600,19 @@ export default function MessagesView({
         error?: string;
         code?: string;
         conversation?: Conversation;
+        enforcement?: {
+          level: "warning" | "restricted" | "under_review";
+          endsAt?: string;
+        };
         moderation?: {
           title: string;
           message: string;
           category: string;
           confidence: number;
           verificationFailed?: boolean;
+          recipientIsMinor?: boolean;
+          canSendAnyway?: boolean;
+          sendAnywayOutcome?: "guardian_review" | "masked" | null;
         };
       } | null;
 
@@ -580,9 +628,23 @@ export default function MessagesView({
           category: payload.moderation.category,
           confidence: payload.moderation.confidence,
           verificationFailed: payload.moderation.verificationFailed,
+          recipientIsMinor: payload.moderation.recipientIsMinor,
+          canSendAnyway: payload.moderation.canSendAnyway !== false,
           pendingBody: trimmed,
         });
         setError(null);
+        return;
+      }
+
+      if (response.status === 403 && payload?.code === "DM_MINOR_RESTRICTED") {
+        setDraft(trimmed);
+        setModerationWarning(null);
+        setMinorRestriction({
+          threadId: activeConversation.id,
+          message:
+            payload.error?.trim() ||
+            "You can't message accounts under 18 right now because of repeated safety flags.",
+        });
         return;
       }
 
@@ -597,6 +659,13 @@ export default function MessagesView({
 
       setDraft("");
       setModerationWarning(null);
+      if (payload.enforcement) {
+        setEnforcementNotice({
+          threadId: payload.conversation.id,
+          level: payload.enforcement.level,
+          endsAt: payload.enforcement.endsAt,
+        });
+      }
       setConversations((current) => {
         const updated = current.map((conversation) =>
           conversation.id === payload.conversation!.id ? payload.conversation! : conversation,
@@ -845,10 +914,26 @@ export default function MessagesView({
                           />
                         );
                       }
+                      const recipientRemoved =
+                        message.contentMasked &&
+                        message.sender === "them" &&
+                        message.deliveryStatus === "NOT_DELIVERED";
+                      const maskedLabel =
+                        message.deliveryStatus === "PENDING_REVIEW"
+                          ? "Hidden for safety"
+                          : recipientRemoved
+                            ? "Removed for safety"
+                            : "Hidden by safety filter";
+                      const senderStatus =
+                        message.sender === "me" && message.deliveryStatus === "PENDING_REVIEW"
+                          ? "Pending review"
+                          : message.sender === "me" && message.deliveryStatus === "NOT_DELIVERED"
+                            ? "Not delivered"
+                            : null;
                       return (
                         <article
                           key={message.id}
-                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}`}
+                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${recipientRemoved ? " messages-bubble--removed" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}${senderStatus ? ` messages-bubble--${message.deliveryStatus === "NOT_DELIVERED" ? "not-delivered" : "pending-review"}` : ""}`}
                         >
                           {message.contentMasked && message.sender === "them" ? (
                             <div className="messages-bubble__masked">
@@ -869,7 +954,7 @@ export default function MessagesView({
                                 </svg>
                               </span>
                               <div className="messages-bubble__masked-copy">
-                                <p className="messages-bubble__masked-label">Hidden by safety filter</p>
+                                <p className="messages-bubble__masked-label">{maskedLabel}</p>
                                 <p className="messages-bubble__masked-body">{message.body}</p>
                               </div>
                             </div>
@@ -878,6 +963,13 @@ export default function MessagesView({
                           )}
                           {message.contentMasked && message.sender === "me" ? (
                             <span className="messages-bubble__masked-note">Shown masked to recipient</span>
+                          ) : null}
+                          {senderStatus ? (
+                            <span
+                              className={`messages-bubble__delivery messages-bubble__delivery--${message.deliveryStatus === "NOT_DELIVERED" ? "not-delivered" : "pending"}`}
+                            >
+                              {senderStatus}
+                            </span>
                           ) : null}
                           <time>{message.time}</time>
                         </article>
@@ -901,7 +993,8 @@ export default function MessagesView({
                           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                         </svg>
                         <span>
-                          {activeConversation.dmRestrictedMessage ??
+                          {activeMinorRestriction?.message ??
+                            activeConversation.dmRestrictedMessage ??
                             "Direct messaging with this contact is restricted by a guardian."}
                         </span>
                       </div>
@@ -917,34 +1010,58 @@ export default function MessagesView({
                               {moderationWarning.title}
                             </strong>
                             <p className="messages-chat__moderation-body">{moderationWarning.message}</p>
-                            {!moderationWarning.verificationFailed ? (
+                            {moderationWarning.recipientIsMinor &&
+                            !moderationWarning.verificationFailed &&
+                            !moderationWarning.canSendAnyway ? (
+                              <p className="messages-chat__moderation-meta">
+                                This message can&apos;t be sent to this account.
+                              </p>
+                            ) : null}
+                            {!moderationWarning.recipientIsMinor && !moderationWarning.verificationFailed ? (
                               <p className="messages-chat__moderation-meta">
                                 Flagged as {moderationWarning.category.toLowerCase()} (severity{" "}
                                 {Math.round(moderationWarning.confidence * 6)}/6)
                               </p>
                             ) : null}
                             <div className="messages-chat__moderation-actions">
-                              <button
-                                type="button"
-                                className="btn btn--sm btn--secondary"
-                                disabled={sending}
-                                onClick={() => setModerationWarning(null)}
-                              >
-                                Edit message
-                              </button>
-                              <button
-                                type="button"
-                                className="btn btn--sm btn--primary"
-                                disabled={sending}
-                                onClick={() =>
-                                  void sendMessage(undefined, {
-                                    acceptModeration: true,
-                                    body: moderationWarning.pendingBody,
-                                  })
-                                }
-                              >
-                                {sending ? "Sending…" : "Send anyway"}
-                              </button>
+                              {moderationWarning.recipientIsMinor && moderationWarning.verificationFailed ? (
+                                <button
+                                  type="button"
+                                  className="btn btn--sm btn--primary"
+                                  disabled={sending}
+                                  onClick={() =>
+                                    void sendMessage(undefined, { body: moderationWarning.pendingBody })
+                                  }
+                                >
+                                  {sending ? "Checking…" : "Try again"}
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="btn btn--sm btn--secondary"
+                                    disabled={sending}
+                                    onClick={() => setModerationWarning(null)}
+                                  >
+                                    Edit message
+                                  </button>
+                                  {moderationWarning.canSendAnyway ? (
+                                    <button
+                                      type="button"
+                                      className="btn btn--sm btn--primary"
+                                      disabled={sending}
+                                      onClick={() =>
+                                        void sendMessage(undefined, {
+                                          acceptModeration: true,
+                                          body: moderationWarning.pendingBody,
+                                        })
+                                      }
+                                    >
+                                      {sending ? "Sending…" : "Send anyway"}
+                                    </button>
+                                  ) : null}
+                                </>
+                              )}
                             </div>
                           </div>
                         ) : null}
@@ -980,6 +1097,22 @@ export default function MessagesView({
                             {sending ? "Sending…" : "Send"}
                           </button>
                         </form>
+                        {activeEnforcementNotice ? (
+                          <div
+                            className={`messages-chat__enforcement messages-chat__enforcement--${activeEnforcementNotice.level}`}
+                            role="status"
+                          >
+                            <p>{enforcementNoticeCopy(activeEnforcementNotice)}</p>
+                            <button
+                              type="button"
+                              className="messages-chat__enforcement-dismiss"
+                              aria-label="Dismiss notice"
+                              onClick={() => setEnforcementNotice(null)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : null}
                       </>
                     )}
                   </footer>

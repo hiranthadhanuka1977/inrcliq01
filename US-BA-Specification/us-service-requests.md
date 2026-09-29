@@ -100,7 +100,6 @@ flowchart LR
 | Request choose / checkout | `/requests`, `/requests/choose`, `/requests/checkout` | Requester |
 | Messages | `/feed/messages` (booking deep links) | Both |
 | Seller Tools **Service requests** | `/seller/service-requests` | Provider |
-| Settings **Bookings** | `/settings/bookings` | Platform admin |
 
 ---
 
@@ -526,17 +525,9 @@ flowchart LR
 
 ---
 
-#### US-SR-H02 — Administer bookings (Platform admin)
+#### US-SR-H02 — Administer bookings (Platform admin) — Removed
 
-**As a** platform admin  
-**I want to** search and manage bookings in Settings  
-**So that** I can support operations across creators.
-
-**Acceptance criteria**
-
-1. `/settings/bookings` lists bookings grouped by creator with search (creator/ref/requester as implemented).
-2. Admin can open a booking detail panel and accept/decline (and delete where supported).
-3. Admin actions update booking status consistently with shared booking helpers.
+Booking administration was removed from Settings on 2026-09-28. Bookings are managed only by the provider (Seller Tools) and requester (My bookings).
 
 ---
 

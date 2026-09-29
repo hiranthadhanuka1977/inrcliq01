@@ -62,8 +62,8 @@ export function staticDashboardExtras(
   const primaryChild = children[0];
   const childName = primaryChild?.firstName ?? "your child";
   const alerts = options?.alerts ?? [];
-  const unresolvedAlerts = alerts.filter((alert) =>
-    alert.status.toLowerCase().includes("awaiting"),
+  const unresolvedAlerts = alerts.filter(
+    (alert) => alert.statusCode === "AWAITING_DECISION" || alert.statusCode === "AWAITING_ACKNOWLEDGEMENT",
   ).length;
 
   return {

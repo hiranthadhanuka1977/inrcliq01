@@ -5,7 +5,7 @@ import type { ImageModerationBlock, ImageModerationResult } from "@/lib/moderati
  * Phrases Azure often scores as severity 0 but are not appropriate toward minors.
  * Used only for DMs when the recipient is under 18.
  */
-const MINOR_DM_SOLICITATION =
+export const MINOR_DM_SOLICITATION =
   /\b(nude|nudes|naked|topless|boobs|breast|breasts|sexy|sext|sexting|porn|porno|onlyfans|nsfw|undress|strip(?:ping)?|horny|blowjob|handjob|fuck(?:ing)?|cock|dick|pussy|vagina|penis|orgasm|masturbat(?:e|ion)|hook\s*up)\b/i;
 
 function minorSolicitationBlock(): ImageModerationBlock {

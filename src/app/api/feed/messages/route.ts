@@ -4,8 +4,10 @@ import {
   ensureChatThreadForProfileSlug,
   listChatThreadsForUser,
 } from "@/lib/feed/chat-service";
-import { mapThreadsToConversationsWithRestrictions } from "@/lib/feed/messages-with-restrictions";
-import { getDirectMessagingRestriction } from "@/lib/guardian/dm-contact-controls";
+import {
+  getConversationRestriction,
+  mapThreadsToConversationsWithRestrictions,
+} from "@/lib/feed/messages-with-restrictions";
 import { getSessionUser } from "@/lib/session";
 
 export async function GET() {
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const restriction = await getDirectMessagingRestriction(user.id, thread);
+    const restriction = await getConversationRestriction(user.id, thread);
     return NextResponse.json({
       conversation: {
         ...mapThreadToConversation(thread),

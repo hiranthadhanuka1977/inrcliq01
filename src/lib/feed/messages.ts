@@ -13,6 +13,8 @@ export type ChatMessage = {
   time: string;
   /** True when the peer sees a safety-masked placeholder instead of the raw body. */
   contentMasked?: boolean;
+  /** Present only when not delivered normally (held for guardian review, or not delivered). */
+  deliveryStatus?: "PENDING_REVIEW" | "NOT_DELIVERED";
   booking?: BookingConfirmationPayload;
   bookingNote?: BookingNotePayload;
 };
