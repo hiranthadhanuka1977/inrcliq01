@@ -3,6 +3,7 @@ import { AccountType } from "@/generated/prisma/client";
 import { callBackend } from "./client";
 import { errorCopy, splitName } from "./mappers";
 import { getBackendUser } from "./session";
+import { UPLOAD_PURPOSE, checkFile, uploadRules } from "./enums";
 import { getCountryLabel } from "@/lib/constants/locations";
 import type { ProtectionTier } from "@/lib/guardian/constants";
 import type { AccountProfile, AccountSocialPerson } from "@/lib/feed/account-profile";
@@ -254,18 +255,24 @@ export async function liveSetAvatar(request: Request) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No image file provided." }, { status: 400 });
   }
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json({ error: "Choose an image file (JPG, PNG, WebP, or GIF)." }, { status: 400 });
-  }
-  if (file.size <= 0) {
-    return NextResponse.json({ error: "That file is empty." }, { status: 400 });
+
+  // The limits come from GET /enums, which reads the same table the API refuses
+  // on. This route used to carry its own copy — 8 MB and image/gif allowed —
+  // against an API that takes 5 MB and no gif, so a 6 MB avatar passed here and
+  // was rejected there with nothing the user could act on.
+  const rules = await uploadRules(UPLOAD_PURPOSE.PROFILE_PIC);
+  const problem = checkFile(file, rules);
+  if (problem) {
+    return NextResponse.json({ error: problem }, { status: 400 });
   }
 
-  // The API holds the per-purpose size and type limits, so let it refuse rather
-  // than keeping a second copy of the rules here that can drift out of step.
   const grant = await callBackend<{ attachmentId: string; uploadUrl: string; key: string }>(
     "/media/upload-url",
-    { method: "POST", token, body: { purpose: "PROFILE_PIC", mimeType: file.type, sizeBytes: file.size } },
+    {
+      method: "POST",
+      token,
+      body: { purpose: UPLOAD_PURPOSE.PROFILE_PIC, mimeType: file.type, sizeBytes: file.size },
+    },
   );
 
   if (!grant.ok) {

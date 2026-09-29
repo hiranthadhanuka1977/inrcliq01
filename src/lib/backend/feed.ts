@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callBackend } from "./client";
 import { errorCopy } from "./mappers";
 import { getBackendUser } from "./session";
+import { UPLOAD_PURPOSE, checkFile, uploadRules } from "./enums";
 import type { FeedData, FeedItem, FeedImage, FeedMedia } from "@/types/feed/feed";
 
 /**
@@ -277,14 +278,21 @@ export async function liveUploadPostMedia(request: Request) {
     return NextResponse.json({ error: "Choose an image or a video." }, { status: 400 });
   }
 
+  // Limits from GET /enums, which reads the same table the API refuses on. The
+  // copy this route used to carry was wrong in both directions: it capped video
+  // at 25 MB where the API takes 500, and allowed video/webm which the API does
+  // not — so it rejected files the server wanted and accepted files it refused.
+  const purpose = isVideo ? UPLOAD_PURPOSE.POST_VIDEO : UPLOAD_PURPOSE.POST_IMAGE;
+  const rules = await uploadRules(purpose);
+  const problem = checkFile(file, rules);
+  if (problem) {
+    return NextResponse.json({ error: problem }, { status: 400 });
+  }
+
   const grant = await callBackend<{ attachmentId: string; uploadUrl: string }>("/media/upload-url", {
     method: "POST",
     token,
-    body: {
-      purpose: isVideo ? "POST_VIDEO" : "POST_IMAGE",
-      mimeType: file.type,
-      sizeBytes: file.size,
-    },
+    body: { purpose, mimeType: file.type, sizeBytes: file.size },
   });
 
   if (!grant.ok) {
