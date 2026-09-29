@@ -8,7 +8,6 @@ import {
   StatCard,
   formatCount,
   formatShortDate,
-  percent,
 } from "@/components/settings/DashboardParts";
 import type { SettingsUserSummary } from "@/lib/settings/dashboard";
 import type { AgeZoneCode } from "@/lib/utils/age-zone";
@@ -30,6 +29,7 @@ export function UsersDashboard({ summary }: { summary: SettingsUserSummary }) {
           detail={`${formatCount(summary.realSignups)} signed up · ${formatCount(summary.seededCreators)} seeded creators`}
           icon="users"
           tone="blue"
+          meter={{ value: summary.realSignups, total: summary.total, label: "real signups" }}
         />
         <StatCard
           label="New this week"
@@ -37,6 +37,7 @@ export function UsersDashboard({ summary }: { summary: SettingsUserSummary }) {
           detail={`${formatCount(summary.newLast30Days)} in the last 30 days`}
           icon="userPlus"
           tone="green"
+          trend={summary.dailySignups.slice(-7)}
         />
         <StatCard
           label="Signed in now"
@@ -44,13 +45,15 @@ export function UsersDashboard({ summary }: { summary: SettingsUserSummary }) {
           detail="Accounts with an active session"
           icon="activity"
           tone="teal"
+          live
         />
         <StatCard
           label="Email verified"
           value={summary.emailVerified}
-          detail={`${percent(summary.emailVerified, summary.total)}% of all accounts`}
+          detail={`${formatCount(summary.total - summary.emailVerified)} not verified yet`}
           icon="mail"
           tone="violet"
+          meter={{ value: summary.emailVerified, total: summary.total, label: "of all accounts" }}
         />
         <StatCard
           label="Onboarding complete"
@@ -58,6 +61,7 @@ export function UsersDashboard({ summary }: { summary: SettingsUserSummary }) {
           detail={`${formatCount(inProgress)} still in progress`}
           icon="checkCircle"
           tone="amber"
+          meter={{ value: summary.onboardingComplete, total: summary.total, label: "finished setup" }}
         />
       </div>
 

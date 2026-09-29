@@ -32,4 +32,4 @@ Diagrams for the **web prototype** at `web/` (Next.js). They reflect routes, scr
 | `/home` | Signed-in home (placeholder) |
 | `/guardian/approve?token=…` | Parent approval journey |
 | `/settings/users` | Prototype user list |
-| `/settings/reset` | Wipe all users (database) |
+| `/settings/reset` | Wipe all users (database) — disabled by `SETTINGS_RESET_ENABLED` |

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { SETTINGS_RESET_ENABLED } from "@/lib/settings/access";
 
 const NAV_ITEMS = [
   {
@@ -58,6 +59,10 @@ const NAV_ITEMS = [
   icon: ReactNode;
 }>;
 
+function isNavItemDisabled(href: string) {
+  return href === "/settings/reset" && !SETTINGS_RESET_ENABLED;
+}
+
 export function SettingsNav() {
   const pathname = usePathname();
 
@@ -66,6 +71,21 @@ export function SettingsNav() {
       <ul className="settings-nav__list">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+          if (isNavItemDisabled(item.href)) {
+            return (
+              <li key={item.href}>
+                <span
+                  className="settings-nav__link is-disabled"
+                  aria-disabled="true"
+                  title={`${item.label} is disabled`}
+                >
+                  <span className="settings-nav__icon">{item.icon}</span>
+                  {item.label}
+                </span>
+              </li>
+            );
+          }
 
           return (
             <li key={item.href}>

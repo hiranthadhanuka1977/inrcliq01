@@ -119,7 +119,7 @@ BA user stories for this module: [`US-BA-Specification/us-service-requests.md`](
 - `/settings/users` — registered accounts, with Users (default) and Demo users (`?tab=demo`: seeded creator accounts) pills; click a name for `/settings/users/[id]` (account, profile, creator identity, family links and feed posts; the feed posts cog menu deletes all of that user's posts after confirmation)
 - `/settings/feed-mgmt` — Feed Mgmt: every feed post in home feed order, with links to its images, video, audio and creator profile plus all stored properties (search, category and member/seeded filters); each post's cog menu has Delete post (with confirmation)
 - `/settings/feed-mgmt/settings` — seed sample settings (gear icon on Feed Mgmt): delete every seed post from `data/my_feed.json` and the profile `feed_posts` (confirmation, then type a random word), or restore only the missing ones in their original order from `data/feed-seed-order.json`; member posts are never touched
-- `/settings/reset` — clear all users and platform data (development)
+- `/settings/reset` — clear all users and platform data (development); disabled by default — greyed out and not clickable in the menu, the page redirects to the dashboard and the API returns 403 until `SETTINGS_RESET_ENABLED` in `src/lib/settings/access.ts` is set to `true`
 
 ## Email (SendGrid)
 
