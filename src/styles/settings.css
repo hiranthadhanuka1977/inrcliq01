@@ -1061,7 +1061,7 @@ button.settings-pills__pill {
 .settings-seed-section + .settings-seed-section {
   margin-top: var(--space-8);
   padding-top: var(--space-6);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border-default);
 }
 
 .settings-seed-section__head {
@@ -1395,6 +1395,170 @@ button.settings-pills__pill {
   font-size: var(--font-size-xs);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* ——— Partner API integration guide ——— */
+.settings-guide-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.settings-guide-link svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-brand-primary);
+}
+
+.settings-guide-link:hover,
+.settings-guide-link:focus-visible {
+  border-color: var(--color-brand-primary);
+  background: var(--color-bg-subtle);
+}
+
+.settings-guide {
+  max-width: 880px;
+  line-height: 1.6;
+}
+
+.settings-guide code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+}
+
+.settings-guide__toc {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-subtle);
+}
+
+.settings-guide__toc-title {
+  margin: 0 0 var(--space-2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-guide__toc ol {
+  columns: 2;
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.settings-guide__toc a {
+  color: var(--color-text-link);
+}
+
+.settings-guide__toc a:hover,
+.settings-guide__toc a:focus-visible {
+  color: var(--color-text-link-hover);
+}
+
+.settings-guide__section {
+  scroll-margin-top: 80px;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-default);
+}
+
+.settings-guide__section + .settings-guide__section {
+  margin-top: var(--space-6);
+}
+
+.settings-guide__section > p {
+  margin: 0 0 var(--space-3);
+}
+
+.settings-guide__h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-xl);
+}
+
+.settings-guide__h3 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--font-size-md, 1rem);
+}
+
+.settings-guide__list {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+}
+
+.settings-guide__list li + li {
+  margin-top: var(--space-2);
+}
+
+.settings-guide__table {
+  margin-bottom: var(--space-3);
+}
+
+.settings-guide__table .settings-table td {
+  vertical-align: top;
+}
+
+.settings-guide-code {
+  margin: 0 0 var(--space-3);
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.settings-guide-code__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-guide-code__copy {
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--color-text-link);
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings-guide-code__copy:hover,
+.settings-guide-code__copy:focus-visible {
+  background: var(--color-bg-page);
+  color: var(--color-text-link-hover);
+}
+
+.settings-guide-code__body {
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  background: var(--color-neutral-900);
+  color: #f5f5f5;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  .settings-guide__toc ol {
+    columns: 1;
+  }
+
+  .settings-panel__head--with-action {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 767px) {

@@ -6,6 +6,7 @@ import { formatTimecode } from "@/lib/feed/audio-time";
 import type { FeedAudio, FeedMedia } from "@/types/feed/feed";
 import type { PartnerFieldError } from "@/lib/partner-api/http";
 
+export const PARTNER_MAX_BODY_BYTES = 100_000;
 export const PARTNER_TEXT_MAX_LENGTH = 2000;
 export const PARTNER_MAX_IMAGES = 6;
 export const PARTNER_MAX_TAGS = 8;

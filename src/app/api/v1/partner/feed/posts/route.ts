@@ -1,14 +1,17 @@
 import { partnerError, partnerJson, withPartner } from "@/lib/partner-api/http";
-import { parsePartnerPost } from "@/lib/partner-api/input";
+import { PARTNER_MAX_BODY_BYTES, parsePartnerPost } from "@/lib/partner-api/input";
 import { createPartnerPost, serializePartnerPost } from "@/lib/partner-api/posts";
-
-const MAX_BODY_BYTES = 100_000;
 
 export async function POST(request: Request) {
   return withPartner(request, "POST /api/v1/partner/feed/posts", async (partner, requestId) => {
     const raw = await request.text();
-    if (Buffer.byteLength(raw) > MAX_BODY_BYTES) {
-      return partnerError(requestId, 413, "payload_too_large", `Request body must be under ${MAX_BODY_BYTES} bytes.`);
+    if (Buffer.byteLength(raw) > PARTNER_MAX_BODY_BYTES) {
+      return partnerError(
+        requestId,
+        413,
+        "payload_too_large",
+        `Request body must be under ${PARTNER_MAX_BODY_BYTES} bytes.`,
+      );
     }
 
     let body: unknown;

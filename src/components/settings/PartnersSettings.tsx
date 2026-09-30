@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { formatCount } from "@/components/settings/DashboardParts";
@@ -246,12 +247,21 @@ export function PartnersSettings({ partners }: { partners: SettingsPartner[] }) 
 
   return (
     <div className="settings-panel">
-      <div className="settings-panel__head">
-        <h1 className="settings-panel__title">Partners</h1>
-        <p className="settings-panel__subtitle">
-          External parties that publish posts to the feed with <code>POST /api/v1/partner/feed/posts</code>. Each
-          partner can only post as the creators linked to it.
-        </p>
+      <div className="settings-panel__head settings-panel__head--with-action">
+        <div>
+          <h1 className="settings-panel__title">Partners</h1>
+          <p className="settings-panel__subtitle">
+            External parties that publish posts to the feed with <code>POST /api/v1/partner/feed/posts</code>. Each
+            partner can only post as the creators linked to it.
+          </p>
+        </div>
+        <Link href="/settings/partners/guide" className="settings-guide-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
+            <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+          </svg>
+          Integration Guide
+        </Link>
       </div>
 
       {error ? (
