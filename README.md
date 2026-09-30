@@ -180,6 +180,8 @@ npm run db:seed-top-creators
 npm run db:seed-chat
 ```
 
+To replace one database's app data with an exact copy of another (for example, a new Vercel deployment's Neon database), run `powershell -ExecutionPolicy Bypass -File scripts/copy-database.ps1`. It prompts for the source and target connection strings (use the unpooled ones) without echoing them, asks you to type `COPY`, and restores in a single transaction.
+
 ## Known gaps (not fully productized yet)
 
 - Real payment / refunds (checkout card UI is simulated)
