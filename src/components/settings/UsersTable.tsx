@@ -28,7 +28,8 @@ function matchesSearch(user: SettingsUserRow, query: string) {
 
   return (
     user.name.toLowerCase().includes(normalized) ||
-    user.email.toLowerCase().includes(normalized)
+    user.email.toLowerCase().includes(normalized) ||
+    Boolean(user.handle?.toLowerCase().includes(normalized))
   );
 }
 
@@ -96,7 +97,7 @@ export function UsersTable({ users: initialUsers, group, pills }: UsersTableProp
             type="search"
             id="settings-users-search"
             className="input settings-search__input"
-            placeholder="Search by name or email"
+            placeholder="Search by name, handle or email"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             autoComplete="off"
@@ -110,10 +111,11 @@ export function UsersTable({ users: initialUsers, group, pills }: UsersTableProp
         <p className="settings-empty">No users match your search.</p>
       ) : (
         <div className="settings-table-wrap">
-          <table className="settings-table">
+          <table className="settings-table settings-table--users">
             <thead>
               <tr>
                 <th scope="col">Name</th>
+                <th scope="col">Handle</th>
                 <th scope="col">Email</th>
                 <th scope="col">Type</th>
                 <th scope="col" className="settings-table__number">
@@ -132,7 +134,10 @@ export function UsersTable({ users: initialUsers, group, pills }: UsersTableProp
                       {user.name !== "—" ? user.name : "Unnamed user"}
                     </Link>
                   </td>
-                  <td>{user.email}</td>
+                  <td className={`settings-table__wrap${user.handle ? "" : " settings-table__muted"}`}>
+                    {user.handle ?? "—"}
+                  </td>
+                  <td className="settings-table__wrap">{user.email}</td>
                   <td>{user.typeLabel}</td>
                   <td className="settings-table__number">{user.postCount}</td>
                   <td className="settings-table__actions">

@@ -151,6 +151,15 @@
   white-space: nowrap;
 }
 
+.settings-table .settings-table__wrap {
+  overflow-wrap: anywhere;
+}
+
+.settings-table--users th,
+.settings-table--users td {
+  padding: var(--space-3);
+}
+
 .settings-table a {
   color: var(--color-brand-primary);
   font-weight: var(--font-weight-semibold);
@@ -1047,6 +1056,22 @@ button.settings-pills__pill {
   color: var(--color-text-primary);
   border-color: var(--color-border-strong);
   background: var(--color-bg-subtle);
+}
+
+.settings-seed-section + .settings-seed-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-seed-section__head {
+  margin-bottom: var(--space-4);
+  max-width: 720px;
+}
+
+.settings-seed-section__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
 }
 
 .settings-seed-actions {

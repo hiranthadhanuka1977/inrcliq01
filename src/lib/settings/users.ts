@@ -3,18 +3,27 @@ import { prisma } from "@/lib/prisma";
 
 /** `User.signupMethod` of seeded demo accounts (created for feed creators). */
 export const DEMO_SIGNUP_METHOD = "feed-creator";
+/** `User.signupMethod` of other demo accounts, such as the Anderson demo family. */
+export const DEMO_SEED_SIGNUP_METHOD = "demo-seed";
+export const DEMO_SIGNUP_METHODS = [DEMO_SIGNUP_METHOD, DEMO_SEED_SIGNUP_METHOD];
+
+export function isDemoSignupMethod(signupMethod: string | null) {
+  return signupMethod !== null && DEMO_SIGNUP_METHODS.includes(signupMethod);
+}
 
 export type SettingsUsersGroup = "members" | "demo";
 
-const USER_GROUP_WHERE: Record<SettingsUsersGroup, Prisma.UserWhereInput> = {
-  members: { OR: [{ signupMethod: null }, { signupMethod: { not: DEMO_SIGNUP_METHOD } }] },
-  demo: { signupMethod: DEMO_SIGNUP_METHOD },
+export const USER_GROUP_WHERE: Record<SettingsUsersGroup, Prisma.UserWhereInput> = {
+  members: { OR: [{ signupMethod: null }, { signupMethod: { notIn: DEMO_SIGNUP_METHODS } }] },
+  demo: { signupMethod: { in: DEMO_SIGNUP_METHODS } },
 };
 
 export type SettingsUserRow = {
   id: string;
   name: string;
   email: string;
+  /** `@handle`, or null when the user hasn't chosen one. */
+  handle: string | null;
   typeLabel: "Parent user" | "Standard user";
   accountType: AccountType;
   createdAt: Date;
@@ -24,6 +33,11 @@ export type SettingsUserRow = {
 
 export function formatUserType(accountType: AccountType): SettingsUserRow["typeLabel"] {
   return accountType === "GUARDIAN" ? "Parent user" : "Standard user";
+}
+
+function formatHandle(...candidates: (string | null | undefined)[]) {
+  const handle = candidates.find((value) => value?.trim())?.trim().replace(/^@/, "");
+  return handle ? `@${handle}` : null;
 }
 
 export function formatUserName(firstName: string | null, lastName: string | null) {
@@ -50,8 +64,11 @@ export async function listSettingsUsers(group?: SettingsUsersGroup): Promise<Set
         email: true,
         firstName: true,
         lastName: true,
+        handle: true,
         accountType: true,
         createdAt: true,
+        profile: { select: { handle: true } },
+        creatorProfile: { select: { handle: true } },
       },
     }),
     prisma.$queryRaw<{ userId: string; posts: number }[]>`
@@ -69,6 +86,7 @@ export async function listSettingsUsers(group?: SettingsUsersGroup): Promise<Set
     id: user.id,
     email: user.email,
     name: formatUserName(user.firstName, user.lastName),
+    handle: formatHandle(user.handle, user.profile?.handle, user.creatorProfile?.handle),
     typeLabel: formatUserType(user.accountType),
     accountType: user.accountType,
     createdAt: user.createdAt,

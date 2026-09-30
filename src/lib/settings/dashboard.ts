@@ -2,7 +2,9 @@ import type { AccountType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
 import {
+  DEMO_SEED_SIGNUP_METHOD,
   DEMO_SIGNUP_METHOD,
+  USER_GROUP_WHERE,
   formatUserName,
   formatUserType,
   type SettingsUserRow,
@@ -20,7 +22,7 @@ export type SummarySegment = {
 export type SettingsUserSummary = {
   total: number;
   realSignups: number;
-  seededCreators: number;
+  demoAccounts: number;
   newLast7Days: number;
   newLast30Days: number;
   signedInNow: number;
@@ -33,7 +35,7 @@ export type SettingsUserSummary = {
   parentApprovals: SummarySegment[];
   guardianChildLinks: number;
   dailySignups: { date: string; label: string; count: number }[];
-  recentUsers: Omit<SettingsUserRow, "postCount">[];
+  recentUsers: Omit<SettingsUserRow, "postCount" | "handle">[];
 };
 
 const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -55,6 +57,7 @@ export const SIGNUP_METHOD_LABELS: Record<string, string> = {
   email: "Email",
   google: "Google",
   [DEMO_SIGNUP_METHOD]: "Seeded creator accounts",
+  [DEMO_SEED_SIGNUP_METHOD]: "Demo accounts",
 };
 
 export const APPROVAL_STATUS_LABELS: Record<string, string> = {
@@ -105,7 +108,7 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
 
   const [
     total,
-    seededCreators,
+    demoAccounts,
     newLast7Days,
     newLast30Days,
     emailVerified,
@@ -120,7 +123,7 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
     recent,
   ] = await Promise.all([
     prisma.user.count(),
-    prisma.user.count({ where: { signupMethod: DEMO_SIGNUP_METHOD } }),
+    prisma.user.count({ where: USER_GROUP_WHERE.demo }),
     prisma.user.count({ where: { createdAt: { gte: new Date(now - 7 * DAY_MS) } } }),
     prisma.user.count({ where: { createdAt: { gte: new Date(now - 30 * DAY_MS) } } }),
     prisma.user.count({ where: { emailVerified: { not: null } } }),
@@ -199,8 +202,8 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
 
   return {
     total,
-    realSignups: total - seededCreators,
-    seededCreators,
+    realSignups: total - demoAccounts,
+    demoAccounts,
     newLast7Days,
     newLast30Days,
     signedInNow: activeSessions.length,
