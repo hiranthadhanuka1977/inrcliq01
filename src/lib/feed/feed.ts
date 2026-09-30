@@ -81,7 +81,7 @@ function mapPostToFeedItem(
 }
 
 /** Home feed filter tabs, in display order. Posts in other categories appear under "All". */
-const FEED_CATEGORIES = [
+export const FEED_CATEGORIES = [
   "sports",
   "technology",
   "personal",

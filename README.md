@@ -119,7 +119,43 @@ BA user stories for this module: [`US-BA-Specification/us-service-requests.md`](
 - `/settings/users` — registered accounts, with Users (default) and Demo users (`?tab=demo`: seeded creator accounts) pills; click a name for `/settings/users/[id]` (account, profile, creator identity, family links and feed posts; the feed posts cog menu deletes all of that user's posts after confirmation)
 - `/settings/feed-mgmt` — Feed Mgmt: every feed post in home feed order, with links to its images, video, audio and creator profile plus all stored properties (search, category and member/seeded filters); each post's cog menu has Delete post (with confirmation)
 - `/settings/feed-mgmt/settings` — seed sample settings (gear icon on Feed Mgmt): delete every seed post from `data/my_feed.json` and the profile `feed_posts` (confirmation, then type a random word), or restore only the missing ones in their original order from `data/feed-seed-order.json`; member posts are never touched
+- `/settings/partners` — external parties allowed to publish through the partner feed API: add a partner (its first API key is shown once), link the creators it may post as, issue or revoke keys, delete a partner (its posts stay in the feed)
 - `/settings/reset` — clear all users and platform data (development); disabled by default — greyed out and not clickable in the menu, the page redirects to the dashboard and the API returns 403 until `SETTINGS_RESET_ENABLED` in `src/lib/settings/access.ts` is set to `true`
+
+## Partner feed API
+
+External parties publish feed posts with an API key issued in `/settings/partners`. Only a SHA-256 hash of each key is stored. The routes skip the demo Basic Auth gate and authenticate with `Authorization: Bearer ink_live_…` instead.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/v1/partner/feed/posts` | Publish a post (`201`), or return the existing one when the same `externalId` and body are sent again (`200`) |
+| `GET` | `/api/v1/partner/feed/posts/{id}` | Read a post this partner published |
+| `DELETE` | `/api/v1/partner/feed/posts/{id}` | Delete it, with the same cleanup as admin deletes |
+| `GET` | `/api/v1/partner/creators` | Creators this key may post as |
+
+Request body for `POST`:
+
+```json
+{
+  "externalId": "acme-2026-09-30-0001",
+  "creator": { "handle": "planetunfolded" },
+  "category": "travel",
+  "text": "Sunrise over Sigiriya. #srilanka #travel",
+  "tags": ["srilanka", "travel"],
+  "membersOnly": false,
+  "postedAt": "2026-09-30T04:30:00Z",
+  "media": { "images": [{ "url": "https://cdn.example.com/1.jpg", "alt": "Sigiriya at sunrise" }] },
+  "location": { "label": "Sigiriya, Sri Lanka", "lat": 7.957, "lng": 80.7603 },
+  "feeling": { "kind": "feeling", "emoji": "😊", "label": "amazed" }
+}
+```
+
+- Required: `externalId` (unique per partner), `creator.handle` (must be linked to the key), `category` (one of the home feed categories), and `text` and/or `media`.
+- `media` takes exactly one of `images` (1–6 `{ url, alt }`), `video` (`{ url, posterUrl, posterAlt? }`) or `audio` (`{ url, title, durationSeconds, thumbnail: { url, alt } }`). All URLs must be `https`.
+- Media is shown straight from the partner's URLs; it isn't copied or image-moderated. Post text goes through the same Azure text moderation as member posts.
+- `membersOnly` needs a verified creator. `postedAt` defaults to now and can't be in the future or more than 30 days back. Tags default to the `#hashtags` in `text`.
+- Posts appear for every age zone, publish immediately, and are added to the creator's profile.
+- Errors use `{ "error": { "code", "message", "fields"? }, "requestId" }`: `400 validation_failed | invalid_json`, `401 unauthorized`, `403 creator_not_allowed | members_only_not_allowed`, `404 not_found`, `409 duplicate_external_id`, `413 payload_too_large`, `422 content_blocked`, `429 rate_limited` (60 posts per minute per partner, with `Retry-After`), `503 moderation_unavailable`, `500 internal_error`.
 
 ## Email (SendGrid)
 

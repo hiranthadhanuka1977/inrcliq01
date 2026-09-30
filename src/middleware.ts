@@ -69,8 +69,17 @@ function isSettingsPath(pathname: string) {
   return pathname.startsWith("/settings") || pathname.startsWith("/api/settings");
 }
 
+/** Partner API routes authenticate every request with a Bearer API key instead. */
+function isPartnerApiPath(pathname: string) {
+  return pathname.startsWith("/api/v1/partner/");
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (isPartnerApiPath(pathname)) {
+    return NextResponse.next();
+  }
+
   const isSettings = isSettingsPath(pathname);
 
   // HTTP Basic Auth gates the prototype experience only.

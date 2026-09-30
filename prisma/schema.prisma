@@ -13,7 +13,9 @@ enum AccountType {
   GUARDIAN
 }
 
-/** Developmental / content zone derived from date of birth (current age). */
+/**
+ * Developmental / content zone derived from date of birth (current age).
+ */
 enum AgeZone {
   KIDS
   TEENS
@@ -65,7 +67,9 @@ enum SafetyReportStatus {
   CLOSED
 }
 
-/** Lookup row per age zone: label, age bounds, and UI icon badge key. */
+/**
+ * Lookup row per age zone: label, age bounds, and UI icon badge key.
+ */
 model AgeZoneDefinition {
   zone            AgeZone  @id
   label           String
@@ -107,53 +111,53 @@ enum SpecialRequestStatus {
 }
 
 model User {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  emailVerified DateTime?
-  firstName     String?
-  lastName      String?
-  handle        String?     @unique
-  dateOfBirth   DateTime?
+  id                String             @id @default(cuid())
+  email             String             @unique
+  emailVerified     DateTime?
+  firstName         String?
+  lastName          String?
+  handle            String?            @unique
+  dateOfBirth       DateTime?
   /// Current age zone from dateOfBirth. Recompute when DOB changes or on birthday refresh.
-  ageZone       AgeZone?
+  ageZone           AgeZone?
   ageZoneDefinition AgeZoneDefinition? @relation(fields: [ageZone], references: [zone])
-  country       String?
-  region        String?
-  accountType   AccountType @default(ADULT)
-  signupMethod    String?
-  onboardingStep  String?
-  passwordHash    String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  country           String?
+  region            String?
+  accountType       AccountType        @default(ADULT)
+  signupMethod      String?
+  onboardingStep    String?
+  passwordHash      String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
-  sessions               Session[]
-  accounts               Account[]
-  parentApprovalRequests ParentApprovalRequest[] @relation("ChildUser")
-  guardianApprovalRequests ParentApprovalRequest[] @relation("GuardianUser")
-  guardianChildren       GuardianChildLink[]     @relation("GuardianChildren")
-  childGuardians         GuardianChildLink[]     @relation("ChildGuardians")
-  guardianDmControlsAsChild GuardianDmContactControl[] @relation("GuardianDmControlsChild")
-  guardianDmControlsAsPeer  GuardianDmContactControl[] @relation("GuardianDmControlsPeer")
-  guardianContactTrustBands ChildContactTrustBand[] @relation("GuardianContactTrustBands")
-  childContactTrustBands    ChildContactTrustBand[] @relation("ChildContactTrustBands")
-  chatThreads            ChatThread[]
-  subscriptions          CreatorSubscription[]
-  follows                CreatorFollow[]
-  hiddenFeedPosts        FeedHiddenPost[]
-  guardianSafetyAlertsAsGuardian GuardianSafetyAlert[] @relation("GuardianSafetyAlertsGuardian")
-  guardianSafetyAlertsAsChild    GuardianSafetyAlert[] @relation("GuardianSafetyAlertsChild")
-  dmHoldsAsSender        DmModerationHold[]     @relation("DmHoldSender")
-  dmHoldsAsRecipient     DmModerationHold[]     @relation("DmHoldRecipient")
-  dmHoldsDecided         DmModerationHold[]     @relation("DmHoldDecidedBy")
-  senderSafetyStrikes    SenderSafetyStrike[]   @relation("SenderSafetyStrikes")
-  dmRestrictions         UserDmRestriction[]    @relation("UserDmRestrictions")
-  safetyReportsFiled     SafetyReport[]         @relation("SafetyReportsFiled")
-  safetyReportsAbout     SafetyReport[]         @relation("SafetyReportsAbout")
-  specialRequests        SpecialRequest[]
-  creatorProfile         CreatorUser?
-  authoredFeedPosts      FeedPost[]
-  profile                UserProfile?
-  specialRequestCatalog  SpecialRequestCatalog?
+  sessions                       Session[]
+  accounts                       Account[]
+  parentApprovalRequests         ParentApprovalRequest[]    @relation("ChildUser")
+  guardianApprovalRequests       ParentApprovalRequest[]    @relation("GuardianUser")
+  guardianChildren               GuardianChildLink[]        @relation("GuardianChildren")
+  childGuardians                 GuardianChildLink[]        @relation("ChildGuardians")
+  guardianDmControlsAsChild      GuardianDmContactControl[] @relation("GuardianDmControlsChild")
+  guardianDmControlsAsPeer       GuardianDmContactControl[] @relation("GuardianDmControlsPeer")
+  guardianContactTrustBands      ChildContactTrustBand[]    @relation("GuardianContactTrustBands")
+  childContactTrustBands         ChildContactTrustBand[]    @relation("ChildContactTrustBands")
+  chatThreads                    ChatThread[]
+  subscriptions                  CreatorSubscription[]
+  follows                        CreatorFollow[]
+  hiddenFeedPosts                FeedHiddenPost[]
+  guardianSafetyAlertsAsGuardian GuardianSafetyAlert[]      @relation("GuardianSafetyAlertsGuardian")
+  guardianSafetyAlertsAsChild    GuardianSafetyAlert[]      @relation("GuardianSafetyAlertsChild")
+  dmHoldsAsSender                DmModerationHold[]         @relation("DmHoldSender")
+  dmHoldsAsRecipient             DmModerationHold[]         @relation("DmHoldRecipient")
+  dmHoldsDecided                 DmModerationHold[]         @relation("DmHoldDecidedBy")
+  senderSafetyStrikes            SenderSafetyStrike[]       @relation("SenderSafetyStrikes")
+  dmRestrictions                 UserDmRestriction[]        @relation("UserDmRestrictions")
+  safetyReportsFiled             SafetyReport[]             @relation("SafetyReportsFiled")
+  safetyReportsAbout             SafetyReport[]             @relation("SafetyReportsAbout")
+  specialRequests                SpecialRequest[]
+  creatorProfile                 CreatorUser?
+  authoredFeedPosts              FeedPost[]
+  profile                        UserProfile?
+  specialRequestCatalog          SpecialRequestCatalog?
 
   @@index([ageZone])
 }
@@ -210,30 +214,30 @@ model EmailVerificationToken {
 }
 
 model ParentApprovalRequest {
-  id                    String         @id @default(cuid())
-  childUserId           String
-  parentEmail           String
-  guardianUserId        String?
-  status                ApprovalStatus @default(PENDING)
-  tokenHash             String         @unique
-  expiresAt             DateTime
-  sentAt                DateTime       @default(now())
-  resolvedAt            DateTime?
-  protectionLevel       String?
-  idDocType             String?
-  guardianCountry       String?
-  guardianRegion        String?
+  id                     String         @id @default(cuid())
+  childUserId            String
+  parentEmail            String
+  guardianUserId         String?
+  status                 ApprovalStatus @default(PENDING)
+  tokenHash              String         @unique
+  expiresAt              DateTime
+  sentAt                 DateTime       @default(now())
+  resolvedAt             DateTime?
+  protectionLevel        String?
+  idDocType              String?
+  guardianCountry        String?
+  guardianRegion         String?
   childLivesWithGuardian Boolean?
-  childLocationCountry  String?
-  childLocationRegion   String?
-  continueTokenHash     String?        @unique
+  childLocationCountry   String?
+  childLocationRegion    String?
+  continueTokenHash      String?        @unique
   continueTokenExpiresAt DateTime?
-  continueTokenUsedAt   DateTime?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  continueTokenUsedAt    DateTime?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 
-  childUser    User  @relation("ChildUser", fields: [childUserId], references: [id], onDelete: Cascade)
-  guardianUser User? @relation("GuardianUser", fields: [guardianUserId], references: [id], onDelete: SetNull)
+  childUser         User               @relation("ChildUser", fields: [childUserId], references: [id], onDelete: Cascade)
+  guardianUser      User?              @relation("GuardianUser", fields: [guardianUserId], references: [id], onDelete: SetNull)
   guardianChildLink GuardianChildLink?
 
   @@index([parentEmail])
@@ -370,14 +374,15 @@ model CreatorUser {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user            User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
-  posts           FeedPost[]
-  collections     CreatorCollection[]
-  chatThreads     ChatThread[]
-  subscriptions   CreatorSubscription[]
-  follows         CreatorFollow[]
-  specialRequests   SpecialRequest[]
-  unavailableDates  CreatorUnavailableDate[]
+  user             User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  posts            FeedPost[]
+  collections      CreatorCollection[]
+  chatThreads      ChatThread[]
+  subscriptions    CreatorSubscription[]
+  follows          CreatorFollow[]
+  specialRequests  SpecialRequest[]
+  unavailableDates CreatorUnavailableDate[]
+  feedPartners     FeedPartnerCreator[]
 
   @@index([name])
 }
@@ -397,33 +402,83 @@ model CreatorUnavailableDate {
 /// Single source for home feed and profile feed posts (seed JSON merged via `npm run db:merge-feed-json`).
 /// Linked to `CreatorUser` (content author) and optionally to auth `User` via `userId`.
 model FeedPost {
-  id          String   @id
-  category    String
-  text        String
-  tags        String[]
-  mediaJson   Json?
-  audioJson   Json?
-  likes       Int      @default(0)
-  comments    Int      @default(0)
-  shares      Int      @default(0)
-  following   Boolean  @default(false)
-  membersOnly Boolean  @default(false)
-  postedAt    DateTime
-  postedAgo   String?
-  sortOrder   Int      @default(0)
-  creatorId   String
-  userId      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id
+  category           String
+  text               String
+  tags               String[]
+  mediaJson          Json?
+  audioJson          Json?
+  likes              Int      @default(0)
+  comments           Int      @default(0)
+  shares             Int      @default(0)
+  following          Boolean  @default(false)
+  membersOnly        Boolean  @default(false)
+  postedAt           DateTime
+  postedAgo          String?
+  sortOrder          Int      @default(0)
+  creatorId          String
+  userId             String?
+  /// Set when the post was published through the partner API.
+  partnerId          String?
+  /// The partner's own id for the post; unique per partner.
+  externalId         String?
+  /// Hash of the partner request body, used to tell a safe retry from a conflicting one.
+  partnerPayloadHash String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  creator    CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  authorUser User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  creator    CreatorUser  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  authorUser User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  partner    FeedPartner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
 
+  @@unique([partnerId, externalId])
   @@index([category])
   @@index([creatorId])
   @@index([userId])
   @@index([postedAt])
   @@index([sortOrder])
+  @@index([partnerId, createdAt])
+}
+
+/// External party allowed to publish feed posts through the partner API.
+model FeedPartner {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  keys     FeedPartnerKey[]
+  creators FeedPartnerCreator[]
+  posts    FeedPost[]
+}
+
+/// Partner API key. Only a SHA-256 hash of the key is stored.
+model FeedPartnerKey {
+  id         String    @id @default(cuid())
+  partnerId  String
+  /// Leading characters of the key, shown in settings to identify it.
+  prefix     String
+  keyHash    String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  partner FeedPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+}
+
+/// Creators a partner may publish as.
+model FeedPartnerCreator {
+  partnerId String
+  creatorId String
+  createdAt DateTime @default(now())
+
+  partner FeedPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@id([partnerId, creatorId])
+  @@index([creatorId])
 }
 
 /// Creator shop/collection storefront, linked to `CreatorUser`.
@@ -494,8 +549,8 @@ model ChatThread {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  peerCreator     CreatorUser?  @relation(fields: [peerCreatorId], references: [id], onDelete: SetNull)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  peerCreator     CreatorUser?     @relation(fields: [peerCreatorId], references: [id], onDelete: SetNull)
   messages        ChatMessage[]
   specialRequests SpecialRequest[]
 
@@ -506,18 +561,18 @@ model ChatThread {
 }
 
 model ChatMessage {
-  id               String   @id @default(cuid())
+  id               String           @id @default(cuid())
   threadId         String
   body             String
   fromMe           Boolean
   /// When true, recipients (fromMe=false) see a masked placeholder instead of `body`.
-  contentMasked    Boolean  @default(false)
+  contentMasked    Boolean          @default(false)
   specialRequestId String?
   /// Sender copy: PENDING_REVIEW / NOT_DELIVERED while held or after rejection.
   /// Mature Teens placeholder copy: PENDING_REVIEW, then DELIVERED (allowed) or NOT_DELIVERED (rejected).
   deliveryStatus   DmDeliveryStatus @default(DELIVERED)
   moderationHoldId String?
-  createdAt        DateTime @default(now())
+  createdAt        DateTime         @default(now())
 
   thread         ChatThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
   specialRequest SpecialRequest?   @relation(fields: [specialRequestId], references: [id], onDelete: SetNull)
@@ -651,44 +706,44 @@ model SafetyAuditEvent {
 
 /// Fan special request / booking linked to both requester (`User`) and creator (`CreatorUser`).
 model SpecialRequest {
-  id                 String               @id @default(cuid())
-  reference          String               @unique
-  status             SpecialRequestStatus @default(RECEIVED)
-  userId             String
-  creatorId          String
-  threadId           String?
-  requestLabel       String
-  category           String?
-  occasion           String?
-  contentType        String?
-  duration           String?
-  publishingMethod   String?
-  recipientLabel     String?
-  recipientUsername  String?
-  shoutoutMessage    String?
-  specialInstructions String?
-  isAppearance       Boolean              @default(false)
-  instantBooking     Boolean              @default(false)
-  appearanceLocation String?
+  id                    String               @id @default(cuid())
+  reference             String               @unique
+  status                SpecialRequestStatus @default(RECEIVED)
+  userId                String
+  creatorId             String
+  threadId              String?
+  requestLabel          String
+  category              String?
+  occasion              String?
+  contentType           String?
+  duration              String?
+  publishingMethod      String?
+  recipientLabel        String?
+  recipientUsername     String?
+  shoutoutMessage       String?
+  specialInstructions   String?
+  isAppearance          Boolean              @default(false)
+  instantBooking        Boolean              @default(false)
+  appearanceLocation    String?
   appearanceExpectation String?
-  appearanceReference String?
-  dayRate            Int                  @default(0)
-  feedFee            Int                  @default(0)
-  totalFee           Int                  @default(0)
-  currency           String               @default("USD")
-  requestedForAt     DateTime?
-  deliverBy          DateTime?
-  acceptedAt         DateTime?
-  declinedAt         DateTime?
-  deliveredAt        DateTime?
-  cancelledAt        DateTime?
-  detailsJson        Json?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  appearanceReference   String?
+  dayRate               Int                  @default(0)
+  feedFee               Int                  @default(0)
+  totalFee              Int                  @default(0)
+  currency              String               @default("USD")
+  requestedForAt        DateTime?
+  deliverBy             DateTime?
+  acceptedAt            DateTime?
+  declinedAt            DateTime?
+  deliveredAt           DateTime?
+  cancelledAt           DateTime?
+  detailsJson           Json?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creator  CreatorUser  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  thread   ChatThread?  @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator  CreatorUser   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  thread   ChatThread?   @relation(fields: [threadId], references: [id], onDelete: SetNull)
   messages ChatMessage[]
 
   @@index([userId, createdAt])
@@ -699,14 +754,14 @@ model SpecialRequest {
 
 /// Per-user subscription to a creator (`User` → `CreatorUser`).
 model CreatorSubscription {
-  id           String             @id @default(cuid())
-  userId       String
-  creatorId    String
-  status       SubscriptionStatus @default(ACTIVE)
-  notifyLevel  String             @default("personalized")
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  cancelledAt  DateTime?
+  id          String             @id @default(cuid())
+  userId      String
+  creatorId   String
+  status      SubscriptionStatus @default(ACTIVE)
+  notifyLevel String             @default("personalized")
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  cancelledAt DateTime?
 
   user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   creator CreatorUser @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -748,27 +803,27 @@ model FeedHiddenPost {
 /// Guardian-facing safety alert (e.g. DM text moderation involving a linked child).
 /// Never store raw message bodies here — safe summaries only.
 model GuardianSafetyAlert {
-  id            String   @id @default(cuid())
-  guardianUserId String
-  childUserId   String
-  priority      String   @default("high")
-  category      String
-  actionTaken   String
-  status        SafetyAlertStatus @default(AWAITING_ACKNOWLEDGEMENT)
-  source        String   @default("dm_text_moderation")
-  chatThreadId  String?
-  chatMessageId String
-  peerUserId    String?
-  holdId        String?
+  id                 String            @id @default(cuid())
+  guardianUserId     String
+  childUserId        String
+  priority           String            @default("high")
+  category           String
+  actionTaken        String
+  status             SafetyAlertStatus @default(AWAITING_ACKNOWLEDGEMENT)
+  source             String            @default("dm_text_moderation")
+  chatThreadId       String?
+  chatMessageId      String
+  peerUserId         String?
+  holdId             String?
   /// True when the counterpart is an adult; drives the "Adult account" badge.
-  counterpartIsAdult Boolean @default(false)
-  createdAt     DateTime @default(now())
-  acknowledgedAt DateTime?
-  resolvedAt    DateTime?
-  resolvedByUserId String?
+  counterpartIsAdult Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  acknowledgedAt     DateTime?
+  resolvedAt         DateTime?
+  resolvedByUserId   String?
 
-  guardian User @relation("GuardianSafetyAlertsGuardian", fields: [guardianUserId], references: [id], onDelete: Cascade)
-  child    User @relation("GuardianSafetyAlertsChild", fields: [childUserId], references: [id], onDelete: Cascade)
+  guardian User              @relation("GuardianSafetyAlertsGuardian", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  child    User              @relation("GuardianSafetyAlertsChild", fields: [childUserId], references: [id], onDelete: Cascade)
   hold     DmModerationHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
 
   @@unique([guardianUserId, chatMessageId])

@@ -1081,6 +1081,183 @@ button.settings-pills__pill {
   gap: var(--space-2);
 }
 
+/* ——— Partners ——— */
+
+.settings-partners {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 880px;
+}
+
+.settings-partner__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.settings-partner__name {
+  margin: 0;
+}
+
+.settings-partner__meta {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.settings-partner__section-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.settings-partner__creators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.settings-partner__creator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.settings-partner__creator strong {
+  color: var(--color-text-primary);
+}
+
+.settings-partner__badge {
+  margin-left: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-brand-primary);
+}
+
+.settings-partner__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.settings-partner__remove:hover:not(:disabled),
+.settings-partner__remove:focus-visible {
+  background: var(--color-bg-muted);
+  color: var(--color-error);
+}
+
+.settings-partner__inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  max-width: 480px;
+}
+
+.settings-partner__inline-form .input {
+  flex: 1 1 220px;
+}
+
+.settings-partner__inline-form .btn,
+.settings-partner__head .btn,
+.settings-partner__keys-head .btn,
+.settings-partner-key .btn {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.settings-partner__add {
+  margin-bottom: var(--space-5);
+}
+
+.settings-partner__keys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.settings-partner__keys-head .settings-partner__section-title {
+  margin: 0;
+}
+
+.settings-partner__status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.settings-partner__status--active {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+}
+
+.settings-partner__empty {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.settings-partner-key {
+  max-width: 880px;
+  margin-bottom: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-brand-primary) 6%, var(--color-bg-page));
+}
+
+.settings-partner-key__title {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.settings-partner-key__hint {
+  margin: var(--space-1) 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.settings-partner-key__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settings-partner-key__value {
+  flex: 1 1 320px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-sm);
+  word-break: break-all;
+  user-select: all;
+}
+
 .settings-feed-item {
   padding: var(--space-5);
   border: 1px solid var(--color-border-default);
