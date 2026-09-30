@@ -125,6 +125,79 @@ type MediaItem = {
   attachmentId?: string;
 };
 
+/** What one file's upload came to. Exactly one of item / error / moderation is set. */
+type UploadOutcome = {
+  item?: MediaItem;
+  error?: string;
+  moderation?: UploadModerationPayload;
+};
+
+/**
+ * Uploads files a few at a time, returning outcomes in the original order.
+ *
+ * Two things this has to get right. Order: the results must line up with the
+ * files as the user picked them, not as the uploads completed, because the API
+ * numbers post media by array position and a reordered array is a reordered
+ * carousel. And partial failure: one file failing must not discard the ones that
+ * worked — the user keeps what uploaded and can retry the rest, rather than
+ * losing the batch.
+ */
+async function uploadWithLimit(
+  files: File[],
+  limit: number,
+  passTokens: Map<File, string>,
+): Promise<UploadOutcome[]> {
+  // Indexed so a result can be written back to its own slot regardless of when
+  // it lands.
+  const outcomes: UploadOutcome[] = new Array(files.length).fill(null).map(() => ({}));
+  let next = 0;
+
+  async function worker(): Promise<void> {
+    for (;;) {
+      const index = next++;
+      if (index >= files.length) return;
+      outcomes[index] = await uploadOne(files[index]!, passTokens.get(files[index]!));
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, files.length) }, worker));
+  return outcomes;
+}
+
+async function uploadOne(file: File, passToken: string | undefined): Promise<UploadOutcome> {
+  const body = new FormData();
+  body.append("file", file);
+  if (passToken) body.append("moderationPassToken", passToken);
+
+  let response: Response;
+  try {
+    response = await fetch("/api/feed/uploads", { method: "POST", body });
+  } catch {
+    return { error: `${file.name} could not be uploaded. Check your connection.` };
+  }
+
+  const data = (await response.json().catch(() => ({}))) as {
+    error?: string;
+    url?: string;
+    kind?: "image" | "video";
+    attachmentId?: string;
+    moderation?: UploadModerationPayload;
+  };
+
+  if (response.status === 422 && data.moderation) return { moderation: data.moderation };
+  if (!response.ok || !data.url) return { error: data.error ?? `Unable to upload ${file.name}.` };
+
+  return {
+    item: {
+      url: data.url,
+      alt: file.name,
+      kind: data.kind === "video" ? "video" : "image",
+      moderationPassed: true,
+      attachmentId: data.attachmentId,
+    },
+  };
+}
+
 type GifItem = {
   id: string;
   url: string;
@@ -470,51 +543,37 @@ export default function FirstPostPrompt({
 
     setUploading(true);
     try {
-      for (const file of files) {
-        const body = new FormData();
-        body.append("file", file);
-        const passToken = passTokens.get(file);
-        if (passToken) body.append("moderationPassToken", passToken);
-        const response = await fetch("/api/feed/uploads", { method: "POST", body });
-        const data = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          url?: string;
-          kind?: "image" | "video";
-          attachmentId?: string;
-          moderation?: UploadModerationPayload;
-        };
-        if (response.status === 422 && data.moderation) {
-          setImageWarning(uploadModerationToBlock(data.moderation));
-          break;
-        }
-        if (!response.ok || !data.url) {
-          setError(data.error ?? "Unable to upload that file.");
-          break;
-        }
-        const uploadedUrl = data.url;
-        const uploadedKind: MediaItem["kind"] = data.kind === "video" ? "video" : "image";
-        setMedia((current): MediaItem[] => {
-          if (uploadedKind === "video") {
-            const videoItem: MediaItem = {
-              url: uploadedUrl,
-              alt: file.name,
-              kind: "video",
-              moderationPassed: true,
-              attachmentId: data.attachmentId,
-            };
-            return [videoItem];
-          }
-          const withoutVideo = current.filter((item) => item.kind !== "video");
-          const imageItem: MediaItem = {
-            url: uploadedUrl,
-            alt: file.name,
-            kind: "image",
-            moderationPassed: true,
-            attachmentId: data.attachmentId,
-          };
-          return [...withoutVideo, imageItem].slice(0, 6);
-        });
-        if (data.kind === "video") break;
+      // Uploaded a few at a time rather than one after another: four photos from
+      // a phone used to take four times as long as one for no reason. Three is
+      // the cap so a single huge file cannot stall the rest and the uplink is
+      // not saturated.
+      const outcomes = await uploadWithLimit(files, 3, passTokens);
+
+      // The first refusal is worth surfacing; the rest of the batch is not, or a
+      // user who picked six photos gets six error toasts.
+      const refused = outcomes.find((outcome) => outcome.moderation);
+      if (refused?.moderation) setImageWarning(uploadModerationToBlock(refused.moderation));
+      else {
+        const failed = outcomes.filter((outcome) => outcome.error);
+        if (failed.length === 1) setError(failed[0]!.error!);
+        else if (failed.length > 1) setError(`${failed.length} files could not be uploaded.`);
+      }
+
+      // Outcomes come back in the order the files were *picked*, never the order
+      // they finished — a small photo landing first must not jump the queue, or
+      // the carousel is shuffled. The API numbers the media by array position,
+      // so this order is the one the viewer sees.
+      const uploaded = outcomes.filter((outcome) => outcome.item);
+      const video = uploaded.find((outcome) => outcome.item!.kind === "video");
+
+      if (video) {
+        // A post carries one video and nothing else.
+        setMedia([video.item!]);
+      } else if (uploaded.length > 0) {
+        setMedia((current) => [
+          ...current.filter((item) => item.kind !== "video"),
+          ...uploaded.map((outcome) => outcome.item!),
+        ].slice(0, 6));
       }
     } finally {
       setUploading(false);
