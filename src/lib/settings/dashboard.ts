@@ -2,6 +2,7 @@ import type { AccountType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
 import {
+  AI_USER_SIGNUP_METHOD,
   DEMO_SEED_SIGNUP_METHOD,
   DEMO_SIGNUP_METHOD,
   USER_GROUP_WHERE,
@@ -23,6 +24,7 @@ export type SettingsUserSummary = {
   total: number;
   realSignups: number;
   demoAccounts: number;
+  aiAccounts: number;
   newLast7Days: number;
   newLast30Days: number;
   signedInNow: number;
@@ -58,6 +60,7 @@ export const SIGNUP_METHOD_LABELS: Record<string, string> = {
   google: "Google",
   [DEMO_SIGNUP_METHOD]: "Seeded creator accounts",
   [DEMO_SEED_SIGNUP_METHOD]: "Demo accounts",
+  [AI_USER_SIGNUP_METHOD]: "AI users",
 };
 
 export const APPROVAL_STATUS_LABELS: Record<string, string> = {
@@ -109,6 +112,7 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
   const [
     total,
     demoAccounts,
+    aiAccounts,
     newLast7Days,
     newLast30Days,
     emailVerified,
@@ -124,6 +128,7 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: USER_GROUP_WHERE.demo }),
+    prisma.user.count({ where: USER_GROUP_WHERE.ai }),
     prisma.user.count({ where: { createdAt: { gte: new Date(now - 7 * DAY_MS) } } }),
     prisma.user.count({ where: { createdAt: { gte: new Date(now - 30 * DAY_MS) } } }),
     prisma.user.count({ where: { emailVerified: { not: null } } }),
@@ -202,8 +207,9 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
 
   return {
     total,
-    realSignups: total - demoAccounts,
+    realSignups: total - demoAccounts - aiAccounts,
     demoAccounts,
+    aiAccounts,
     newLast7Days,
     newLast30Days,
     signedInNow: activeSessions.length,

@@ -1551,9 +1551,77 @@ button.settings-pills__pill {
   line-height: 1.5;
 }
 
+.settings-panel__action {
+  flex-shrink: 0;
+}
+
+.settings-tag--ai {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.settings-ai-form {
+  margin-bottom: var(--space-5);
+}
+
+.settings-ai-form__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.settings-ai-form__head .settings-card__hint {
+  margin: var(--space-1) 0 0;
+}
+
+.settings-ai-form__head .btn,
+.settings-ai-form__actions .btn {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.settings-ai-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.settings-ai-form__grid .field-hint {
+  margin-top: 0;
+}
+
+.settings-ai-form__handle {
+  position: relative;
+}
+
+.settings-ai-form__handle span {
+  position: absolute;
+  top: 50%;
+  left: var(--space-4);
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.settings-ai-form__handle .input {
+  padding-left: calc(var(--space-4) + 1ch + 2px);
+}
+
+.settings-ai-form__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
 @media (max-width: 767px) {
   .settings-guide__toc ol {
     columns: 1;
+  }
+
+  .settings-ai-form__grid {
+    grid-template-columns: 1fr;
   }
 
   .settings-panel__head--with-action {

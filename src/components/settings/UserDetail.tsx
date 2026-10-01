@@ -15,6 +15,7 @@ const PROFILE_SOURCE_LABELS: Record<string, string> = {
   "profile-json": "Seeded creator profile",
   stub: "Basic profile",
   "handle-setup": "Set up by the user",
+  "ai-user": "AI user profile",
 };
 
 const CREATOR_SOURCE_LABELS: Record<string, string> = {
@@ -104,7 +105,7 @@ function AccountPanel({ user }: { user: SettingsUserDetail }) {
         )}
       </Prop>
       <Prop label="Date of birth">
-        {user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : "Not recorded"}
+        {user.dateOfBirth ? user.dateOfBirth.toLocaleDateString("en-CA") : "Not recorded"}
       </Prop>
       <Prop label="Location">{location || "Not recorded"}</Prop>
       <Prop label="Sign-up method">
@@ -200,7 +201,11 @@ function FamilyPanel({ user }: { user: SettingsUserDetail }) {
 }
 
 export function UserDetail({ user }: { user: SettingsUserDetail }) {
-  const backHref = user.isDemo ? "/settings/users?tab=demo" : "/settings/users";
+  const back = user.isAiUser
+    ? { href: "/settings/users?tab=ai", label: "AI Users" }
+    : user.isDemo
+      ? { href: "/settings/users?tab=demo", label: "Demo users" }
+      : { href: "/settings/users", label: "Users" };
   const hasFamily =
     user.guardians.length > 0 || user.children.length > 0 || user.approvalRequests.length > 0;
   const tabs: SettingsTab[] = [
@@ -213,7 +218,7 @@ export function UserDetail({ user }: { user: SettingsUserDetail }) {
   return (
     <div className="settings-panel">
       <p className="settings-back">
-        <Link href={backHref}>← {user.isDemo ? "Demo users" : "Users"}</Link>
+        <Link href={back.href}>← {back.label}</Link>
       </p>
 
       <div className="settings-panel__head">
@@ -222,6 +227,7 @@ export function UserDetail({ user }: { user: SettingsUserDetail }) {
           {user.email}
           <span className="settings-tag">{user.accountTypeLabel}</span>
           {user.isDemo ? <span className="settings-tag">Demo user</span> : null}
+          {user.isAiUser ? <span className="settings-tag settings-tag--ai">AI user</span> : null}
         </p>
       </div>
 

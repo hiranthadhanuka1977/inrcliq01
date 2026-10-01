@@ -26,7 +26,7 @@ export function UsersDashboard({ summary }: { summary: SettingsUserSummary }) {
         <StatCard
           label="Total users"
           value={summary.total}
-          detail={`${formatCount(summary.realSignups)} signed up · ${formatCount(summary.demoAccounts)} demo accounts`}
+          detail={`${formatCount(summary.realSignups)} signed up · ${formatCount(summary.demoAccounts)} demo · ${formatCount(summary.aiAccounts)} AI`}
           icon="users"
           tone="blue"
           meter={{ value: summary.realSignups, total: summary.total, label: "real signups" }}

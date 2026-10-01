@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { AiUserForm, type CreatedAiUser } from "@/components/settings/AiUserForm";
 import type { SettingsUserRow, SettingsUsersGroup } from "@/lib/settings/users";
 
 type UsersTableProps = {
@@ -20,6 +21,10 @@ const GROUP_COPY: Record<SettingsUsersGroup, { subtitle: string; empty: string }
     subtitle: "Seeded accounts created for demo feed creators.",
     empty: "There are no demo users.",
   },
+  ai: {
+    subtitle: "Real accounts created here and tagged as AI users. They can't sign in themselves.",
+    empty: "No AI users yet. Add one to get started.",
+  },
 };
 
 function matchesSearch(user: SettingsUserRow, query: string) {
@@ -36,9 +41,23 @@ function matchesSearch(user: SettingsUserRow, query: string) {
 export function UsersTable({ users: initialUsers, group, pills }: UsersTableProps) {
   const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
+  const [syncedUsers, setSyncedUsers] = useState(initialUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [created, setCreated] = useState<CreatedAiUser | null>(null);
+
+  if (initialUsers !== syncedUsers) {
+    setSyncedUsers(initialUsers);
+    setUsers(initialUsers);
+  }
+
+  function handleCreated(user: CreatedAiUser) {
+    setAdding(false);
+    setCreated(user);
+    router.refresh();
+  }
 
   const filteredUsers = useMemo(
     () => users.filter((user) => matchesSearch(user, searchQuery)),
@@ -75,9 +94,23 @@ export function UsersTable({ users: initialUsers, group, pills }: UsersTableProp
 
   return (
     <div className="settings-panel">
-      <div className="settings-panel__head">
-        <h1 className="settings-panel__title">Users</h1>
-        <p className="settings-panel__subtitle">{GROUP_COPY[group].subtitle}</p>
+      <div className={`settings-panel__head${group === "ai" ? " settings-panel__head--with-action" : ""}`}>
+        <div>
+          <h1 className="settings-panel__title">Users</h1>
+          <p className="settings-panel__subtitle">{GROUP_COPY[group].subtitle}</p>
+        </div>
+        {group === "ai" && !adding ? (
+          <button
+            type="button"
+            className="btn btn--primary btn--sm settings-panel__action"
+            onClick={() => {
+              setCreated(null);
+              setAdding(true);
+            }}
+          >
+            Add AI user
+          </button>
+        ) : null}
       </div>
 
       {pills}
@@ -87,6 +120,14 @@ export function UsersTable({ users: initialUsers, group, pills }: UsersTableProp
           {error}
         </p>
       ) : null}
+
+      {created ? (
+        <p className="settings-message" role="status">
+          Created <Link href={`/settings/users/${created.id}`}>{created.name}</Link> ({created.handle}) as an AI user.
+        </p>
+      ) : null}
+
+      {adding ? <AiUserForm onCreated={handleCreated} onCancel={() => setAdding(false)} /> : null}
 
       {users.length > 0 ? (
         <div className="settings-search">

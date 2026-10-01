@@ -6,16 +6,25 @@ export const DEMO_SIGNUP_METHOD = "feed-creator";
 /** `User.signupMethod` of other demo accounts, such as the Anderson demo family. */
 export const DEMO_SEED_SIGNUP_METHOD = "demo-seed";
 export const DEMO_SIGNUP_METHODS = [DEMO_SIGNUP_METHOD, DEMO_SEED_SIGNUP_METHOD];
+/** `User.signupMethod` of accounts created in Settings as AI users. */
+export const AI_USER_SIGNUP_METHOD = "ai-user";
 
 export function isDemoSignupMethod(signupMethod: string | null) {
   return signupMethod !== null && DEMO_SIGNUP_METHODS.includes(signupMethod);
 }
 
-export type SettingsUsersGroup = "members" | "demo";
+export function isAiUserSignupMethod(signupMethod: string | null) {
+  return signupMethod === AI_USER_SIGNUP_METHOD;
+}
+
+export type SettingsUsersGroup = "members" | "demo" | "ai";
 
 export const USER_GROUP_WHERE: Record<SettingsUsersGroup, Prisma.UserWhereInput> = {
-  members: { OR: [{ signupMethod: null }, { signupMethod: { notIn: DEMO_SIGNUP_METHODS } }] },
+  members: {
+    OR: [{ signupMethod: null }, { signupMethod: { notIn: [...DEMO_SIGNUP_METHODS, AI_USER_SIGNUP_METHOD] } }],
+  },
   demo: { signupMethod: { in: DEMO_SIGNUP_METHODS } },
+  ai: { signupMethod: AI_USER_SIGNUP_METHOD },
 };
 
 export type SettingsUserRow = {
@@ -46,11 +55,12 @@ export function formatUserName(firstName: string | null, lastName: string | null
 }
 
 export async function countSettingsUsersByGroup(): Promise<Record<SettingsUsersGroup, number>> {
-  const [members, demo] = await Promise.all([
+  const [members, demo, ai] = await Promise.all([
     prisma.user.count({ where: USER_GROUP_WHERE.members }),
     prisma.user.count({ where: USER_GROUP_WHERE.demo }),
+    prisma.user.count({ where: USER_GROUP_WHERE.ai }),
   ]);
-  return { members, demo };
+  return { members, demo, ai };
 }
 
 /** All users, or only one group when `group` is given. */
