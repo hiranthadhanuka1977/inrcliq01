@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isLiveBackend } from "@/lib/backend/config";
+import { livePeopleSearch } from "@/lib/backend/people";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 
@@ -19,11 +21,17 @@ function normalizeHandle(handle: string) {
 }
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const query = (searchParams.get("q") || "").trim();
+
+  // Live mode offers the people you follow, filtered as you type. It answers an
+  // empty query with that whole list, which is why this runs before the
+  // short-circuit below.
+  if (isLiveBackend()) return livePeopleSearch(query);
+
   const { user, error } = await requireSessionUser();
   if (error) return error;
 
-  const { searchParams } = new URL(request.url);
-  const query = (searchParams.get("q") || "").trim();
   if (query.length < 1) {
     return NextResponse.json({ results: [] as PeopleSearchResult[] });
   }

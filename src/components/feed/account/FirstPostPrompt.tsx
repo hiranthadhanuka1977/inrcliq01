@@ -415,11 +415,10 @@ export default function FirstPostPrompt({
 
   useEffect(() => {
     if (panel !== "tag") return;
+    // Fetched even when the box is empty: live mode answers that with the people
+    // you follow, so the panel opens with names in it instead of a blank list
+    // that looks like nobody matched.
     const q = peopleQuery.trim();
-    if (q.length < 1) {
-      setPeople([]);
-      return;
-    }
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setPeopleLoading(true);
@@ -655,6 +654,10 @@ export default function FirstPostPrompt({
             ? { label: location.label, lat: location.lat, lng: location.lng }
             : null,
           tagged: tagged.map((person) => ({
+            // The id is the profile id the API tags by. Sending it saves a
+            // handle lookup per tag on publish, and it keeps working if the
+            // person changes their handle between picking and posting.
+            id: person.id,
             name: person.name,
             handle: person.handle,
             slug: person.slug,

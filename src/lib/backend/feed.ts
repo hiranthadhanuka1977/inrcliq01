@@ -338,7 +338,7 @@ interface ComposerPayload {
   gifAlt?: string | null;
   feeling?: { emoji?: string; label?: string } | null;
   location?: { label?: string; lat?: number; lng?: number } | null;
-  tagged?: { handle?: string }[];
+  tagged?: { id?: string; handle?: string }[];
   membersOnly?: boolean;
 }
 
@@ -367,14 +367,23 @@ export async function liveCreatePost(request: Request) {
     media.push({ kind: "GIF", externalUrl: payload.gifUrl, altText: payload.gifAlt || undefined });
   }
 
-  // The people picker names someone by handle; the API tags by profile id,
-  // because a handle can change and a tag keyed on one would silently orphan.
-  // Anyone who cannot be resolved is dropped rather than failing the publish —
-  // the picker's suggestions are still fixture data in places.
-  const taggedProfileIds = await resolveHandles(
-    (payload.tagged ?? []).map((person) => person.handle).filter((h): h is string => Boolean(h)),
-    current.session.accessToken,
-  );
+  // The picker now carries the profile id, so most tags need no lookup at all.
+  // Handles are still resolved as a fallback, for a tag that came from somewhere
+  // else — a draft saved before this change, or the mock's fixture people.
+  //
+  // Anyone who resolves to nothing is dropped rather than failing the publish.
+  // Worth knowing when a tag goes missing: the post still publishes and still
+  // reports success, it just publishes untagged.
+  const picked = payload.tagged ?? [];
+  const directIds = picked.map((person) => person.id).filter((id): id is string => isUuid(id));
+  const unresolved = picked
+    .filter((person) => !isUuid(person.id))
+    .map((person) => person.handle)
+    .filter((handle): handle is string => Boolean(handle));
+
+  const taggedProfileIds = [
+    ...new Set([...directIds, ...(await resolveHandles(unresolved, current.session.accessToken))]),
+  ];
 
   const result = await callBackend<{ id: string; author: { handle: string | null } }>("/posts", {
     method: "POST",
@@ -408,6 +417,13 @@ export async function liveCreatePost(request: Request) {
     postId: result.data.id,
     profileHref: result.data.author?.handle ? `/feed/profile/${result.data.author.handle}` : null,
   });
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The mock's picker uses non-uuid ids, so this is what tells the two apart. */
+function isUuid(value: string | undefined): value is string {
+  return Boolean(value && UUID.test(value));
 }
 
 /** Handles → profile ids, dropping any the API does not know. */
