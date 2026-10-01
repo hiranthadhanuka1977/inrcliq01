@@ -278,6 +278,14 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const [bookmarked, setBookmarked] = useState(Boolean(item.viewer_bookmarked));
   const [likeCount, setLikeCount] = useState(item.engagement.likes);
 
+  // useState only seeds on first mount, so a server re-render carrying a newer
+  // count would otherwise be ignored and the card would drift from the API.
+  useEffect(() => {
+    setLikeCount(item.engagement.likes);
+    setReaction(item.viewer_liked ? "like" : null);
+    setBookmarked(Boolean(item.viewer_bookmarked));
+  }, [item.id, item.engagement.likes, item.viewer_liked, item.viewer_bookmarked]);
+
   /**
    * Engagement is written optimistically and rolled back if the server refuses.
    * Waiting for the round trip before the heart fills makes every tap feel
@@ -301,16 +309,17 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
 
   function handleReactionChange(next: FeedReactionId | null) {
     const previous = reaction;
-    const previousCount = likeCount;
+
+    // The heart fills immediately — that is what makes the tap feel instant.
+    // The *number* is not predicted: an earlier version incremented it here and
+    // then also accepted the server's value, so a count could be applied twice
+    // and the card showed 2 where the API said 1. The server is the only thing
+    // that knows the real total, and it answers in milliseconds.
     setReaction(next);
-    setLikeCount((count) => count + (next ? (previous ? 0 : 1) : previous ? -1 : 0));
 
     // Any reaction counts as a like; the API models one, not a set of moods.
     if (Boolean(next) !== Boolean(previous)) {
-      void persistEngagement("like", Boolean(next), () => {
-        setReaction(previous);
-        setLikeCount(previousCount);
-      });
+      void persistEngagement("like", Boolean(next), () => setReaction(previous));
     }
   }
 
