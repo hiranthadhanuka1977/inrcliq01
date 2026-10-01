@@ -90,10 +90,56 @@ export default function FeedVideoViewer({
   const [mounted, setMounted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const isCommentsMode = mode === "comments";
-  const comments = useMemo(
+  const fallbackComments = useMemo(
     () => getSampleComments(item.id, Math.max(item.engagement.comments, 6)),
     [item.engagement.comments, item.id],
   );
+
+  // Live mode replaces the fixture pool with the real thread. Until it arrives
+  // the fixtures still render, so the panel never opens empty — and in mock mode
+  // nothing changes at all.
+  const [liveComments, setLiveComments] = useState<SampleComment[] | null>(null);
+  const [posting, setPosting] = useState(false);
+  const comments = liveComments ?? fallbackComments;
+
+  const loadComments = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/feed/posts/${item.id}/comments`);
+      if (!response.ok) return;
+      const data = (await response.json()) as { live?: boolean; items?: SampleComment[] };
+      // `live: false` means the mock backend answered — keep the fixtures.
+      if (data.live && Array.isArray(data.items)) setLiveComments(data.items);
+    } catch {
+      // A failed load leaves the fixtures in place rather than blanking the panel.
+    }
+  }, [item.id]);
+
+  useEffect(() => {
+    if (isCommentsMode) void loadComments();
+  }, [isCommentsMode, loadComments]);
+
+  async function submitComment(event: React.FormEvent) {
+    event.preventDefault();
+    const body = draft.trim();
+    if (!body || posting) return;
+
+    setPosting(true);
+    try {
+      const response = await fetch(`/api/feed/posts/${item.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body }),
+      });
+      if (response.ok) {
+        setDraft("");
+        // Re-read rather than appending locally: the server decides the id, the
+        // timestamp and whether moderation held it.
+        await loadComments();
+      }
+    } finally {
+      setPosting(false);
+    }
+  }
   const sortedComments = useMemo(
     () => sortSampleComments(comments, commentSort),
     [commentSort, comments],
@@ -419,10 +465,7 @@ export default function FeedVideoViewer({
 
           <form
             className="feed-video-viewer__composer"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setDraft("");
-            }}
+            onSubmit={submitComment}
           >
             <label className="sr-only" htmlFor={commentInputId}>
               Write a comment
@@ -436,8 +479,8 @@ export default function FeedVideoViewer({
               placeholder="Add a comment…"
               autoComplete="off"
             />
-            <button type="submit" className="btn btn--primary btn--sm" disabled={!draft.trim()}>
-              Post
+            <button type="submit" className="btn btn--primary btn--sm" disabled={!draft.trim() || posting}>
+              {posting ? "Posting…" : "Post"}
             </button>
           </form>
         </aside>
