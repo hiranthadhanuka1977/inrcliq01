@@ -84,3 +84,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Local dev server logs
+.proto-server.log
