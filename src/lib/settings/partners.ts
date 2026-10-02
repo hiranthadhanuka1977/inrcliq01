@@ -1,3 +1,4 @@
+import { ensureCreatorForPublicIdentifier } from "@/lib/feed/creator-user-bridge";
 import { prisma } from "@/lib/prisma";
 import { generatePartnerKey } from "@/lib/partner-api/auth";
 
@@ -37,7 +38,7 @@ export async function listSettingsPartners(): Promise<SettingsPartner[]> {
       lastUsedAt: key.lastUsedAt?.toISOString() ?? null,
       revokedAt: key.revokedAt?.toISOString() ?? null,
     })),
-    creators: partner.creators.map((link) => link.creator),
+    creators: partner.creators.map(({ creator }) => ({ ...creator, handle: `@${creator.handle.replace(/^@/, "")}` })),
   }));
 }
 
@@ -90,11 +91,14 @@ export async function linkSettingsPartnerCreator(partnerId: string, rawHandle: u
     }),
   ]);
   if (!partner) return { ok: false, status: 404, error: "Partner not found." };
-  if (!creator) return { ok: false, status: 404, error: `No creator with the handle @${handle}.` };
+
+  // Members only get a creator identity on their first post, so create it here if they haven't posted yet.
+  const creatorId = creator?.id ?? (await ensureCreatorForPublicIdentifier(handle))?.id;
+  if (!creatorId) return { ok: false, status: 404, error: `No creator or member with the handle @${handle}.` };
 
   await prisma.feedPartnerCreator.upsert({
-    where: { partnerId_creatorId: { partnerId, creatorId: creator.id } },
-    create: { partnerId, creatorId: creator.id },
+    where: { partnerId_creatorId: { partnerId, creatorId } },
+    create: { partnerId, creatorId },
     update: {},
   });
   return { ok: true };
