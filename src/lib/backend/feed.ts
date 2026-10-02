@@ -58,8 +58,8 @@ interface ApiPost {
   locked: boolean;
   postedAt: string;
   editedAt: string | null;
-  counts: { likes: number; comments: number; shares: number; bookmarks: number };
-  viewer: { liked: boolean; bookmarked: boolean; followingAuthor: boolean; isAuthor: boolean };
+  counts: { likes: number; reactions?: Record<string, number>; comments: number; shares: number; bookmarks: number };
+  viewer: { liked: boolean; reaction?: string | null; bookmarked: boolean; followingAuthor: boolean; isAuthor: boolean };
 }
 
 interface ApiPage {
@@ -191,6 +191,7 @@ function toFeedItem(post: ApiPost): FeedItem {
     audio: null,
     engagement: {
       likes: post.counts.likes,
+      reactions: post.counts.reactions,
       comments: post.counts.comments,
       shares: post.counts.shares,
     },
@@ -203,6 +204,7 @@ function toFeedItem(post: ApiPost): FeedItem {
     // Without these the card resets to unliked on every reload, which during
     // testing looks exactly like a like that did not save.
     viewer_liked: post.viewer.liked,
+    viewer_reaction: post.viewer.reaction ?? null,
     viewer_bookmarked: post.viewer.bookmarked,
     // The lock the card renders. `locked` is the viewer's own answer; the
     // visibility alone would put a lock on the author's own post.
@@ -426,6 +428,14 @@ function isUuid(value: string | undefined): value is string {
   return Boolean(value && UUID.test(value));
 }
 
+/** What every reaction endpoint answers with, posts and comments alike. */
+export interface ReactionState {
+  liked: boolean;
+  reaction: string | null;
+  likeCount: number;
+  reactions: Record<string, number>;
+}
+
 /** Handles → profile ids, dropping any the API does not know. */
 async function resolveHandles(handles: string[], token: string): Promise<string[]> {
   const unique = [...new Set(handles.map((h) => h.trim().replace(/^@/, "")).filter(Boolean))];
@@ -493,13 +503,23 @@ export async function liveSetBookmark(postId: string, saved: boolean) {
 }
 
 /** PUT/DELETE a like, for the feed card's heart. */
-export async function liveSetLike(postId: string, liked: boolean) {
+/**
+ * Leave, change, or take back a reaction.
+ *
+ * A change of mind is a PUT with a different reaction, not a delete and a
+ * re-add: the API moves the count between reactions and leaves the total alone,
+ * so the number under the post does not flicker to zero and back.
+ */
+export async function liveSetLike(postId: string, liked: boolean, reaction?: string) {
   const current = await getBackendUser();
   if (!current) return NextResponse.json({ error: "Please log in." }, { status: 401 });
 
-  const result = await callBackend<{ liked: boolean; likeCount: number }>(`/posts/${postId}/like`, {
+  const result = await callBackend<ReactionState>(`/posts/${postId}/like`, {
     method: liked ? "PUT" : "DELETE",
     token: current.session.accessToken,
+    // An omitted reaction means LIKE on the API side, which is the right
+    // fallback — but the composer always knows which emoji was pressed.
+    ...(liked && reaction ? { body: { reaction } } : {}),
   });
 
   if (!result.ok) {

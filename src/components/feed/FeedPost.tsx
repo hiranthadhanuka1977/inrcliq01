@@ -6,7 +6,11 @@ import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/Audi
 import FeedVideoViewer from "@/components/feed/FeedVideoViewer";
 import FollowButton from "@/components/feed/FollowButton";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
-import FeedReactionButton, { type FeedReactionId } from "@/components/feed/FeedReactionButton";
+import FeedReactionButton, {
+  REACTION_TO_API,
+  reactionFromApi,
+  type FeedReactionId,
+} from "@/components/feed/FeedReactionButton";
 import ShareIcon from "@/components/feed/ShareIcon";
 import type { FeedItem } from "@/types/feed/feed";
 import { formatCount } from "@/lib/feed/format";
@@ -274,7 +278,9 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const [localFollowing, setLocalFollowing] = useState(item.relationship.following);
   // Seeded from the server so a like survives a reload. In mock mode these are
   // undefined and the card starts neutral, exactly as before.
-  const [reaction, setReaction] = useState<FeedReactionId | null>(item.viewer_liked ? "like" : null);
+  const [reaction, setReaction] = useState<FeedReactionId | null>(
+    reactionFromApi(item.viewer_reaction) ?? (item.viewer_liked ? "like" : null),
+  );
   const [bookmarked, setBookmarked] = useState(Boolean(item.viewer_bookmarked));
   const [likeCount, setLikeCount] = useState(item.engagement.likes);
 
@@ -282,19 +288,36 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   // count would otherwise be ignored and the card would drift from the API.
   useEffect(() => {
     setLikeCount(item.engagement.likes);
-    setReaction(item.viewer_liked ? "like" : null);
+    setReaction(reactionFromApi(item.viewer_reaction) ?? (item.viewer_liked ? "like" : null));
     setBookmarked(Boolean(item.viewer_bookmarked));
-  }, [item.id, item.engagement.likes, item.viewer_liked, item.viewer_bookmarked]);
+  }, [
+    item.id,
+    item.engagement.likes,
+    item.viewer_liked,
+    item.viewer_reaction,
+    item.viewer_bookmarked,
+  ]);
 
   /**
    * Engagement is written optimistically and rolled back if the server refuses.
    * Waiting for the round trip before the heart fills makes every tap feel
    * broken on a slow connection; leaving it filled after a failure is a lie.
    */
-  async function persistEngagement(kind: "like" | "bookmark", on: boolean, rollback: () => void) {
+  async function persistEngagement(
+    kind: "like" | "bookmark",
+    on: boolean,
+    rollback: () => void,
+    reactionId?: FeedReactionId,
+  ) {
     try {
       const response = await fetch(`/api/feed/posts/${item.id}/${kind}`, {
         method: on ? "PUT" : "DELETE",
+        ...(reactionId
+          ? {
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ reaction: REACTION_TO_API[reactionId] }),
+            }
+          : {}),
       });
       if (!response.ok) {
         rollback();
@@ -309,18 +332,26 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
 
   function handleReactionChange(next: FeedReactionId | null) {
     const previous = reaction;
+    if (next === previous) return;
 
-    // The heart fills immediately — that is what makes the tap feel instant.
+    // The emoji changes immediately — that is what makes the tap feel instant.
     // The *number* is not predicted: an earlier version incremented it here and
     // then also accepted the server's value, so a count could be applied twice
     // and the card showed 2 where the API said 1. The server is the only thing
     // that knows the real total, and it answers in milliseconds.
     setReaction(next);
 
-    // Any reaction counts as a like; the API models one, not a set of moods.
-    if (Boolean(next) !== Boolean(previous)) {
-      void persistEngagement("like", Boolean(next), () => setReaction(previous));
-    }
+    // Swapping ❤️ for 😂 is a PUT with the new reaction, not a delete and a
+    // re-add: the API moves the count between reactions and leaves the total
+    // alone, so the number does not flicker to zero and back. An earlier
+    // version only fired when the *presence* of a reaction changed, so changing
+    // which emoji you had picked never reached the server at all.
+    void persistEngagement(
+      "like",
+      next !== null,
+      () => setReaction(previous),
+      next ?? undefined,
+    );
   }
 
   function handleBookmarkToggle() {

@@ -11,12 +11,16 @@ type Ctx = { params: Promise<{ postId: string }> };
  * succeeded but whose response was lost gets retried, and a toggle would undo
  * the like while the user watched the count drop.
  *
+ * The body carries which reaction was pressed. Sending a different one is a
+ * change of mind, not a second reaction, so it stays a PUT.
+ *
  * Mock mode keeps likes in component state, so there is nothing to persist —
  * answering ok leaves that behaviour untouched.
  */
-export async function PUT(_request: Request, { params }: Ctx) {
+export async function PUT(request: Request, { params }: Ctx) {
   const { postId } = await params;
-  if (isLiveBackend()) return liveSetLike(postId, true);
+  const body = (await request.json().catch(() => ({}))) as { reaction?: string };
+  if (isLiveBackend()) return liveSetLike(postId, true, body.reaction);
   return NextResponse.json({ ok: true });
 }
 

@@ -30,6 +30,10 @@ interface ApiComment {
   createdAt: string;
   editedAt: string | null;
   canDelete: boolean;
+  likeCount: number;
+  reactions: Record<string, number>;
+  liked: boolean;
+  reaction: string | null;
 }
 
 /** The shape the modal already renders. */
@@ -42,6 +46,8 @@ export interface UiComment {
   timeAgo: string;
   likes: number;
   canDelete: boolean;
+  /** Which reaction this viewer left, as the API spells it. */
+  reaction?: string | null;
   replies?: UiComment[];
 }
 
@@ -81,9 +87,8 @@ function toUi(c: ApiComment): UiComment {
     color: colorFor(c.author.profileId),
     text: c.body,
     timeAgo: ago(c.createdAt),
-    // Per-comment likes have no endpoint yet, so this is honestly zero rather
-    // than an invented number.
-    likes: 0,
+    likes: c.likeCount,
+    reaction: c.reaction,
     canDelete: c.canDelete,
   };
 }
@@ -140,4 +145,37 @@ export async function liveAddComment(postId: string, request: Request) {
   }
 
   return NextResponse.json({ ok: true, comment: toUi(result.data) });
+}
+
+/**
+ * React to a comment, change the reaction, or take it back.
+ *
+ * Identical rules to a post: one per person, and swapping one emoji for another
+ * is a PUT with the new reaction rather than a delete and a re-add.
+ */
+export async function liveSetCommentLike(
+  postId: string,
+  commentId: string,
+  liked: boolean,
+  reaction?: string,
+) {
+  const current = await getBackendUser();
+  if (!current) return NextResponse.json({ error: "Please log in." }, { status: 401 });
+
+  const result = await callBackend<{
+    liked: boolean;
+    reaction: string | null;
+    likeCount: number;
+    reactions: Record<string, number>;
+  }>(`/posts/${postId}/comments/${commentId}/like`, {
+    method: liked ? "PUT" : "DELETE",
+    token: current.session.accessToken,
+    ...(liked && reaction ? { body: { reaction } } : {}),
+  });
+
+  if (!result.ok) {
+    return NextResponse.json({ error: errorCopy(result.errorCode, result.message) }, { status: result.status });
+  }
+
+  return NextResponse.json({ ok: true, ...result.data });
 }

@@ -6,6 +6,8 @@ export type SampleComment = {
   text: string;
   timeAgo: string;
   likes: number;
+  /** Live mode only: which reaction this viewer left, as the API spells it. */
+  reaction?: string | null;
   replies?: SampleComment[];
 };
 

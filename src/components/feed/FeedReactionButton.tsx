@@ -17,6 +17,30 @@ export const FEED_REACTIONS: { id: FeedReactionId; emoji: string; label: string 
 ];
 
 const DEFAULT_REACTION: FeedReactionId = "love";
+
+/**
+ * The API spells reactions in upper case; the UI uses the designer's lower-case
+ * ids. Mapped explicitly rather than upper/lower-casing on the fly, so a new
+ * reaction on either side fails to compile instead of silently never matching.
+ */
+export const REACTION_TO_API: Record<FeedReactionId, string> = {
+  love: "LOVE",
+  like: "LIKE",
+  care: "CARE",
+  haha: "HAHA",
+  wow: "WOW",
+  sad: "SAD",
+  angry: "ANGRY",
+};
+
+const API_TO_REACTION: Record<string, FeedReactionId> = Object.fromEntries(
+  Object.entries(REACTION_TO_API).map(([id, api]) => [api, id as FeedReactionId]),
+);
+
+/** A reaction the API reported, or null — including for one this build cannot draw. */
+export function reactionFromApi(value: string | null | undefined): FeedReactionId | null {
+  return value ? (API_TO_REACTION[value] ?? null) : null;
+}
 const HOLD_MS = 450;
 const HOVER_OPEN_MS = 120;
 const HOVER_CLOSE_MS = 220;

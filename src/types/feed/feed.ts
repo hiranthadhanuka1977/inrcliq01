@@ -56,7 +56,15 @@ export interface FeedMedia {
 }
 
 export interface FeedEngagement {
+  /** Every reaction added up — the number next to the button, not thumbs-up alone. */
   likes: number;
+  /**
+   * The breakdown, for the stacked emoji: `{ LOVE: 30, HAHA: 8 }`.
+   *
+   * Only reactions somebody actually left appear, so read the top few by value
+   * rather than expecting a fixed set of keys.
+   */
+  reactions?: Record<string, number>;
   comments: number;
   shares: number;
 }
@@ -81,8 +89,10 @@ export interface FeedItem {
   members_only?: boolean;
   /** True when the logged-in user authored this post. */
   is_own?: boolean;
-  /** Live mode: whether this viewer has already liked it. */
+  /** Live mode: whether this viewer has already reacted at all. */
   viewer_liked?: boolean;
+  /** Live mode: which reaction they left, as the API spells it (`LOVE`). */
+  viewer_reaction?: string | null;
   /** Live mode: whether this viewer has already saved it. */
   viewer_bookmarked?: boolean;
 }

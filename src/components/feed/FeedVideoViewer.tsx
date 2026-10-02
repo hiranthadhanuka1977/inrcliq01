@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import ShareIcon from "@/components/feed/ShareIcon";
-import FeedReactionButton, { type FeedReactionId } from "@/components/feed/FeedReactionButton";
+import FeedReactionButton, {
+  REACTION_TO_API,
+  reactionFromApi,
+  type FeedReactionId,
+} from "@/components/feed/FeedReactionButton";
 import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import {
@@ -108,7 +112,22 @@ export default function FeedVideoViewer({
       if (!response.ok) return;
       const data = (await response.json()) as { live?: boolean; items?: SampleComment[] };
       // `live: false` means the mock backend answered — keep the fixtures.
-      if (data.live && Array.isArray(data.items)) setLiveComments(data.items);
+      if (data.live && Array.isArray(data.items)) {
+        setLiveComments(data.items);
+
+        // Seed which emoji is filled from the server, or a reaction left
+        // earlier reads as unreacted every time the panel is reopened.
+        const seeded: Record<string, FeedReactionId> = {};
+        const walk = (rows: SampleComment[]) => {
+          for (const row of rows) {
+            const id = reactionFromApi(row.reaction);
+            if (id) seeded[row.id] = id;
+            if (row.replies) walk(row.replies);
+          }
+        };
+        walk(data.items);
+        setCommentReactions(seeded);
+      }
     } catch {
       // A failed load leaves the fixtures in place rather than blanking the panel.
     }
@@ -257,16 +276,73 @@ export default function FeedVideoViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, hasCarousel, isCommentsMode, goPrev, goNext]);
 
-  const setCommentReaction = useCallback((commentId: string, next: FeedReactionId | null) => {
-    setCommentReactions((current) => {
-      if (!next) {
-        if (!(commentId in current)) return current;
-        const { [commentId]: _removed, ...rest } = current;
-        return rest;
-      }
-      return { ...current, [commentId]: next };
-    });
-  }, []);
+  const setCommentReaction = useCallback(
+    (commentId: string, next: FeedReactionId | null) => {
+      // Read before the setter, never inside it: a state updater must be pure,
+      // and React calls it twice in development — the second call would capture
+      // the value this very click just wrote and roll back to it on failure.
+      const previous = commentReactions[commentId] ?? null;
+      if (previous === next) return;
+
+      // The emoji changes on the tap; the count comes from the server, same
+      // rule as the post's. Nothing here predicts a total.
+      setCommentReactions((current) => {
+        if (!next) {
+          if (!(commentId in current)) return current;
+          const { [commentId]: _removed, ...rest } = current;
+          return rest;
+        }
+        return { ...current, [commentId]: next };
+      });
+
+      void (async () => {
+        try {
+          const response = await fetch(`/api/feed/posts/${item.id}/comments/${commentId}/like`, {
+            method: next ? "PUT" : "DELETE",
+            ...(next
+              ? {
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ reaction: REACTION_TO_API[next] }),
+                }
+              : {}),
+          });
+          if (!response.ok) throw new Error("refused");
+
+          const data = (await response.json().catch(() => ({}))) as { likeCount?: number };
+          if (typeof data.likeCount !== "number") return;
+
+          // Replies live one level down, so the count has to be applied in
+          // whichever of the two places the comment actually sits.
+          setLiveComments((rows) =>
+            rows === null
+              ? rows
+              : rows.map((row) =>
+                  row.id === commentId
+                    ? { ...row, likes: data.likeCount! }
+                    : row.replies?.some((reply) => reply.id === commentId)
+                      ? {
+                          ...row,
+                          replies: row.replies.map((reply) =>
+                            reply.id === commentId ? { ...reply, likes: data.likeCount! } : reply,
+                          ),
+                        }
+                      : row,
+                ),
+          );
+        } catch {
+          // Leaving the emoji filled after a refusal would be a lie.
+          setCommentReactions((current) => {
+            if (!previous) {
+              const { [commentId]: _removed, ...rest } = current;
+              return rest;
+            }
+            return { ...current, [commentId]: previous };
+          });
+        }
+      })();
+    },
+    [item.id, commentReactions],
+  );
 
   const releaseFocusWithoutScroll = useCallback(() => {
     const active = document.activeElement;
