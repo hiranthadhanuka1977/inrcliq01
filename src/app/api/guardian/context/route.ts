@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { AccountType } from "@/generated/prisma/client";
 import { isLiveBackend } from "@/lib/backend/config";
 import { liveGuardianContext } from "@/lib/backend/routes";
+import { AccountType } from "@/generated/prisma/client";
 import {
   buildAuthenticatedGuardianProfile,
   buildGuardianContext,

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
-import { setUserHandle } from "@/lib/feed/set-user-handle";
 import { isLiveBackend } from "@/lib/backend/config";
 import { liveOnboardingHandle } from "@/lib/backend/routes";
+import { setUserHandle } from "@/lib/feed/set-user-handle";
 
 export async function POST(request: Request) {
   if (isLiveBackend()) return liveOnboardingHandle(request);
