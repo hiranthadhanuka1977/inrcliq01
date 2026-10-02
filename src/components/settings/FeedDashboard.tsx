@@ -7,7 +7,6 @@ import {
   StatCard,
   formatCount,
   formatShortDate,
-  percent,
 } from "@/components/settings/DashboardParts";
 import type { SettingsFeedSummary } from "@/lib/settings/feed-dashboard";
 
@@ -32,6 +31,7 @@ export function FeedDashboard({ summary }: { summary: SettingsFeedSummary }) {
           detail={`${formatCount(summary.memberPosts)} by members · ${formatCount(summary.seededPosts)} seeded`}
           icon="posts"
           tone="blue"
+          meter={{ value: summary.memberPosts, total: summary.totalPosts, label: "by members" }}
         />
         <StatCard
           label="Posted this week"
@@ -39,6 +39,7 @@ export function FeedDashboard({ summary }: { summary: SettingsFeedSummary }) {
           detail={`${formatCount(summary.postsLast30Days)} in the last 30 days`}
           icon="calendar"
           tone="green"
+          trend={summary.dailyPosts.slice(-7)}
         />
         <StatCard
           label="Creators posting"
@@ -50,9 +51,10 @@ export function FeedDashboard({ summary }: { summary: SettingsFeedSummary }) {
         <StatCard
           label="Members-only posts"
           value={summary.membersOnlyPosts}
-          detail={`${percent(summary.membersOnlyPosts, summary.totalPosts)}% of all posts`}
+          detail="Visible to subscribers only"
           icon="lock"
           tone="amber"
+          meter={{ value: summary.membersOnlyPosts, total: summary.totalPosts, label: "of all posts" }}
         />
         <StatCard
           label="Hidden by viewers"

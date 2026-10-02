@@ -1,7 +1,7 @@
 import type { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SEEDED_CREATOR_SOURCES } from "@/lib/settings/feed-dashboard";
-import { DEMO_SIGNUP_METHOD, formatUserName } from "@/lib/settings/users";
+import { formatUserName, isAiUserSignupMethod, isDemoSignupMethod } from "@/lib/settings/users";
 import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
 
 const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -27,6 +27,7 @@ export type SettingsUserDetail = {
   region: string | null;
   signupMethod: string | null;
   isDemo: boolean;
+  isAiUser: boolean;
   onboardingStep: string | null;
   hasPassword: boolean;
   loginProviders: string[];
@@ -214,7 +215,8 @@ export async function getSettingsUserDetail(userId: string): Promise<SettingsUse
     country: user.country,
     region: user.region,
     signupMethod: user.signupMethod,
-    isDemo: user.signupMethod === DEMO_SIGNUP_METHOD,
+    isDemo: isDemoSignupMethod(user.signupMethod),
+    isAiUser: isAiUserSignupMethod(user.signupMethod),
     onboardingStep: user.onboardingStep,
     hasPassword: Boolean(user.passwordHash),
     loginProviders: [...new Set(user.accounts.map((account) => account.provider))],

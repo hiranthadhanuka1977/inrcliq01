@@ -1,0 +1,124 @@
+{
+  "users": [
+    {
+      "id": "cmtf9axjy001z50lh46y3iggk",
+      "email": "chloeanders@inrcliq.com",
+      "firstName": "Chloe",
+      "lastName": "Anderson",
+      "handle": "chloeanders",
+      "accountType": "MINOR",
+      "dateOfBirth": "2014-12-31T18:30:00.000Z",
+      "ageZone": "KIDS",
+      "country": "LK",
+      "region": null,
+      "createdAt": "2026-08-30T03:35:17.086Z",
+      "profile": {
+        "slug": "chloeanders",
+        "displayName": "Chloe Anderson",
+        "handle": "@chloeanders",
+        "avatarInitials": "CA",
+        "avatarColor": "#6b9fff",
+        "avatarUrl": "/uploads/avatars/cmtf9axjy001z50lh46y3iggk-1788061399067-4f228945.jpg",
+        "coverUrl": null,
+        "bio": "",
+        "verified": false,
+        "source": "stub"
+      }
+    },
+    {
+      "id": "cmtjnmnlj000a6wlhnk8uarkg",
+      "email": "alexanders@inrcliq.com",
+      "firstName": "Alex",
+      "lastName": "Anderson",
+      "handle": "alexanders",
+      "accountType": "MINOR",
+      "dateOfBirth": "2013-12-31T18:30:00.000Z",
+      "ageZone": "KIDS",
+      "country": "LK",
+      "region": null,
+      "createdAt": "2026-09-02T05:27:23.383Z",
+      "profile": {
+        "slug": "alexanders",
+        "displayName": "Alex Anderson",
+        "handle": "@alexanders",
+        "avatarInitials": "AA",
+        "avatarColor": "#6b9fff",
+        "avatarUrl": "/uploads/avatars/cmtjnmnlj000a6wlhnk8uarkg-1788327148182-5ceb2ed6.jpg",
+        "coverUrl": null,
+        "bio": "",
+        "verified": false,
+        "source": "handle-setup"
+      }
+    },
+    {
+      "id": "cmtjr73ah002z6wlhs4osv238",
+      "email": "jamieanders@inrcliq.com",
+      "firstName": "Jamie",
+      "lastName": "Anderson",
+      "handle": "jamieanders",
+      "accountType": "MINOR",
+      "dateOfBirth": "2013-12-31T18:30:00.000Z",
+      "ageZone": "KIDS",
+      "country": "LK",
+      "region": null,
+      "createdAt": "2026-09-02T07:07:15.689Z",
+      "profile": {
+        "slug": "jamieanders",
+        "displayName": "Jamie Anderson",
+        "handle": "@jamieanders",
+        "avatarInitials": "JA",
+        "avatarColor": "#6b9fff",
+        "avatarUrl": "/uploads/avatars/cmtjr73ah002z6wlhs4osv238-1788333013648-5c0062d0.jpg",
+        "coverUrl": null,
+        "bio": "",
+        "verified": false,
+        "source": "handle-setup"
+      }
+    },
+    {
+      "id": "cmtf9cweq002350lhl9lcmchc",
+      "email": "danielanders@inrcliq.com",
+      "firstName": "Daniel",
+      "lastName": "Anderson",
+      "handle": "extreme1977",
+      "accountType": "GUARDIAN",
+      "dateOfBirth": null,
+      "ageZone": null,
+      "country": "LK",
+      "region": null,
+      "createdAt": "2026-08-30T03:36:48.914Z",
+      "profile": {
+        "slug": "extreme1977",
+        "displayName": "Daniel Anderson",
+        "handle": "@extreme1977",
+        "avatarInitials": "DA",
+        "avatarColor": "#6b9fff",
+        "avatarUrl": "/uploads/avatars/cmtf9cweq002350lhl9lcmchc-1788061195238-1abfdaf9.jpg",
+        "coverUrl": "/uploads/covers/cmtf9cweq002350lhl9lcmchc-1788070432658-3a516359.jpg",
+        "bio": "",
+        "verified": true,
+        "source": "stub"
+      }
+    }
+  ],
+  "guardianLinks": [
+    {
+      "guardianEmail": "danielanders@inrcliq.com",
+      "childEmail": "chloeanders@inrcliq.com",
+      "protectionLevel": "standard",
+      "linkedAt": "2026-08-30T03:37:45.138Z"
+    },
+    {
+      "guardianEmail": "danielanders@inrcliq.com",
+      "childEmail": "alexanders@inrcliq.com",
+      "protectionLevel": "strict",
+      "linkedAt": "2026-09-02T05:30:14.418Z"
+    },
+    {
+      "guardianEmail": "danielanders@inrcliq.com",
+      "childEmail": "jamieanders@inrcliq.com",
+      "protectionLevel": "standard",
+      "linkedAt": "2026-09-02T07:08:18.189Z"
+    }
+  ]
+}

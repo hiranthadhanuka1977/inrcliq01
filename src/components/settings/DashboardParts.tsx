@@ -158,22 +158,67 @@ export function StatCard({
   detail,
   icon,
   tone,
+  meter,
+  trend,
+  live = false,
 }: {
   label: string;
   value: number;
   detail: string;
   icon: DashboardIconName;
   tone: DashboardTone;
+  /** Shows value as a share of `total`, with the percentage. */
+  meter?: { value: number; total: number; label: string };
+  /** Recent daily counts, oldest first, drawn as mini bars. */
+  trend?: DashboardDay[];
+  live?: boolean;
 }) {
+  const share = meter ? percent(meter.value, meter.total) : 0;
+  const trendMax = trend ? Math.max(1, ...trend.map((day) => day.count)) : 1;
+
   return (
     <div className={`settings-stat settings-tone--${tone}`}>
       <div className="settings-stat__head">
-        <p className="settings-stat__label">{label}</p>
         <span className="settings-stat__icon">
           <DashboardIcon name={icon} />
         </span>
+        <p className="settings-stat__label">{label}</p>
       </div>
-      <p className="settings-stat__value">{formatCount(value)}</p>
+
+      <div className="settings-stat__value-row">
+        <p className="settings-stat__value">{formatCount(value)}</p>
+        {live ? (
+          <span className="settings-stat__live">
+            <span className="settings-stat__live-dot" aria-hidden="true" />
+            Live
+          </span>
+        ) : null}
+        {trend ? (
+          <ol className="settings-stat__spark" aria-label={`${label} per day`}>
+            {trend.map((day, index) => (
+              <li
+                key={day.date}
+                className={index === trend.length - 1 ? "is-today" : undefined}
+                style={{ height: `${Math.max(8, (day.count / trendMax) * 100)}%` }}
+                title={`${day.label}: ${formatCount(day.count)}`}
+                aria-label={`${day.label}: ${formatCount(day.count)}`}
+              />
+            ))}
+          </ol>
+        ) : null}
+      </div>
+
+      {meter ? (
+        <div className="settings-stat__meter">
+          <span className="settings-stat__meter-track" aria-hidden="true">
+            <span className="settings-stat__meter-fill" style={{ width: `${share}%` }} />
+          </span>
+          <span className="settings-stat__meter-label">
+            <strong>{share}%</strong> {meter.label}
+          </span>
+        </div>
+      ) : null}
+
       <p className="settings-stat__detail">{detail}</p>
     </div>
   );

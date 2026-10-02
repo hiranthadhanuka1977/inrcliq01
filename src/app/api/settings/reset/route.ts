@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE, destroySession } from "@/lib/session";
+import { SETTINGS_RESET_ENABLED } from "@/lib/settings/access";
 import { resetAllSettingsUsers } from "@/lib/settings/users";
 
 export async function POST() {
+  if (!SETTINGS_RESET_ENABLED) {
+    return NextResponse.json({ error: "Reset is disabled." }, { status: 403 });
+  }
+
   try {
     await resetAllSettingsUsers();
     await destroySession();

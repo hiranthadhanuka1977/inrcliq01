@@ -1,6 +1,6 @@
 import { SettingsPills } from "@/components/settings/SettingsPills";
 import { UsersTable } from "@/components/settings/UsersTable";
-import { countSettingsUsersByGroup, listSettingsUsers } from "@/lib/settings/users";
+import { countSettingsUsersByGroup, listSettingsUsers, type SettingsUsersGroup } from "@/lib/settings/users";
 
 export const dynamic = "force-dynamic";
 
@@ -9,12 +9,14 @@ type PageProps = {
 };
 
 export default async function SettingsUsersPage({ searchParams }: PageProps) {
-  const group = (await searchParams).tab === "demo" ? "demo" : "members";
+  const tab = (await searchParams).tab;
+  const group: SettingsUsersGroup = tab === "demo" || tab === "ai" ? tab : "members";
   const [users, counts] = await Promise.all([listSettingsUsers(group), countSettingsUsersByGroup()]);
 
   const pills = [
     { id: "members", label: `Users (${counts.members})`, href: "/settings/users" },
     { id: "demo", label: `Demo users (${counts.demo})`, href: "/settings/users?tab=demo" },
+    { id: "ai", label: `AI Users (${counts.ai})`, href: "/settings/users?tab=ai" },
   ];
 
   return (

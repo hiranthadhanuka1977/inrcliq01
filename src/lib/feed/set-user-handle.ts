@@ -12,7 +12,7 @@ function slugify(value: string) {
     .slice(0, 64);
 }
 
-async function uniquePublicSlug(preferred: string, excludeUserId: string) {
+export async function uniquePublicSlug(preferred: string, excludeUserId: string) {
   let slug = slugify(preferred) || `user-${randomBytes(3).toString("hex")}`;
   const base = slug;
   let suffix = 0;
@@ -36,7 +36,7 @@ async function uniquePublicSlug(preferred: string, excludeUserId: string) {
   return slug;
 }
 
-function initialsFromName(name: string) {
+export function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {
     return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();

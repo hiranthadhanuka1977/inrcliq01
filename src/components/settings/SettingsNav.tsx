@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { SETTINGS_RESET_ENABLED } from "@/lib/settings/access";
 
 const NAV_ITEMS = [
   {
@@ -42,6 +43,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: "/settings/partners",
+    label: "Partners",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+      </svg>
+    ),
+  },
+  {
     href: "/settings/reset",
     label: "Reset",
     icon: (
@@ -58,6 +68,10 @@ const NAV_ITEMS = [
   icon: ReactNode;
 }>;
 
+function isNavItemDisabled(href: string) {
+  return href === "/settings/reset" && !SETTINGS_RESET_ENABLED;
+}
+
 export function SettingsNav() {
   const pathname = usePathname();
 
@@ -66,6 +80,21 @@ export function SettingsNav() {
       <ul className="settings-nav__list">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+          if (isNavItemDisabled(item.href)) {
+            return (
+              <li key={item.href}>
+                <span
+                  className="settings-nav__link is-disabled"
+                  aria-disabled="true"
+                  title={`${item.label} is disabled`}
+                >
+                  <span className="settings-nav__icon">{item.icon}</span>
+                  {item.label}
+                </span>
+              </li>
+            );
+          }
 
           return (
             <li key={item.href}>

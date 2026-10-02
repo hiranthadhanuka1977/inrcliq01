@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // The seed sample routes list data/*.json at runtime, which tracing cannot detect.
   outputFileTracingIncludes: {
     "/api/settings/feed-seed": ["./data/*.json"],
+    "/api/settings/demo-users": ["./data/*.json"],
     "/settings/feed-mgmt/settings": ["./data/*.json"],
   },
 };
