@@ -718,6 +718,47 @@ a.feed-video-viewer__name:focus-visible {
   color: var(--color-brand-primary);
 }
 
+/* The bar above the composer saying which thread a reply is aimed at. Sits on
+   the composer's top border so the two read as one control. */
+.feed-video-viewer__replying {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.5rem var(--space-4);
+  border-top: 1px solid var(--color-neutral-200);
+  background: var(--color-bg-page);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.feed-video-viewer__replying strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.feed-video-viewer__replying button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.feed-video-viewer__replying button:hover {
+  background: var(--color-neutral-200);
+  color: var(--color-text-primary);
+}
+
+/* The composer's own top border would double up under the bar above. */
+.feed-video-viewer__replying + .feed-video-viewer__composer {
+  border-top: 0;
+}
+
 .feed-video-viewer__composer {
   display: flex;
   align-items: center;

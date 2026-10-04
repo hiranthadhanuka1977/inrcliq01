@@ -103,6 +103,10 @@ export default function FeedVideoViewer({
   // the fixtures still render, so the panel never opens empty — and in mock mode
   // nothing changes at all.
   const [liveComments, setLiveComments] = useState<SampleComment[] | null>(null);
+  // Which thread the composer is aimed at. Null means a new top-level comment.
+  // `id` is always the TOP-LEVEL comment: threads are one level deep, so a reply
+  // to a reply belongs to the same parent — see submitComment.
+  const [replyTo, setReplyTo] = useState<{ id: string; author: string } | null>(null);
   const [posting, setPosting] = useState(false);
   const comments = liveComments ?? fallbackComments;
 
@@ -147,10 +151,14 @@ export default function FeedVideoViewer({
       const response = await fetch(`/api/feed/posts/${item.id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
+        // parentCommentId is what makes this a reply. The API flattens a reply
+        // to a reply onto the same parent rather than refusing it, but we send
+        // the top-level id anyway so the request says what the UI showed.
+        body: JSON.stringify({ body, ...(replyTo ? { parentCommentId: replyTo.id } : {}) }),
       });
       if (response.ok) {
         setDraft("");
+        setReplyTo(null);
         // Re-read rather than appending locally: the server decides the id, the
         // timestamp and whether moderation held it.
         await loadComments();
@@ -159,6 +167,26 @@ export default function FeedVideoViewer({
       setPosting(false);
     }
   }
+
+  /**
+   * Aim the composer at a thread.
+   *
+   * `threadId` is the top-level comment, not the row that was clicked — replying
+   * to a reply joins that conversation rather than starting a deeper one, which
+   * is the only shape the API stores.
+   */
+  const startReply = useCallback((threadId: string, author: string) => {
+    setReplyTo({ id: threadId, author });
+    // Without the focus the composer scrolls out of view on a long thread and
+    // the tap looks like it did nothing.
+    requestAnimationFrame(() => {
+      const input = document.getElementById(`video-comment-${item.id}`);
+      if (input instanceof HTMLInputElement) {
+        input.focus();
+        input.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }, [item.id]);
   const sortedComments = useMemo(
     () => sortSampleComments(comments, commentSort),
     [commentSort, comments],
@@ -535,16 +563,28 @@ export default function FeedVideoViewer({
                 comment={comment}
                 commentReactions={commentReactions}
                 onReactionChange={setCommentReaction}
+                onReply={startReply}
               />
             ))}
           </div>
+
+          {replyTo ? (
+            <div className="feed-video-viewer__replying">
+              <span>
+                Replying to <strong>{replyTo.author}</strong>
+              </span>
+              <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply">
+                ✕
+              </button>
+            </div>
+          ) : null}
 
           <form
             className="feed-video-viewer__composer"
             onSubmit={submitComment}
           >
             <label className="sr-only" htmlFor={commentInputId}>
-              Write a comment
+              {replyTo ? `Reply to ${replyTo.author}` : "Write a comment"}
             </label>
             <input
               id={commentInputId}
@@ -552,7 +592,7 @@ export default function FeedVideoViewer({
               type="text"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Add a comment…"
+              placeholder={replyTo ? `Reply to ${replyTo.author}…` : "Add a comment…"}
               autoComplete="off"
             />
             <button type="submit" className="btn btn--primary btn--sm" disabled={!draft.trim() || posting}>
@@ -644,10 +684,12 @@ function CommentThread({
   comment,
   commentReactions,
   onReactionChange,
+  onReply,
 }: {
   comment: SampleComment;
   commentReactions: Record<string, FeedReactionId>;
   onReactionChange: (commentId: string, next: FeedReactionId | null) => void;
+  onReply: (threadId: string, author: string) => void;
 }) {
   const replies = comment.replies ?? [];
 
@@ -657,6 +699,8 @@ function CommentThread({
         comment={comment}
         reaction={commentReactions[comment.id] ?? null}
         onReactionChange={onReactionChange}
+        onReply={onReply}
+        threadId={comment.id}
       />
       {replies.length > 0 ? (
         <div className="feed-video-viewer__replies" aria-label={`Replies to ${comment.author}`}>
@@ -666,6 +710,10 @@ function CommentThread({
               comment={reply}
               reaction={commentReactions[reply.id] ?? null}
               onReactionChange={onReactionChange}
+              onReply={onReply}
+              // The thread's id, not the reply's: replying to a reply joins this
+              // conversation rather than starting a deeper one.
+              threadId={comment.id}
               isReply
             />
           ))}
@@ -679,11 +727,15 @@ function CommentRow({
   comment,
   reaction,
   onReactionChange,
+  onReply,
+  threadId,
   isReply = false,
 }: {
   comment: SampleComment;
   reaction: FeedReactionId | null;
   onReactionChange: (commentId: string, next: FeedReactionId | null) => void;
+  onReply: (threadId: string, author: string) => void;
+  threadId: string;
   isReply?: boolean;
 }) {
   return (
@@ -708,7 +760,9 @@ function CommentRow({
             reaction={reaction}
             onReactionChange={(next) => onReactionChange(comment.id, next)}
           />
-          <button type="button">Reply</button>
+          <button type="button" onClick={() => onReply(threadId, comment.author)}>
+            Reply
+          </button>
         </div>
       </div>
     </article>
