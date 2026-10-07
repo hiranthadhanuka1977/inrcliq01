@@ -16,13 +16,6 @@ enum AccountType {
 /**
  * Developmental / content zone derived from date of birth (current age).
  */
-enum AgeZone {
-  KIDS
-  TEENS
-  MATURE_TEENS
-  ADULT
-}
-
 enum DmDeliveryStatus {
   DELIVERED
   PENDING_REVIEW
@@ -70,8 +63,11 @@ enum SafetyReportStatus {
 /**
  * Lookup row per age zone: label, age bounds, and UI icon badge key.
  */
+/// Zone codes are KIDS | TEEN | MATURE_TEEN | ADULT, defined in
+/// `src/lib/utils/age-zone.ts` rather than as a database enum — the API owns the
+/// band names and a Postgres enum would need a migration every time it adds one.
 model AgeZoneDefinition {
-  zone            AgeZone  @id
+  zone            String   @id
   label           String
   /// Stable key used by the UI to render this zone's icon badge.
   iconBadgeKey    String   @unique
@@ -119,7 +115,7 @@ model User {
   handle            String?            @unique
   dateOfBirth       DateTime?
   /// Current age zone from dateOfBirth. Recompute when DOB changes or on birthday refresh.
-  ageZone           AgeZone?
+  ageZone           String?
   ageZoneDefinition AgeZoneDefinition? @relation(fields: [ageZone], references: [zone])
   country           String?
   region            String?
@@ -599,8 +595,8 @@ model DmModerationHold {
   contentType        String               @default("text")
   category           String
   severity           Int
-  senderZone         AgeZone
-  recipientZone      AgeZone
+  senderZone         String
+  recipientZone      String
   recipientTreatment DmRecipientTreatment
   status             DmHoldStatus         @default(PENDING)
   decidedByUserId    String?

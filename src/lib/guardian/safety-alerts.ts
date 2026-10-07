@@ -36,6 +36,7 @@ import {
   AGE_ZONE_ICON_BADGE_KEYS,
   AGE_ZONE_LABELS,
   type AgeZoneCode,
+  toAgeZoneCode,
 } from "@/lib/utils/age-zone";
 
 export type SafetyAlertAgeZoneBadge = {
@@ -339,7 +340,7 @@ async function buildAlertCards(guardianUserId: string, rows: AlertRow[]): Promis
       holdId: hold?.id ?? null,
       holdStatus: hold?.status ?? null,
       recipientTreatment: hold?.recipientTreatment ?? null,
-      recipientZone: hold?.recipientZone ?? null,
+      recipientZone: toAgeZoneCode(hold?.recipientZone),
       canDecide: hold?.status === "PENDING" && row.status === "AWAITING_DECISION",
       contentAvailable: Boolean(hold && !hold.bodyPurgedAt),
       reviewSettingsHref: childThreadId
@@ -547,9 +548,9 @@ export async function reportFromSafetyAlert(
   if (!row.peerUserId) return { ok: false as const, status: 400, error: "There is no contact to report." };
 
   const details = input.details?.trim().slice(0, REPORT_DETAILS_MAX_LENGTH) || null;
-  const zone = row.hold?.recipientZone ?? resolvePolicyAgeZone(row.child).zone;
+  const zone = toAgeZoneCode(row.hold?.recipientZone) ?? resolvePolicyAgeZone(row.child).zone;
   const mandatoryReportCandidate =
-    (zone === "KIDS" || zone === "TEENS") &&
+    (zone === "KIDS" || zone === "TEEN") &&
     (input.reason === "sexual_content" || input.reason === "grooming_concern");
 
   const { report, created } = await createGuardianSafetyReport({

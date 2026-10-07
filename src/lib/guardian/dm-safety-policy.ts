@@ -61,7 +61,7 @@ const NO_SIDE_EFFECTS = {
 
 function isHighRiskCrossZone(input: DmSafetyPolicyInput) {
   if (input.senderZone === "ADULT" || input.recipientZone !== "KIDS") return false;
-  if (input.senderZone === "TEENS" || input.senderZone === "MATURE_TEENS") return true;
+  if (input.senderZone === "TEEN" || input.senderZone === "MATURE_TEEN") return true;
   if (input.senderAgeYears == null || input.recipientAgeYears == null) return false;
   return input.senderAgeYears - input.recipientAgeYears >= 3;
 }
@@ -128,13 +128,13 @@ export function evaluateDmSafetyPolicy(input: DmSafetyPolicyInput): DmSafetyDeci
     senderIsAdult || isHighRiskCrossZone(input) || input.severity >= 4 ? "high" : "medium";
   const autoReport =
     senderIsAdult &&
-    (input.recipientZone === "KIDS" || input.recipientZone === "TEENS") &&
+    (input.recipientZone === "KIDS" || input.recipientZone === "TEEN") &&
     input.severity === 6;
 
   return {
     outcome: "warn",
     onSendAnyway:
-      input.recipientZone === "MATURE_TEENS" ? "hold_masked_placeholder" : "hold_withheld",
+      input.recipientZone === "MATURE_TEEN" ? "hold_masked_placeholder" : "hold_withheld",
     alertPriority,
     recordStrike: senderIsAdult && !input.senderIsRecipientGuardian,
     notifySenderGuardians,

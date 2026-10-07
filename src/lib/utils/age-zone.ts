@@ -8,20 +8,20 @@
  * Date of birth is the source of truth; `User.ageZone` is a queryable cache.
  */
 
-export type AgeZoneCode = "KIDS" | "TEENS" | "MATURE_TEENS" | "ADULT";
+export type AgeZoneCode = "KIDS" | "TEEN" | "MATURE_TEEN" | "ADULT";
 
 export const AGE_ZONE_LABELS: Record<AgeZoneCode, string> = {
   KIDS: "Kids Zone",
-  TEENS: "Teens Zone",
-  MATURE_TEENS: "Mature Teens Zone",
+  TEEN: "Teens Zone",
+  MATURE_TEEN: "Mature Teens Zone",
   ADULT: "Adult profile",
 };
 
 /** Default icon badge keys (kept in sync with AgeZoneDefinition.iconBadgeKey seed). */
 export const AGE_ZONE_ICON_BADGE_KEYS: Record<AgeZoneCode, string> = {
   KIDS: "age-zone-kids",
-  TEENS: "age-zone-teens",
-  MATURE_TEENS: "age-zone-mature-teens",
+  TEEN: "age-zone-teens",
+  MATURE_TEEN: "age-zone-mature-teens",
   ADULT: "age-zone-adult",
 };
 
@@ -29,13 +29,27 @@ export const AGE_ZONE_ICON_BADGE_KEYS: Record<AgeZoneCode, string> = {
 export const AGE_ZONE_DESCRIPTIONS: Record<AgeZoneCode, string> = {
   KIDS:
     "Kids Zone is for ages under 13. It uses the highest protection defaults for younger linked accounts.",
-  TEENS:
+  TEEN:
     "Teens Zone is for ages 13 through 15. It keeps strong safety defaults while allowing guided teen activity.",
-  MATURE_TEENS:
+  MATURE_TEEN:
     "Mature Teens Zone is for ages 16 through 17. It adds more flexibility with tighter rules for adult contact.",
   ADULT:
     "Adult profile is for ages 18 and over. Standard adult messaging and content rules apply.",
 };
+
+/**
+ * Narrows a stored zone string to a known code.
+ *
+ * The column is a plain string so the API can add a band without a migration,
+ * which means a row can hold a code this build does not know. Returning null for
+ * one is deliberate: an unrecognised band should read as "no band" rather than
+ * be forced into a union it does not belong to, where it would render as
+ * whatever the first branch happened to be.
+ */
+export function toAgeZoneCode(value: string | null | undefined): AgeZoneCode | null {
+  if (!value) return null;
+  return (AGE_ZONE_BOUNDS.some((b) => b.zone === value) ? value : null) as AgeZoneCode | null;
+}
 
 export function ageZoneDescription(zone: AgeZoneCode | null | undefined): string | null {
   if (!zone) return null;
@@ -49,8 +63,8 @@ export const AGE_ZONE_BOUNDS: ReadonlyArray<{
   maxAgeExclusive: number | null;
 }> = [
   { zone: "KIDS", minAgeInclusive: 0, maxAgeExclusive: 13 },
-  { zone: "TEENS", minAgeInclusive: 13, maxAgeExclusive: 16 },
-  { zone: "MATURE_TEENS", minAgeInclusive: 16, maxAgeExclusive: 18 },
+  { zone: "TEEN", minAgeInclusive: 13, maxAgeExclusive: 16 },
+  { zone: "MATURE_TEEN", minAgeInclusive: 16, maxAgeExclusive: 18 },
   { zone: "ADULT", minAgeInclusive: 18, maxAgeExclusive: null },
 ];
 
@@ -88,5 +102,5 @@ export function ageZoneLabel(zone: AgeZoneCode | null | undefined): string {
 
 /** True for Kids / Teens / Mature Teens (under 18). */
 export function isMinorAgeZone(zone: AgeZoneCode | null | undefined): boolean {
-  return zone === "KIDS" || zone === "TEENS" || zone === "MATURE_TEENS";
+  return zone === "KIDS" || zone === "TEEN" || zone === "MATURE_TEEN";
 }

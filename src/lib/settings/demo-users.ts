@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AccountType, AgeZone } from "@/generated/prisma/client";
+import type { AccountType } from "@/generated/prisma/client";
+import { toAgeZoneCode, type AgeZoneCode } from "@/lib/utils/age-zone";
 import { prisma } from "@/lib/prisma";
 import { DEMO_SEED_SIGNUP_METHOD, deleteSettingsUser } from "@/lib/settings/users";
 
@@ -35,7 +36,7 @@ export type DemoUserSeed = {
   handle: string | null;
   accountType: AccountType;
   dateOfBirth: string | null;
-  ageZone: AgeZone | null;
+  ageZone: AgeZoneCode | null;
   country: string | null;
   region: string | null;
   createdAt: string;
@@ -101,7 +102,7 @@ export async function snapshotDemoUsers(): Promise<DemoUsersFile> {
       handle: user.handle,
       accountType: user.accountType,
       dateOfBirth: user.dateOfBirth?.toISOString() ?? null,
-      ageZone: user.ageZone,
+      ageZone: toAgeZoneCode(user.ageZone),
       country: user.country,
       region: user.region,
       createdAt: user.createdAt.toISOString(),

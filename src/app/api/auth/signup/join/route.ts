@@ -9,7 +9,6 @@ import type { User } from "@/generated/prisma/client";
 import { getPostVerifyOnboardingStep, getPostVerifyRedirect } from "@/lib/auth/onboarding";
 import { calculateAge, parseDateOfBirth } from "@/lib/utils/age";
 import { resolveAgeZoneFromDateOfBirth } from "@/lib/utils/age-zone";
-import { ageZoneToPrisma } from "@/lib/guardian/user-age-zone";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { parseSignupJoin } from "@/lib/validation";
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
 
     const age = calculateAge(month, day, year);
     const accountType = age < 18 ? AccountType.MINOR : AccountType.ADULT;
-    const ageZone = ageZoneToPrisma(resolveAgeZoneFromDateOfBirth(dateOfBirth));
+    const ageZone = resolveAgeZoneFromDateOfBirth(dateOfBirth);
     const normalizedEmail = isOAuthSignup
       ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}+${oauthProvider}.${randomBytes(4).toString("hex")}@prototype.inrcliq.local`
       : email!.toLowerCase();

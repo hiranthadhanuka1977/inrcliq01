@@ -3,7 +3,6 @@ import { z } from "zod";
 import { AccountType } from "@/generated/prisma/client";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
 import { initialsFromName, uniquePublicSlug } from "@/lib/feed/set-user-handle";
-import { ageZoneToPrisma } from "@/lib/guardian/user-age-zone";
 import { prisma } from "@/lib/prisma";
 import { AI_USER_SIGNUP_METHOD } from "@/lib/settings/users";
 import { parseDateOfBirth } from "@/lib/utils/age";
@@ -177,7 +176,7 @@ export async function createAiUser(input: unknown): Promise<CreateAiUserResult> 
       lastName,
       handle,
       dateOfBirth,
-      ageZone: ageZoneToPrisma(resolveAgeZoneFromDateOfBirth(dateOfBirth)),
+      ageZone: resolveAgeZoneFromDateOfBirth(dateOfBirth),
       country,
       region: country === "US" ? parsed.data.region : null,
       accountType: AccountType.ADULT,

@@ -8,8 +8,8 @@ import {
 
 const AGE_ZONE_ICON_SRC: Record<string, string> = {
   [AGE_ZONE_ICON_BADGE_KEYS.KIDS]: "/iconography/age-zone-kids.svg",
-  [AGE_ZONE_ICON_BADGE_KEYS.TEENS]: "/iconography/age-zone-teens.svg",
-  [AGE_ZONE_ICON_BADGE_KEYS.MATURE_TEENS]: "/iconography/age-zone-mature-teens.svg",
+  [AGE_ZONE_ICON_BADGE_KEYS.TEEN]: "/iconography/age-zone-teens.svg",
+  [AGE_ZONE_ICON_BADGE_KEYS.MATURE_TEEN]: "/iconography/age-zone-mature-teens.svg",
   [AGE_ZONE_ICON_BADGE_KEYS.ADULT]: "/iconography/age-zone-adult.svg",
 };
 

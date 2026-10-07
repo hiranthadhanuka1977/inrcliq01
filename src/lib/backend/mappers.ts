@@ -21,7 +21,7 @@ import type { BackendUser } from "./session";
  * MATURE_TEEN. Read the API's `isMinor` where legal status is what matters.
  *
  * SEAM: `src/lib/utils/age-zone.ts` has the prototype's own four codes — KIDS,
- * TEENS, MATURE_TEENS, ADULT — with the same boundaries but plural names. They
+ * TEEN, MATURE_TEEN, ADULT — with the same boundaries but plural names. They
  * feed the mock's guardian and DM features from a local date-of-birth
  * calculation and never meet the API's values today. Anything that starts
  * rendering the API's band must map between the two rather than assume they

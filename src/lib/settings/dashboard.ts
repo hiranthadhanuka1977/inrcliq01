@@ -1,6 +1,8 @@
 import type { AccountType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
+import { AGE_ZONE_LABELS, type AgeZoneCode,
+  toAgeZoneCode,
+} from "@/lib/utils/age-zone";
 import {
   AI_USER_SIGNUP_METHOD,
   DEMO_SEED_SIGNUP_METHOD,
@@ -70,7 +72,7 @@ export const APPROVAL_STATUS_LABELS: Record<string, string> = {
   EXPIRED: "Expired",
 };
 
-const AGE_ZONE_ORDER: AgeZoneCode[] = ["KIDS", "TEENS", "MATURE_TEENS", "ADULT"];
+const AGE_ZONE_ORDER: AgeZoneCode[] = ["KIDS", "TEEN", "MATURE_TEEN", "ADULT"];
 
 function dateKey(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -160,7 +162,8 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
   // Same fallback as the DM policy: no cached zone means Kids for minors, Adult otherwise.
   const zoneCounts = new Map<AgeZoneCode, number>();
   for (const row of zoneRows) {
-    const zone: AgeZoneCode = row.ageZone ?? (row.accountType === "MINOR" ? "KIDS" : "ADULT");
+    const zone: AgeZoneCode =
+      toAgeZoneCode(row.ageZone) ?? (row.accountType === "MINOR" ? "KIDS" : "ADULT");
     zoneCounts.set(zone, (zoneCounts.get(zone) ?? 0) + row._count._all);
   }
   const ageZones = AGE_ZONE_ORDER.map((zone) => ({

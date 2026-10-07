@@ -1,4 +1,3 @@
-import { AgeZone } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   type AgeZoneCode,
@@ -18,29 +17,23 @@ export type AgeZoneBadge = {
   maxAgeExclusive: number | null;
 };
 
-const ZONE_TO_PRISMA: Record<AgeZoneCode, AgeZone> = {
-  KIDS: AgeZone.KIDS,
-  TEENS: AgeZone.TEENS,
-  MATURE_TEENS: AgeZone.MATURE_TEENS,
-  ADULT: AgeZone.ADULT,
-};
-
-export function ageZoneToPrisma(zone: AgeZoneCode | null): AgeZone | null {
-  if (!zone) return null;
-  return ZONE_TO_PRISMA[zone];
-}
-
-/** Prisma write payload when creating/updating a user with a known DOB. */
+/**
+ * Prisma write payload when creating or updating a user with a known DOB.
+ *
+ * The column is a plain string now, and AgeZoneCode is a string union, so there
+ * is no conversion left to do — the mapping that used to sit here existed only to
+ * translate into a Postgres enum that no longer exists. The band names are the
+ * API's, and a database enum would have needed a migration every time it gained
+ * one.
+ */
 export function ageZoneWriteData(
   dateOfBirth: Date | null | undefined,
-): { ageZone: AgeZone | null } {
-  return {
-    ageZone: ageZoneToPrisma(resolveAgeZoneFromDateOfBirth(dateOfBirth ?? null)),
-  };
+): { ageZone: AgeZoneCode | null } {
+  return { ageZone: resolveAgeZoneFromDateOfBirth(dateOfBirth ?? null) };
 }
 
 function toBadge(row: {
-  zone: AgeZone;
+  zone: string;
   label: string;
   iconBadgeKey: string;
   description: string | null;
@@ -63,8 +56,8 @@ function fallbackBadge(zone: AgeZoneCode): AgeZoneBadge {
     label: AGE_ZONE_LABELS[zone],
     iconBadgeKey: AGE_ZONE_ICON_BADGE_KEYS[zone],
     description: AGE_ZONE_DESCRIPTIONS[zone],
-    minAgeInclusive: zone === "KIDS" ? 0 : zone === "TEENS" ? 13 : zone === "MATURE_TEENS" ? 16 : 18,
-    maxAgeExclusive: zone === "KIDS" ? 13 : zone === "TEENS" ? 16 : zone === "MATURE_TEENS" ? 18 : null,
+    minAgeInclusive: zone === "KIDS" ? 0 : zone === "TEEN" ? 13 : zone === "MATURE_TEEN" ? 16 : 18,
+    maxAgeExclusive: zone === "KIDS" ? 13 : zone === "TEEN" ? 16 : zone === "MATURE_TEEN" ? 18 : null,
   };
 }
 
@@ -92,7 +85,7 @@ export async function getAgeZoneBadge(zone: AgeZoneCode | null | undefined): Pro
   try {
     if (typeof prisma.ageZoneDefinition?.findUnique === "function") {
       const row = await prisma.ageZoneDefinition.findUnique({
-        where: { zone: ZONE_TO_PRISMA[zone] },
+        where: { zone },
       });
       if (row) return toBadge(row);
     }
@@ -120,7 +113,7 @@ export async function getUserCurrentAgeZone(
   if (options?.syncCache !== false && current && user.ageZone !== current) {
     await prisma.user.update({
       where: { id: userId },
-      data: { ageZone: ageZoneToPrisma(current) },
+      data: { ageZone: current },
     });
   }
   return current;
