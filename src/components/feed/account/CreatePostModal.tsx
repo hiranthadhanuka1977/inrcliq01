@@ -18,6 +18,12 @@ export default function CreatePostModal({
 }) {
   const handleClose = useCallback(() => {
     if (document.querySelector(".image-editor")) return;
+    if (
+      document.querySelector("[data-video-uploading]") &&
+      !window.confirm("Upload in progress. Are you sure you want to leave?")
+    ) {
+      return;
+    }
     onClose();
   }, [onClose]);
 

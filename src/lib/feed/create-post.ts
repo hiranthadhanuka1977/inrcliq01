@@ -4,8 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { ensureCreatorUserForAuthUser } from "@/lib/feed/creator-user-bridge";
 import { formatContentModerationError } from "@/lib/moderation/evaluate-predictions";
 import { moderatePostText } from "@/lib/moderation/server-text-moderation";
+import { isStoredUploadUrl } from "@/lib/uploads/store-upload";
 import type { ImageModerationBlock } from "@/lib/moderation/image-moderation-types";
-import type { FeedMedia } from "@/types/feed/feed";
+import { normalizeMediaTrim } from "@/lib/feed/media-trim";
+import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
+import type { FeedMedia, FeedMediaItem } from "@/types/feed/feed";
 
 const MAX_TEXT_LENGTH = 2000;
 
@@ -76,22 +79,71 @@ function parseTagged(value: unknown): NonNullable<FeedMedia["tagged"]> {
     .slice(0, 8);
 }
 
+type ParsedItems = { ok: true; items: FeedMediaItem[] } | { ok: false; error: string };
+
+function parseMediaItems(value: unknown): ParsedItems {
+  if (!Array.isArray(value)) return { ok: true, items: [] };
+  const items: FeedMediaItem[] = [];
+  for (const raw of value.slice(0, MAX_POST_MEDIA_ITEMS)) {
+    if (!raw || typeof raw !== "object") continue;
+    const row = raw as Record<string, unknown>;
+    const url = asString(row.url);
+    if (!url) continue;
+    const caption = asString(row.caption).slice(0, MAX_MEDIA_CAPTION_LENGTH) || undefined;
+
+    if (row.type === "video") {
+      if (!isStoredUploadUrl(url)) {
+        return { ok: false, error: "That video upload is not valid. Upload it again." };
+      }
+      const poster = asString(row.poster);
+      const trim = normalizeMediaTrim(row.trim);
+      items.push({
+        type: "video",
+        url,
+        alt: asString(row.alt) || "Video",
+        poster: poster && isStoredUploadUrl(poster) ? poster : null,
+        caption,
+        ...(trim ? { trim } : {}),
+      });
+    } else {
+      items.push({ type: "image", url, alt: asString(row.alt) || "Post image", caption });
+    }
+  }
+  return { ok: true, items };
+}
+
+/** Legacy fields derived from ordered items, so readers that only know `images` / `video_url` keep working. */
+function legacyMediaFields(items: FeedMediaItem[]) {
+  const images = items.flatMap((item) => {
+    if (item.type === "image") return [{ url: item.url, alt: item.alt }];
+    return item.poster ? [{ url: item.poster, alt: item.alt }] : [];
+  });
+  if (items.length === 1 && items[0].type === "video") {
+    return { type: "video" as const, images, videoUrl: items[0].url };
+  }
+  return { type: items.length > 1 ? ("collage" as const) : ("image" as const), images, videoUrl: null };
+}
+
 function buildMediaJson(payload: {
+  type: FeedMedia["type"] | null;
   images: FeedMedia["images"];
   videoUrl: string | null;
+  items: FeedMediaItem[];
   feeling: FeedMedia["feeling"];
   location: FeedMedia["location"];
   tagged: NonNullable<FeedMedia["tagged"]>;
 }): FeedMedia | null {
-  const { images, videoUrl, feeling, location, tagged } = payload;
-  if (!images.length && !videoUrl && !feeling && !location && tagged.length === 0) {
+  const { images, videoUrl, items, feeling, location, tagged } = payload;
+  if (!images.length && !videoUrl && !items.length && !feeling && !location && tagged.length === 0) {
     return null;
   }
 
-  const type: FeedMedia["type"] = videoUrl ? "video" : images.length > 1 ? "collage" : "image";
+  const type: FeedMedia["type"] =
+    payload.type ?? (videoUrl ? "video" : images.length > 1 ? "collage" : "image");
   return {
     type,
     images,
+    items: items.length ? items : undefined,
     video_url: videoUrl,
     use_sample_video: false,
     feeling,
@@ -111,17 +163,42 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
     };
   }
 
-  const images = parseImages(payload.images);
-  const videoUrl = asString(payload.videoUrl) || asString(payload.video_url) || null;
-  const gifUrl = asString(payload.gifUrl);
-  if (gifUrl && !images.some((image) => image.url === gifUrl)) {
-    images.unshift({ url: gifUrl, alt: asString(payload.gifAlt) || "GIF" });
+  const parsedItems = parseMediaItems(payload.items);
+  if (!parsedItems.ok) {
+    return { ok: false as const, status: 400, error: parsedItems.error };
+  }
+  const items = parsedItems.items;
+
+  let videoUrl = asString(payload.videoUrl) || asString(payload.video_url) || null;
+  if (!items.length && videoUrl && !isStoredUploadUrl(videoUrl)) {
+    return { ok: false as const, status: 400, error: "That video upload is not valid. Upload it again." };
+  }
+
+  let images: FeedMedia["images"];
+  let mediaType: FeedMedia["type"] | null = null;
+  if (items.length) {
+    const legacy = legacyMediaFields(items);
+    images = legacy.images;
+    videoUrl = legacy.videoUrl;
+    mediaType = legacy.type;
+  } else if (videoUrl) {
+    // A video post carries only its poster frame; the feed card renders it before playback.
+    const posterUrl = asString(payload.videoPosterUrl);
+    images = posterUrl && isStoredUploadUrl(posterUrl)
+      ? [{ url: posterUrl, alt: asString(payload.videoAlt) || "Video thumbnail" }]
+      : [];
+  } else {
+    images = parseImages(payload.images);
+    const gifUrl = asString(payload.gifUrl);
+    if (gifUrl && !images.some((image) => image.url === gifUrl)) {
+      images.unshift({ url: gifUrl, alt: asString(payload.gifAlt) || "GIF" });
+    }
   }
 
   const feeling = parseFeeling(payload.feeling);
   const location = parseLocation(payload.location);
   const tagged = parseTagged(payload.tagged);
-  const media = buildMediaJson({ images, videoUrl, feeling, location, tagged });
+  const media = buildMediaJson({ type: mediaType, images, videoUrl, items, feeling, location, tagged });
   const wantsExclusive =
     payload.membersOnly === true ||
     payload.members_only === true ||
@@ -131,8 +208,9 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
     return { ok: false as const, status: 400, error: "Write an update or add something to your post." };
   }
 
-  if (text) {
-    const moderation = await moderatePostText(text);
+  const textToModerate = [text, ...items.map((item) => item.caption ?? "")].filter(Boolean).join("\n\n");
+  if (textToModerate) {
+    const moderation = await moderatePostText(textToModerate);
     if (!moderation.allowed) {
       return {
         ok: false as const,

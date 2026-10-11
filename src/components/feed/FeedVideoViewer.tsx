@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import ShareIcon from "@/components/feed/ShareIcon";
 import FeedReactionButton, { type FeedReactionId } from "@/components/feed/FeedReactionButton";
@@ -14,7 +14,8 @@ import {
   type CommentSortMode,
   type SampleComment,
 } from "@/lib/feed/sample-comments";
-import type { FeedImage, FeedItem } from "@/types/feed/feed";
+import { formatClock, trimmedVideoSrc } from "@/lib/feed/media-trim";
+import type { FeedImage, FeedItem, FeedMediaItem, FeedMediaTrim } from "@/types/feed/feed";
 
 type FeedVideoViewerProps = {
   item: FeedItem;
@@ -25,6 +26,8 @@ type FeedVideoViewerProps = {
   mode?: "media" | "comments";
   /** When set, the stage plays this clip; otherwise photos are shown. */
   videoSrc?: string | null;
+  /** Ordered photos and videos (composer posts). Takes precedence over `slides` / `videoSrc`. */
+  items?: FeedMediaItem[];
   onClose: () => void;
 };
 
@@ -72,6 +75,141 @@ const chevronRight = (
   </svg>
 );
 
+/** Native controls would show the whole file, so a trimmed video gets a control bar for just its range. */
+function TrimmedVideo({
+  trim,
+  src,
+  poster,
+  videoRef,
+  onPlay,
+}: {
+  trim: FeedMediaTrim;
+  src: string;
+  poster?: string;
+  videoRef: RefObject<HTMLVideoElement | null>;
+  onPlay: () => void;
+}) {
+  const [playing, setPlaying] = useState(false);
+  const [time, setTime] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [fileDuration, setFileDuration] = useState<number | null>(null);
+  // The server only knows the upload limit, not the file's real length.
+  const end = fileDuration ? Math.max(trim.start, Math.min(trim.end, fileDuration)) : trim.end;
+  const length = end - trim.start;
+
+  // timeupdate fires only a few times a second, so watch every frame to stop right at the trim end.
+  useEffect(() => {
+    if (!playing) return;
+    let frame = 0;
+    const tick = () => {
+      const video = videoRef.current;
+      if (video && video.currentTime >= end) {
+        video.pause();
+        video.currentTime = end;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [playing, end, videoRef]);
+
+  function keepInRange(video: HTMLVideoElement) {
+    if (video.currentTime < trim.start - 0.05) video.currentTime = trim.start;
+    else if (video.currentTime > end + 0.05) video.currentTime = end;
+  }
+
+  function onLoadedMetadata(video: HTMLVideoElement) {
+    if (Number.isFinite(video.duration) && video.duration > 0) setFileDuration(video.duration);
+    keepInRange(video);
+  }
+
+  function togglePlay() {
+    const video = videoRef.current;
+    if (!video) return;
+    if (!video.paused) {
+      video.pause();
+      return;
+    }
+    if (video.currentTime >= end - 0.05 || video.currentTime < trim.start) video.currentTime = trim.start;
+    void video.play().catch(() => undefined);
+  }
+
+  return (
+    <div className="feed-video-viewer__trimmed">
+      <video
+        ref={videoRef}
+        className="feed-video-viewer__video"
+        src={trimmedVideoSrc(src, trim)}
+        poster={poster}
+        playsInline
+        preload={poster ? "none" : "metadata"}
+        onClick={togglePlay}
+        onLoadedMetadata={(event) => onLoadedMetadata(event.currentTarget)}
+        onSeeking={(event) => keepInRange(event.currentTarget)}
+        onPlay={() => {
+          setPlaying(true);
+          onPlay();
+        }}
+        onPause={() => setPlaying(false)}
+        onTimeUpdate={(event) =>
+          setTime(Math.min(length, Math.max(0, event.currentTarget.currentTime - trim.start)))
+        }
+        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
+      />
+      <div className="feed-video-viewer__controls">
+        <button type="button" aria-label={playing ? "Pause" : "Play"} onClick={togglePlay}>
+          {playing ? (
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.5v13l10.5-6.5L8 5.5z" />
+            </svg>
+          )}
+        </button>
+        <span className="feed-video-viewer__time" aria-hidden="true">
+          {formatClock(time)} / {formatClock(length)}
+        </span>
+        <input
+          type="range"
+          className="feed-video-viewer__seek"
+          aria-label="Seek"
+          aria-valuetext={`${formatClock(time)} of ${formatClock(length)}`}
+          min={0}
+          max={length}
+          step={0.1}
+          value={time}
+          onChange={(event) => {
+            const video = videoRef.current;
+            const next = Number(event.target.value);
+            if (video) video.currentTime = trim.start + next;
+            setTime(next);
+          }}
+        />
+        <button
+          type="button"
+          aria-label={muted ? "Unmute" : "Mute"}
+          onClick={() => {
+            const video = videoRef.current;
+            if (video) video.muted = !video.muted;
+          }}
+        >
+          {muted ? (
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9H4zm12.6 3 2.7-2.7-1.1-1.1-2.7 2.7-2.7-2.7-1.1 1.1 2.7 2.7-2.7 2.7 1.1 1.1 2.7-2.7 2.7 2.7 1.1-1.1-2.7-2.7z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9H4zm11.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM13 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z" />
+            </svg>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function FeedVideoViewer({
   item,
   slides,
@@ -79,16 +217,20 @@ export default function FeedVideoViewer({
   open,
   mode = "media",
   videoSrc = null,
+  items,
   onClose,
 }: FeedVideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const lockedScrollYRef = useRef(0);
+  const navigatedRef = useRef(false);
   const [reaction, setReaction] = useState<FeedReactionId | null>(null);
   const [commentReactions, setCommentReactions] = useState<Record<string, FeedReactionId>>({});
   const [commentSort, setCommentSort] = useState<CommentSortMode>("relevant");
   const [draft, setDraft] = useState("");
   const [mounted, setMounted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  /** The slide whose video has started; any other video shows the big Play button. */
+  const [startedSlideKey, setStartedSlideKey] = useState<string | null>(null);
   const isCommentsMode = mode === "comments";
   const comments = useMemo(
     () => getSampleComments(item.id, Math.max(item.engagement.comments, 6)),
@@ -98,9 +240,21 @@ export default function FeedVideoViewer({
     () => sortSampleComments(comments, commentSort),
     [commentSort, comments],
   );
-  const slideCount = Math.max(slides.length, 1);
+  const stageItems = items?.length ? items : null;
+  const slideCount = Math.max(stageItems?.length ?? slides.length, 1);
   const safeIndex = ((activeIndex % slideCount) + slideCount) % slideCount;
-  const activeSlide = slides[safeIndex] ?? null;
+  const activeItem = stageItems?.[safeIndex] ?? null;
+  const activeSlide: FeedImage | null = stageItems
+    ? activeItem?.type === "image"
+      ? { url: activeItem.url, alt: activeItem.alt }
+      : null
+    : (slides[safeIndex] ?? null);
+  const activeVideoSrc = stageItems ? (activeItem?.type === "video" ? activeItem.url : null) : videoSrc;
+  const activePoster = stageItems ? (activeItem?.poster ?? undefined) : activeSlide?.url;
+  const activeTrim = activeItem?.type === "video" ? activeItem.trim : undefined;
+  const activeTrimStart = activeTrim?.start ?? 0;
+  const navNoun = stageItems ? "item" : videoSrc ? "video" : "photo";
+  const slideKey = `${item.id}-${safeIndex}-${mode}`;
   const hasCarousel = slideCount > 1;
   const canGoPrev = hasCarousel && safeIndex > 0;
   const canGoNext = hasCarousel && safeIndex < slideCount - 1;
@@ -119,6 +273,7 @@ export default function FeedVideoViewer({
 
   useEffect(() => {
     if (!open) return;
+    navigatedRef.current = false;
     setActiveIndex(Math.min(Math.max(initialIndex, 0), Math.max(slideCount - 1, 0)));
   }, [open, initialIndex, slideCount]);
 
@@ -168,22 +323,26 @@ export default function FeedVideoViewer({
     };
   }, [open]);
 
+  // Only the video the user tapped to open starts by itself; after stepping, videos wait for Play.
   useEffect(() => {
-    if (!open || isCommentsMode || !videoSrc) return;
+    if (!open || isCommentsMode || !activeVideoSrc || navigatedRef.current) return;
+    if (safeIndex !== Math.min(Math.max(initialIndex, 0), slideCount - 1)) return;
     const video = videoRef.current;
     if (!video) return;
     video.muted = false;
-    video.currentTime = 0;
+    video.currentTime = activeTrimStart;
     void video.play().catch(() => {
       /* autoplay may be blocked until user interacts */
     });
-  }, [open, safeIndex, isCommentsMode, videoSrc]);
+  }, [open, safeIndex, isCommentsMode, activeVideoSrc, activeTrimStart, initialIndex, slideCount]);
 
   const goPrev = useCallback(() => {
+    navigatedRef.current = true;
     setActiveIndex((current) => Math.max(current - 1, 0));
   }, []);
 
   const goNext = useCallback(() => {
+    navigatedRef.current = true;
     setActiveIndex((current) => Math.min(current + 1, slideCount - 1));
   }, [slideCount]);
 
@@ -236,6 +395,7 @@ export default function FeedVideoViewer({
 
   const handleClose = useCallback(() => {
     videoRef.current?.pause();
+    setStartedSlideKey(null);
     releaseFocusWithoutScroll();
     onClose();
 
@@ -259,7 +419,7 @@ export default function FeedVideoViewer({
       className={`feed-video-viewer${isCommentsMode ? " feed-video-viewer--comments" : ""}`}
       role="dialog"
       aria-modal="true"
-      aria-label={isCommentsMode ? "Comments" : videoSrc ? "Video viewer" : "Photo viewer"}
+      aria-label={isCommentsMode ? "Comments" : stageItems ? "Media viewer" : videoSrc ? "Video viewer" : "Photo viewer"}
       tabIndex={-1}
     >
       {isCommentsMode ? (
@@ -296,7 +456,7 @@ export default function FeedVideoViewer({
               <button
                 type="button"
                 className="feed-video-viewer__nav feed-video-viewer__nav--prev"
-                aria-label={videoSrc ? "Previous video" : "Previous photo"}
+                aria-label={`Previous ${navNoun}`}
                 onClick={goPrev}
               >
                 {chevronLeft}
@@ -307,24 +467,50 @@ export default function FeedVideoViewer({
               <button
                 type="button"
                 className="feed-video-viewer__nav feed-video-viewer__nav--next"
-                aria-label={videoSrc ? "Next video" : "Next photo"}
+                aria-label={`Next ${navNoun}`}
                 onClick={goNext}
               >
                 {chevronRight}
               </button>
             ) : null}
 
-            {videoSrc ? (
-              <video
-                key={`${item.id}-${safeIndex}-${mode}`}
-                ref={videoRef}
-                className="feed-video-viewer__video"
-                src={videoSrc}
-                poster={activeSlide?.url}
-                controls
-                playsInline
-                autoPlay
-              />
+            {activeVideoSrc ? (
+              <>
+                {activeTrim ? (
+                  <TrimmedVideo
+                    key={slideKey}
+                    trim={activeTrim}
+                    src={activeVideoSrc}
+                    poster={activePoster}
+                    videoRef={videoRef}
+                    onPlay={() => setStartedSlideKey(slideKey)}
+                  />
+                ) : (
+                  <video
+                    key={slideKey}
+                    ref={videoRef}
+                    className="feed-video-viewer__video"
+                    src={activeVideoSrc}
+                    poster={activePoster}
+                    controls
+                    playsInline
+                    preload={activePoster ? "none" : "metadata"}
+                    onPlay={() => setStartedSlideKey(slideKey)}
+                  />
+                )}
+                {startedSlideKey !== slideKey ? (
+                  <button
+                    type="button"
+                    className="feed-video-viewer__play"
+                    aria-label="Play video"
+                    onClick={() => void videoRef.current?.play()}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M8 5.5v13l10.5-6.5L8 5.5z" />
+                    </svg>
+                  </button>
+                ) : null}
+              </>
             ) : activeSlide ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -338,6 +524,16 @@ export default function FeedVideoViewer({
                 <p>{item.text || "Post"}</p>
               </div>
             )}
+
+            {activeItem?.caption ? (
+              <p
+                className={`feed-video-viewer__caption${
+                  activeVideoSrc ? " feed-video-viewer__caption--above-controls" : ""
+                }`}
+              >
+                {activeItem.caption}
+              </p>
+            ) : null}
           </div>
         ) : null}
 

@@ -28,6 +28,7 @@ function postMediaUrls(mediaJson: unknown, audioJson: unknown): string[] {
   const audio = audioJson as Partial<FeedAudio> | null;
   return [
     ...(Array.isArray(media?.images) ? media.images.map((image) => image?.url) : []),
+    ...(Array.isArray(media?.items) ? media.items.flatMap((item) => [item?.url, item?.poster]) : []),
     media?.video_url,
     audio?.audio_url,
     audio?.thumbnail?.url,

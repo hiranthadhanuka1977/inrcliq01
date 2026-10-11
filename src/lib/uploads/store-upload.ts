@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { put } from "@vercel/blob";
 
-function usesBlobStorage() {
+export function usesBlobStorage() {
   // Explicit token works anywhere (including local Blob testing).
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     return true;

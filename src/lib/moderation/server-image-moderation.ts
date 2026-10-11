@@ -37,13 +37,53 @@ function misconfiguredResult(): ImageModerationResult {
   };
 }
 
+function readWebpDimensions(bytes: Buffer): { width: number; height: number } | null {
+  if (bytes.length < 30) return null;
+  if (bytes.toString("ascii", 0, 4) !== "RIFF" || bytes.toString("ascii", 8, 12) !== "WEBP") return null;
+
+  const chunk = bytes.toString("ascii", 12, 16);
+  if (chunk === "VP8 ") {
+    return { width: bytes.readUInt16LE(26) & 0x3fff, height: bytes.readUInt16LE(28) & 0x3fff };
+  }
+  if (chunk === "VP8L") {
+    const bits = bytes.readUInt32LE(21);
+    return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
+  }
+  if (chunk === "VP8X") {
+    return { width: bytes.readUIntLE(24, 3) + 1, height: bytes.readUIntLE(27, 3) + 1 };
+  }
+  return null;
+}
+
+/** Jimp cannot decode WebP, but Azure accepts it as-is when within its limits. */
+function webpPassthroughBase64(bytes: Buffer): string | null {
+  const size = readWebpDimensions(bytes);
+  if (!size) return null;
+  const { width, height } = size;
+  if (
+    bytes.length > AZURE_IMAGE_MAX_BYTES ||
+    Math.min(width, height) < AZURE_MIN_EDGE ||
+    Math.max(width, height) > AZURE_MAX_EDGE
+  ) {
+    return null;
+  }
+  return bytes.toString("base64");
+}
+
 /**
  * Ensure the image meets Azure Content Safety constraints (size, dimensions)
  * by optionally resizing/re-encoding with Jimp.
  */
 async function prepareImageBase64(bytes: Buffer): Promise<string> {
   const { Jimp } = await import("jimp");
-  const image = await Jimp.read(bytes);
+  let image: Awaited<ReturnType<typeof Jimp.read>>;
+  try {
+    image = await Jimp.read(bytes);
+  } catch (error) {
+    const passthrough = webpPassthroughBase64(bytes);
+    if (passthrough) return passthrough;
+    throw error;
+  }
   let { width, height } = image;
 
   if (width < AZURE_MIN_EDGE || height < AZURE_MIN_EDGE) {

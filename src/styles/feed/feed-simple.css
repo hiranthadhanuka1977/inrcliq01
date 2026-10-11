@@ -572,6 +572,13 @@
   display: none;
 }
 
+/* Feed videos never autoplay, so the play button stays visible as the only cue that a tile is a video. */
+:is(.page-home, .page-profile) .feed-surface--simple .post-media--video .post-media__play,
+:is(.page-home, .page-profile) .feed-surface--simple .post-media--collage-video .post-media__play,
+:is(.page-home, .page-profile) .feed-surface--simple .post-media--mosaic .post-media__cell--video .post-media__play {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :is(.page-home, .page-profile) .feed-surface--simple .post-media__play,
   :is(.page-home, .page-profile) .feed-surface--simple .post-media__play span {

@@ -959,3 +959,13 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .composer-previews__item,
 html[data-feed-theme="light"]:has(.feed-path-shell) .composer-gifs__item {
   background: var(--color-bg-muted);
 }
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-media-card {
+  background: var(--feed-card-bg);
+  border-color: var(--feed-card-border);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-collage,
+html[data-feed-theme="light"]:has(.feed-path-shell) .composer-media-editor__body {
+  background: var(--color-bg-muted);
+}

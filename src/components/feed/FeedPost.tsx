@@ -8,20 +8,16 @@ import FollowButton from "@/components/feed/FollowButton";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
 import FeedReactionButton, { type FeedReactionId } from "@/components/feed/FeedReactionButton";
 import ShareIcon from "@/components/feed/ShareIcon";
-import type { FeedItem } from "@/types/feed/feed";
+import type { FeedItem, FeedMediaItem } from "@/types/feed/feed";
 import { formatCount } from "@/lib/feed/format";
+import { mosaicLayout } from "@/lib/feed/media-mosaic";
+import { trimmedVideoSrc } from "@/lib/feed/media-trim";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { isPlayableVideoMedia, SAMPLE_FEED_VIDEO_URL } from "@/lib/feed/sample-video";
 
-const muteSvg = (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M16.5 12a4.5 4.5 0 0 0-2.25-3.9v2.18l2.2 2.2c.03-.16.05-.32.05-.48Zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A7.96 7.96 0 0 0 21 12c0-3.63-2.4-6.7-5.7-7.66v2.1A5.99 5.99 0 0 1 19 12ZM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3ZM12 4 9.91 6.09 12 8.18V4Z" />
-  </svg>
-);
-
 function canOpenMediaViewer(media: NonNullable<FeedItem["media"]>, membersOnly?: boolean): boolean {
   if (membersOnly) return false;
-  return media.images.length > 0 || Boolean(media.video_url);
+  return media.images.length > 0 || Boolean(media.video_url) || Boolean(media.items?.length);
 }
 
 const globeSvg = (
@@ -83,37 +79,93 @@ function SubscriberMediaLock() {
   );
 }
 
+function MediaMosaic({
+  items,
+  membersOnly,
+  onOpenMedia,
+}: {
+  items: FeedMediaItem[];
+  membersOnly?: boolean;
+  onOpenMedia?: (index?: number) => void;
+}) {
+  const layout = mosaicLayout(items.length);
+  const interactive = !membersOnly && Boolean(onOpenMedia);
+
+  return (
+    <div
+      className={`post-media post-media--collage post-media--mosaic ${layout.className}${
+        membersOnly ? " post-media--subscriber-locked" : ""
+      }`}
+    >
+      {items.slice(0, layout.visible).map((item, index) => {
+        const isVideo = item.type === "video";
+        const thumbnail = isVideo ? item.poster : item.url;
+        const moreCount = index === layout.visible - 1 ? layout.hidden : 0;
+        const label = `${isVideo ? "Play video" : "View photo"} ${index + 1} of ${items.length}`;
+        return (
+          <div
+            key={`${item.url}-${index}`}
+            className={`post-media__cell${isVideo ? " post-media__cell--video" : ""}`}
+            role={interactive ? "button" : undefined}
+            tabIndex={interactive ? 0 : undefined}
+            aria-label={interactive ? (moreCount ? `${label}, plus ${moreCount} more` : label) : undefined}
+            onClick={interactive ? () => onOpenMedia?.(index) : undefined}
+            onKeyDown={
+              interactive
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onOpenMedia?.(index);
+                    }
+                  }
+                : undefined
+            }
+          >
+            {thumbnail ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={thumbnail} alt={item.alt} />
+            ) : isVideo && !membersOnly ? (
+              <video
+                src={`${item.url}#t=${item.trim ? item.trim.start : 0.1}`}
+                muted
+                playsInline
+                preload="metadata"
+                aria-hidden="true"
+              />
+            ) : null}
+            {isVideo && !membersOnly ? <MediaPlayOverlay /> : null}
+            {moreCount ? (
+              <span className="media-mosaic__more" aria-hidden="true">
+                +{moreCount}
+              </span>
+            ) : null}
+          </div>
+        );
+      })}
+      {membersOnly ? <SubscriberMediaLock /> : null}
+    </div>
+  );
+}
+
 function PostMedia({
   media,
   membersOnly,
   onOpenMedia,
-  previewPaused = false,
 }: {
   media: NonNullable<FeedItem["media"]>;
   membersOnly?: boolean;
   onOpenMedia?: (index?: number) => void;
-  previewPaused?: boolean;
 }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [previewing, setPreviewing] = useState(false);
   const showVideo = isPlayableVideoMedia(media, membersOnly);
   const canOpen = Boolean(onOpenMedia);
   const poster = media.images[0] ?? null;
+  const singleTrim = media.items?.length === 1 ? media.items[0].trim : undefined;
   const videoSrc = media.video_url || SAMPLE_FEED_VIDEO_URL;
   const hasVisual = media.images.length > 0 || Boolean(media.video_url);
 
-  useEffect(() => {
-    if (!showVideo || media.type === "collage") return;
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (previewPaused) {
-      video.pause();
-      return;
-    }
-
-    void video.play().then(() => setPreviewing(true)).catch(() => setPreviewing(false));
-  }, [showVideo, videoSrc, previewPaused, media.type]);
+  if (media.items && media.items.length > 1) {
+    return <MediaMosaic items={media.items} membersOnly={membersOnly} onOpenMedia={onOpenMedia} />;
+  }
 
   if (!hasVisual) return null;
 
@@ -170,42 +222,54 @@ function PostMedia({
     );
   }
 
-  if (!poster) return null;
+  if (!poster && !media.video_url) return null;
+
+  // Without a poster, a #t fragment makes the browser paint an early frame instead of a blank box.
+  const previewSrc = singleTrim
+    ? trimmedVideoSrc(videoSrc, singleTrim)
+    : poster
+      ? videoSrc
+      : `${videoSrc}#t=0.1`;
 
   if (showVideo && onOpenMedia) {
     return (
       <div
-        className={`post-media post-media--video${previewing ? " is-previewing" : ""}`}
+        className="post-media post-media--video"
         role="button"
         tabIndex={0}
         aria-label="Play video"
-        onClick={() => {
-          videoRef.current?.pause();
-          onOpenMedia(0);
-        }}
+        onClick={() => onOpenMedia(0)}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            videoRef.current?.pause();
             onOpenMedia(0);
           }
         }}
       >
         <video
-          ref={videoRef}
           className="post-media__video"
-          src={videoSrc}
-          poster={poster.url}
-          muted
-          loop
+          src={previewSrc}
+          poster={poster?.url}
           playsInline
-          preload="metadata"
+          preload={poster ? "none" : "metadata"}
           aria-hidden="true"
         />
         <MediaPlayOverlay />
-        <span className="post-media__mute-badge" aria-hidden="true">
-          {muteSvg}
-        </span>
+      </div>
+    );
+  }
+
+  if (!poster) {
+    return (
+      <div className={`post-media post-media--video${membersOnly ? " post-media--subscriber-locked" : ""}`}>
+        {membersOnly ? (
+          <>
+            <div className="post-media__inner" />
+            <SubscriberMediaLock />
+          </>
+        ) : (
+          <video className="post-media__video" src={previewSrc} controls playsInline preload="metadata" />
+        )}
       </div>
     );
   }
@@ -557,7 +621,6 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             media={item.media}
             membersOnly={item.members_only}
             onOpenMedia={canOpenMedia ? openMedia : undefined}
-            previewPaused={viewerOpen}
           />
         ) : null}
       </div>
@@ -609,6 +672,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
         <FeedVideoViewer
           item={item}
           slides={item.media?.images ?? []}
+          items={item.media?.items}
           initialIndex={videoIndex}
           open={viewerOpen}
           mode={viewerMode}

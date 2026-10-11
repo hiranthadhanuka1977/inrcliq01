@@ -12,7 +12,15 @@ import {
 } from "react";
 import { COMPOSER_ACTIVITIES, COMPOSER_FEELINGS } from "@/data/feed/composer-feelings";
 import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
+import ComposerVideoEditor, {
+  type VideoEditResult,
+  type VideoEditState,
+} from "@/components/feed/account/ComposerVideoEditor";
 import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
+import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
+import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
+import { mosaicLayout } from "@/lib/feed/media-mosaic";
+import { formatClock } from "@/lib/feed/media-trim";
 import {
   formatImageModerationError,
   moderateImageFile,
@@ -20,6 +28,14 @@ import {
   shouldModerateUploadFile,
   type ImageModerationBlock,
 } from "@/lib/moderation/nsfw-image-moderation";
+import { formatByteLimit, looksLikeVideoFile, VIDEO_MAX_BYTES } from "@/lib/uploads/video-limits";
+import {
+  inspectVideo,
+  uploadVideoFile,
+  validateVideoDuration,
+  validateVideoFile,
+  type VideoValidationError,
+} from "@/lib/uploads/video-upload-client";
 
 type UploadModerationPayload = {
   title: string;
@@ -111,12 +127,131 @@ type FeelingPick = {
   label: string;
 };
 
-type MediaItem = {
-  url: string;
-  alt: string;
-  kind: "image" | "video";
-  moderationPassed: boolean;
+type ComposerItemStatus = "checking" | "uploading" | "preparing" | "retrying" | "processing" | "ready";
+
+/** A photo, video, or GIF in the post, kept in the order it will appear in the feed. */
+type ComposerItem = {
+  id: string;
+  kind: "image" | "video" | "gif";
+  name: string;
+  caption: string;
+  /** Stored upload URL once the upload finishes. */
+  url: string | null;
+  /** What the composer shows: a local blob URL until the upload finishes. */
+  previewUrl: string;
+  /** Only a video's poster frame goes through image moderation; the video itself is not checked. */
+  posterUrl: string | null;
+  status: ComposerItemStatus;
+  progress: number;
+  /** Last video edit (trim and thumbnail), so reopening the editor starts where the user left off. */
+  videoEdit: VideoEditState | null;
+  /** Local preview of a thumbnail picked in the video editor. */
+  posterPreviewUrl: string | null;
+  posterUploading: boolean;
 };
+
+const LEAVE_DURING_UPLOAD_MESSAGE = "Upload in progress. Are you sure you want to leave?";
+
+function itemStatusLabel(item: ComposerItem) {
+  switch (item.status) {
+    case "checking":
+      return "Checking photo…";
+    case "preparing":
+      return "Preparing video…";
+    case "retrying":
+      return "Paused — Retrying…";
+    case "processing":
+      return "Processing video…";
+    default:
+      return item.kind === "video" ? `Uploading ${item.progress}%…` : "Uploading photo…";
+  }
+}
+
+function itemLabel(item: ComposerItem, index: number) {
+  const noun = item.kind === "video" ? "video" : item.kind === "gif" ? "GIF" : "photo";
+  return `${noun} ${index + 1}`;
+}
+
+function ComposerItemProgress({ item }: { item: ComposerItem }) {
+  if (item.status === "ready" && !item.posterUploading) return null;
+  const savingThumbnail = item.status === "ready";
+  const indeterminate =
+    savingThumbnail || item.kind !== "video" || item.status === "preparing" || item.status === "processing";
+  return (
+    <div
+      className={`composer-video__status${item.status === "retrying" ? " is-paused" : ""}`}
+      role="status"
+      aria-live="polite"
+    >
+      <span className="composer-video__label">{savingThumbnail ? "Saving thumbnail…" : itemStatusLabel(item)}</span>
+      <span className="composer-video__track" aria-hidden="true">
+        <span
+          className={`composer-video__fill${indeterminate ? " is-indeterminate" : ""}`}
+          style={{ width: `${item.progress}%` }}
+        />
+      </span>
+    </div>
+  );
+}
+
+function ScissorsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12" />
+    </svg>
+  );
+}
+
+function ComposerItemThumb({ item }: { item: ComposerItem }) {
+  if (item.kind === "video") {
+    const trim = item.videoEdit?.trim;
+    return (
+      <>
+        {item.posterPreviewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.posterPreviewUrl} alt={item.name} />
+        ) : (
+          <video
+            src={`${item.previewUrl}#t=${trim ? trim.start : 0.1}`}
+            muted
+            playsInline
+            preload="metadata"
+            aria-label={item.name}
+          />
+        )}
+        <MediaPlayOverlay className="composer-media-play" />
+        {trim && item.status === "ready" && !item.posterUploading ? (
+          <span className="composer-trim-badge">
+            <ScissorsIcon />
+            <span className="sr-only">Trimmed to </span>
+            {formatClock(trim.end - trim.start)}
+          </span>
+        ) : null}
+      </>
+    );
+  }
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={item.previewUrl} alt={item.name} />;
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+    </svg>
+  );
+}
 
 type GifItem = {
   id: string;
@@ -259,17 +394,33 @@ export default function FirstPostPrompt({
   const [imageWarning, setImageWarning] = useState<ImageModerationBlock | null>(null);
   const [textWarning, setTextWarning] = useState<ImageModerationBlock | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [moderating, setModerating] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [publishedHref, setPublishedHref] = useState<string | null>(null);
   const [panel, setPanel] = useState<ComposerPanel>(null);
 
-  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [items, setItems] = useState<ComposerItem[]>([]);
+  const [videoWarning, setVideoWarning] = useState<VideoValidationError | null>(null);
+  const [dropActive, setDropActive] = useState(false);
+  const [mediaEditorOpen, setMediaEditorOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [videoEditingId, setVideoEditingId] = useState<string | null>(null);
+  const itemControllersRef = useRef(new Map<string, AbortController>());
+  const itemBlobUrlsRef = useRef(new Map<string, string>());
+  const posterControllersRef = useRef(new Map<string, AbortController>());
+  const posterBlobUrlsRef = useRef(new Map<string, string>());
+  /** Poster made automatically during upload, kept as the fallback if a picked thumbnail fails to save. */
+  const autoPosterUrlsRef = useRef(new Map<string, string | null>());
+  /** Videos whose thumbnail was picked in the editor; the automatic poster must not replace it. */
+  const customPosterIdsRef = useRef(new Set<string>());
+  const videoEditorOpenerRef = useRef<HTMLElement | null>(null);
+  const nextItemIdRef = useRef(0);
+  const mediaEditorTitleId = useId();
+  const mediaEditorBackRef = useRef<HTMLButtonElement>(null);
+  const collageEditRef = useRef<HTMLButtonElement>(null);
+  const mediaEditorWasOpenRef = useRef(false);
   const [tagged, setTagged] = useState<TaggedPerson[]>([]);
   const [feeling, setFeeling] = useState<FeelingPick | null>(null);
   const [location, setLocation] = useState<Checkin | null>(null);
-  const [gif, setGif] = useState<GifItem | null>(null);
-  const [editingUrl, setEditingUrl] = useState<string | null>(null);
 
   const [peopleQuery, setPeopleQuery] = useState("");
   const [people, setPeople] = useState<TaggedPerson[]>([]);
@@ -290,8 +441,14 @@ export default function FirstPostPrompt({
     linkedin: false,
   });
 
-  const hasAttachment = media.length > 0 || Boolean(gif) || Boolean(feeling) || Boolean(location) || tagged.length > 0;
-  const canPost = Boolean(text.trim() || media.length || gif);
+  const hasAttachment = Boolean(feeling) || Boolean(location) || tagged.length > 0;
+  const mediaBusy = items.some((item) => item.status !== "ready" || item.posterUploading);
+  const canPost = Boolean(text.trim() || items.length);
+  const gifItem = items.find((item) => item.kind === "gif") ?? null;
+  const editingItem = editingId ? (items.find((item) => item.id === editingId) ?? null) : null;
+  const videoEditingItem = videoEditingId
+    ? (items.find((item) => item.id === videoEditingId && item.kind === "video") ?? null)
+    : null;
 
   const storageKey = dismissKey
     ? `${STORAGE_KEY}:${dismissKey}`
@@ -323,6 +480,69 @@ export default function FirstPostPrompt({
     if (!textWarning) return;
     textWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [textWarning]);
+
+  useEffect(() => {
+    if (!videoWarning) return;
+    imageWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [videoWarning]);
+
+  useEffect(() => {
+    const controllers = itemControllersRef.current;
+    const blobUrls = itemBlobUrlsRef.current;
+    const posterControllers = posterControllersRef.current;
+    const posterBlobUrls = posterBlobUrlsRef.current;
+    return () => {
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+      blobUrls.forEach((url) => URL.revokeObjectURL(url));
+      blobUrls.clear();
+      posterControllers.forEach((controller) => controller.abort());
+      posterControllers.clear();
+      posterBlobUrls.forEach((url) => URL.revokeObjectURL(url));
+      posterBlobUrls.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoEditingId) return;
+    const opener = videoEditorOpenerRef.current;
+    videoEditorOpenerRef.current = null;
+    if (opener?.isConnected) opener.focus();
+  }, [videoEditingId]);
+
+  useEffect(() => {
+    if (!mediaBusy) return;
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = LEAVE_DURING_UPLOAD_MESSAGE;
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [mediaBusy]);
+
+  useEffect(() => {
+    if (!mediaEditorOpen) return;
+    mediaEditorBackRef.current?.focus();
+    // Capture phase on window runs before the dialog's document-level Escape handler.
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape" || document.querySelector(".image-editor")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setMediaEditorOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [mediaEditorOpen]);
+
+  useEffect(() => {
+    if (mediaEditorOpen) {
+      mediaEditorWasOpenRef.current = true;
+      return;
+    }
+    if (!mediaEditorWasOpenRef.current) return;
+    mediaEditorWasOpenRef.current = false;
+    collageEditRef.current?.focus();
+  }, [mediaEditorOpen]);
 
   useEffect(() => {
     if (!panel) return;
@@ -414,9 +634,12 @@ export default function FirstPostPrompt({
 
   function dismiss(persist: boolean) {
     if (isModal) {
+      // CreatePostModal asks before closing mid-upload.
       onClose?.();
       return;
     }
+    if (mediaBusy && !window.confirm(LEAVE_DURING_UPLOAD_MESSAGE)) return;
+    clearMedia();
     setVisible(false);
     if (!persist) return;
     try {
@@ -430,96 +653,313 @@ export default function FirstPostPrompt({
     setPanel((current) => (current === next ? null : next));
   }
 
-  async function handleFiles(fileList: FileList | null) {
-    if (!fileList?.length) return;
+  function createItemId() {
+    nextItemIdRef.current += 1;
+    return `media-${nextItemIdRef.current}`;
+  }
 
-    const files = Array.from(fileList).slice(0, 6);
-    setError("");
-    setImageWarning(null);
-    setPanel("photo");
-    setModerating(true);
+  function updateItem(id: string, patch: Partial<ComposerItem>) {
+    setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  }
 
-    let blocked: ImageModerationBlock | null = null;
-    const passTokens = new Map<File, string>();
+  function revokeItemBlob(id: string) {
+    const blobUrl = itemBlobUrlsRef.current.get(id);
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+    itemBlobUrlsRef.current.delete(id);
+  }
+
+  function releasePoster(id: string) {
+    posterControllersRef.current.get(id)?.abort();
+    posterControllersRef.current.delete(id);
+    const posterBlob = posterBlobUrlsRef.current.get(id);
+    if (posterBlob) URL.revokeObjectURL(posterBlob);
+    posterBlobUrlsRef.current.delete(id);
+    autoPosterUrlsRef.current.delete(id);
+    customPosterIdsRef.current.delete(id);
+  }
+
+  /** Stops the item's upload and frees its preview. Uploaded files are left for the orphan sweep. */
+  function releaseItem(id: string) {
+    itemControllersRef.current.get(id)?.abort();
+    itemControllersRef.current.delete(id);
+    revokeItemBlob(id);
+    releasePoster(id);
+  }
+
+  function removeItem(id: string) {
+    releaseItem(id);
+    setItems((current) => current.filter((item) => item.id !== id));
+    setEditingId((current) => (current === id ? null : current));
+    setVideoEditingId((current) => (current === id ? null : current));
+  }
+
+  function clearMedia() {
+    for (const id of Array.from(itemControllersRef.current.keys())) releaseItem(id);
+    for (const id of Array.from(itemBlobUrlsRef.current.keys())) revokeItemBlob(id);
+    for (const id of Array.from(posterControllersRef.current.keys())) releasePoster(id);
+    for (const id of Array.from(posterBlobUrlsRef.current.keys())) releasePoster(id);
+    autoPosterUrlsRef.current.clear();
+    customPosterIdsRef.current.clear();
+    setItems([]);
+    setEditingId(null);
+    setVideoEditingId(null);
+    setMediaEditorOpen(false);
+  }
+
+  function isItemAlive(id: string, controller: AbortController) {
+    return itemControllersRef.current.get(id) === controller && !controller.signal.aborted;
+  }
+
+  /** The upload has finished, so the stored URL replaces the local preview. */
+  function finishItemUpload(id: string, patch: Partial<ComposerItem> & { url: string }) {
+    itemControllersRef.current.delete(id);
+    const keepsBlobPreview = patch.previewUrl === undefined;
+    if (!keepsBlobPreview) revokeItemBlob(id);
+    updateItem(id, { ...patch, status: "ready" });
+  }
+
+  /** Uploads the poster frame through the photo path, so it gets the same safety check as photos. */
+  async function uploadVideoPoster(poster: Blob, videoName: string, signal: AbortSignal) {
+    const body = new FormData();
+    const baseName = videoName.replace(/\.[^.]+$/, "") || "video";
+    body.append("file", new File([poster], `${baseName}-poster.jpg`, { type: "image/jpeg" }));
     try {
-      for (const file of files) {
-        if (!shouldModerateUploadFile(file)) continue;
-        const { result, passToken } = await moderateImageFile(file);
-        if (!result.allowed) {
-          blocked = result;
-          break;
-        }
-        if (passToken) passTokens.set(file, passToken);
+      const response = await fetch("/api/feed/uploads", { method: "POST", body, signal });
+      const data = (await response.json().catch(() => ({}))) as {
+        url?: string;
+        moderation?: UploadModerationPayload;
+      };
+      if (response.status === 422 && data.moderation) {
+        // When the check itself is unavailable, post without a poster instead of blocking the video.
+        if (data.moderation.verificationFailed) return { url: null, block: null };
+        return { url: null, block: uploadModerationToBlock(data.moderation) };
       }
-    } finally {
-      setModerating(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-
-    if (blocked) {
-      setImageWarning(blocked);
-      return;
-    }
-
-    setUploading(true);
-    try {
-      for (const file of files) {
-        const body = new FormData();
-        body.append("file", file);
-        const passToken = passTokens.get(file);
-        if (passToken) body.append("moderationPassToken", passToken);
-        const response = await fetch("/api/feed/uploads", { method: "POST", body });
-        const data = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          url?: string;
-          kind?: "image" | "video";
-          moderation?: UploadModerationPayload;
-        };
-        if (response.status === 422 && data.moderation) {
-          setImageWarning(uploadModerationToBlock(data.moderation));
-          break;
-        }
-        if (!response.ok || !data.url) {
-          setError(data.error ?? "Unable to upload that file.");
-          break;
-        }
-        const uploadedUrl = data.url;
-        const uploadedKind: MediaItem["kind"] = data.kind === "video" ? "video" : "image";
-        setMedia((current): MediaItem[] => {
-          if (uploadedKind === "video") {
-            const videoItem: MediaItem = {
-              url: uploadedUrl,
-              alt: file.name,
-              kind: "video",
-              moderationPassed: true,
-            };
-            return [videoItem];
-          }
-          const withoutVideo = current.filter((item) => item.kind !== "video");
-          const imageItem: MediaItem = {
-            url: uploadedUrl,
-            alt: file.name,
-            kind: "image",
-            moderationPassed: true,
-          };
-          return [...withoutVideo, imageItem].slice(0, 6);
-        });
-        if (data.kind === "video") break;
-      }
-    } finally {
-      setUploading(false);
+      return { url: response.ok && data.url ? data.url : null, block: null };
+    } catch {
+      return { url: null, block: null };
     }
   }
 
+  async function uploadVideoItem(id: string, file: File, previewUrl: string, controller: AbortController) {
+    const isCurrent = () => isItemAlive(id, controller);
+    const update = (patch: Partial<ComposerItem>) => {
+      if (isCurrent()) updateItem(id, patch);
+    };
+    const fail = (warning: VideoValidationError) => {
+      if (itemControllersRef.current.get(id) !== controller) return;
+      removeItem(id);
+      setVideoWarning(warning);
+    };
+
+    try {
+      const details = await inspectVideo(previewUrl);
+      if (!isCurrent()) return;
+      const tooLong = validateVideoDuration(details.duration);
+      if (tooLong) {
+        fail(tooLong);
+        return;
+      }
+
+      update({ status: "uploading" });
+      const posterUpload = details.poster
+        ? uploadVideoPoster(details.poster, file.name, controller.signal)
+        : Promise.resolve({ url: null, block: null });
+      void posterUpload.then(({ block }) => {
+        if (block && !customPosterIdsRef.current.has(id)) {
+          fail({
+            title: block.title,
+            message: `${block.message} The video's thumbnail was flagged, so the video was not added to your post.`,
+          });
+        }
+      });
+
+      const url = await uploadVideoFile(file, {
+        signal: controller.signal,
+        onProgress: ({ loaded, total, retrying }) =>
+          update({
+            status: retrying ? "retrying" : "uploading",
+            progress: total > 0 ? Math.min(100, Math.floor((loaded / total) * 100)) : 0,
+          }),
+      });
+      update({ status: "processing", progress: 100 });
+
+      const poster = await posterUpload;
+      if (!isCurrent()) return;
+      const customPoster = customPosterIdsRef.current.has(id);
+      if (poster.block && !customPoster) return;
+      autoPosterUrlsRef.current.set(id, poster.url);
+      finishItemUpload(id, customPoster ? { url } : { url, posterUrl: poster.url });
+    } catch (cause) {
+      if (!isCurrent()) return;
+      fail({
+        title: "Upload failed",
+        message: cause instanceof Error ? cause.message : "Unable to upload that video.",
+      });
+    }
+  }
+
+  /** Photos run one at a time: safety check, then upload. A blocked photo is dropped; the rest continue. */
+  async function uploadPhotoItems(entries: { id: string; file: File; controller: AbortController }[]) {
+    for (const { id, file, controller } of entries) {
+      if (!isItemAlive(id, controller)) continue;
+      let passToken: string | undefined;
+      if (shouldModerateUploadFile(file)) {
+        const moderation = await moderateImageFile(file);
+        if (!isItemAlive(id, controller)) continue;
+        if (!moderation.result.allowed) {
+          removeItem(id);
+          setImageWarning(moderation.result);
+          continue;
+        }
+        passToken = moderation.passToken ?? undefined;
+      }
+
+      updateItem(id, { status: "uploading" });
+      const body = new FormData();
+      body.append("file", file);
+      if (passToken) body.append("moderationPassToken", passToken);
+      try {
+        const response = await fetch("/api/feed/uploads", { method: "POST", body, signal: controller.signal });
+        const data = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          url?: string;
+          moderation?: UploadModerationPayload;
+        };
+        if (!isItemAlive(id, controller)) continue;
+        if (response.status === 422 && data.moderation) {
+          removeItem(id);
+          setImageWarning(uploadModerationToBlock(data.moderation));
+          continue;
+        }
+        if (!response.ok || !data.url) {
+          removeItem(id);
+          setError(data.error ?? "Unable to upload that file.");
+          continue;
+        }
+        finishItemUpload(id, { url: data.url, previewUrl: data.url });
+      } catch {
+        if (!isItemAlive(id, controller)) continue;
+        removeItem(id);
+        setError("Unable to upload that file.");
+      }
+    }
+  }
+
+  function handleFiles(fileList: FileList | null) {
+    if (!fileList?.length) return;
+
+    const picked = Array.from(fileList);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setError("");
+    setImageWarning(null);
+    setVideoWarning(null);
+    setPanel("photo");
+
+    const room = MAX_POST_MEDIA_ITEMS - items.length;
+    if (room <= 0) {
+      setError(`A post can have up to ${MAX_POST_MEDIA_ITEMS} photos and videos.`);
+      return;
+    }
+
+    const accepted: File[] = [];
+    let invalidVideo: VideoValidationError | null = null;
+    for (const file of picked) {
+      if (looksLikeVideoFile(file)) {
+        const invalid = validateVideoFile(file);
+        if (invalid) {
+          invalidVideo ??= invalid;
+          continue;
+        }
+      }
+      accepted.push(file);
+    }
+    if (invalidVideo) setVideoWarning(invalidVideo);
+
+    const files = accepted.slice(0, room);
+    if (accepted.length > room) {
+      setError(
+        `A post can have up to ${MAX_POST_MEDIA_ITEMS} photos and videos, so only the first ${room} ${
+          room === 1 ? "file was" : "files were"
+        } added.`,
+      );
+    }
+    if (!files.length) return;
+
+    const photos: { id: string; file: File; controller: AbortController }[] = [];
+    const videos: { id: string; file: File; controller: AbortController; previewUrl: string }[] = [];
+    const added: ComposerItem[] = files.map((file) => {
+      const id = createItemId();
+      const controller = new AbortController();
+      const previewUrl = URL.createObjectURL(file);
+      itemControllersRef.current.set(id, controller);
+      itemBlobUrlsRef.current.set(id, previewUrl);
+      const isVideo = looksLikeVideoFile(file);
+      if (isVideo) {
+        videos.push({ id, file, controller, previewUrl });
+      } else {
+        photos.push({ id, file, controller });
+      }
+      return {
+        id,
+        kind: isVideo ? "video" : "image",
+        name: file.name,
+        caption: "",
+        url: null,
+        previewUrl,
+        posterUrl: null,
+        status: isVideo ? "preparing" : "checking",
+        progress: 0,
+        videoEdit: null,
+        posterPreviewUrl: null,
+        posterUploading: false,
+      };
+    });
+    setItems((current) => [...current, ...added]);
+    for (const video of videos) void uploadVideoItem(video.id, video.file, video.previewUrl, video.controller);
+    if (photos.length) void uploadPhotoItems(photos);
+  }
+
+  function addGif(gif: GifItem) {
+    const replacing = gifItem;
+    if (!replacing && items.length >= MAX_POST_MEDIA_ITEMS) {
+      setError(`A post can have up to ${MAX_POST_MEDIA_ITEMS} photos and videos.`);
+      return;
+    }
+    const next: ComposerItem = {
+      id: createItemId(),
+      kind: "gif",
+      name: gif.alt,
+      caption: replacing?.caption ?? "",
+      url: gif.url,
+      previewUrl: gif.url,
+      posterUrl: null,
+      status: "ready",
+      progress: 100,
+      videoEdit: null,
+      posterPreviewUrl: null,
+      posterUploading: false,
+    };
+    setItems((current) =>
+      replacing ? current.map((item) => (item.id === replacing.id ? next : item)) : [...current, next],
+    );
+  }
+
   async function saveEditedImage(file: File) {
-    if (!editingUrl) return;
-    const originalUrl = editingUrl;
+    if (!editingItem) return;
+    const editedId = editingItem.id;
 
     setError("");
     setImageWarning(null);
-    setModerating(true);
+    setSavingEdit(true);
+    try {
+      await saveEditedImageFor(editedId, file);
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function saveEditedImageFor(editedId: string, file: File) {
     const { result, passToken } = await moderateImageFile(file);
-    setModerating(false);
     if (!result.allowed) {
       setImageWarning(result);
       throw new Error(formatImageModerationError(result));
@@ -542,14 +982,73 @@ export default function FirstPostPrompt({
     if (!response.ok || !data.url) {
       throw new Error(data.error ?? "Unable to save the edited photo.");
     }
-    setMedia((current) =>
-      current.map((item) =>
-        item.url === originalUrl
-          ? { ...item, url: data.url!, moderationPassed: true }
-          : item,
-      ),
-    );
-    setEditingUrl(null);
+    revokeItemBlob(editedId);
+    updateItem(editedId, { url: data.url, previewUrl: data.url });
+    setEditingId(null);
+  }
+
+  function openVideoEditor(id: string, opener: HTMLElement) {
+    videoEditorOpenerRef.current = opener;
+    setVideoEditingId(id);
+  }
+
+  /** Trim applies straight away; a new thumbnail uploads in the background and falls back on failure. */
+  function applyVideoEdit(id: string, result: VideoEditResult) {
+    setVideoEditingId(null);
+    const item = items.find((entry) => entry.id === id);
+    if (!item) return;
+    const { poster, ...editState } = result;
+    if (!poster) {
+      updateItem(id, { videoEdit: editState });
+      return;
+    }
+
+    setError("");
+    posterControllersRef.current.get(id)?.abort();
+    const controller = new AbortController();
+    posterControllersRef.current.set(id, controller);
+    // Fall back to the last thumbnail that finished saving, not one that is still uploading.
+    const savedPreviewUrl = posterBlobUrlsRef.current.get(id) ?? null;
+    const previous = {
+      posterUrl: item.posterUrl,
+      posterPreviewUrl: savedPreviewUrl,
+      thumbnailTime: savedPreviewUrl ? (item.videoEdit?.thumbnailTime ?? null) : null,
+      custom: savedPreviewUrl !== null,
+    };
+    const previewUrl = URL.createObjectURL(poster);
+    customPosterIdsRef.current.add(id);
+    updateItem(id, { videoEdit: editState, posterPreviewUrl: previewUrl, posterUploading: true });
+
+    void (async () => {
+      const upload = await uploadVideoPoster(poster, item.name, controller.signal);
+      if (posterControllersRef.current.get(id) !== controller) {
+        URL.revokeObjectURL(previewUrl);
+        return;
+      }
+      posterControllersRef.current.delete(id);
+
+      if (upload.url) {
+        const replaced = posterBlobUrlsRef.current.get(id);
+        if (replaced) URL.revokeObjectURL(replaced);
+        posterBlobUrlsRef.current.set(id, previewUrl);
+        updateItem(id, { posterUrl: upload.url, posterUploading: false });
+        return;
+      }
+
+      URL.revokeObjectURL(previewUrl);
+      if (!previous.custom) customPosterIdsRef.current.delete(id);
+      updateItem(id, {
+        posterUploading: false,
+        posterPreviewUrl: previous.posterPreviewUrl,
+        posterUrl: previous.custom ? previous.posterUrl : (autoPosterUrlsRef.current.get(id) ?? null),
+        videoEdit: { ...editState, thumbnailTime: previous.thumbnailTime },
+      });
+      setError(
+        upload.block
+          ? `${upload.block.title}: that thumbnail can't be used, so the previous one was kept.`
+          : "We couldn't save the new thumbnail, so the previous one was kept. Try again.",
+      );
+    })();
   }
 
   function toggleCrossPostPlatform(id: CrossPostPlatformId) {
@@ -560,26 +1059,22 @@ export default function FirstPostPrompt({
     event.preventDefault();
     setError("");
     setTextWarning(null);
-    const unverifiedImage = media.find((item) => item.kind === "image" && !item.moderationPassed);
-    if (unverifiedImage) {
-      setError("One or more photos did not pass the safety check. Remove them and try again.");
-      return;
-    }
+    if (mediaBusy || items.some((item) => !item.url)) return;
     setSubmitting(true);
     try {
-      const images = media
-        .filter((item) => item.kind === "image")
-        .map((item) => ({ url: item.url, alt: item.alt }));
-      const video = media.find((item) => item.kind === "video");
       const response = await fetch("/api/feed/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
-          images,
-          videoUrl: video?.url ?? null,
-          gifUrl: gif?.url ?? null,
-          gifAlt: gif?.alt ?? null,
+          items: items.map((item) => ({
+            type: item.kind === "video" ? "video" : "image",
+            url: item.url,
+            poster: item.posterUrl,
+            trim: item.kind === "video" ? (item.videoEdit?.trim ?? null) : null,
+            alt: item.name,
+            caption: item.caption.trim(),
+          })),
           feeling,
           location: location
             ? { label: location.label, lat: location.lat, lng: location.lng }
@@ -650,18 +1145,175 @@ export default function FirstPostPrompt({
 
   if (!visible) return null;
 
-  const previews = [
-    ...media.map((item) => ({ key: item.url, url: item.url, alt: item.alt, kind: item.kind })),
-    ...(gif ? [{ key: gif.id, url: gif.url, alt: gif.alt, kind: "image" as const }] : []),
-  ];
+  const collage = mosaicLayout(items.length);
+
+  /** Shown both under the composer and inside the Photos/Videos screen; only the visible copy takes the scroll ref. */
+  function renderMediaWarnings(attachRef: boolean) {
+    const ref = attachRef ? imageWarningRef : undefined;
+    if (imageWarning) {
+      return (
+        <div ref={ref} className="composer-image-warning" role="alert" aria-live="assertive">
+          <strong className="composer-image-warning__title">{imageWarning.title}</strong>
+          <p className="composer-image-warning__body">{imageWarning.message}</p>
+          <p className="composer-image-warning__meta">
+            {imageWarning.verificationFailed
+              ? "This photo was not added to your post."
+              : `Flagged as ${imageWarning.category.toLowerCase()} (severity ${Math.round(imageWarning.confidence * 6)}/6). This photo was not added to your post.`}
+          </p>
+        </div>
+      );
+    }
+    if (videoWarning) {
+      return (
+        <div ref={ref} className="composer-image-warning" role="alert" aria-live="assertive">
+          <strong className="composer-image-warning__title">{videoWarning.title}</strong>
+          <p className="composer-image-warning__body">{videoWarning.message}</p>
+          <p className="composer-image-warning__meta">
+            Videos can be MP4, MOV, or WebM, up to {formatByteLimit(VIDEO_MAX_BYTES)} and 240 minutes.
+          </p>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <aside
       ref={rootRef}
-      className={`first-post-prompt${isModal ? " first-post-prompt--modal" : ""}`}
-      aria-labelledby={titleId}
+      className={`first-post-prompt${isModal ? " first-post-prompt--modal" : ""}${dropActive ? " is-drop-target" : ""}${
+        mediaEditorOpen ? " is-editing-media" : ""
+      }`}
+      aria-labelledby={mediaEditorOpen ? mediaEditorTitleId : titleId}
+      data-video-uploading={mediaBusy ? "true" : undefined}
+      onDragOver={(event) => {
+        if (submitting || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+        setDropActive(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropActive(false);
+      }}
+      onDrop={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        setDropActive(false);
+        if (!submitting) handleFiles(event.dataTransfer.files);
+      }}
     >
-      <div className="first-post-prompt__head">
+      <input
+        id={fileInputId}
+        ref={fileInputRef}
+        className="sr-only"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm"
+        multiple
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(event) => handleFiles(event.target.files)}
+      />
+
+      {mediaEditorOpen ? (
+        <section className="composer-media-editor" aria-labelledby={mediaEditorTitleId}>
+          <header className="composer-media-editor__head">
+            <button
+              ref={mediaEditorBackRef}
+              type="button"
+              className="composer-media-editor__back"
+              aria-label="Back to post"
+              onClick={() => setMediaEditorOpen(false)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M19 12H5" />
+                <path d="m11 18-6-6 6-6" />
+              </svg>
+            </button>
+            <h2 id={mediaEditorTitleId} className="composer-media-editor__title">
+              Photos/Videos
+            </h2>
+          </header>
+          <div className="composer-media-editor__body">
+            {items.length ? (
+              <ul className="composer-media-editor__grid">
+                {items.map((item, index) => {
+                  const label = itemLabel(item, index);
+                  const captionId = `${mediaEditorTitleId}-caption-${item.id}`;
+                  return (
+                    <li key={item.id} className="composer-media-card">
+                      <div className="composer-media-card__media">
+                        <ComposerItemThumb item={item} />
+                        <ComposerItemProgress item={item} />
+                        {item.kind === "video" || (item.kind === "image" && item.status === "ready") ? (
+                          <button
+                            type="button"
+                            className="composer-media-card__edit"
+                            aria-label={`Edit ${label}`}
+                            onClick={(event) =>
+                              item.kind === "video"
+                                ? openVideoEditor(item.id, event.currentTarget)
+                                : setEditingId(item.id)
+                            }
+                            disabled={submitting}
+                          >
+                            <PencilIcon />
+                            Edit
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="composer-media-card__remove"
+                          aria-label={item.status === "ready" ? `Remove ${label}` : `Cancel upload of ${label}`}
+                          onClick={() => removeItem(item.id)}
+                          disabled={submitting}
+                        >
+                          <CloseIcon />
+                        </button>
+                      </div>
+                      <label className="sr-only" htmlFor={captionId}>
+                        Caption for {label}
+                      </label>
+                      <textarea
+                        id={captionId}
+                        className="composer-media-card__caption"
+                        placeholder="Caption"
+                        rows={2}
+                        maxLength={MAX_MEDIA_CAPTION_LENGTH}
+                        value={item.caption}
+                        onChange={(event) => updateItem(item.id, { caption: event.target.value })}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="composer-media-editor__empty">No photos or videos yet.</p>
+            )}
+            {savingEdit ? <ComposerImageStatus kind="checking" /> : null}
+            {renderMediaWarnings(mediaEditorOpen)}
+            {error ? <p className="first-post-prompt__error">{error}</p> : null}
+          </div>
+          <footer className="composer-media-editor__foot">
+            <button
+              type="button"
+              className="composer-media-editor__add"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={submitting || items.length >= MAX_POST_MEDIA_ITEMS}
+            >
+              <PhotoIcon />
+              Add photos/videos
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary btn--sm composer-media-editor__done"
+              onClick={() => setMediaEditorOpen(false)}
+            >
+              Done
+            </button>
+          </footer>
+        </section>
+      ) : null}
+
+      <div className="first-post-prompt__head" hidden={mediaEditorOpen}>
         <button
           type="button"
           className="first-post-prompt__dismiss"
@@ -674,21 +1326,23 @@ export default function FirstPostPrompt({
         </button>
       </div>
       {isModal ? (
-        <h2 id={titleId} className="first-post-prompt__title">
+        <h2 id={titleId} className="first-post-prompt__title" hidden={mediaEditorOpen}>
           Create post
         </h2>
       ) : (
         <>
-          <p className="first-post-prompt__eyebrow">Profile setup · Next step</p>
-          <h2 id={titleId} className="first-post-prompt__title">
+          <p className="first-post-prompt__eyebrow" hidden={mediaEditorOpen}>
+            Profile setup · Next step
+          </p>
+          <h2 id={titleId} className="first-post-prompt__title" hidden={mediaEditorOpen}>
             {firstName ? `${firstName}, share your first post` : "Share your first post"}
           </h2>
-          <p className="first-post-prompt__text">
+          <p className="first-post-prompt__text" hidden={mediaEditorOpen}>
             Your profile is ready. Write a short update so people have something to find when they visit.
           </p>
         </>
       )}
-      <form className="first-post-prompt__form" onSubmit={(event) => void submit(event)}>
+      <form className="first-post-prompt__form" onSubmit={(event) => void submit(event)} hidden={mediaEditorOpen}>
         <label className="sr-only" htmlFor={textId}>
           {isModal ? "Post" : "First post"}
         </label>
@@ -747,68 +1401,63 @@ export default function FirstPostPrompt({
           </div>
         ) : null}
 
-        {previews.length > 0 ? (
-          <div className={`composer-previews${previews.length > 1 ? " composer-previews--grid" : ""}`}>
-            {previews.map((item) => {
-              const canEdit =
-                item.kind === "image" && gif?.url !== item.url && !item.url.includes("giphy.com");
-              return (
-              <div key={item.key} className="composer-previews__item">
-                {item.kind === "video" ? (
-                  // eslint-disable-next-line jsx-a11y/media-has-caption
-                  <video src={item.url} controls playsInline />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.url} alt={item.alt} />
-                )}
-                {canEdit ? (
-                  <button
-                    type="button"
-                    className="composer-previews__edit"
-                    onClick={() => setEditingUrl(item.url)}
+        {items.length > 0 ? (
+          <div className="composer-collage">
+            <div className={`composer-collage__grid ${collage.className}`}>
+              {items.slice(0, collage.visible).map((item, index) => {
+                const moreCount = index === collage.visible - 1 ? collage.hidden : 0;
+                return (
+                  <div
+                    key={item.id}
+                    className={`composer-collage__tile${item.kind === "video" ? " composer-collage__tile--video" : ""}`}
                   >
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                    </svg>
-                    Edit
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="composer-previews__remove"
-                  aria-label="Remove"
-                  onClick={() => {
-                    setMedia((current) => current.filter((entry) => entry.url !== item.url));
-                    if (gif?.url === item.url) setGif(null);
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
-                </button>
-              </div>
-              );
-            })}
+                    <ComposerItemThumb item={item} />
+                    <ComposerItemProgress item={item} />
+                    {moreCount ? (
+                      <span className="media-mosaic__more">
+                        +{moreCount}
+                        <span className="sr-only"> more</span>
+                      </span>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              ref={collageEditRef}
+              type="button"
+              className="composer-collage__edit"
+              onClick={(event) =>
+                items.length === 1 && items[0].kind === "video"
+                  ? openVideoEditor(items[0].id, event.currentTarget)
+                  : setMediaEditorOpen(true)
+              }
+              disabled={submitting}
+            >
+              <PencilIcon />
+              {items.length > 1 ? "Edit all" : "Edit"}
+            </button>
+            <button
+              type="button"
+              className="composer-collage__clear"
+              aria-label="Remove all photos and videos"
+              title="Remove all"
+              onClick={clearMedia}
+              disabled={submitting}
+            >
+              <CloseIcon />
+            </button>
           </div>
         ) : null}
-
-        <input
-          id={fileInputId}
-          ref={fileInputRef}
-          className="sr-only"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-          multiple
-          onChange={(event) => void handleFiles(event.target.files)}
-        />
 
         <div className="add-to-post">
           <span className="add-to-post__label">Add to your post</span>
           <div className="add-to-post__icons">
             <button
               type="button"
-              className={`add-to-post__icon add-to-post__icon--photo${panel === "photo" || media.length ? " is-active" : ""}`}
+              className={`add-to-post__icon add-to-post__icon--photo${
+                panel === "photo" || items.some((item) => item.kind !== "gif") ? " is-active" : ""
+              }`}
               aria-label="Photo/video"
               title="Photo/video"
               onClick={() => {
@@ -847,7 +1496,7 @@ export default function FirstPostPrompt({
             </button>
             <button
               type="button"
-              className={`add-to-post__icon add-to-post__icon--gif${panel === "gif" || gif ? " is-active" : ""}`}
+              className={`add-to-post__icon add-to-post__icon--gif${panel === "gif" || gifItem ? " is-active" : ""}`}
               aria-label="GIF"
               title="GIF"
               onClick={() => openPanel("gif")}
@@ -866,20 +1515,9 @@ export default function FirstPostPrompt({
           </div>
         </div>
 
-        {moderating ? <ComposerImageStatus kind="checking" /> : null}
-        {!moderating && uploading ? <ComposerImageStatus kind="uploading" /> : null}
+        {savingEdit ? <ComposerImageStatus kind="checking" /> : null}
 
-        {imageWarning ? (
-          <div ref={imageWarningRef} className="composer-image-warning" role="alert" aria-live="assertive">
-            <strong className="composer-image-warning__title">{imageWarning.title}</strong>
-            <p className="composer-image-warning__body">{imageWarning.message}</p>
-            <p className="composer-image-warning__meta">
-              {imageWarning.verificationFailed
-                ? "This photo was not added to your post."
-                : `Flagged as ${imageWarning.category.toLowerCase()} (severity ${Math.round(imageWarning.confidence * 6)}/6). This photo was not added to your post.`}
-            </p>
-          </div>
-        ) : null}
+        {renderMediaWarnings(!mediaEditorOpen)}
 
         {panel === "tag" ? (
           <div className="composer-panel">
@@ -1025,9 +1663,9 @@ export default function FirstPostPrompt({
                 <button
                   key={item.id}
                   type="button"
-                  className={`composer-gifs__item${gif?.id === item.id ? " is-selected" : ""}`}
+                  className={`composer-gifs__item${gifItem?.url === item.url ? " is-selected" : ""}`}
                   onClick={() => {
-                    setGif(item);
+                    addGif(item);
                     setPanel(null);
                   }}
                 >
@@ -1119,7 +1757,8 @@ export default function FirstPostPrompt({
         </fieldset>
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
-            Photos, tags, places, feelings, and GIFs are optional.
+            Add up to {MAX_POST_MEDIA_ITEMS} photos and videos in any mix. Tags, places, feelings, and GIFs are
+            optional.
           </p>
           <div className="first-post-prompt__actions">
             {isModal ? null : (
@@ -1130,18 +1769,28 @@ export default function FirstPostPrompt({
             <button
               type="submit"
               className="btn btn--primary btn--sm first-post-prompt__cta"
-              disabled={submitting || uploading || moderating || !canPost}
+              disabled={submitting || savingEdit || mediaBusy || !canPost}
             >
-              {submitting ? "Posting…" : "Post"}
+              {submitting ? "Posting…" : mediaBusy ? "Uploading…" : "Post"}
             </button>
           </div>
         </div>
       </form>
-      {editingUrl ? (
+      {editingItem ? (
         <ComposerImageEditor
-          src={editingUrl}
-          onCancel={() => setEditingUrl(null)}
+          src={editingItem.previewUrl}
+          onCancel={() => setEditingId(null)}
           onSave={saveEditedImage}
+        />
+      ) : null}
+      {videoEditingItem ? (
+        <ComposerVideoEditor
+          key={videoEditingItem.id}
+          src={videoEditingItem.previewUrl}
+          name={videoEditingItem.name}
+          initial={videoEditingItem.videoEdit}
+          onCancel={() => setVideoEditingId(null)}
+          onDone={(result) => applyVideoEdit(videoEditingItem.id, result)}
         />
       ) : null}
     </aside>

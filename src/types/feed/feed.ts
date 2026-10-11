@@ -31,9 +31,31 @@ export interface FeedAudio {
   theme?: FeedAudioTheme;
 }
 
+/** Part of a video to play, in seconds. Applied at playback; the file itself is never cut. */
+export interface FeedMediaTrim {
+  start: number;
+  end: number;
+}
+
+/** One photo or video in a composer post, in the order the author arranged them. */
+export interface FeedMediaItem {
+  type: "image" | "video";
+  url: string;
+  alt: string;
+  /** Poster frame for videos. */
+  poster?: string | null;
+  caption?: string;
+  trim?: FeedMediaTrim;
+}
+
 export interface FeedMedia {
   type: "image" | "collage" | "video";
   images: FeedImage[];
+  /**
+   * Ordered photos and videos for posts made in the composer. When present it is the source of truth;
+   * `images` / `video_url` are still filled for older readers.
+   */
+  items?: FeedMediaItem[];
   /** Optional clip URL; feed falls back to the shared sample video when omitted. */
   video_url?: string | null;
   /** When false, image posts are photos — not sample-video cards. */
