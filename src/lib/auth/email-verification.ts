@@ -26,9 +26,12 @@ export async function getEmailVerifyCooldownRemaining(email: string) {
   return remaining > 0 ? remaining : 0;
 }
 
-export async function createEmailVerificationToken(email: string) {
+export async function createEmailVerificationToken(
+  email: string,
+  options?: { bypassCooldown?: boolean },
+) {
   const normalizedEmail = email.toLowerCase();
-  const remaining = await getEmailVerifyCooldownRemaining(normalizedEmail);
+  const remaining = options?.bypassCooldown ? 0 : await getEmailVerifyCooldownRemaining(normalizedEmail);
 
   if (remaining > 0) {
     return { ok: false as const, cooldownRemaining: remaining };

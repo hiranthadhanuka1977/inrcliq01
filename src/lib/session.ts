@@ -39,9 +39,9 @@ export async function getSessionUser() {
     include: { user: true },
   });
 
-  if (!session || session.expires < new Date()) {
+  if (!session || session.expires < new Date() || session.user.suspendedAt) {
     if (session) {
-      await prisma.session.delete({ where: { id: session.id } });
+      await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
     }
     return null;
   }

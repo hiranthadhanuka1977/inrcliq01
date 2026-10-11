@@ -10,7 +10,11 @@ export function getOnboardingRedirect(
   if (user.onboardingStep === "approved") return "/onboarding/approved";
   if (user.onboardingStep === "password") return "/onboarding/password";
 
-  if (user.accountType === "MINOR" && parentRequest?.status === "APPROVED") {
+  if (
+    user.accountType === "MINOR" &&
+    parentRequest?.status === "APPROVED" &&
+    !parentRequest.revokedAt
+  ) {
     return "/onboarding/approved";
   }
 

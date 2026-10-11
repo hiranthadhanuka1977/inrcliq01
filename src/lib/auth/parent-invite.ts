@@ -30,9 +30,15 @@ export async function getParentInviteCooldownRemaining(childUserId: string) {
   return remaining > 0 ? remaining : 0;
 }
 
-export async function createParentApprovalRequest(childUserId: string, parentEmail: string) {
+export async function createParentApprovalRequest(
+  childUserId: string,
+  parentEmail: string,
+  options?: { bypassCooldown?: boolean },
+) {
   const normalizedParentEmail = parentEmail.toLowerCase();
-  const remaining = await getParentInviteCooldownRemaining(childUserId);
+  const remaining = options?.bypassCooldown
+    ? 0
+    : await getParentInviteCooldownRemaining(childUserId);
 
   if (remaining > 0) {
     return { ok: false as const, cooldownRemaining: remaining };
@@ -141,6 +147,7 @@ export async function consumeChildContinueToken(rawToken: string) {
   const candidates = await prisma.parentApprovalRequest.findMany({
     where: {
       status: ApprovalStatus.APPROVED,
+      revokedAt: null,
       continueTokenHash: { not: null },
       continueTokenExpiresAt: { gt: new Date() },
     },
@@ -154,6 +161,10 @@ export async function consumeChildContinueToken(rawToken: string) {
 
     const matches = await bcrypt.compare(rawToken, record.continueTokenHash);
     if (!matches) continue;
+
+    if (record.childUser.suspendedAt) {
+      return { ok: false as const, reason: "invalid" as const };
+    }
 
     if (!record.continueTokenUsedAt) {
       await prisma.parentApprovalRequest.update({

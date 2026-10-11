@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_ACCESS_COOKIE } from "@/lib/admin-portal/access";
 import { SETTINGS_ACCESS_COOKIE } from "@/lib/settings/access";
 
 /** Demo gate credentials — override with BASIC_AUTH_USER / BASIC_AUTH_PASSWORD on Vercel. */
@@ -69,6 +70,18 @@ function isSettingsPath(pathname: string) {
   return pathname.startsWith("/settings") || pathname.startsWith("/api/settings");
 }
 
+function isAdminPortalPath(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/api/admin-portal");
+}
+
+function isAdminUnlockPath(pathname: string) {
+  return pathname === "/admin/unlock" || pathname === "/api/admin-portal/unlock";
+}
+
+function hasAdminAccess(request: NextRequest) {
+  return request.cookies.get(ADMIN_ACCESS_COOKIE)?.value === "1";
+}
+
 /** Partner API routes authenticate every request with a Bearer API key instead. */
 function isPartnerApiPath(pathname: string) {
   return pathname.startsWith("/api/v1/partner/");
@@ -81,11 +94,11 @@ export function middleware(request: NextRequest) {
   }
 
   const isSettings = isSettingsPath(pathname);
+  const isAdmin = isAdminPortalPath(pathname);
 
   // HTTP Basic Auth gates the prototype experience only.
-  // Settings uses its own admin password unlock and must not re-prompt Basic Auth
-  // (especially when opened after Controls → Settings).
-  if (!isSettings && !isBasicAuthValid(request)) {
+  // Settings and the admin portal use their own password unlock and must not re-prompt Basic Auth.
+  if (!isSettings && !isAdmin && !isBasicAuthValid(request)) {
     return unauthorized();
   }
 
@@ -107,6 +120,16 @@ export function middleware(request: NextRequest) {
     }
 
     const unlockUrl = new URL("/settings/unlock", request.url);
+    unlockUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(unlockUrl);
+  }
+
+  if (isAdmin && !isAdminUnlockPath(pathname) && !hasAdminAccess(request)) {
+    if (pathname.startsWith("/api/admin-portal")) {
+      return NextResponse.json({ error: "Admin access required." }, { status: 401 });
+    }
+
+    const unlockUrl = new URL("/admin/unlock", request.url);
     unlockUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(unlockUrl);
   }

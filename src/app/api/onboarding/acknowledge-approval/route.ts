@@ -11,6 +11,10 @@ export async function POST() {
 
     const parentRequest =
       user.accountType === AccountType.MINOR ? await getLatestParentRequest(user.id) : null;
+    if (parentRequest?.revokedAt) {
+      return NextResponse.json({ error: "Guardian approval is no longer active." }, { status: 400 });
+    }
+
     const parentHasApproved = parentRequest?.status === ApprovalStatus.APPROVED;
     const canAcknowledge = user.onboardingStep === "approved" || parentHasApproved;
 

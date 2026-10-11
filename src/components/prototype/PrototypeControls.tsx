@@ -159,6 +159,16 @@ export function PrototypeControls() {
           >
             Settings
           </button>
+          <button
+            type="button"
+            className="prototype-controls__item"
+            role="menuitem"
+            onClick={() => {
+              window.location.assign("/admin");
+            }}
+          >
+            Admin portal
+          </button>
         </div>
       ) : null}
 

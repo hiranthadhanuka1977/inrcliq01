@@ -127,6 +127,10 @@ model User {
   signupMethod      String?
   onboardingStep    String?
   passwordHash      String?
+  suspendedAt       DateTime?
+  suspendReason     String?
+  /// accepted | rejected. Null means not reviewed. Rejected guardians cannot approve children.
+  guardianIdentityStatus String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -154,6 +158,7 @@ model User {
   safetyReportsFiled             SafetyReport[]             @relation("SafetyReportsFiled")
   safetyReportsAbout             SafetyReport[]             @relation("SafetyReportsAbout")
   specialRequests                SpecialRequest[]
+  adminAuditLogs                 AdminAuditLog[]
   creatorProfile                 CreatorUser?
   authoredFeedPosts              FeedPost[]
   profile                        UserProfile?
@@ -233,6 +238,8 @@ model ParentApprovalRequest {
   continueTokenHash      String?        @unique
   continueTokenExpiresAt DateTime?
   continueTokenUsedAt    DateTime?
+  /// Set when an operator removes the guardian link. Status stays APPROVED so the decision history remains.
+  revokedAt              DateTime?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
@@ -243,6 +250,24 @@ model ParentApprovalRequest {
   @@index([parentEmail])
   @@index([childUserId])
   @@index([guardianUserId])
+}
+
+/// Operator actions taken in the admin portal. Tokens and secrets are never stored here.
+model AdminAuditLog {
+  id           String   @id @default(cuid())
+  actor        String
+  action       String
+  targetUserId String?
+  reason       String
+  before       Json?
+  after        Json?
+  createdAt    DateTime @default(now())
+
+  targetUser User? @relation(fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([targetUserId])
+  @@index([createdAt])
+  @@index([action])
 }
 
 /// Durable guardian ↔ minor link established when parent approval completes.

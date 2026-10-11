@@ -40,6 +40,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error }, { status: userResult.reason === "not_found" ? 404 : 403 });
     }
 
+    if (userResult.user.suspendedAt) {
+      return NextResponse.json(
+        { error: "This account is suspended. Contact InrCliq support if you need access." },
+        { status: 403 },
+      );
+    }
+
     await createSession(userResult.user.id);
 
     const parentRequest =

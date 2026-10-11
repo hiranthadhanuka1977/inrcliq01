@@ -158,6 +158,7 @@ async function findReturningGuardian(parentEmail: string) {
   if (!user) return null;
   if (user.accountType !== AccountType.GUARDIAN) return null;
   if (user.onboardingStep !== "complete") return null;
+  if (user.guardianIdentityStatus === "rejected") return null;
   return user;
 }
 
