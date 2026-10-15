@@ -131,8 +131,58 @@ if (
   console.log("[migrate] Using unpooled database URL for migrate deploy");
 }
 
+async function resolveFailedMigration(databaseUrl, env, name) {
+  const pool = new pg.Pool({
+    connectionString: databaseUrl,
+    ssl: databaseUrl.includes("localhost") ? undefined : { rejectUnauthorized: false },
+    max: 1,
+  });
+  const client = await pool.connect();
+  let failed = false;
+  try {
+    const history = await client.query(
+      `SELECT to_regclass('public._prisma_migrations') AS table_name`,
+    );
+    if (!history.rows[0]?.table_name) {
+      return;
+    }
+    const result = await client.query(
+      `SELECT 1
+       FROM "_prisma_migrations"
+       WHERE migration_name = $1
+         AND finished_at IS NULL
+         AND rolled_back_at IS NULL
+       LIMIT 1`,
+      [name],
+    );
+    failed = result.rowCount > 0;
+  } finally {
+    client.release();
+    await pool.end();
+  }
+
+  if (!failed) {
+    return;
+  }
+
+  console.warn(`[migrate] resolve --rolled-back ${name}`);
+  const result = await runCommand(
+    "npx",
+    ["prisma", "migrate", "resolve", "--rolled-back", name],
+    env,
+  );
+  if (result.code !== 0) {
+    throw new Error(`Failed to mark ${name} as rolled back`);
+  }
+}
+
 try {
   await baselineIfNeeded(databaseUrl, env);
+  await resolveFailedMigration(
+    databaseUrl,
+    env,
+    "20261015120000_ensure_age_zone_type",
+  );
 } catch (error) {
   console.error("[migrate] Baseline failed:", error instanceof Error ? error.message : error);
   process.exit(1);

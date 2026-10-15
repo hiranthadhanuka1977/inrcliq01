@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS "AgeZoneDefinition" (
 CREATE UNIQUE INDEX IF NOT EXISTS "AgeZoneDefinition_iconBadgeKey_key"
   ON "AgeZoneDefinition"("iconBadgeKey");
 
+-- Insert only zones that are missing. Do not rewrite iconBadgeKey: production
+-- already has those keys, and updating them collides with the unique index.
 INSERT INTO "AgeZoneDefinition" (
   "zone",
   "label",
@@ -58,64 +60,120 @@ INSERT INTO "AgeZoneDefinition" (
   "maxAgeExclusive",
   "sortOrder",
   "updatedAt"
-) VALUES
-  (
-    'KIDS',
-    'Kids Zone',
-    'age-zone-kids',
-    'Kids Zone is for ages under 13. It uses the highest protection defaults for younger linked accounts.',
-    0,
-    13,
-    1,
-    CURRENT_TIMESTAMP
-  ),
-  (
-    'TEENS',
-    'Teens Zone',
-    'age-zone-teens',
-    'Teens Zone is for ages 13 through 15. It keeps strong safety defaults while allowing guided teen activity.',
-    13,
-    16,
-    2,
-    CURRENT_TIMESTAMP
-  ),
-  (
-    'MATURE_TEENS',
-    'Mature Teens Zone',
-    'age-zone-mature-teens',
-    'Mature Teens Zone is for ages 16 through 17. It adds more flexibility with tighter rules for adult contact.',
-    16,
-    18,
-    3,
-    CURRENT_TIMESTAMP
-  ),
-  (
-    'ADULT',
-    'Adult profile',
-    'age-zone-adult',
-    'Adult profile is for ages 18 and over. Standard adult messaging and content rules apply.',
-    18,
-    NULL,
-    4,
-    CURRENT_TIMESTAMP
-  )
-ON CONFLICT ("zone") DO UPDATE SET
-  "label" = EXCLUDED."label",
-  "iconBadgeKey" = EXCLUDED."iconBadgeKey",
-  "description" = EXCLUDED."description",
-  "minAgeInclusive" = EXCLUDED."minAgeInclusive",
-  "maxAgeExclusive" = EXCLUDED."maxAgeExclusive",
-  "sortOrder" = EXCLUDED."sortOrder",
-  "updatedAt" = CURRENT_TIMESTAMP;
+)
+SELECT
+  seed.zone::"AgeZone",
+  seed.label,
+  seed.icon_badge_key,
+  seed.description,
+  seed.min_age,
+  seed.max_age,
+  seed.sort_order,
+  CURRENT_TIMESTAMP
+FROM (
+  VALUES
+    (
+      'KIDS',
+      'Kids Zone',
+      'age-zone-kids',
+      'Kids Zone is for ages under 13. It uses the highest protection defaults for younger linked accounts.',
+      0,
+      13,
+      1
+    ),
+    (
+      'TEENS',
+      'Teens Zone',
+      'age-zone-teens',
+      'Teens Zone is for ages 13 through 15. It keeps strong safety defaults while allowing guided teen activity.',
+      13,
+      16,
+      2
+    ),
+    (
+      'MATURE_TEENS',
+      'Mature Teens Zone',
+      'age-zone-mature-teens',
+      'Mature Teens Zone is for ages 16 through 17. It adds more flexibility with tighter rules for adult contact.',
+      16,
+      18,
+      3
+    ),
+    (
+      'ADULT',
+      'Adult profile',
+      'age-zone-adult',
+      'Adult profile is for ages 18 and over. Standard adult messaging and content rules apply.',
+      18,
+      NULL::integer,
+      4
+    )
+) AS seed(zone, label, icon_badge_key, description, min_age, max_age, sort_order)
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM "AgeZoneDefinition" existing
+  WHERE existing."zone"::text = seed.zone
+     OR existing."iconBadgeKey" = seed.icon_badge_key
+);
+
+UPDATE "AgeZoneDefinition" AS existing
+SET
+  "label" = seed.label,
+  "description" = seed.description,
+  "minAgeInclusive" = seed.min_age,
+  "maxAgeExclusive" = seed.max_age,
+  "sortOrder" = seed.sort_order,
+  "updatedAt" = CURRENT_TIMESTAMP
+FROM (
+  VALUES
+    (
+      'KIDS',
+      'Kids Zone',
+      'Kids Zone is for ages under 13. It uses the highest protection defaults for younger linked accounts.',
+      0,
+      13,
+      1
+    ),
+    (
+      'TEENS',
+      'Teens Zone',
+      'Teens Zone is for ages 13 through 15. It keeps strong safety defaults while allowing guided teen activity.',
+      13,
+      16,
+      2
+    ),
+    (
+      'MATURE_TEENS',
+      'Mature Teens Zone',
+      'Mature Teens Zone is for ages 16 through 17. It adds more flexibility with tighter rules for adult contact.',
+      16,
+      18,
+      3
+    ),
+    (
+      'ADULT',
+      'Adult profile',
+      'Adult profile is for ages 18 and over. Standard adult messaging and content rules apply.',
+      18,
+      NULL::integer,
+      4
+    )
+) AS seed(zone, label, description, min_age, max_age, sort_order)
+WHERE existing."zone"::text = seed.zone;
 
 DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'User_ageZone_fkey'
   ) THEN
-    ALTER TABLE "User"
-      ADD CONSTRAINT "User_ageZone_fkey"
-      FOREIGN KEY ("ageZone") REFERENCES "AgeZoneDefinition"("zone")
-      ON DELETE SET NULL ON UPDATE CASCADE;
+    BEGIN
+      ALTER TABLE "User"
+        ADD CONSTRAINT "User_ageZone_fkey"
+        FOREIGN KEY ("ageZone") REFERENCES "AgeZoneDefinition"("zone")
+        ON DELETE SET NULL ON UPDATE CASCADE;
+    EXCEPTION
+      WHEN others THEN
+        RAISE NOTICE 'User_ageZone_fkey was not added: %', SQLERRM;
+    END;
   END IF;
 END $$;
