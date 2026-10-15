@@ -2,23 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard" },
-  { href: "/admin/queue", label: "Onboarding queue" },
-  { href: "/admin/users", label: "Directory" },
-  { href: "/admin/guardians", label: "Guardians" },
-  { href: "/admin/consent", label: "Consent register" },
-  { href: "/admin/audit", label: "Audit log" },
-];
+import { isNavItemActive, sectionFromPathname } from "@/lib/admin-portal/sections";
 
 export function AdminNav() {
   const pathname = usePathname();
+  const section = sectionFromPathname(pathname);
 
   return (
-    <nav className="admin-nav" aria-label="Admin">
-      {ITEMS.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    <nav className="admin-nav" aria-label={section.label}>
+      {section.nav.map((item) => {
+        const active = isNavItemActive(pathname, item);
         return (
           <Link key={item.href} href={item.href} className={active ? "is-active" : undefined} aria-current={active ? "page" : undefined}>
             {item.label}
