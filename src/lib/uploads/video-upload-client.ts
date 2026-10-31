@@ -20,6 +20,7 @@ export type VideoDetails = {
 
 const VIDEO_UPLOAD_URL = "/api/feed/uploads/video";
 const CHUNK_UPLOAD_URL = "/api/feed/uploads/video/chunks";
+const nativeFetch = globalThis.fetch.bind(globalThis);
 const CHUNK_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
 /** Small files go up in one request; multipart parts on Blob must be at least 5 MB. */
 const BLOB_MULTIPART_MIN_BYTES = 16 * 1024 * 1024;
@@ -151,6 +152,61 @@ class UploadRequestError extends Error {
   }
 }
 
+/**
+ * The hosted demo sits behind HTTP basic auth. On that page, `fetch` either throws
+ * or drops the gate credentials, while a same-origin XHR still sends them.
+ * Cross-origin Blob uploads keep using fetch.
+ */
+function demoFetch(input: RequestInfo | URL, init?: RequestInit) {
+  const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  const parsed = new URL(raw, window.location.origin);
+  if (parsed.origin !== window.location.origin) return nativeFetch(input, init);
+  return xhrFetch(`${parsed.pathname}${parsed.search}`, init);
+}
+
+function xhrFetch(pathname: string, init?: RequestInit) {
+  return new Promise<Response>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    const signal = init?.signal;
+    request.open((init?.method ?? "GET").toUpperCase(), pathname, true);
+    new Headers(init?.headers).forEach((value, key) => request.setRequestHeader(key, value));
+
+    const finish = (error: unknown) => {
+      signal?.removeEventListener("abort", onAbort);
+      reject(error);
+    };
+    const onAbort = () => {
+      request.abort();
+      finish(signal?.reason instanceof Error ? signal.reason : new DOMException("The operation was aborted.", "AbortError"));
+    };
+    if (signal?.aborted) {
+      onAbort();
+      return;
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
+
+    request.onload = () => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve(new Response(request.responseText, { status: request.status, statusText: request.statusText }));
+    };
+    request.onerror = () => finish(new TypeError("Network connection lost."));
+
+    const body = init?.body;
+    if (
+      typeof body === "string" ||
+      body instanceof Blob ||
+      body instanceof ArrayBuffer ||
+      body instanceof FormData ||
+      body instanceof URLSearchParams ||
+      body == null
+    ) {
+      request.send(body ?? null);
+      return;
+    }
+    finish(new TypeError("Unsupported upload body."));
+  });
+}
+
 async function readError(response: Response, fallback: string) {
   const data = (await response.json().catch(() => ({}))) as { error?: string };
   return data.error ?? fallback;
@@ -258,26 +314,32 @@ export async function uploadVideoFile(
   const contentType = resolveVideoContentType(file.type, file.name);
   if (!contentType) throw new Error("Unsupported file format. Choose an MP4, MOV, or WebM video.");
 
-  const modeResponse = await fetch(VIDEO_UPLOAD_URL, { signal });
+  const modeResponse = await demoFetch(VIDEO_UPLOAD_URL, { signal });
   if (!modeResponse.ok) {
     throw new Error(await readError(modeResponse, "Unable to upload that video."));
   }
   const { mode } = (await modeResponse.json()) as { mode: string };
 
   if (mode === "blob-token" || mode === "blob-presigned") {
-    const client = await import("@vercel/blob/client");
-    const send = mode === "blob-token" ? client.upload : client.uploadPresigned;
-    const suffix = Math.random().toString(36).slice(2, 10);
-    const pathname = `${VIDEO_UPLOAD_FOLDER}/${Date.now()}-${suffix}.${videoExtensionFor(contentType)}`;
-    const blob = await send(pathname, file, {
-      access: "public",
-      handleUploadUrl: VIDEO_UPLOAD_URL,
-      contentType,
-      multipart: file.size >= BLOB_MULTIPART_MIN_BYTES,
-      abortSignal: signal,
-      onUploadProgress: ({ loaded, total }) => onProgress({ loaded, total, retrying: false }),
-    });
-    return blob.url;
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = demoFetch as typeof fetch;
+    try {
+      const client = await import("@vercel/blob/client");
+      const send = mode === "blob-token" ? client.upload : client.uploadPresigned;
+      const suffix = Math.random().toString(36).slice(2, 10);
+      const pathname = `${VIDEO_UPLOAD_FOLDER}/${Date.now()}-${suffix}.${videoExtensionFor(contentType)}`;
+      const blob = await send(pathname, file, {
+        access: "public",
+        handleUploadUrl: VIDEO_UPLOAD_URL,
+        contentType,
+        multipart: file.size >= BLOB_MULTIPART_MIN_BYTES,
+        abortSignal: signal,
+        onUploadProgress: ({ loaded, total }) => onProgress({ loaded, total, retrying: false }),
+      });
+      return blob.url;
+    } finally {
+      globalThis.fetch = previousFetch;
+    }
   }
 
   if (mode !== "local") {
