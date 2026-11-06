@@ -1,0 +1,2 @@
+ALTER TABLE "StudioProject" ADD COLUMN "trimStartMs" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "StudioProject" ADD COLUMN "trimEndMs" INTEGER;

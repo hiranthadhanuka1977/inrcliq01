@@ -47,6 +47,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+/creator-studio/generated
 
 .vercel
 
@@ -74,6 +75,8 @@ next-env.d.ts
 !/public/uploads/booking-accept/.gitkeep
 /public/uploads/covers/*
 !/public/uploads/covers/.gitkeep
+/public/uploads/studio/*
+!/public/uploads/studio/.gitkeep
 
 # local-only artifacts (never commit)
 /scripts/debug-guardian-*.mjs

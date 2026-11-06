@@ -298,6 +298,21 @@ export default function MobileNav() {
                         <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
                       </button>
                     ) : (
+                      item.href === "/api/studio/launch" ? (
+                      <a
+                        href={item.href}
+                        className="mobile-more__item"
+                        role="menuitem"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setOpenSheet(null)}
+                      >
+                        <span className="nav-icon" aria-hidden="true">
+                          <NavIcon name={item.icon} />
+                        </span>
+                        <span>{item.label}</span>
+                      </a>
+                    ) : (
                       <Link
                         href={item.href}
                         className={`mobile-more__item${active ? " is-active" : ""}`}
@@ -310,6 +325,7 @@ export default function MobileNav() {
                         </span>
                         <span>{item.label}</span>
                       </Link>
+                    )
                     )}
                   </li>
                 );

@@ -3,7 +3,8 @@ import { getHiddenPostIdsForUser } from "@/lib/feed/post-actions";
 import { getProfileSlugFromHandle, resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import type { FeedAuthor, FeedAudio, FeedData, FeedItem, FeedMedia } from "@/types/feed/feed";
+import { readFeedAudios } from "@/lib/feed/read-audios";
+import type { FeedAuthor, FeedData, FeedItem, FeedMedia } from "@/types/feed/feed";
 
 function mapCreatorToAuthor(creator: {
   name: string;
@@ -64,7 +65,10 @@ function mapPostToFeedItem(
     text: post.text,
     tags: post.tags,
     media: (post.mediaJson as FeedMedia | null) ?? null,
-    audio: (post.audioJson as FeedAudio | null) ?? null,
+    ...(() => {
+      const audios = readFeedAudios(post.audioJson);
+      return { audio: audios[0] ?? null, audios };
+    })(),
     engagement: {
       likes: post.likes,
       comments: post.comments,

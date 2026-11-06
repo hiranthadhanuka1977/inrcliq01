@@ -170,8 +170,10 @@ export default function AudioFeedPlayer({
 
       <div className="audio-feed__podcast-main">
         <div className="audio-feed__art audio-feed__art--podcast">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={audio.thumbnail.url} alt={audio.thumbnail.alt} />
+          {audio.thumbnail.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={audio.thumbnail.url} alt={audio.thumbnail.alt} />
+          ) : null}
         </div>
 
         <div className="audio-feed__podcast-copy">

@@ -18,6 +18,7 @@ export const MOBILE_MORE_ITEMS = [
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Calendar", href: "/feed/bookings", icon: "bookings" },
   { label: "Seller Tools", href: "/seller", icon: "seller" },
+  { label: "Creator Studio", href: "/api/studio/launch", icon: "studio" },
   { label: "Settings", href: "/settings", icon: "settings" },
   { label: "Profile", href: "/feed/me", icon: "profile" },
   { label: "Theme", href: "#", icon: "theme", action: "theme" },
@@ -33,7 +34,8 @@ export type NavIconName =
   | "purchases"
   | "bookings"
   | "seller"
-  | "family-circle";
+  | "family-circle"
+  | "studio";
 
 export function NavIcon({ name }: { name: NavIconName }) {
   switch (name) {
@@ -117,6 +119,13 @@ export function NavIcon({ name }: { name: NavIconName }) {
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
           <path d="m9 16 2 2 4-4" />
+        </svg>
+      );
+    case "studio":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 7h4l2-3h4l2 3h4v12H4V7z" />
+          <circle cx="12" cy="13" r="3" />
         </svg>
       );
     case "seller":

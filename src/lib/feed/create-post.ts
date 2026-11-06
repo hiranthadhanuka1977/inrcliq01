@@ -7,8 +7,9 @@ import { moderatePostText } from "@/lib/moderation/server-text-moderation";
 import { isStoredUploadUrl } from "@/lib/uploads/store-upload";
 import type { ImageModerationBlock } from "@/lib/moderation/image-moderation-types";
 import { normalizeMediaTrim } from "@/lib/feed/media-trim";
-import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
-import type { FeedMedia, FeedMediaItem } from "@/types/feed/feed";
+import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_AUDIO_ITEMS, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
+import { DEFAULT_AUDIO_THEME } from "@/lib/feed/audio-theme";
+import type { FeedAudio, FeedMedia, FeedMediaItem } from "@/types/feed/feed";
 
 const MAX_TEXT_LENGTH = 2000;
 
@@ -112,6 +113,62 @@ function parseMediaItems(value: unknown): ParsedItems {
   return { ok: true, items };
 }
 
+type ParsedAudio = { ok: true; audio: FeedAudio | null } | { ok: false; error: string };
+type ParsedAudios = { ok: true; audios: FeedAudio[] } | { ok: false; error: string };
+
+function parseOneAudio(value: unknown): ParsedAudio {
+  if (value == null) return { ok: true, audio: null };
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return { ok: false, error: "That audio clip is not valid. Upload it again." };
+  }
+  const row = value as Record<string, unknown>;
+  const audioUrl = asString(row.audioUrl) || asString(row.audio_url);
+  if (!audioUrl) return { ok: true, audio: null };
+  if (!isStoredUploadUrl(audioUrl)) {
+    return { ok: false, error: "That audio upload is not valid. Upload it again." };
+  }
+  const coverUrl = asString(row.coverUrl) || asString(row.cover_url);
+  if (coverUrl && !isStoredUploadUrl(coverUrl)) {
+    return { ok: false, error: "That cover photo is not valid. Upload it again." };
+  }
+  const title = asString(row.title).slice(0, 140) || "Audio";
+  const duration = asString(row.duration).slice(0, 16) || "0:00";
+  return {
+    ok: true,
+    audio: {
+      title,
+      thumbnail: { url: coverUrl, alt: coverUrl ? `${title} cover` : "" },
+      current_time: "0:00",
+      duration,
+      progress: 0,
+      audio_url: audioUrl,
+      theme: DEFAULT_AUDIO_THEME,
+    },
+  };
+}
+
+function parseAudios(value: unknown): ParsedAudios {
+  if (value == null) return { ok: true, audios: [] };
+  const rows = Array.isArray(value)
+    ? value
+    : typeof value === "object" && Array.isArray((value as { clips?: unknown }).clips)
+      ? (value as { clips: unknown[] }).clips
+      : [value];
+  const audios: FeedAudio[] = [];
+  for (const row of rows.slice(0, MAX_POST_AUDIO_ITEMS)) {
+    const parsed = parseOneAudio(row);
+    if (!parsed.ok) return parsed;
+    if (parsed.audio) audios.push(parsed.audio);
+  }
+  return { ok: true, audios };
+}
+
+function audioJsonFor(audios: FeedAudio[]): Prisma.InputJsonValue | undefined {
+  if (!audios.length) return undefined;
+  if (audios.length === 1) return audios[0] as unknown as Prisma.InputJsonValue;
+  return { clips: audios } as unknown as Prisma.InputJsonValue;
+}
+
 /** Legacy fields derived from ordered items, so readers that only know `images` / `video_url` keep working. */
 function legacyMediaFields(items: FeedMediaItem[]) {
   const images = items.flatMap((item) => {
@@ -195,6 +252,12 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
     }
   }
 
+  const parsedAudio = parseAudios(payload.audio);
+  if (!parsedAudio.ok) {
+    return { ok: false as const, status: 400, error: parsedAudio.error };
+  }
+  const audios = parsedAudio.audios;
+
   const feeling = parseFeeling(payload.feeling);
   const location = parseLocation(payload.location);
   const tagged = parseTagged(payload.tagged);
@@ -204,7 +267,7 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
     payload.members_only === true ||
     payload.exclusive === true;
 
-  if (!text && !media) {
+  if (!text && !media && audios.length === 0) {
     return { ok: false as const, status: 400, error: "Write an update or add something to your post." };
   }
 
@@ -254,6 +317,7 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
       text,
       tags: tagsFromText(text),
       mediaJson: media as unknown as Prisma.InputJsonValue | undefined,
+      audioJson: audioJsonFor(audios),
       likes: 0,
       comments: 0,
       shares: 0,

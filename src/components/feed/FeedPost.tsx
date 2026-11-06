@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
+import PostAudioThumbs from "@/components/feed/PostAudioThumbs";
 import FeedVideoViewer from "@/components/feed/FeedVideoViewer";
 import FollowButton from "@/components/feed/FollowButton";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
@@ -344,6 +345,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const toolsRef = useRef<HTMLDivElement | null>(null);
   const deleteDialogRef = useRef<HTMLDivElement | null>(null);
   const isOwnPost = Boolean(item.is_own);
+  const audioClips = item.audios?.length ? item.audios : item.audio ? [item.audio] : [];
 
   useEffect(() => {
     setLocalFollowing(item.relationship.following);
@@ -608,10 +610,10 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
           </div>
         ) : null}
         {item.text ? <p>{item.text}</p> : null}
-        {item.audio ? (
+        {audioClips.length === 1 ? (
           <AudioFeedPlayer
             itemId={item.id}
-            audio={item.audio}
+            audio={audioClips[0]}
             showName={item.author.name}
             contentType={resolveAudioContentType(item.tags)}
           />
@@ -622,6 +624,9 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             membersOnly={item.members_only}
             onOpenMedia={canOpenMedia ? openMedia : undefined}
           />
+        ) : null}
+        {audioClips.length > 1 ? (
+          <PostAudioThumbs postId={item.id} clips={audioClips} showName={item.author.name} />
         ) : null}
       </div>
 

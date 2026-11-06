@@ -7,7 +7,8 @@ import { getSubscriptionForUser } from "@/lib/feed/subscription-service";
 import { prisma } from "@/lib/prisma";
 import { resolveSpecialRequestsAvailable, resolveSpecialRequestsEnabled } from "@/lib/seller/service-requests-store";
 import { getSessionUser } from "@/lib/session";
-import type { FeedAudio, FeedAuthor, FeedItem, FeedMedia } from "@/types/feed/feed";
+import { readFeedAudios } from "@/lib/feed/read-audios";
+import type { FeedAuthor, FeedItem, FeedMedia } from "@/types/feed/feed";
 import type {
   ProfileCollectionItem,
   ProfileData,
@@ -126,7 +127,10 @@ function mapDbPostToFeedItem(
     text: post.text,
     tags: post.tags,
     media: (post.mediaJson as FeedMedia | null) ?? null,
-    audio: (post.audioJson as FeedAudio | null) ?? null,
+    ...(() => {
+      const audios = readFeedAudios(post.audioJson);
+      return { audio: audios[0] ?? null, audios };
+    })(),
     engagement: {
       likes: post.likes,
       comments: post.comments,

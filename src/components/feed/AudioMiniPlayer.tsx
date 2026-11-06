@@ -60,8 +60,10 @@ export default function AudioMiniPlayer() {
         >
           <div className="audio-mini__track">
             <div className="audio-mini__art">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={audio.thumbnail.url} alt="" />
+              {audio.thumbnail.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={audio.thumbnail.url} alt="" />
+              ) : null}
             </div>
             <div className="audio-mini__meta">
               <strong className="audio-mini__title">{audio.title}</strong>

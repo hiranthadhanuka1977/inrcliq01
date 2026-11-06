@@ -63,6 +63,9 @@ export function AudioPlaybackProvider({ children }: { children: ReactNode }) {
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const observedItemIdRef = useRef<string | null>(null);
+  const fileRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef(audio);
+  audioRef.current = audio;
 
   const durationSeconds = useMemo(
     () => (audio ? parseTimecode(audio.duration) : 0),
@@ -75,7 +78,54 @@ export function AudioPlaybackProvider({ children }: { children: ReactNode }) {
   const showMiniPlayer = Boolean(activeItemId && audio && hasStarted && !isDismissed);
 
   useEffect(() => {
-    if (!playing || durationSeconds <= 0) {
+    const url = audio?.audio_url;
+    if (!url) {
+      fileRef.current?.pause();
+      fileRef.current = null;
+      return;
+    }
+    const element = new Audio(url);
+    fileRef.current = element;
+    const start = audio.trim_start ?? 0;
+    const place = () => {
+      if (element.currentTime < start) element.currentTime = start;
+    };
+    const onTime = () => {
+      const current = audioRef.current;
+      const clipStart = current?.trim_start ?? 0;
+      const clipEnd = current?.trim_end;
+      if (clipEnd != null && element.currentTime >= clipEnd - 0.05) {
+        element.pause();
+        element.currentTime = clipStart;
+        setPlaying(false);
+        setCurrentSeconds(0);
+        return;
+      }
+      setCurrentSeconds(Math.max(0, element.currentTime - clipStart));
+    };
+    element.addEventListener("loadedmetadata", place);
+    element.addEventListener("timeupdate", onTime);
+    return () => {
+      element.pause();
+      element.removeEventListener("loadedmetadata", place);
+      element.removeEventListener("timeupdate", onTime);
+      element.src = "";
+      if (fileRef.current === element) fileRef.current = null;
+    };
+  }, [audio?.audio_url, audio?.trim_start, audio?.trim_end]);
+
+  useEffect(() => {
+    const element = fileRef.current;
+    if (!element || !audio?.audio_url) return;
+    if (playing) {
+      void element.play().catch(() => setPlaying(false));
+    } else {
+      element.pause();
+    }
+  }, [playing, audio?.audio_url]);
+
+  useEffect(() => {
+    if (!playing || durationSeconds <= 0 || audio?.audio_url) {
       return;
     }
 
@@ -87,7 +137,7 @@ export function AudioPlaybackProvider({ children }: { children: ReactNode }) {
     }, 100);
 
     return () => window.clearInterval(interval);
-  }, [playing, durationSeconds]);
+  }, [playing, durationSeconds, audio?.audio_url]);
 
   useEffect(() => {
     if (currentSeconds >= durationSeconds && durationSeconds > 0 && playing) {
@@ -199,18 +249,31 @@ export function AudioPlaybackProvider({ children }: { children: ReactNode }) {
     setLiked(false);
   }, []);
 
+  const moveFile = useCallback((seconds: number) => {
+    const element = fileRef.current;
+    const current = audioRef.current;
+    if (!element || !current?.audio_url) return;
+    element.currentTime = (current.trim_start ?? 0) + seconds;
+  }, []);
+
   const skipBy = useCallback(
     (deltaSeconds: number) => {
-      setCurrentSeconds((prev) => Math.min(Math.max(prev + deltaSeconds, 0), durationSeconds));
+      setCurrentSeconds((prev) => {
+        const next = Math.min(Math.max(prev + deltaSeconds, 0), durationSeconds);
+        moveFile(next);
+        return next;
+      });
     },
-    [durationSeconds],
+    [durationSeconds, moveFile],
   );
 
   const seekTo = useCallback(
     (seconds: number) => {
-      setCurrentSeconds(Math.min(Math.max(seconds, 0), durationSeconds));
+      const next = Math.min(Math.max(seconds, 0), durationSeconds);
+      setCurrentSeconds(next);
+      moveFile(next);
     },
-    [durationSeconds],
+    [durationSeconds, moveFile],
   );
 
   const toggleLike = useCallback(() => {

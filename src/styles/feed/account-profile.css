@@ -786,11 +786,134 @@ a.account-profile__person-main:focus-visible {
 }
 
 .add-to-post__icon--photo { color: var(--color-online); }
+.add-to-post__icon--audio { color: #1aa6a6; }
 .add-to-post__icon--tag { color: var(--color-info); }
 .add-to-post__icon--feeling { color: var(--color-warning); }
 .add-to-post__icon--location { color: var(--color-error); }
 .add-to-post__icon--gif { color: var(--booking-accent); }
 .add-to-post__icon--more { color: var(--color-text-secondary); }
+
+.composer-audio-list {
+  display: grid;
+  gap: 8px;
+  margin-top: var(--space-3);
+}
+
+.composer-audio-list .composer-audio {
+  margin-top: 0;
+}
+
+.composer-audio {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: var(--space-3);
+  padding: 0.75rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+}
+
+.composer-audio__clip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.composer-audio__mark,
+.composer-audio__cover {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.composer-audio__mark {
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, #1aa6a6 18%, var(--color-bg-page));
+  color: #1aa6a6;
+}
+
+.composer-audio__mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+.composer-audio__copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.composer-audio__copy strong,
+.composer-audio__copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composer-audio__copy strong {
+  font-size: 0.92rem;
+}
+
+.composer-audio__copy span,
+.composer-audio__ask p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+}
+
+.composer-audio__ask {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.composer-audio__ask span {
+  margin-left: 0.35rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.composer-audio__cover-btn,
+.composer-audio__remove {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.composer-audio__cover-btn {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.composer-audio__cover-btn:disabled,
+.composer-audio__remove:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.composer-audio__remove {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.composer-audio__remove svg {
+  width: 14px;
+  height: 14px;
+}
 
 .composer-chips {
   display: flex;

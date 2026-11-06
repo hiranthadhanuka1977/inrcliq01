@@ -28,6 +28,10 @@ export interface FeedAudio {
   duration: string;
   progress?: number;
   audio_url?: string | null;
+  /** Seconds into the file where playback starts. */
+  trim_start?: number;
+  /** Seconds into the file where playback stops. */
+  trim_end?: number;
   theme?: FeedAudioTheme;
 }
 
@@ -95,7 +99,10 @@ export interface FeedItem {
   text: string;
   tags: string[];
   media: FeedMedia | null;
+  /** First clip, kept for posts that play one audio. */
   audio?: FeedAudio | null;
+  /** Every clip on the post. More than one is shown as thumbnails. */
+  audios?: FeedAudio[];
   engagement: FeedEngagement;
   relationship: FeedRelationship;
   posted_at: string;

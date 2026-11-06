@@ -1,0 +1,1 @@
+ALTER TABLE "StudioProject" ADD COLUMN "durationMs" INTEGER NOT NULL DEFAULT 0;

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import type { AuthenticatedPartner } from "@/lib/partner-api/auth";
 import type { PartnerErrorCode } from "@/lib/partner-api/http";
 import type { PartnerPostInput } from "@/lib/partner-api/input";
+import { readFeedAudios } from "@/lib/feed/read-audios";
 import type { FeedAudio, FeedMedia } from "@/types/feed/feed";
 
 export const PARTNER_POSTS_PER_MINUTE = 60;
@@ -78,7 +79,7 @@ function serializeMedia(media: FeedMedia | null, audio: FeedAudio | null) {
 
 export function serializePartnerPost(post: PartnerPostRow) {
   const media = post.mediaJson as FeedMedia | null;
-  const audio = post.audioJson as FeedAudio | null;
+  const audio = readFeedAudios(post.audioJson)[0] ?? null;
   return {
     id: post.id,
     externalId: post.externalId,

@@ -3,6 +3,11 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+generator studio {
+  provider = "prisma-client"
+  output   = "../creator-studio/generated/prisma"
+}
+
 datasource db {
   provider = "postgresql"
 }
@@ -163,6 +168,11 @@ model User {
   authoredFeedPosts              FeedPost[]
   profile                        UserProfile?
   specialRequestCatalog          SpecialRequestCatalog?
+  studioShows                    StudioShow[]
+  studioProjects                 StudioProject[]
+  studioSessions                 StudioSession[]
+  studioLaunchCodes              StudioLaunchCode[]
+  studioComments                 StudioComment[]
 
   @@index([ageZone])
 }
@@ -408,6 +418,8 @@ model CreatorUser {
   specialRequests  SpecialRequest[]
   unavailableDates CreatorUnavailableDate[]
   feedPartners     FeedPartnerCreator[]
+  studioShows      StudioShow[]
+  studioProjects   StudioProject[]
 
   @@index([name])
 }
@@ -856,4 +868,186 @@ model GuardianSafetyAlert {
   @@index([childUserId, createdAt])
   @@index([chatMessageId])
   @@index([holdId])
+}
+
+enum StudioFamily {
+  SHORT
+  VIDEO
+  PODCAST
+  AUDIOBOOK
+  MUSIC
+  SOUND
+  PROMO
+}
+
+enum StudioShape {
+  SHORT_VIDEO
+  SHORT_AUDIO
+  FILM
+  SERIES_EPISODE
+  TALK
+  LESSON
+  PERFORMANCE
+  MUSIC_VIDEO
+  PODCAST_SINGLE
+  PODCAST_EPISODE
+  BOOK
+  BOOK_IN_SERIES
+  SINGLE
+  EP_TRACK
+  ALBUM_TRACK
+  MEDITATION
+  SLEEP
+  ASMR
+  SOUNDSCAPE
+  TRAILER
+  CLIP
+  SAMPLE
+  HIGHLIGHT
+}
+
+enum StudioShowKind {
+  PODCAST
+  AUDIOBOOK
+  SERIES
+  EP
+  ALBUM
+  BOOK_SERIES
+}
+
+enum StudioProjectStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  HIDDEN
+}
+
+enum StudioAudience {
+  PUBLIC
+  FOLLOWERS
+  MEMBERS
+  UNLISTED
+}
+
+enum StudioMediaKind {
+  VIDEO
+  AUDIO
+}
+
+enum StudioAgeRating {
+  ALL
+  TEENS
+  MATURE
+  ADULT
+}
+
+/// A podcast, video series, book series, EP, or album that studio pieces belong to.
+model StudioShow {
+  id          String         @id @default(cuid())
+  userId      String
+  creatorId   String
+  title       String
+  description String         @default("")
+  coverUrl    String?
+  kind        StudioShowKind
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator  CreatorUser     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  projects StudioProject[]
+
+  @@index([userId])
+  @@index([creatorId])
+}
+
+/// One publishable video or audio work from Creator Studio.
+model StudioProject {
+  id                String              @id @default(cuid())
+  userId            String
+  creatorId         String
+  showId            String?
+  parentProjectId   String?
+  family            StudioFamily
+  shape             StudioShape
+  status            StudioProjectStatus @default(DRAFT)
+  title             String              @default("")
+  description       String              @default("")
+  language          String              @default("en")
+  category          String              @default("entertainment")
+  ageRating         StudioAgeRating     @default(ALL)
+  thumbnailUrl      String?
+  mediaUrl          String?
+  mediaKind         StudioMediaKind?
+  /// Playback start, in milliseconds. Zero plays from the beginning of the file.
+  trimStartMs       Int                 @default(0)
+  /// Playback end, in milliseconds. Null plays through to the end of the file.
+  trimEndMs         Int?
+  /// Full file length in milliseconds, measured in the clip editor. Zero until the file has loaded.
+  durationMs        Int                 @default(0)
+  audience          StudioAudience      @default(PUBLIC)
+  publishAt         DateTime?
+  publishedAt       DateTime?
+  pushToFeed        Boolean             @default(false)
+  feedPostId        String?
+  commentsEnabled   Boolean             @default(true)
+  /// NONE | PRODUCT | REQUEST
+  attachmentType    String              @default("NONE")
+  attachmentId      String?
+  rightsConfirmed   Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator  CreatorUser     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  show     StudioShow?      @relation(fields: [showId], references: [id], onDelete: SetNull)
+  parent   StudioProject?   @relation("StudioPromoOf", fields: [parentProjectId], references: [id], onDelete: SetNull)
+  promos   StudioProject[]  @relation("StudioPromoOf")
+  comments StudioComment[]
+
+  @@index([userId, status])
+  @@index([status, publishedAt])
+  @@index([showId])
+  @@index([creatorId])
+  @@index([parentProjectId])
+}
+
+model StudioComment {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+
+  project StudioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+/// Short-lived handoff from the main app into the studio origin.
+model StudioLaunchCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Session cookie for the separate Creator Studio app.
+model StudioSession {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

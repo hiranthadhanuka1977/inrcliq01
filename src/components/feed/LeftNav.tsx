@@ -14,6 +14,7 @@ const navItems: {
   href: string;
   icon: NavIconName;
   badge?: string;
+  blank?: boolean;
 }[] = [
   { label: "Home", href: "/feed", icon: "home" },
   { label: "Messages", href: "/feed/messages", icon: "messages" },
@@ -31,6 +32,13 @@ const familyCenterNavItem = {
   label: "Family Circle",
   href: "/family-circle",
   icon: "family-circle" as const,
+};
+
+const creatorStudioNavItem = {
+  label: "Creator Studio",
+  href: "/api/studio/launch",
+  icon: "studio" as const,
+  blank: true,
 };
 
 function isActive(pathname: string, href: string): boolean {
@@ -58,10 +66,14 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
   const { firstName: sessionFirstName, avatarUrl, avatarColor, verified, isGuardian } =
     useFeedSession();
   const visibleNavItems = useMemo(() => {
-    if (!isGuardian) return navItems;
     const items = [...navItems];
     const sellerIndex = items.findIndex((item) => item.label === "Seller Tools");
-    items.splice(sellerIndex + 1, 0, familyCenterNavItem);
+    const insertAt = sellerIndex + 1;
+    if (isGuardian) {
+      items.splice(insertAt, 0, familyCenterNavItem, creatorStudioNavItem);
+    } else {
+      items.splice(insertAt, 0, creatorStudioNavItem);
+    }
     return items;
   }, [isGuardian]);
   const { theme, toggleTheme } = useFeedTheme();
@@ -170,21 +182,40 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
             return (
               <div key={item.label}>
                 {showTopDivider ? <hr className="nav-separator" /> : null}
-                <Link
-                  className={`nav-item${active ? " active" : ""}`}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <span className="nav-item__label">
-                    <span className={`nav-icon${item.icon === "home" ? " nav-icon--home" : ""}`} aria-hidden="true">
-                      <NavIcon name={item.icon} />
+                {item.blank ? (
+                  <a
+                    className={`nav-item${active ? " active" : ""}`}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="nav-item__label">
+                      <span className={`nav-icon${item.icon === "home" ? " nav-icon--home" : ""}`} aria-hidden="true">
+                        <NavIcon name={item.icon} />
+                      </span>
+                      <span className="nav-item__text">
+                        {item.label}
+                        {badge ? <span className="badge">{badge}</span> : null}
+                      </span>
                     </span>
-                    <span className="nav-item__text">
-                      {item.label}
-                      {badge ? <span className="badge">{badge}</span> : null}
+                  </a>
+                ) : (
+                  <Link
+                    className={`nav-item${active ? " active" : ""}`}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <span className="nav-item__label">
+                      <span className={`nav-icon${item.icon === "home" ? " nav-icon--home" : ""}`} aria-hidden="true">
+                        <NavIcon name={item.icon} />
+                      </span>
+                      <span className="nav-item__text">
+                        {item.label}
+                        {badge ? <span className="badge">{badge}</span> : null}
+                      </span>
                     </span>
-                  </span>
-                </Link>
+                  </Link>
+                )}
                 {showBottomDivider && index < visibleNavItems.length - 1 ? (
                   <hr className="nav-separator" />
                 ) : null}

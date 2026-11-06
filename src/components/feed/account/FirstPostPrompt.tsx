@@ -18,8 +18,9 @@ import ComposerVideoEditor, {
 } from "@/components/feed/account/ComposerVideoEditor";
 import ShareOnSocialPrompt from "@/components/feed/account/ShareOnSocialPrompt";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
-import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
+import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_AUDIO_ITEMS, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
 import { mosaicLayout } from "@/lib/feed/media-mosaic";
+import { formatTimecode } from "@/lib/feed/audio-time";
 import { formatClock } from "@/lib/feed/media-trim";
 import {
   formatImageModerationError,
@@ -28,6 +29,7 @@ import {
   shouldModerateUploadFile,
   type ImageModerationBlock,
 } from "@/lib/moderation/nsfw-image-moderation";
+import { AUDIO_MAX_BYTES, looksLikeAudioFile } from "@/lib/uploads/audio-limits";
 import { formatByteLimit, looksLikeVideoFile, VIDEO_MAX_BYTES } from "@/lib/uploads/video-limits";
 import {
   inspectVideo,
@@ -151,6 +153,38 @@ type ComposerItem = {
 };
 
 const LEAVE_DURING_UPLOAD_MESSAGE = "Upload in progress. Are you sure you want to leave?";
+
+type ComposerAudio = {
+  id: string;
+  name: string;
+  title: string;
+  durationLabel: string;
+  url: string | null;
+  status: "uploading" | "ready";
+  coverUrl: string | null;
+  coverPreviewUrl: string | null;
+  coverStatus: "idle" | "uploading" | "ready";
+};
+
+function audioTitleFromFile(name: string) {
+  const base = name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
+  return base.slice(0, 140) || "Audio";
+}
+
+function readAudioDuration(file: File) {
+  return new Promise<number>((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = document.createElement("audio");
+    const finish = (seconds: number) => {
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(seconds) && seconds > 0 ? seconds : 0);
+    };
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => finish(audio.duration);
+    audio.onerror = () => finish(0);
+    audio.src = url;
+  });
+}
 
 function itemStatusLabel(item: ComposerItem) {
   switch (item.status) {
@@ -351,6 +385,22 @@ function GifIcon() {
   );
 }
 
+function AudioIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 18V6.2L19 4v11.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="6.5" cy="18" r="2.4" fill="currentColor" />
+      <circle cx="16.5" cy="15.2" r="2.4" fill="currentColor" />
+    </svg>
+  );
+}
+
 function MoreIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -385,6 +435,12 @@ export default function FirstPostPrompt({
   const isModal = variant === "modal";
   const rootRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const coverTargetIdRef = useRef<string | null>(null);
+  const audioControllersRef = useRef(new Map<string, AbortController>());
+  const coverControllersRef = useRef(new Map<string, AbortController>());
+  const coverBlobsRef = useRef(new Map<string, string>());
   const imageWarningRef = useRef<HTMLDivElement>(null);
   const textWarningRef = useRef<HTMLDivElement>(null);
 
@@ -399,6 +455,7 @@ export default function FirstPostPrompt({
   const [panel, setPanel] = useState<ComposerPanel>(null);
 
   const [items, setItems] = useState<ComposerItem[]>([]);
+  const [audioClips, setAudioClips] = useState<ComposerAudio[]>([]);
   const [videoWarning, setVideoWarning] = useState<VideoValidationError | null>(null);
   const [dropActive, setDropActive] = useState(false);
   const [mediaEditorOpen, setMediaEditorOpen] = useState(false);
@@ -442,8 +499,11 @@ export default function FirstPostPrompt({
   });
 
   const hasAttachment = Boolean(feeling) || Boolean(location) || tagged.length > 0;
-  const mediaBusy = items.some((item) => item.status !== "ready" || item.posterUploading);
-  const canPost = Boolean(text.trim() || items.length);
+  const audioBusy = audioClips.some((clip) => clip.status === "uploading" || clip.coverStatus === "uploading");
+  const mediaBusy = items.some((item) => item.status !== "ready" || item.posterUploading) || audioBusy;
+  const canPost = Boolean(
+    text.trim() || items.length || audioClips.some((clip) => clip.status === "ready" && clip.url),
+  );
   const gifItem = items.find((item) => item.kind === "gif") ?? null;
   const editingItem = editingId ? (items.find((item) => item.id === editingId) ?? null) : null;
   const videoEditingItem = videoEditingId
@@ -500,6 +560,12 @@ export default function FirstPostPrompt({
       posterControllers.clear();
       posterBlobUrls.forEach((url) => URL.revokeObjectURL(url));
       posterBlobUrls.clear();
+      audioControllersRef.current.forEach((controller) => controller.abort());
+      audioControllersRef.current.clear();
+      coverControllersRef.current.forEach((controller) => controller.abort());
+      coverControllersRef.current.clear();
+      coverBlobsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      coverBlobsRef.current.clear();
     };
   }, []);
 
@@ -640,6 +706,7 @@ export default function FirstPostPrompt({
     }
     if (mediaBusy && !window.confirm(LEAVE_DURING_UPLOAD_MESSAGE)) return;
     clearMedia();
+    clearAudio();
     setVisible(false);
     if (!persist) return;
     try {
@@ -691,6 +758,37 @@ export default function FirstPostPrompt({
     setItems((current) => current.filter((item) => item.id !== id));
     setEditingId((current) => (current === id ? null : current));
     setVideoEditingId((current) => (current === id ? null : current));
+  }
+
+  function releaseCover(id: string) {
+    coverControllersRef.current.get(id)?.abort();
+    coverControllersRef.current.delete(id);
+    const preview = coverBlobsRef.current.get(id);
+    if (preview) URL.revokeObjectURL(preview);
+    coverBlobsRef.current.delete(id);
+  }
+
+  function patchAudio(id: string, patch: Partial<ComposerAudio>) {
+    setAudioClips((current) => current.map((clip) => (clip.id === id ? { ...clip, ...patch } : clip)));
+  }
+
+  function removeAudio(id: string) {
+    audioControllersRef.current.get(id)?.abort();
+    audioControllersRef.current.delete(id);
+    releaseCover(id);
+    setAudioClips((current) => current.filter((clip) => clip.id !== id));
+  }
+
+  function clearAudio() {
+    audioControllersRef.current.forEach((controller) => controller.abort());
+    audioControllersRef.current.clear();
+    coverControllersRef.current.forEach((controller) => controller.abort());
+    coverControllersRef.current.clear();
+    coverBlobsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    coverBlobsRef.current.clear();
+    setAudioClips([]);
+    if (audioInputRef.current) audioInputRef.current.value = "";
+    if (coverInputRef.current) coverInputRef.current.value = "";
   }
 
   function clearMedia() {
@@ -842,6 +940,160 @@ export default function FirstPostPrompt({
         removeItem(id);
         setError("Unable to upload that file.");
       }
+    }
+  }
+
+  async function uploadAudioClip(id: string, file: File, controller: AbortController) {
+    const stillCurrent = () => audioControllersRef.current.get(id) === controller;
+    const durationSeconds = await readAudioDuration(file);
+    if (!stillCurrent()) return;
+    patchAudio(id, {
+      durationLabel: durationSeconds ? formatTimecode(Math.max(1, Math.round(durationSeconds))) : "",
+    });
+
+    const body = new FormData();
+    body.append("file", file);
+    try {
+      const response = await fetch("/api/feed/uploads/audio", {
+        method: "POST",
+        body,
+        signal: controller.signal,
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string; url?: string };
+      if (!stillCurrent()) return;
+      if (!response.ok || !data.url) {
+        removeAudio(id);
+        setError(data.error ?? "Unable to upload that audio clip.");
+        return;
+      }
+      audioControllersRef.current.delete(id);
+      patchAudio(id, { url: data.url, status: "ready" });
+    } catch {
+      if (!stillCurrent()) return;
+      removeAudio(id);
+      setError("Unable to upload that audio clip.");
+    }
+  }
+
+  function handleAudioFiles(fileList: FileList | null) {
+    const picked = Array.from(fileList ?? []);
+    if (audioInputRef.current) audioInputRef.current.value = "";
+    if (!picked.length) return;
+    setError("");
+    setImageWarning(null);
+    setPanel(null);
+
+    const room = MAX_POST_AUDIO_ITEMS - audioClips.length;
+    if (room <= 0) {
+      setError(`A post can have up to ${MAX_POST_AUDIO_ITEMS} audio clips.`);
+      return;
+    }
+
+    const accepted: File[] = [];
+    for (const file of picked) {
+      if (!looksLikeAudioFile(file)) {
+        setError("Choose an audio clip (MP3, M4A, AAC, WAV, or OGG).");
+        continue;
+      }
+      if (file.size <= 0 || file.size > AUDIO_MAX_BYTES) {
+        setError(`Audio clips must be ${formatByteLimit(AUDIO_MAX_BYTES)} or smaller.`);
+        continue;
+      }
+      accepted.push(file);
+    }
+    const files = accepted.slice(0, room);
+    if (accepted.length > room) {
+      setError(
+        `A post can have up to ${MAX_POST_AUDIO_ITEMS} audio clips, so only the first ${room} ${
+          room === 1 ? "file was" : "files were"
+        } added.`,
+      );
+    }
+    if (!files.length) return;
+
+    const added: ComposerAudio[] = files.map((file) => {
+      const id = createItemId();
+      const controller = new AbortController();
+      audioControllersRef.current.set(id, controller);
+      void uploadAudioClip(id, file, controller);
+      return {
+        id,
+        name: file.name,
+        title: audioTitleFromFile(file.name),
+        durationLabel: "",
+        url: null,
+        status: "uploading",
+        coverUrl: null,
+        coverPreviewUrl: null,
+        coverStatus: "idle",
+      };
+    });
+    setAudioClips((current) => [...current, ...added].slice(0, MAX_POST_AUDIO_ITEMS));
+  }
+
+  async function handleCoverFile(fileList: FileList | null) {
+    const file = fileList?.[0];
+    const id = coverTargetIdRef.current;
+    if (coverInputRef.current) coverInputRef.current.value = "";
+    if (!file || !id) return;
+    setError("");
+    setImageWarning(null);
+
+    if (!file.type.startsWith("image/")) {
+      setError("Choose a photo for the cover (JPG, PNG, or WebP).");
+      return;
+    }
+
+    releaseCover(id);
+    const previewUrl = URL.createObjectURL(file);
+    coverBlobsRef.current.set(id, previewUrl);
+    const controller = new AbortController();
+    coverControllersRef.current.set(id, controller);
+    patchAudio(id, { coverPreviewUrl: previewUrl, coverUrl: null, coverStatus: "uploading" });
+
+    let passToken: string | undefined;
+    if (shouldModerateUploadFile(file)) {
+      const moderation = await moderateImageFile(file);
+      if (coverControllersRef.current.get(id) !== controller) return;
+      if (!moderation.result.allowed) {
+        releaseCover(id);
+        patchAudio(id, { coverPreviewUrl: null, coverUrl: null, coverStatus: "idle" });
+        setImageWarning(moderation.result);
+        return;
+      }
+      passToken = moderation.passToken ?? undefined;
+    }
+
+    const body = new FormData();
+    body.append("file", file);
+    if (passToken) body.append("moderationPassToken", passToken);
+    try {
+      const response = await fetch("/api/feed/uploads", { method: "POST", body, signal: controller.signal });
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        url?: string;
+        moderation?: UploadModerationPayload;
+      };
+      if (coverControllersRef.current.get(id) !== controller) return;
+      if (response.status === 422 && data.moderation) {
+        releaseCover(id);
+        patchAudio(id, { coverPreviewUrl: null, coverUrl: null, coverStatus: "idle" });
+        setImageWarning(uploadModerationToBlock(data.moderation));
+        return;
+      }
+      if (!response.ok || !data.url) {
+        releaseCover(id);
+        patchAudio(id, { coverPreviewUrl: null, coverUrl: null, coverStatus: "idle" });
+        setError(data.error ?? "Unable to upload that cover photo.");
+        return;
+      }
+      coverControllersRef.current.delete(id);
+      patchAudio(id, { coverUrl: data.url, coverStatus: "ready" });
+    } catch {
+      if (coverControllersRef.current.get(id) !== controller) return;
+      releaseCover(id);
+      patchAudio(id, { coverPreviewUrl: null, coverUrl: null, coverStatus: "idle" });
+      setError("Unable to upload that cover photo.");
     }
   }
 
@@ -1059,7 +1311,7 @@ export default function FirstPostPrompt({
     event.preventDefault();
     setError("");
     setTextWarning(null);
-    if (mediaBusy || items.some((item) => !item.url)) return;
+    if (mediaBusy || items.some((item) => !item.url) || audioClips.some((clip) => !clip.url)) return;
     setSubmitting(true);
     try {
       const response = await fetch("/api/feed/posts", {
@@ -1085,6 +1337,18 @@ export default function FirstPostPrompt({
             slug: person.slug,
           })),
           membersOnly: verified ? exclusiveContent : false,
+          audio: audioClips.some((clip) => clip.url)
+            ? {
+                clips: audioClips
+                  .filter((clip) => clip.url)
+                  .map((clip) => ({
+                    title: clip.title,
+                    audioUrl: clip.url,
+                    duration: clip.durationLabel,
+                    coverUrl: clip.coverUrl,
+                  })),
+              }
+            : null,
         }),
       });
       const data = (await response.json().catch(() => ({}))) as {
@@ -1211,6 +1475,25 @@ export default function FirstPostPrompt({
         tabIndex={-1}
         aria-hidden="true"
         onChange={(event) => handleFiles(event.target.files)}
+      />
+      <input
+        ref={audioInputRef}
+        className="sr-only"
+        type="file"
+        accept="audio/mpeg,audio/mp4,audio/aac,audio/wav,audio/ogg,audio/webm,.mp3,.m4a,.aac,.wav,.ogg,.webm"
+        multiple
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(event) => handleAudioFiles(event.target.files)}
+      />
+      <input
+        ref={coverInputRef}
+        className="sr-only"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(event) => void handleCoverFile(event.target.files)}
       />
 
       {mediaEditorOpen ? (
@@ -1450,6 +1733,60 @@ export default function FirstPostPrompt({
           </div>
         ) : null}
 
+        {audioClips.length ? (
+          <div className="composer-audio-list">
+            {audioClips.map((clip) => (
+              <div key={clip.id} className="composer-audio">
+                <div className="composer-audio__clip">
+                  {clip.coverPreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="composer-audio__cover" src={clip.coverPreviewUrl} alt="" />
+                  ) : (
+                    <span className="composer-audio__mark" aria-hidden="true">
+                      <AudioIcon />
+                    </span>
+                  )}
+                  <span className="composer-audio__copy">
+                    <strong>{clip.title}</strong>
+                    <span>
+                      {clip.status === "uploading" ? "Uploading audio…" : clip.durationLabel || "Audio clip"}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    className="composer-audio__remove"
+                    aria-label={`Remove ${clip.title}`}
+                    onClick={() => removeAudio(clip.id)}
+                    disabled={submitting}
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
+                <div className="composer-audio__ask">
+                  <p>
+                    Cover photo <span>optional</span>
+                  </p>
+                  <button
+                    type="button"
+                    className="composer-audio__cover-btn"
+                    onClick={() => {
+                      coverTargetIdRef.current = clip.id;
+                      coverInputRef.current?.click();
+                    }}
+                    disabled={submitting || clip.coverStatus === "uploading"}
+                  >
+                    {clip.coverStatus === "uploading"
+                      ? "Uploading cover…"
+                      : clip.coverUrl
+                        ? "Replace cover"
+                        : "Add cover photo"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <div className="add-to-post">
           <span className="add-to-post__label">Add to your post</span>
           <div className="add-to-post__icons">
@@ -1466,6 +1803,15 @@ export default function FirstPostPrompt({
               }}
             >
               <PhotoIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--audio${audioClips.length ? " is-active" : ""}`}
+              aria-label="Audio clip"
+              title="Audio clip"
+              onClick={() => audioInputRef.current?.click()}
+            >
+              <AudioIcon />
             </button>
             <button
               type="button"
@@ -1687,6 +2033,7 @@ export default function FirstPostPrompt({
               {(
                 [
                   ["photo", "Photo/video", "add-to-post__icon--photo", <PhotoIcon key="p" />],
+                  ["audio", "Audio clip", "add-to-post__icon--audio", <AudioIcon key="a" />],
                   ["tag", "Tag people", "add-to-post__icon--tag", <TagIcon key="t" />],
                   ["feeling", "Feeling/activity", "add-to-post__icon--feeling", <FeelingIcon key="f" />],
                   ["location", "Check in", "add-to-post__icon--location", <LocationIcon key="l" />],
@@ -1701,6 +2048,11 @@ export default function FirstPostPrompt({
                     if (id === "photo") {
                       fileInputRef.current?.click();
                       setPanel("photo");
+                      return;
+                    }
+                    if (id === "audio") {
+                      audioInputRef.current?.click();
+                      setPanel(null);
                       return;
                     }
                     setPanel(id);
@@ -1757,8 +2109,8 @@ export default function FirstPostPrompt({
         </fieldset>
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
-            Add up to {MAX_POST_MEDIA_ITEMS} photos and videos in any mix. Tags, places, feelings, and GIFs are
-            optional.
+            Add up to {MAX_POST_MEDIA_ITEMS} photos and videos, or up to {MAX_POST_AUDIO_ITEMS} audio clips. A cover
+            photo is optional.
           </p>
           <div className="first-post-prompt__actions">
             {isModal ? null : (

@@ -2,7 +2,8 @@ import { unlink } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
-import type { FeedAudio, FeedMedia } from "@/types/feed/feed";
+import { readFeedAudios } from "@/lib/feed/read-audios";
+import type { FeedMedia } from "@/types/feed/feed";
 
 /** Folder the feed composer uploads into (see /api/feed/uploads). Files elsewhere are never deleted. */
 const FEED_UPLOAD_PREFIX = "uploads/feed-posts/";
@@ -25,13 +26,12 @@ function feedUploadPathname(url: string): string | null {
 
 function postMediaUrls(mediaJson: unknown, audioJson: unknown): string[] {
   const media = mediaJson as Partial<FeedMedia> | null;
-  const audio = audioJson as Partial<FeedAudio> | null;
+  const audios = readFeedAudios(audioJson);
   return [
     ...(Array.isArray(media?.images) ? media.images.map((image) => image?.url) : []),
     ...(Array.isArray(media?.items) ? media.items.flatMap((item) => [item?.url, item?.poster]) : []),
     media?.video_url,
-    audio?.audio_url,
-    audio?.thumbnail?.url,
+    ...audios.flatMap((audio) => [audio.audio_url, audio.thumbnail?.url]),
   ].filter((url): url is string => typeof url === "string" && url.length > 0);
 }
 

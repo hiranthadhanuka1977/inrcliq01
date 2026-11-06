@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isPlayableVideoMedia, SAMPLE_FEED_VIDEO_URL } from "@/lib/feed/sample-video";
 import { SEEDED_CREATOR_SOURCES } from "@/lib/settings/feed-dashboard";
 import { formatUserName } from "@/lib/settings/users";
+import { readFeedAudios } from "@/lib/feed/read-audios";
 import type { FeedAudio, FeedMedia } from "@/types/feed/feed";
 
 export type SettingsFeedPostRow = {
@@ -58,7 +59,7 @@ export async function listSettingsFeedPosts(): Promise<SettingsFeedPostRow[]> {
 
   return posts.map((post, index) => {
     const media = (post.mediaJson as FeedMedia | null) ?? null;
-    const audio = (post.audioJson as FeedAudio | null) ?? null;
+    const audio = readFeedAudios(post.audioJson)[0] ?? null;
 
     return {
       position: index + 1,

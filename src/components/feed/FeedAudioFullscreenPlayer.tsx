@@ -119,8 +119,10 @@ export default function FeedAudioFullscreenPlayer() {
         </header>
 
         <div className="audio-fullscreen__art">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={audio.thumbnail.url} alt="" />
+          {audio.thumbnail.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={audio.thumbnail.url} alt="" />
+          ) : null}
         </div>
 
         <div className="audio-fullscreen__meta">
