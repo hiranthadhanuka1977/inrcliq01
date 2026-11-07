@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
-import { createOwnTextPost } from "@/lib/feed/create-post";
+import { createOwnTextPost, updateOwnFeedPost } from "@/lib/feed/create-post";
 import { deleteOwnFeedPost, hidePostFromFeed } from "@/lib/feed/post-actions";
 
 function isMissingHiddenModel(error: unknown) {
@@ -42,6 +42,36 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("POST /api/feed/posts error", error);
     return NextResponse.json({ error: "Unable to publish your post." }, { status: 500 });
+  }
+}
+
+/** Replace the text and attachments on a post the current user created. */
+export async function PUT(request: Request) {
+  try {
+    const { user, error } = await requireSessionUser();
+    if (error) return error;
+
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const postId = readPostId(body);
+    if (!postId) {
+      return NextResponse.json({ error: "Post id is required." }, { status: 400 });
+    }
+
+    const result = await updateOwnFeedPost(user.id, postId, body);
+    if (!result.ok) {
+      return NextResponse.json(
+        {
+          error: result.error,
+          ...("moderation" in result && result.moderation ? { moderation: result.moderation } : {}),
+        },
+        { status: result.status },
+      );
+    }
+
+    return NextResponse.json({ ok: true, postId: result.postId });
+  } catch (error) {
+    console.error("PUT /api/feed/posts error", error);
+    return NextResponse.json({ error: "Unable to save your post." }, { status: 500 });
   }
 }
 

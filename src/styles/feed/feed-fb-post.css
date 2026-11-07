@@ -442,6 +442,8 @@
 .feed-surface--simple .post-media--collage {
   aspect-ratio: 4 / 3;
   max-height: 560px;
+  gap: 4px;
+  background: var(--post-card-bg);
 }
 
 .feed-surface--simple .post-media:not(.post-media--collage):not(.post-media--subscriber-locked),

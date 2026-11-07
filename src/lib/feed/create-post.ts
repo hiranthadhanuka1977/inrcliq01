@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureCreatorUserForAuthUser } from "@/lib/feed/creator-user-bridge";
 import { formatContentModerationError } from "@/lib/moderation/evaluate-predictions";
@@ -133,6 +133,9 @@ function parseOneAudio(value: unknown): ParsedAudio {
   }
   const title = asString(row.title).slice(0, 140) || "Audio";
   const duration = asString(row.duration).slice(0, 16) || "0:00";
+  const trimStart = typeof row.trimStart === "number" ? row.trimStart : typeof row.trim_start === "number" ? row.trim_start : undefined;
+  const trimEnd = typeof row.trimEnd === "number" ? row.trimEnd : typeof row.trim_end === "number" ? row.trim_end : undefined;
+  const theme = row.theme && typeof row.theme === "object" ? (row.theme as FeedAudio["theme"]) : DEFAULT_AUDIO_THEME;
   return {
     ok: true,
     audio: {
@@ -142,7 +145,9 @@ function parseOneAudio(value: unknown): ParsedAudio {
       duration,
       progress: 0,
       audio_url: audioUrl,
-      theme: DEFAULT_AUDIO_THEME,
+      ...(trimStart != null ? { trim_start: trimStart } : {}),
+      ...(trimEnd != null ? { trim_end: trimEnd } : {}),
+      theme,
     },
   };
 }
@@ -209,14 +214,32 @@ function buildMediaJson(payload: {
   };
 }
 
-export async function createOwnTextPost(userId: string, raw: unknown) {
+type PostWriteResult =
+  | {
+      ok: true;
+      text: string;
+      tags: string[];
+      media: FeedMedia | null;
+      audios: FeedAudio[];
+      membersOnly: boolean;
+      canPostExclusive: boolean;
+    }
+  | {
+      ok: false;
+      status: number;
+      error: string;
+      moderation?: Pick<ImageModerationBlock, "title" | "message" | "category" | "confidence" | "verificationFailed">;
+    };
+
+/** Shared checks for creating and editing a post the signed-in user owns. */
+async function assembleOwnPostWrite(userId: string, raw: unknown): Promise<PostWriteResult> {
   const payload = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const text = normalizePostText(payload.text);
   if (text.length > MAX_TEXT_LENGTH) {
     return {
       ok: false as const,
       status: 400,
-      error: `Keep your first post under ${MAX_TEXT_LENGTH} characters.`,
+      error: `Keep your post under ${MAX_TEXT_LENGTH} characters.`,
     };
   }
 
@@ -309,20 +332,44 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
   const canPostExclusive = Boolean(profileVerified?.verified || creator.verified);
   const membersOnly = wantsExclusive && canPostExclusive;
 
+  return {
+    ok: true as const,
+    text,
+    tags: tagsFromText(text),
+    media,
+    audios,
+    membersOnly,
+    canPostExclusive,
+  };
+}
+
+export async function createOwnTextPost(userId: string, raw: unknown) {
+  const assembled = await assembleOwnPostWrite(userId, raw);
+  if (!assembled.ok) return assembled;
+
+  const creator = await ensureCreatorUserForAuthUser(userId);
+  if (!creator) {
+    return {
+      ok: false as const,
+      status: 409,
+      error: "Finish setting up your profile before posting.",
+    };
+  }
+
   const postId = newId();
   await prisma.feedPost.create({
     data: {
       id: postId,
       category: "personal",
-      text,
-      tags: tagsFromText(text),
-      mediaJson: media as unknown as Prisma.InputJsonValue | undefined,
-      audioJson: audioJsonFor(audios),
+      text: assembled.text,
+      tags: assembled.tags,
+      mediaJson: assembled.media as unknown as Prisma.InputJsonValue | undefined,
+      audioJson: audioJsonFor(assembled.audios),
       likes: 0,
       comments: 0,
       shares: 0,
       following: false,
-      membersOnly,
+      membersOnly: assembled.membersOnly,
       postedAt: new Date(),
       postedAgo: "Just now",
       sortOrder: 0,
@@ -358,4 +405,46 @@ export async function createOwnTextPost(userId: string, raw: unknown) {
         ? `/feed/profile/${profile.slug}`
         : null,
   };
+}
+
+export async function updateOwnFeedPost(userId: string, postId: string, raw: unknown) {
+  const id = postId.trim();
+  if (!id) {
+    return { ok: false as const, status: 400, error: "Post id is required." };
+  }
+
+  const post = await prisma.feedPost.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      userId: true,
+      membersOnly: true,
+      creator: { select: { userId: true } },
+    },
+  });
+  if (!post) {
+    return { ok: false as const, status: 404, error: "Post not found." };
+  }
+  const ownsPost = post.userId === userId || post.creator.userId === userId;
+  if (!ownsPost) {
+    return { ok: false as const, status: 403, error: "You can only edit your own posts." };
+  }
+
+  const assembled = await assembleOwnPostWrite(userId, raw);
+  if (!assembled.ok) return assembled;
+
+  await prisma.feedPost.update({
+    where: { id },
+    data: {
+      text: assembled.text,
+      tags: assembled.tags,
+      mediaJson: assembled.media
+        ? (assembled.media as unknown as Prisma.InputJsonValue)
+        : Prisma.DbNull,
+      audioJson: audioJsonFor(assembled.audios) ?? Prisma.DbNull,
+      membersOnly: assembled.canPostExclusive ? assembled.membersOnly : post.membersOnly,
+    },
+  });
+
+  return { ok: true as const, postId: id };
 }

@@ -1,3 +1,21 @@
+export function PreviousTrackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6 5.5h2.2v13H6z" />
+      <path d="M19.5 6.2v11.6L9.2 12z" />
+    </svg>
+  );
+}
+
+export function NextTrackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M15.8 5.5H18v13h-2.2z" />
+      <path d="M4.5 6.2v11.6L14.8 12z" />
+    </svg>
+  );
+}
+
 export function SkipBack15Icon() {
   return (
     <span className="audio-skip-glyph" aria-hidden="true">

@@ -719,6 +719,15 @@ body.page-profile:has(.app-shell--audio-dock) {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.audio-mini__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.audio-mini__btn:disabled:hover {
+  background: transparent;
+}
+
 .audio-mini__btn--primary {
   width: 2.45rem;
   height: 2.45rem;
@@ -780,88 +789,3 @@ body.page-profile:has(.app-shell--audio-dock) {
   }
 }
 
-.post-audio-thumbs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.post-audio-thumb {
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.post-audio-thumb__art {
-  position: relative;
-  display: block;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: 8px;
-  background: #1b2838;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
-}
-
-.post-audio-thumb__art img,
-.post-audio-thumb__fallback {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.post-audio-thumb__art img {
-  object-fit: cover;
-}
-
-.post-audio-thumb__fallback {
-  background:
-    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.16), transparent 46%),
-    linear-gradient(160deg, #2a4534, #1a2e22);
-}
-
-.post-audio-thumb__play {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-}
-
-.post-audio-thumb__play > span {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-
-.post-audio-thumb__play svg {
-  width: 16px;
-  height: 16px;
-}
-
-.post-audio-thumb.is-playing .post-audio-thumb__play > span {
-  background: #fff;
-  color: #111;
-}
-
-.post-audio-thumb__title {
-  display: -webkit-box;
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.3;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}

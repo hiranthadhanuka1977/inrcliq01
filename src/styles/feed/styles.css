@@ -1386,13 +1386,13 @@ a.nav-profile__dropdown-item {
 
 .post-media--collage {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   aspect-ratio: 4 / 3;
-  background: var(--color-neutral-200);
+  background: var(--post-card-bg, #fff);
 }
 
 .post-media--collage-3 {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   grid-template-rows: 1fr 1fr;
 }
 
@@ -1400,34 +1400,40 @@ a.nav-profile__dropdown-item {
   grid-row: 1 / -1;
 }
 
-/* Mixed photo + video mosaic (also used by the composer collage) */
+/* Facebook mosaic: 2 side by side, 3 hero-left, 4 hero-left with three stacked, 5+ two over three. */
 
 .media-mosaic {
   display: grid;
-  gap: 2px;
+  gap: 4px;
+  background: var(--post-card-bg, #fff);
 }
 
 .media-mosaic--2 {
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
 }
 
 .media-mosaic--3 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 3fr 2fr;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
 }
 
 .media-mosaic--3 > :first-child {
-  grid-column: 1 / -1;
+  grid-row: 1 / -1;
 }
 
 .media-mosaic--4 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1.85fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.media-mosaic--4 > :first-child {
+  grid-row: 1 / -1;
 }
 
 .media-mosaic--5 {
   grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: 3fr 2fr;
+  grid-template-rows: 1.7fr 1fr;
 }
 
 .media-mosaic--5 > :nth-child(-n + 2) {
@@ -1441,15 +1447,29 @@ a.nav-profile__dropdown-item {
 .media-mosaic__more {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   color: #fff;
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
   pointer-events: none;
+}
+
+.post-media__cell--audio .post-media__audio-fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.16), transparent 46%),
+    linear-gradient(160deg, #2a4534, #1a2e22);
+}
+
+.post-media--mosaic .post-media__cell--audio.is-playing {
+  box-shadow: inset 0 0 0 3px #fff;
 }
 
 .post-media--mosaic .post-media__cell video {

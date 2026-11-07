@@ -14,8 +14,10 @@ import {
   type CommentSortMode,
   type SampleComment,
 } from "@/lib/feed/sample-comments";
+import { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
+import { useAudioPlayback } from "@/context/feed/AudioPlaybackContext";
 import { formatClock, trimmedVideoSrc } from "@/lib/feed/media-trim";
-import type { FeedImage, FeedItem, FeedMediaItem, FeedMediaTrim } from "@/types/feed/feed";
+import type { FeedAudio, FeedImage, FeedItem, FeedMediaItem, FeedMediaTrim } from "@/types/feed/feed";
 
 type FeedVideoViewerProps = {
   item: FeedItem;
@@ -33,6 +35,56 @@ type FeedVideoViewerProps = {
 
 function isInsideScrollableComments(target: EventTarget | null): boolean {
   return target instanceof Element && Boolean(target.closest(".feed-video-viewer__comments"));
+}
+
+type ViewerStage =
+  | { kind: "image"; url: string; alt: string; caption?: string }
+  | {
+      kind: "video";
+      src: string;
+      poster?: string;
+      alt: string;
+      caption?: string;
+      trim?: FeedMediaTrim;
+    }
+  | { kind: "audio"; audio: FeedAudio; audioIndex: number };
+
+function postAudioClips(item: FeedItem): FeedAudio[] {
+  if (item.members_only) return [];
+  if (item.audios?.length) return item.audios;
+  return item.audio ? [item.audio] : [];
+}
+
+/** Photos and videos first, then every audio clip, matching the collage order. */
+function buildViewerStages(
+  stageItems: FeedMediaItem[] | null,
+  slides: FeedImage[],
+  videoSrc: string | null,
+  clips: FeedAudio[],
+): ViewerStage[] {
+  const visuals: ViewerStage[] = stageItems
+    ? stageItems.map((media) =>
+        media.type === "video"
+          ? {
+              kind: "video" as const,
+              src: media.url,
+              poster: media.poster ?? undefined,
+              alt: media.alt,
+              caption: media.caption,
+              trim: media.trim,
+            }
+          : { kind: "image" as const, url: media.url, alt: media.alt, caption: media.caption },
+      )
+    : videoSrc
+      ? Array.from({ length: Math.max(slides.length, 1) }, (_, index) => ({
+          kind: "video" as const,
+          src: videoSrc,
+          poster: slides[index]?.url ?? slides[0]?.url,
+          alt: slides[index]?.alt || "Video",
+        }))
+      : slides.map((slide) => ({ kind: "image" as const, url: slide.url, alt: slide.alt }));
+
+  return [...visuals, ...clips.map((audio, audioIndex) => ({ kind: "audio" as const, audio, audioIndex }))];
 }
 
 const COMMENT_SORT_OPTIONS: {
@@ -221,6 +273,11 @@ export default function FeedVideoViewer({
   onClose,
 }: FeedVideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const startedAudioKeyRef = useRef<string | null>(null);
+  /** Clip the viewer asked the mini player to start, so a dock change can be told apart from that. */
+  const viewerAudioKeyRef = useRef<string | null>(null);
+  const seenAudioItemIdRef = useRef<string | null>(null);
+  const { activeItemId, close: closePlayback, startPlayback } = useAudioPlayback();
   const lockedScrollYRef = useRef(0);
   const navigatedRef = useRef(false);
   const [reaction, setReaction] = useState<FeedReactionId | null>(null);
@@ -241,19 +298,24 @@ export default function FeedVideoViewer({
     [commentSort, comments],
   );
   const stageItems = items?.length ? items : null;
-  const slideCount = Math.max(stageItems?.length ?? slides.length, 1);
+  const clips = postAudioClips(item);
+  const stages = buildViewerStages(stageItems, slides, videoSrc, clips);
+  const slideCount = Math.max(stages.length, 1);
   const safeIndex = ((activeIndex % slideCount) + slideCount) % slideCount;
-  const activeItem = stageItems?.[safeIndex] ?? null;
-  const activeSlide: FeedImage | null = stageItems
-    ? activeItem?.type === "image"
-      ? { url: activeItem.url, alt: activeItem.alt }
-      : null
-    : (slides[safeIndex] ?? null);
-  const activeVideoSrc = stageItems ? (activeItem?.type === "video" ? activeItem.url : null) : videoSrc;
-  const activePoster = stageItems ? (activeItem?.poster ?? undefined) : activeSlide?.url;
-  const activeTrim = activeItem?.type === "video" ? activeItem.trim : undefined;
+  const activeStage = stages[safeIndex] ?? null;
+  const activeSlide: FeedImage | null =
+    activeStage?.kind === "image" ? { url: activeStage.url, alt: activeStage.alt } : null;
+  const activeVideoSrc = activeStage?.kind === "video" ? activeStage.src : null;
+  const activeAudio = activeStage?.kind === "audio" ? activeStage.audio : null;
+  const activeAudioIndex = activeStage?.kind === "audio" ? activeStage.audioIndex : null;
+  const activePoster = activeStage?.kind === "video" ? activeStage.poster : undefined;
+  const activeTrim = activeStage?.kind === "video" ? activeStage.trim : undefined;
+  const activeCaption = activeStage && activeStage.kind !== "audio" ? activeStage.caption : undefined;
   const activeTrimStart = activeTrim?.start ?? 0;
-  const navNoun = stageItems ? "item" : videoSrc ? "video" : "photo";
+  const hasAudio = clips.length > 0;
+  const hasVisuals = stages.some((stage) => stage.kind !== "audio");
+  const navNoun = hasAudio && hasVisuals ? "item" : hasAudio ? "audio" : stageItems ? "item" : videoSrc ? "video" : "photo";
+  const viewerLabel = hasAudio && hasVisuals ? "Post viewer" : stageItems ? "Media viewer" : videoSrc ? "Video viewer" : "Photo viewer";
   const slideKey = `${item.id}-${safeIndex}-${mode}`;
   const hasCarousel = slideCount > 1;
   const canGoPrev = hasCarousel && safeIndex > 0;
@@ -336,13 +398,86 @@ export default function FeedVideoViewer({
     });
   }, [open, safeIndex, isCommentsMode, activeVideoSrc, activeTrimStart, initialIndex, slideCount]);
 
+  const activeAudioUrl = activeAudio?.audio_url ?? null;
+
+  // Landing on a clip starts it in the bottom mini player. The cover stays on the stage.
+  useEffect(() => {
+    if (!open || isCommentsMode) return;
+    if (activeAudioIndex == null || !activeAudioUrl) {
+      startedAudioKeyRef.current = null;
+      viewerAudioKeyRef.current = null;
+      return;
+    }
+    const key = `${item.id}:audio:${activeAudioIndex}`;
+    // Skip only while this slide's clip is already the one in the dock.
+    // A matching key with no active item means the dock was closed and needs to start again.
+    if (startedAudioKeyRef.current === key) {
+      if (activeItemId === key) return;
+      if (activeItemId?.startsWith(`${item.id}:audio:`)) return;
+    }
+    const clip = clips[activeAudioIndex];
+    if (!clip?.audio_url) return;
+    startedAudioKeyRef.current = key;
+    viewerAudioKeyRef.current = key;
+    videoRef.current?.pause();
+    startPlayback(key, clip, {
+      showName: item.author.name,
+      contentType: resolveAudioContentType(item.tags),
+      queue: clips.map((audio, audioIndex) => ({
+        itemId: `${item.id}:audio:${audioIndex}`,
+        audio,
+      })),
+    });
+  }, [
+    open,
+    isCommentsMode,
+    activeAudioIndex,
+    activeAudioUrl,
+    activeItemId,
+    clips,
+    item.id,
+    item.author.name,
+    item.tags,
+    startPlayback,
+  ]);
+
+  // When the mini player's own track buttons change the clip, show that cover.
+  useEffect(() => {
+    if (!open || isCommentsMode || !activeItemId || clips.length === 0) {
+      if (!activeItemId) seenAudioItemIdRef.current = null;
+      return;
+    }
+    if (seenAudioItemIdRef.current === activeItemId) return;
+    seenAudioItemIdRef.current = activeItemId;
+    if (viewerAudioKeyRef.current === activeItemId) return;
+    const prefix = `${item.id}:audio:`;
+    if (!activeItemId.startsWith(prefix)) return;
+    const audioIndex = Number(activeItemId.slice(prefix.length));
+    if (!Number.isInteger(audioIndex) || audioIndex < 0 || audioIndex >= clips.length) return;
+    const stageIndex = slideCount - clips.length + audioIndex;
+    if (stageIndex === safeIndex) return;
+    viewerAudioKeyRef.current = activeItemId;
+    navigatedRef.current = true;
+    setActiveIndex(stageIndex);
+  }, [activeItemId, open, isCommentsMode, item.id, clips.length, slideCount, safeIndex]);
+
+  // A photo or video slide stops this post's clip so it does not keep playing behind the picture.
+  useEffect(() => {
+    if (!open || isCommentsMode || activeAudioUrl) return;
+    if (activeItemId?.startsWith(`${item.id}:audio:`)) closePlayback();
+  }, [open, isCommentsMode, activeAudioUrl, activeItemId, item.id, closePlayback]);
+
   const goPrev = useCallback(() => {
     navigatedRef.current = true;
+    videoRef.current?.pause();
+    setStartedSlideKey(null);
     setActiveIndex((current) => Math.max(current - 1, 0));
   }, []);
 
   const goNext = useCallback(() => {
     navigatedRef.current = true;
+    videoRef.current?.pause();
+    setStartedSlideKey(null);
     setActiveIndex((current) => Math.min(current + 1, slideCount - 1));
   }, [slideCount]);
 
@@ -396,13 +531,18 @@ export default function FeedVideoViewer({
   const handleClose = useCallback(() => {
     videoRef.current?.pause();
     setStartedSlideKey(null);
+    startedAudioKeyRef.current = null;
+    viewerAudioKeyRef.current = null;
+    if (!isCommentsMode && activeItemId?.startsWith(`${item.id}:audio:`)) {
+      closePlayback();
+    }
     releaseFocusWithoutScroll();
     onClose();
 
     requestAnimationFrame(() => {
       releaseFocusWithoutScroll();
     });
-  }, [onClose, releaseFocusWithoutScroll]);
+  }, [onClose, releaseFocusWithoutScroll, isCommentsMode, activeItemId, item.id, closePlayback]);
 
   const { dialogRef } = useDialogA11y(open, handleClose, { restoreFocus: false });
 
@@ -419,7 +559,7 @@ export default function FeedVideoViewer({
       className={`feed-video-viewer${isCommentsMode ? " feed-video-viewer--comments" : ""}`}
       role="dialog"
       aria-modal="true"
-      aria-label={isCommentsMode ? "Comments" : stageItems ? "Media viewer" : videoSrc ? "Video viewer" : "Photo viewer"}
+      aria-label={isCommentsMode ? "Comments" : viewerLabel}
       tabIndex={-1}
     >
       {isCommentsMode ? (
@@ -511,6 +651,16 @@ export default function FeedVideoViewer({
                   </button>
                 ) : null}
               </>
+            ) : activeAudio ? (
+              <div className="feed-video-viewer__audio" key={slideKey}>
+                {activeAudio.thumbnail?.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={activeAudio.thumbnail.url} alt="" />
+                ) : (
+                  <span className="feed-video-viewer__audio-fallback" />
+                )}
+                <p className="feed-video-viewer__audio-title">{activeAudio.title}</p>
+              </div>
             ) : activeSlide ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -525,13 +675,13 @@ export default function FeedVideoViewer({
               </div>
             )}
 
-            {activeItem?.caption ? (
+            {activeCaption ? (
               <p
                 className={`feed-video-viewer__caption${
                   activeVideoSrc ? " feed-video-viewer__caption--above-controls" : ""
                 }`}
               >
-                {activeItem.caption}
+                {activeCaption}
               </p>
             ) : null}
           </div>

@@ -21,6 +21,7 @@ import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
 import { MAX_MEDIA_CAPTION_LENGTH, MAX_POST_AUDIO_ITEMS, MAX_POST_MEDIA_ITEMS } from "@/lib/feed/media-limits";
 import { mosaicLayout } from "@/lib/feed/media-mosaic";
 import { formatTimecode } from "@/lib/feed/audio-time";
+import type { FeedAudio, FeedItem, FeedMediaItem } from "@/types/feed/feed";
 import { formatClock } from "@/lib/feed/media-trim";
 import {
   formatImageModerationError,
@@ -164,7 +165,93 @@ type ComposerAudio = {
   coverUrl: string | null;
   coverPreviewUrl: string | null;
   coverStatus: "idle" | "uploading" | "ready";
+  trimStart?: number;
+  trimEnd?: number;
+  theme?: FeedAudio["theme"];
 };
+
+function looksLikeGif(url: string, alt: string) {
+  return /\.gif($|\?)/i.test(url) || alt.trim().toLowerCase() === "gif";
+}
+
+function readyComposerItem(item: {
+  id: string;
+  kind: ComposerItem["kind"];
+  name: string;
+  caption?: string;
+  url: string;
+  previewUrl: string;
+  posterUrl?: string | null;
+  videoEdit?: VideoEditState | null;
+}): ComposerItem {
+  return {
+    id: item.id,
+    kind: item.kind,
+    name: item.name,
+    caption: item.caption ?? "",
+    url: item.url,
+    previewUrl: item.previewUrl,
+    posterUrl: item.posterUrl ?? null,
+    status: "ready",
+    progress: 100,
+    videoEdit: item.videoEdit ?? null,
+    posterPreviewUrl: null,
+    posterUploading: false,
+  };
+}
+
+function composerItemsFromPost(post: FeedItem): ComposerItem[] {
+  const media = post.media;
+  if (!media) return [];
+  const rows: FeedMediaItem[] = media.items?.length
+    ? media.items
+    : media.type === "video" && media.video_url
+      ? [
+          {
+            type: "video",
+            url: media.video_url,
+            alt: media.images[0]?.alt || "Video",
+            poster: media.images[0]?.url ?? null,
+          },
+        ]
+      : media.images.map((image) => ({ type: "image", url: image.url, alt: image.alt }));
+  return rows.map((row, index) => {
+    const gif = row.type !== "video" && looksLikeGif(row.url, row.alt);
+    return readyComposerItem({
+      id: `existing-media-${index}`,
+      kind: row.type === "video" ? "video" : gif ? "gif" : "image",
+      name: row.alt || (row.type === "video" ? "Video" : "Photo"),
+      caption: row.caption,
+      url: row.url,
+      previewUrl: row.type === "video" ? row.poster || row.url : row.url,
+      posterUrl: row.poster,
+      videoEdit: row.trim ? { trim: row.trim, thumbnailTime: null } : null,
+    });
+  });
+}
+
+function composerAudioFromPost(post: FeedItem): ComposerAudio[] {
+  const clips = post.audios?.length ? post.audios : post.audio ? [post.audio] : [];
+  return clips.flatMap((clip, index) => {
+    if (!clip.audio_url) return [];
+    return [
+      {
+        id: `existing-audio-${index}`,
+        name: clip.title,
+        title: clip.title,
+        durationLabel: clip.duration,
+        url: clip.audio_url,
+        status: "ready" as const,
+        coverUrl: clip.thumbnail.url || null,
+        coverPreviewUrl: clip.thumbnail.url || null,
+        coverStatus: clip.thumbnail.url ? ("ready" as const) : ("idle" as const),
+        trimStart: clip.trim_start,
+        trimEnd: clip.trim_end,
+        theme: clip.theme,
+      },
+    ];
+  });
+}
 
 function audioTitleFromFile(name: string) {
   const base = name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
@@ -418,6 +505,7 @@ export default function FirstPostPrompt({
   dismissKey = null,
   verified = false,
   onClose,
+  editItem = null,
 }: {
   firstName: string | null;
   profileHref?: string | null;
@@ -427,12 +515,15 @@ export default function FirstPostPrompt({
   /** Monetized / verified creators can mark posts as subscriber-only. */
   verified?: boolean;
   onClose?: () => void;
+  /** When set, Save updates this post instead of publishing a new one. */
+  editItem?: FeedItem | null;
 }) {
   const router = useRouter();
   const fileInputId = useId();
   const titleId = useId();
   const textId = useId();
   const isModal = variant === "modal";
+  const isEditing = Boolean(editItem);
   const rootRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -445,7 +536,7 @@ export default function FirstPostPrompt({
   const textWarningRef = useRef<HTMLDivElement>(null);
 
   const [visible, setVisible] = useState(false);
-  const [text, setText] = useState("");
+  const [text, setText] = useState(() => editItem?.text ?? "");
   const [error, setError] = useState("");
   const [imageWarning, setImageWarning] = useState<ImageModerationBlock | null>(null);
   const [textWarning, setTextWarning] = useState<ImageModerationBlock | null>(null);
@@ -454,8 +545,10 @@ export default function FirstPostPrompt({
   const [publishedHref, setPublishedHref] = useState<string | null>(null);
   const [panel, setPanel] = useState<ComposerPanel>(null);
 
-  const [items, setItems] = useState<ComposerItem[]>([]);
-  const [audioClips, setAudioClips] = useState<ComposerAudio[]>([]);
+  const [items, setItems] = useState<ComposerItem[]>(() => (editItem ? composerItemsFromPost(editItem) : []));
+  const [audioClips, setAudioClips] = useState<ComposerAudio[]>(() =>
+    editItem ? composerAudioFromPost(editItem) : [],
+  );
   const [videoWarning, setVideoWarning] = useState<VideoValidationError | null>(null);
   const [dropActive, setDropActive] = useState(false);
   const [mediaEditorOpen, setMediaEditorOpen] = useState(false);
@@ -475,9 +568,23 @@ export default function FirstPostPrompt({
   const mediaEditorBackRef = useRef<HTMLButtonElement>(null);
   const collageEditRef = useRef<HTMLButtonElement>(null);
   const mediaEditorWasOpenRef = useRef(false);
-  const [tagged, setTagged] = useState<TaggedPerson[]>([]);
-  const [feeling, setFeeling] = useState<FeelingPick | null>(null);
-  const [location, setLocation] = useState<Checkin | null>(null);
+  const [tagged, setTagged] = useState<TaggedPerson[]>(() =>
+    (editItem?.media?.tagged ?? []).map((person) => ({
+      id: person.handle,
+      name: person.name,
+      handle: person.handle,
+      slug: person.slug,
+      avatarInitials: person.name.slice(0, 2).toUpperCase(),
+      avatarColor: "#6b7280",
+      avatarUrl: null,
+    })),
+  );
+  const [feeling, setFeeling] = useState<FeelingPick | null>(() => editItem?.media?.feeling ?? null);
+  const [location, setLocation] = useState<Checkin | null>(() => {
+    const place = editItem?.media?.location;
+    if (!place?.label) return null;
+    return { id: "existing-location", label: place.label, lat: place.lat, lng: place.lng };
+  });
 
   const [peopleQuery, setPeopleQuery] = useState("");
   const [people, setPeople] = useState<TaggedPerson[]>([]);
@@ -490,7 +597,7 @@ export default function FirstPostPrompt({
   const [gifQuery, setGifQuery] = useState("");
   const [gifs, setGifs] = useState<GifItem[]>([]);
   const [gifsLoading, setGifsLoading] = useState(false);
-  const [exclusiveContent, setExclusiveContent] = useState(false);
+  const [exclusiveContent, setExclusiveContent] = useState(() => Boolean(editItem?.members_only));
   const [crossPostPlatforms, setCrossPostPlatforms] = useState<Record<CrossPostPlatformId, boolean>>({
     facebook: false,
     instagram: false,
@@ -1315,9 +1422,10 @@ export default function FirstPostPrompt({
     setSubmitting(true);
     try {
       const response = await fetch("/api/feed/posts", {
-        method: "POST",
+        method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(isEditing && editItem ? { postId: editItem.id } : {}),
           text,
           items: items.map((item) => ({
             type: item.kind === "video" ? "video" : "image",
@@ -1346,6 +1454,9 @@ export default function FirstPostPrompt({
                     audioUrl: clip.url,
                     duration: clip.durationLabel,
                     coverUrl: clip.coverUrl,
+                    trimStart: clip.trimStart,
+                    trimEnd: clip.trimEnd,
+                    theme: clip.theme,
                   })),
               }
             : null,
@@ -1363,15 +1474,17 @@ export default function FirstPostPrompt({
         return;
       }
       if (!response.ok) {
-        setError(data.error ?? "Unable to publish your post.");
+        setError(data.error ?? (isEditing ? "Unable to save your post." : "Unable to publish your post."));
         return;
       }
       setImageWarning(null);
       setTextWarning(null);
-      try {
-        window.localStorage.setItem(storageKey, "1");
-      } catch {
-        /* ignore */
+      if (!isEditing) {
+        try {
+          window.localStorage.setItem(storageKey, "1");
+        } catch {
+          /* ignore */
+        }
       }
       if (isModal) {
         onClose?.();
@@ -1610,7 +1723,7 @@ export default function FirstPostPrompt({
       </div>
       {isModal ? (
         <h2 id={titleId} className="first-post-prompt__title" hidden={mediaEditorOpen}>
-          Create post
+          {isEditing ? "Edit post" : "Create post"}
         </h2>
       ) : (
         <>
@@ -1627,7 +1740,7 @@ export default function FirstPostPrompt({
       )}
       <form className="first-post-prompt__form" onSubmit={(event) => void submit(event)} hidden={mediaEditorOpen}>
         <label className="sr-only" htmlFor={textId}>
-          {isModal ? "Post" : "First post"}
+          {isEditing ? "Edit post" : isModal ? "Post" : "First post"}
         </label>
         <textarea
           id={textId}
@@ -2083,6 +2196,7 @@ export default function FirstPostPrompt({
             </span>
           </label>
         ) : null}
+        {isEditing ? null : (
         <fieldset className="composer-crosspost">
           <legend className="composer-crosspost__legend">Also push to</legend>
           <p className="composer-crosspost__hint">
@@ -2107,6 +2221,7 @@ export default function FirstPostPrompt({
             })}
           </div>
         </fieldset>
+        )}
         <div className="first-post-prompt__meta">
           <p className="first-post-prompt__hint">
             Add up to {MAX_POST_MEDIA_ITEMS} photos and videos, or up to {MAX_POST_AUDIO_ITEMS} audio clips. A cover
@@ -2123,7 +2238,7 @@ export default function FirstPostPrompt({
               className="btn btn--primary btn--sm first-post-prompt__cta"
               disabled={submitting || savingEdit || mediaBusy || !canPost}
             >
-              {submitting ? "Posting…" : mediaBusy ? "Uploading…" : "Post"}
+              {submitting ? (isEditing ? "Saving…" : "Posting…") : mediaBusy ? "Uploading…" : isEditing ? "Save" : "Post"}
             </button>
           </div>
         </div>

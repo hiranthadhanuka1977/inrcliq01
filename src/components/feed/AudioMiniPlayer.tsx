@@ -2,7 +2,7 @@
 
 import { useAudioPlayback } from "@/context/feed/AudioPlaybackContext";
 import { getAudioThemeStyle } from "@/lib/feed/audio-theme";
-import { SkipBack15Icon, SkipForward15Icon } from "@/components/feed/audio/AudioSkip15Icons";
+import { NextTrackIcon, PreviousTrackIcon, SkipBack15Icon, SkipForward15Icon } from "@/components/feed/audio/AudioSkip15Icons";
 
 function PlayPauseIcon({ playing }: { playing: boolean }) {
   if (playing) {
@@ -31,7 +31,12 @@ export default function AudioMiniPlayer() {
     currentTimeLabel,
     showMiniPlayer,
     liked,
+    hasTrackQueue,
+    canPlayPreviousTrack,
+    canPlayNextTrack,
     togglePlay,
+    playPreviousTrack,
+    playNextTrack,
     skipBy,
     toggleLike,
     openFullscreenPlayer,
@@ -87,6 +92,17 @@ export default function AudioMiniPlayer() {
         </button>
 
         <div className="audio-mini__controls">
+          {hasTrackQueue ? (
+            <button
+              type="button"
+              className="audio-mini__btn"
+              aria-label="Previous track"
+              onClick={playPreviousTrack}
+              disabled={!canPlayPreviousTrack}
+            >
+              <PreviousTrackIcon />
+            </button>
+          ) : null}
           <button
             type="button"
             className="audio-mini__btn"
@@ -111,6 +127,17 @@ export default function AudioMiniPlayer() {
           >
             <SkipForward15Icon />
           </button>
+          {hasTrackQueue ? (
+            <button
+              type="button"
+              className="audio-mini__btn"
+              aria-label="Next track"
+              onClick={playNextTrack}
+              disabled={!canPlayNextTrack}
+            >
+              <NextTrackIcon />
+            </button>
+          ) : null}
           {!isLongForm ? (
             <button
               type="button"

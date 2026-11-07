@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import EditPostModal from "@/components/feed/account/EditPostModal";
 import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
-import PostAudioThumbs from "@/components/feed/PostAudioThumbs";
+import { useFeedSession } from "@/context/feed/FeedSessionContext";
+import { useAudioPlaybackItem, type AudioFeedContentType } from "@/context/feed/AudioPlaybackContext";
 import FeedVideoViewer from "@/components/feed/FeedVideoViewer";
 import FollowButton from "@/components/feed/FollowButton";
 import MediaPlayOverlay from "@/components/feed/MediaPlayOverlay";
 import FeedReactionButton, { type FeedReactionId } from "@/components/feed/FeedReactionButton";
 import ShareIcon from "@/components/feed/ShareIcon";
-import type { FeedItem, FeedMediaItem } from "@/types/feed/feed";
+import type { FeedAudio, FeedItem, FeedMedia, FeedMediaItem } from "@/types/feed/feed";
 import { formatCount } from "@/lib/feed/format";
 import { mosaicLayout } from "@/lib/feed/media-mosaic";
 import { trimmedVideoSrc } from "@/lib/feed/media-trim";
@@ -80,17 +82,155 @@ function SubscriberMediaLock() {
   );
 }
 
+type MosaicEntry =
+  | { kind: "media"; item: FeedMediaItem; mediaIndex: number }
+  | { kind: "audio"; audio: FeedAudio; audioIndex: number };
+
+/** Photos and videos that belong in the collage. Composer posts use `items`; older posts use images or one video. */
+function visualMediaItems(media: FeedMedia | null): FeedMediaItem[] {
+  if (!media) return [];
+  if (media.items?.length) return media.items;
+  if (media.video_url && media.type === "video") {
+    return [
+      {
+        type: "video",
+        url: media.video_url,
+        alt: media.images[0]?.alt || "Video",
+        poster: media.images[0]?.url ?? null,
+      },
+    ];
+  }
+  return media.images.map((image) => ({ type: "image" as const, url: image.url, alt: image.alt }));
+}
+
+/** Keep uploaded clips in the grid when the post has more attachments than the collage can show. */
+function collageEntries(items: FeedMediaItem[], audios: FeedAudio[], visibleSlots: number): MosaicEntry[] {
+  const mediaEntries: MosaicEntry[] = items.map((item, mediaIndex) => ({ kind: "media", item, mediaIndex }));
+  const audioEntries: MosaicEntry[] = audios.map((audio, audioIndex) => ({ kind: "audio", audio, audioIndex }));
+  const all = [...mediaEntries, ...audioEntries];
+  if (all.length <= visibleSlots) return all;
+  const audioSlots = Math.min(audioEntries.length, items.length ? visibleSlots - 1 : visibleSlots);
+  const mediaSlots = visibleSlots - audioSlots;
+  return [...mediaEntries.slice(0, mediaSlots), ...audioEntries.slice(0, audioSlots)];
+}
+
+function AudioPauseOverlay() {
+  return (
+    <div className="post-media__play" aria-hidden="true">
+      <span>
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="23" fill="#fff" />
+          <rect x="17" y="15" width="5" height="18" rx="1.2" fill="#111" />
+          <rect x="26" y="15" width="5" height="18" rx="1.2" fill="#111" />
+        </svg>
+      </span>
+    </div>
+  );
+}
+
+function MosaicAudioCell({
+  postId,
+  audio,
+  audioIndex,
+  queue,
+  showName,
+  contentType,
+  moreCount,
+  membersOnly,
+  onOpen,
+}: {
+  postId: string;
+  audio: FeedAudio;
+  audioIndex: number;
+  queue: { itemId: string; audio: FeedAudio }[];
+  showName?: string;
+  contentType: AudioFeedContentType;
+  moreCount: number;
+  membersOnly?: boolean;
+  /** Opens the post viewer on this clip. Inline playback is used when the viewer stays closed. */
+  onOpen?: () => void;
+}) {
+  const itemId = `${postId}:audio:${audioIndex}`;
+  const { isActive, playing, activateAndToggle } = useAudioPlaybackItem(itemId, audio);
+  const isPlaying = isActive && playing && !onOpen;
+  const cover = audio.thumbnail?.url;
+  const interactive = !membersOnly && (Boolean(onOpen) || Boolean(audio.audio_url));
+  const label = onOpen
+    ? `View ${audio.title}`
+    : isPlaying
+      ? `Pause ${audio.title}`
+      : `Play ${audio.title}`;
+  const activate = () => {
+    if (onOpen) {
+      onOpen();
+      return;
+    }
+    activateAndToggle(itemId, audio, { showName, contentType, queue });
+  };
+
+  return (
+    <div
+      className={`post-media__cell post-media__cell--audio${isPlaying ? " is-playing" : ""}`}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? (moreCount ? `${label}, plus ${moreCount} more` : label) : undefined}
+      onClick={interactive ? activate : undefined}
+      onKeyDown={
+        interactive
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                activate();
+              }
+            }
+          : undefined
+      }
+    >
+      {cover ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={cover} alt="" />
+      ) : (
+        <span className="post-media__audio-fallback" />
+      )}
+      {!membersOnly && !moreCount ? isPlaying ? <AudioPauseOverlay /> : <MediaPlayOverlay /> : null}
+      {moreCount ? (
+        <span className="media-mosaic__more" aria-hidden="true">
+          +{moreCount}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 function MediaMosaic({
   items,
+  audios = [],
+  postId = "",
+  showName,
+  contentType = "audio",
   membersOnly,
   onOpenMedia,
+  onOpenAudio,
 }: {
   items: FeedMediaItem[];
+  audios?: FeedAudio[];
+  postId?: string;
+  showName?: string;
+  contentType?: AudioFeedContentType;
   membersOnly?: boolean;
   onOpenMedia?: (index?: number) => void;
+  /** Index is the clip's place in the post's full audio list. */
+  onOpenAudio?: (audioIndex: number) => void;
 }) {
-  const layout = mosaicLayout(items.length);
-  const interactive = !membersOnly && Boolean(onOpenMedia);
+  const total = items.length + audios.length;
+  const layout = mosaicLayout(total);
+  const entries = collageEntries(items, audios, layout.visible);
+  const hidden = Math.max(0, total - entries.length);
+  const mediaInteractive = !membersOnly && Boolean(onOpenMedia);
+  const queue = audios.map((audio, audioIndex) => ({
+    itemId: `${postId}:audio:${audioIndex}`,
+    audio,
+  }));
 
   return (
     <div
@@ -98,25 +238,43 @@ function MediaMosaic({
         membersOnly ? " post-media--subscriber-locked" : ""
       }`}
     >
-      {items.slice(0, layout.visible).map((item, index) => {
+      {entries.map((entry, index) => {
+        const moreCount = index === entries.length - 1 ? hidden : 0;
+        if (entry.kind === "audio") {
+          return (
+            <MosaicAudioCell
+              key={`${postId}-audio-${entry.audioIndex}`}
+              postId={postId}
+              audio={entry.audio}
+              audioIndex={entry.audioIndex}
+              queue={queue}
+              showName={showName}
+              contentType={contentType}
+              moreCount={moreCount}
+              membersOnly={membersOnly}
+              onOpen={onOpenAudio ? () => onOpenAudio(entry.audioIndex) : undefined}
+            />
+          );
+        }
+
+        const item = entry.item;
         const isVideo = item.type === "video";
         const thumbnail = isVideo ? item.poster : item.url;
-        const moreCount = index === layout.visible - 1 ? layout.hidden : 0;
-        const label = `${isVideo ? "Play video" : "View photo"} ${index + 1} of ${items.length}`;
+        const label = `${isVideo ? "Play video" : "View photo"} ${entry.mediaIndex + 1} of ${items.length}`;
         return (
           <div
-            key={`${item.url}-${index}`}
+            key={`${item.url}-${entry.mediaIndex}`}
             className={`post-media__cell${isVideo ? " post-media__cell--video" : ""}`}
-            role={interactive ? "button" : undefined}
-            tabIndex={interactive ? 0 : undefined}
-            aria-label={interactive ? (moreCount ? `${label}, plus ${moreCount} more` : label) : undefined}
-            onClick={interactive ? () => onOpenMedia?.(index) : undefined}
+            role={mediaInteractive ? "button" : undefined}
+            tabIndex={mediaInteractive ? 0 : undefined}
+            aria-label={mediaInteractive ? (moreCount ? `${label}, plus ${moreCount} more` : label) : undefined}
+            onClick={mediaInteractive ? () => onOpenMedia?.(entry.mediaIndex) : undefined}
             onKeyDown={
-              interactive
+              mediaInteractive
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      onOpenMedia?.(index);
+                      onOpenMedia?.(entry.mediaIndex);
                     }
                   }
                 : undefined
@@ -134,7 +292,7 @@ function MediaMosaic({
                 aria-hidden="true"
               />
             ) : null}
-            {isVideo && !membersOnly ? <MediaPlayOverlay /> : null}
+            {isVideo && !membersOnly && !moreCount ? <MediaPlayOverlay /> : null}
             {moreCount ? (
               <span className="media-mosaic__more" aria-hidden="true">
                 +{moreCount}
@@ -333,6 +491,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const { author } = item;
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -345,23 +504,31 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const toolsRef = useRef<HTMLDivElement | null>(null);
   const deleteDialogRef = useRef<HTMLDivElement | null>(null);
   const isOwnPost = Boolean(item.is_own);
+  const { firstName, verified } = useFeedSession();
+  const [editOpen, setEditOpen] = useState(false);
   const audioClips = item.audios?.length ? item.audios : item.audio ? [item.audio] : [];
+  const visualItems = visualMediaItems(item.media);
+  const foldAudioIntoCollage = audioClips.length > 0 && (visualItems.length > 0 || audioClips.length > 1);
 
   useEffect(() => {
     setLocalFollowing(item.relationship.following);
   }, [item.id, item.relationship.following]);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && !moreOpen) return;
 
     function handlePointerDown(event: MouseEvent | TouchEvent) {
       const target = event.target as Node | null;
       if (!target || toolsRef.current?.contains(target)) return;
       setMenuOpen(false);
+      setMoreOpen(false);
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setMoreOpen(false);
+      }
     }
 
     document.addEventListener("mousedown", handlePointerDown);
@@ -372,7 +539,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
       document.removeEventListener("touchstart", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [menuOpen]);
+  }, [menuOpen, moreOpen]);
 
   useEffect(() => {
     if (!deleteConfirmOpen) return;
@@ -440,6 +607,12 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const showFollow = !hideFollow && !isOwnPost;
   const canOpenMedia = item.media ? canOpenMediaViewer(item.media, item.members_only) : false;
   const playableVideo = item.media ? isPlayableVideoMedia(item.media, item.members_only) : false;
+  // Must match the viewer's visual slides so an audio tile opens on that clip.
+  const viewerVisualCount = item.media?.items?.length
+    ? item.media.items.length
+    : playableVideo
+      ? Math.max(item.media?.images.length ?? 0, 1)
+      : visualItems.length;
   const canOpenComments = !item.members_only;
   const openMedia = (index = 0) => {
     setVideoIndex(index);
@@ -538,7 +711,20 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
           </div>
         </div>
         <div className="post-head__tools" ref={toolsRef}>
-          <button type="button" className="more" aria-label="More options">
+          <button
+            type="button"
+            className="more"
+            aria-label="More options"
+            aria-haspopup={isOwnPost ? "menu" : undefined}
+            aria-expanded={isOwnPost ? moreOpen : undefined}
+            disabled={actionBusy}
+            onClick={() => {
+              if (!isOwnPost) return;
+              setActionError(null);
+              setMenuOpen(false);
+              setMoreOpen((open) => !open);
+            }}
+          >
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <circle cx="5" cy="12" r="1.75" />
               <circle cx="12" cy="12" r="1.75" />
@@ -554,6 +740,7 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             disabled={actionBusy}
             onClick={() => {
               setActionError(null);
+              setMoreOpen(false);
               setMenuOpen((open) => !open);
             }}
           >
@@ -562,6 +749,23 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
               <path d="m6 6 12 12" />
             </svg>
           </button>
+          {moreOpen && isOwnPost ? (
+            <div className="post-head__close-menu" role="menu" aria-label="More options">
+              <button
+                type="button"
+                className="post-head__close-menu-item"
+                role="menuitem"
+                disabled={actionBusy}
+                onClick={() => {
+                  setMoreOpen(false);
+                  setActionError(null);
+                  setEditOpen(true);
+                }}
+              >
+                Edit post
+              </button>
+            </div>
+          ) : null}
           {menuOpen ? (
             <div className="post-head__close-menu" role="menu" aria-label="Post options">
               {isOwnPost ? (
@@ -610,24 +814,40 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
           </div>
         ) : null}
         {item.text ? <p>{item.text}</p> : null}
-        {audioClips.length === 1 ? (
-          <AudioFeedPlayer
-            itemId={item.id}
-            audio={audioClips[0]}
+        {foldAudioIntoCollage ? (
+          <MediaMosaic
+            items={visualItems}
+            audios={audioClips}
+            postId={item.id}
             showName={item.author.name}
             contentType={resolveAudioContentType(item.tags)}
-          />
-        ) : null}
-        {item.media ? (
-          <PostMedia
-            media={item.media}
             membersOnly={item.members_only}
             onOpenMedia={canOpenMedia ? openMedia : undefined}
+            onOpenAudio={
+              canOpenMedia
+                ? (audioIndex) => openMedia(viewerVisualCount + audioIndex)
+                : undefined
+            }
           />
-        ) : null}
-        {audioClips.length > 1 ? (
-          <PostAudioThumbs postId={item.id} clips={audioClips} showName={item.author.name} />
-        ) : null}
+        ) : (
+          <>
+            {audioClips.length === 1 ? (
+              <AudioFeedPlayer
+                itemId={item.id}
+                audio={audioClips[0]}
+                showName={item.author.name}
+                contentType={resolveAudioContentType(item.tags)}
+              />
+            ) : null}
+            {item.media ? (
+              <PostMedia
+                media={item.media}
+                membersOnly={item.members_only}
+                onOpenMedia={canOpenMedia ? openMedia : undefined}
+              />
+            ) : null}
+          </>
+        )}
       </div>
 
       <div className="post-footer">
@@ -732,6 +952,15 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             </button>
           </div>
         </div>
+      ) : null}
+
+      {editOpen && isOwnPost ? (
+        <EditPostModal
+          item={item}
+          firstName={firstName}
+          verified={verified}
+          onClose={() => setEditOpen(false)}
+        />
       ) : null}
     </article>
   );

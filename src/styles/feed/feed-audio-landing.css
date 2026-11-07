@@ -2569,6 +2569,15 @@ body.page-audio:has(.app-shell--audio-dock) .main-content,
   background: rgba(255, 255, 255, 0.1);
 }
 
+.audio-fullscreen__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.audio-fullscreen__btn:disabled:hover {
+  background: transparent;
+}
+
 .audio-fullscreen__btn--primary {
   width: 3.6rem;
   height: 3.6rem;

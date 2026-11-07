@@ -101,7 +101,7 @@ export interface FeedItem {
   media: FeedMedia | null;
   /** First clip, kept for posts that play one audio. */
   audio?: FeedAudio | null;
-  /** Every clip on the post. More than one is shown as thumbnails. */
+  /** Every clip on the post. Shown in the collage with the other attachments. */
   audios?: FeedAudio[];
   engagement: FeedEngagement;
   relationship: FeedRelationship;

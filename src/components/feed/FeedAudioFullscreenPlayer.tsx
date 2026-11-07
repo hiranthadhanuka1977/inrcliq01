@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAudioPlayback } from "@/context/feed/AudioPlaybackContext";
 import { getAudioThemeStyle } from "@/lib/feed/audio-theme";
-import { SkipBack15Icon, SkipForward15Icon } from "@/components/feed/audio/AudioSkip15Icons";
+import { NextTrackIcon, PreviousTrackIcon, SkipBack15Icon, SkipForward15Icon } from "@/components/feed/audio/AudioSkip15Icons";
 
 function PlayPauseIcon({ playing }: { playing: boolean }) {
   if (playing) {
@@ -42,7 +42,12 @@ export default function FeedAudioFullscreenPlayer() {
     liked,
     showMiniPlayer,
     showFullscreenPlayer,
+    hasTrackQueue,
+    canPlayPreviousTrack,
+    canPlayNextTrack,
     togglePlay,
+    playPreviousTrack,
+    playNextTrack,
     skipBy,
     seekTo,
     toggleLike,
@@ -151,6 +156,17 @@ export default function FeedAudioFullscreenPlayer() {
         </div>
 
         <div className="audio-fullscreen__controls" data-mode={isLongForm ? "longform" : "music"}>
+          {hasTrackQueue ? (
+            <button
+              type="button"
+              className="audio-fullscreen__btn"
+              aria-label="Previous track"
+              onClick={playPreviousTrack}
+              disabled={!canPlayPreviousTrack}
+            >
+              <PreviousTrackIcon />
+            </button>
+          ) : null}
           <button type="button" className="audio-fullscreen__btn" aria-label="Skip back 15 seconds" onClick={() => skipBy(-15)}>
             <SkipBack15Icon />
           </button>
@@ -165,6 +181,17 @@ export default function FeedAudioFullscreenPlayer() {
           <button type="button" className="audio-fullscreen__btn" aria-label="Skip forward 15 seconds" onClick={() => skipBy(15)}>
             <SkipForward15Icon />
           </button>
+          {hasTrackQueue ? (
+            <button
+              type="button"
+              className="audio-fullscreen__btn"
+              aria-label="Next track"
+              onClick={playNextTrack}
+              disabled={!canPlayNextTrack}
+            >
+              <NextTrackIcon />
+            </button>
+          ) : null}
           {!isLongForm ? (
             <button
               type="button"
