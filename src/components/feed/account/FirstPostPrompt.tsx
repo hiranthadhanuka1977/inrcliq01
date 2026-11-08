@@ -522,9 +522,12 @@ export default function FirstPostPrompt({
   const fileInputId = useId();
   const titleId = useId();
   const textId = useId();
+  const exclusiveHintId = useId();
+  const limitsHintId = useId();
   const isModal = variant === "modal";
   const isEditing = Boolean(editItem);
   const rootRef = useRef<HTMLElement>(null);
+  const composerBodyRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -725,6 +728,13 @@ export default function FirstPostPrompt({
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [panel]);
+
+  useEffect(() => {
+    if (!panel || panel === "photo" || !isModal) return;
+    const body = composerBodyRef.current;
+    if (!body) return;
+    body.scrollTo({ top: body.scrollHeight, behavior: "smooth" });
+  }, [panel, isModal]);
 
   useEffect(() => {
     if (panel !== "tag") return;
@@ -1739,6 +1749,7 @@ export default function FirstPostPrompt({
         </>
       )}
       <form className="first-post-prompt__form" onSubmit={(event) => void submit(event)} hidden={mediaEditorOpen}>
+        <div className="first-post-prompt__body" ref={composerBodyRef}>
         <label className="sr-only" htmlFor={textId}>
           {isEditing ? "Edit post" : isModal ? "Post" : "First post"}
         </label>
@@ -1867,20 +1878,6 @@ export default function FirstPostPrompt({
                   </span>
                   <button
                     type="button"
-                    className="composer-audio__remove"
-                    aria-label={`Remove ${clip.title}`}
-                    onClick={() => removeAudio(clip.id)}
-                    disabled={submitting}
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-                <div className="composer-audio__ask">
-                  <p>
-                    Cover photo <span>optional</span>
-                  </p>
-                  <button
-                    type="button"
                     className="composer-audio__cover-btn"
                     onClick={() => {
                       coverTargetIdRef.current = clip.id;
@@ -1894,89 +1891,20 @@ export default function FirstPostPrompt({
                         ? "Replace cover"
                         : "Add cover photo"}
                   </button>
+                  <button
+                    type="button"
+                    className="composer-audio__remove"
+                    aria-label={`Remove ${clip.title}`}
+                    onClick={() => removeAudio(clip.id)}
+                    disabled={submitting}
+                  >
+                    <CloseIcon />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         ) : null}
-
-        <div className="add-to-post">
-          <span className="add-to-post__label">Add to your post</span>
-          <div className="add-to-post__icons">
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--photo${
-                panel === "photo" || items.some((item) => item.kind !== "gif") ? " is-active" : ""
-              }`}
-              aria-label="Photo/video"
-              title="Photo/video"
-              onClick={() => {
-                fileInputRef.current?.click();
-                setPanel("photo");
-              }}
-            >
-              <PhotoIcon />
-            </button>
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--audio${audioClips.length ? " is-active" : ""}`}
-              aria-label="Audio clip"
-              title="Audio clip"
-              onClick={() => audioInputRef.current?.click()}
-            >
-              <AudioIcon />
-            </button>
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--tag${panel === "tag" || tagged.length ? " is-active" : ""}`}
-              aria-label="Tag people"
-              title="Tag people"
-              onClick={() => openPanel("tag")}
-            >
-              <TagIcon />
-            </button>
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--feeling${panel === "feeling" || feeling ? " is-active" : ""}`}
-              aria-label="Feeling/activity"
-              title="Feeling/activity"
-              onClick={() => openPanel("feeling")}
-            >
-              <FeelingIcon />
-            </button>
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--location${panel === "location" || location ? " is-active" : ""}`}
-              aria-label="Check in"
-              title="Check in"
-              onClick={() => openPanel("location")}
-            >
-              <LocationIcon />
-            </button>
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--gif${panel === "gif" || gifItem ? " is-active" : ""}`}
-              aria-label="GIF"
-              title="GIF"
-              onClick={() => openPanel("gif")}
-            >
-              <GifIcon />
-            </button>
-            <button
-              type="button"
-              className={`add-to-post__icon add-to-post__icon--more${panel === "more" ? " is-active" : ""}`}
-              aria-label="More"
-              title="More"
-              onClick={() => openPanel("more")}
-            >
-              <MoreIcon />
-            </button>
-          </div>
-        </div>
-
-        {savingEdit ? <ComposerImageStatus kind="checking" /> : null}
-
-        {renderMediaWarnings(!mediaEditorOpen)}
 
         {panel === "tag" ? (
           <div className="composer-panel">
@@ -2181,20 +2109,124 @@ export default function FirstPostPrompt({
           </div>
         ) : null}
 
+        </div>
+        <div className="first-post-prompt__dock">
+
+        <div className="add-to-post">
+          <span className="add-to-post__label">
+            Add to your post
+            <span className="help-tip add-to-post__help">
+              <button
+                type="button"
+                className="help-tip__trigger"
+                aria-label="Post limits"
+                aria-describedby={limitsHintId}
+              >
+                <svg className="help-tip__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </button>
+              <span className="help-tip__content" id={limitsHintId} role="tooltip">
+                Add up to {MAX_POST_MEDIA_ITEMS} photos and videos, or up to {MAX_POST_AUDIO_ITEMS} audio clips. A cover
+                photo is optional.
+              </span>
+            </span>
+          </span>
+          <div className="add-to-post__icons">
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--photo${
+                panel === "photo" || items.some((item) => item.kind !== "gif") ? " is-active" : ""
+              }`}
+              aria-label="Photo/video"
+              title="Photo/video"
+              onClick={() => {
+                fileInputRef.current?.click();
+                setPanel("photo");
+              }}
+            >
+              <PhotoIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--audio${audioClips.length ? " is-active" : ""}`}
+              aria-label="Audio clip"
+              title="Audio clip"
+              onClick={() => audioInputRef.current?.click()}
+            >
+              <AudioIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--tag${panel === "tag" || tagged.length ? " is-active" : ""}`}
+              aria-label="Tag people"
+              title="Tag people"
+              onClick={() => openPanel("tag")}
+            >
+              <TagIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--feeling${panel === "feeling" || feeling ? " is-active" : ""}`}
+              aria-label="Feeling/activity"
+              title="Feeling/activity"
+              onClick={() => openPanel("feeling")}
+            >
+              <FeelingIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--location${panel === "location" || location ? " is-active" : ""}`}
+              aria-label="Check in"
+              title="Check in"
+              onClick={() => openPanel("location")}
+            >
+              <LocationIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--gif${panel === "gif" || gifItem ? " is-active" : ""}`}
+              aria-label="GIF"
+              title="GIF"
+              onClick={() => openPanel("gif")}
+            >
+              <GifIcon />
+            </button>
+            <button
+              type="button"
+              className={`add-to-post__icon add-to-post__icon--more${panel === "more" ? " is-active" : ""}`}
+              aria-label="More"
+              title="More"
+              onClick={() => openPanel("more")}
+            >
+              <MoreIcon />
+            </button>
+          </div>
+        </div>
+
+        {savingEdit ? <ComposerImageStatus kind="checking" /> : null}
+
+        {renderMediaWarnings(!mediaEditorOpen)}
+
         {error ? <p className="first-post-prompt__error">{error}</p> : null}
         {verified ? (
-          <label className="composer-exclusive">
-            <input
-              type="checkbox"
-              checked={exclusiveContent}
-              onChange={(event) => setExclusiveContent(event.target.checked)}
-              disabled={submitting}
-            />
-            <span>
+          <div className="composer-exclusive-wrap">
+            <label className="composer-exclusive">
+              <input
+                type="checkbox"
+                checked={exclusiveContent}
+                onChange={(event) => setExclusiveContent(event.target.checked)}
+                disabled={submitting}
+                aria-describedby={exclusiveHintId}
+              />
               <strong>Exclusive content</strong>
-              <span>Only subscribers can unlock this post.</span>
+            </label>
+            <span id={exclusiveHintId} className="composer-exclusive__tip" role="tooltip">
+              Only subscribers can unlock this post.
             </span>
-          </label>
+          </div>
         ) : null}
         {isEditing ? null : (
         <fieldset className="composer-crosspost">
@@ -2223,10 +2255,6 @@ export default function FirstPostPrompt({
         </fieldset>
         )}
         <div className="first-post-prompt__meta">
-          <p className="first-post-prompt__hint">
-            Add up to {MAX_POST_MEDIA_ITEMS} photos and videos, or up to {MAX_POST_AUDIO_ITEMS} audio clips. A cover
-            photo is optional.
-          </p>
           <div className="first-post-prompt__actions">
             {isModal ? null : (
               <button type="button" className="first-post-prompt__later" onClick={() => dismiss(false)}>
@@ -2241,6 +2269,7 @@ export default function FirstPostPrompt({
               {submitting ? (isEditing ? "Saving…" : "Posting…") : mediaBusy ? "Uploading…" : isEditing ? "Save" : "Post"}
             </button>
           </div>
+        </div>
         </div>
       </form>
       {editingItem ? (
