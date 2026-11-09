@@ -15,8 +15,8 @@ function buildYearOptions() {
   return Array.from({ length: 81 }, (_, index) => currentYear - index);
 }
 
-function buildDayOptions() {
-  return Array.from({ length: 31 }, (_, index) => index + 1);
+function daysInMonth(month: number, year: number) {
+  return new Date(year, month, 0).getDate();
 }
 
 export function ParentInviteForm({
@@ -43,7 +43,14 @@ export function ParentInviteForm({
   const [isSavingDob, setIsSavingDob] = useState(false);
 
   const years = useMemo(() => buildYearOptions(), []);
-  const days = useMemo(() => buildDayOptions(), []);
+  const days = useMemo(() => {
+    const count = daysInMonth(Number(month) || 1, Number(year) || new Date().getFullYear());
+    return Array.from({ length: count }, (_, index) => index + 1);
+  }, [month, year]);
+
+  useEffect(() => {
+    if (Number(day) > days.length) setDay(String(days.length));
+  }, [day, days.length]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

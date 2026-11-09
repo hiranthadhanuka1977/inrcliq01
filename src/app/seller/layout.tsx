@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SellerHeader } from "@/components/seller/SellerHeader";
 import { SellerNav } from "@/components/seller/SellerNav";
 import { FeedSessionProvider } from "@/context/feed/FeedSessionContext";
+import { redirectIfOnboardingIncomplete } from "@/lib/auth/require-finished-onboarding";
 import { getSessionNavProfile } from "@/lib/feed/session-nav-profile";
 import { getSellerIdentity } from "@/lib/seller/identity";
 
@@ -15,6 +16,7 @@ export default async function SellerLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await redirectIfOnboardingIncomplete();
   const [navProfile, identity] = await Promise.all([
     getSessionNavProfile(),
     getSellerIdentity(),

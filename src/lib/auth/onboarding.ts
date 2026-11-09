@@ -41,3 +41,13 @@ export function getPostVerifyOnboardingStep(user: User) {
   if (user.accountType === "MINOR") return "parent";
   return "password";
 }
+
+/** Password, handle, and interests only run from that step. A minor cannot skip parent approval. */
+export function onboardingStepAllows(
+  user: { onboardingStep: string | null; accountType: string; emailVerified: Date | null },
+  step: "password" | "handle" | "interests",
+) {
+  if (!user.emailVerified) return false;
+  if (user.onboardingStep === step) return true;
+  return step === "password" && user.accountType !== "MINOR" && !user.onboardingStep;
+}

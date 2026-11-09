@@ -73,9 +73,14 @@ export async function verifyEmailToken(rawToken: string) {
     const matches = await bcrypt.compare(rawToken, record.tokenHash);
     if (!matches) continue;
 
+    const usedAt = new Date();
     await prisma.emailVerificationToken.update({
       where: { id: record.id },
-      data: { usedAt: new Date() },
+      data: { usedAt },
+    });
+    await prisma.emailVerificationToken.updateMany({
+      where: { email: record.email, usedAt: null },
+      data: { usedAt },
     });
 
     return { ok: true as const, email: record.email };

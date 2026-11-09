@@ -4,6 +4,7 @@ import {
   getEmailVerifyCooldownRemaining,
   sendVerificationEmail,
 } from "@/lib/auth/email-verification";
+import { prisma } from "@/lib/prisma";
 import { parseEmail } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -19,6 +20,11 @@ export async function POST(request: Request) {
     }
 
     const email = emailResult.data.toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email }, select: { emailVerified: true } });
+    if (!user || user.emailVerified) {
+      return NextResponse.json({ ok: true });
+    }
+
     const remaining = await getEmailVerifyCooldownRemaining(email);
 
     if (remaining > 0) {

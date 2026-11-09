@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { requireSessionUser } from "@/lib/api-helpers";
-import { calculateAge, parseDateOfBirth } from "@/lib/utils/age";
+import { ageZoneWriteData } from "@/lib/guardian/user-age-zone";
+import { calculateAge, dateOfBirthError, parseDateOfBirth } from "@/lib/utils/age";
 import { prisma } from "@/lib/prisma";
 
 function parseDobPart(value: unknown) {
@@ -31,19 +32,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please enter your full date of birth." }, { status: 400 });
     }
 
-    if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900) {
-      return NextResponse.json({ error: "Please enter a valid date of birth." }, { status: 400 });
+    const dobMessage = dateOfBirthError(month, day, year);
+    if (dobMessage) {
+      return NextResponse.json({ error: dobMessage }, { status: 400 });
     }
 
     const dateOfBirth = parseDateOfBirth(month, day, year);
-    if (
-      Number.isNaN(dateOfBirth.getTime()) ||
-      dateOfBirth.getFullYear() !== year ||
-      dateOfBirth.getMonth() !== month - 1 ||
-      dateOfBirth.getDate() !== day
-    ) {
-      return NextResponse.json({ error: "Please enter a valid date of birth." }, { status: 400 });
-    }
 
     const age = calculateAge(month, day, year);
     if (age < 18) {
@@ -64,6 +58,7 @@ export async function POST(request: Request) {
           dateOfBirth,
           accountType: AccountType.ADULT,
           onboardingStep: "password",
+          ...ageZoneWriteData(dateOfBirth),
         },
       }),
     ]);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { onboardingStepAllows } from "@/lib/auth/onboarding";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { sendProfileCompleteEmail } from "@/lib/email/notifications";
 import { seedDefaultChatThreadsForUser } from "@/lib/feed/chat-service";
@@ -9,8 +10,8 @@ export async function POST(request: Request) {
     const { user, error } = await requireSessionUser();
     if (error) return error;
 
-    if (!user.emailVerified) {
-      return NextResponse.json({ error: "Verify your email first." }, { status: 403 });
+    if (!onboardingStepAllows(user, "interests")) {
+      return NextResponse.json({ error: "Finish the previous step first." }, { status: 403 });
     }
 
     const body = await request.json();

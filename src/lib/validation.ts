@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidEmailFormat } from "@/lib/form-validation";
+import { dateOfBirthError } from "@/lib/utils/age";
 
 const emailField = z
   .string()
@@ -42,6 +43,10 @@ export const signupJoinSchema = z
         message: "Please enter your email address.",
         path: ["email"],
       });
+    }
+    const dobMessage = dateOfBirthError(data.month, data.day, data.year);
+    if (dobMessage) {
+      ctx.addIssue({ code: "custom", message: dobMessage, path: ["day"] });
     }
   });
 

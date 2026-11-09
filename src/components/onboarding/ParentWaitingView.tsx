@@ -28,6 +28,16 @@ function formatRelativeExpiry(expiresAt: string) {
   return `Expires in ${hours}h ${minutes}m`;
 }
 
+function formatSentAgo(sentAt: string) {
+  const minutes = Math.floor((Date.now() - new Date(sentAt).getTime()) / 60_000);
+  if (!Number.isFinite(minutes) || minutes < 1) return "Just now";
+  if (minutes < 60) return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? "1 day ago" : `${days} days ago`;
+}
+
 export function ParentWaitingView() {
   const router = useRouter();
   const [status, setStatus] = useState<InviteStatus | null>(null);
@@ -202,7 +212,9 @@ export function ParentWaitingView() {
         <div className="parent-waiting__status-body">
           <strong className="parent-waiting__status-title">Email sent</strong>
           <span className="parent-waiting__status-meta" id="parent-waiting-timing">
-            {status?.sentAt ? `Just now · ${formatRelativeExpiry(status.expiresAt)}` : "Just now · Expires in 23h 59m"}
+            {status?.sentAt
+              ? `${formatSentAgo(status.sentAt)} · ${formatRelativeExpiry(status.expiresAt)}`
+              : "Checking the invite…"}
           </span>
         </div>
         <span className="parent-waiting__badge">Pending</span>
@@ -217,8 +229,8 @@ export function ParentWaitingView() {
           </svg>
         </span>
         <p>
-          We have created a temporary account for 48 hours, so you can log in at any time to check the status of your
-          approval request.
+          The approval link expires in 24 hours. You can log in any time before then to check the status of your
+          request.
         </p>
       </div>
 

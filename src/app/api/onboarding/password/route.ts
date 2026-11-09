@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth/credentials";
+import { onboardingStepAllows } from "@/lib/auth/onboarding";
 import { requireSessionUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { parsePassword } from "@/lib/validation";
@@ -9,8 +10,8 @@ export async function POST(request: Request) {
     const { user, error } = await requireSessionUser();
     if (error) return error;
 
-    if (!user.emailVerified) {
-      return NextResponse.json({ error: "Verify your email first." }, { status: 403 });
+    if (!onboardingStepAllows(user, "password")) {
+      return NextResponse.json({ error: "Finish the previous step first." }, { status: 403 });
     }
 
     const body = await request.json();

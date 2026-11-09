@@ -12,6 +12,7 @@ import {
   getNameValidationState,
 } from "@/lib/form-validation";
 import { formatVerifyEmailDisplay } from "@/lib/utils/email-display";
+import { dateOfBirthError } from "@/lib/utils/age";
 import { AuthPathShell } from "@/components/auth/AuthPathShell";
 import { Disclosure } from "@/components/auth/Disclosure";
 import { AppleIcon, GoogleIcon } from "@/components/auth/OAuthIcons";
@@ -35,8 +36,8 @@ function buildYearOptions() {
   return Array.from({ length: 81 }, (_, index) => currentYear - index);
 }
 
-function buildDayOptions() {
-  return Array.from({ length: 31 }, (_, index) => index + 1);
+function daysInMonth(month: number, year: number) {
+  return new Date(year, month, 0).getDate();
 }
 
 function applyDefaultDob(setters: {
@@ -83,7 +84,17 @@ export function SignupFlow() {
   const [inboxOpen, setInboxOpen] = useState(false);
 
   const years = useMemo(() => buildYearOptions(), []);
-  const days = useMemo(() => buildDayOptions(), []);
+  const days = useMemo(() => {
+    const monthNumber = Number(month) || 1;
+    const yearNumber = Number(year) || new Date().getFullYear();
+    const count = daysInMonth(monthNumber, yearNumber);
+    return Array.from({ length: count }, (_, index) => index + 1);
+  }, [month, year]);
+
+  useEffect(() => {
+    if (!day) return;
+    if (Number(day) > days.length) setDay(String(days.length));
+  }, [day, days.length]);
 
   const cardClass = step === 3 ? "auth-center__card--wide" : "";
   const innerClass = [
@@ -229,6 +240,13 @@ export function SignupFlow() {
 
     if (!month || !day || !year) {
       window.alert("Please enter your full date of birth.");
+      monthRef.current?.focus();
+      return;
+    }
+
+    const dobMessage = dateOfBirthError(Number(month), Number(day), Number(year));
+    if (dobMessage) {
+      setApiError(dobMessage);
       monthRef.current?.focus();
       return;
     }

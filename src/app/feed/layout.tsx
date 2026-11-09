@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import FeedPathShell from "@/components/feed/FeedPathShell";
 import { FeedFollowStateProvider } from "@/context/feed/FollowStateContext";
 import { FeedSessionProvider } from "@/context/feed/FeedSessionContext";
+import { redirectIfOnboardingIncomplete } from "@/lib/auth/require-finished-onboarding";
 import { getSessionNavProfile } from "@/lib/feed/session-nav-profile";
 import "@/styles/feed/feed-app.css";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function FeedLayout({ children }: { children: React.ReactNode }) {
+  await redirectIfOnboardingIncomplete();
   const navProfile = await getSessionNavProfile();
 
   return (

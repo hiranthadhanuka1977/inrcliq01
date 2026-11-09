@@ -16,6 +16,10 @@ export async function completeEmailVerification(rawToken: string) {
     return { ok: false as const, reason: "no_user" as const };
   }
 
+  if (user.emailVerified) {
+    return { ok: true as const, redirectTo: "/" };
+  }
+
   const onboardingStep = getPostVerifyOnboardingStep(user);
 
   await prisma.user.update({
