@@ -3,7 +3,7 @@ import LeftNav from "@/components/feed/LeftNav";
 import MobileNav from "@/components/feed/MobileNav";
 import StudioPlayer from "@/components/feed/StudioPlayer";
 import { VideoShelfRail } from "@/components/feed/VideoShelfCard";
-import { loadVideoShelf } from "@/lib/feed/video-shelf";
+import { loadPostShelfVideo, loadVideoShelf } from "@/lib/feed/video-shelf";
 import { getSessionUser } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
 
@@ -20,9 +20,9 @@ export default async function PostVideoPage({
   const itemIndex = Number(index);
   if (!Number.isInteger(itemIndex) || itemIndex < 0) notFound();
 
-  const shelf = await loadVideoShelf(user.id, user.ageZone);
-  const video = shelf.videos.find((item) => item.key === `post:${postId}:${itemIndex}`);
+  const video = await loadPostShelfVideo(user.id, user.ageZone, postId, itemIndex);
   if (!video?.playback) notFound();
+  const shelf = await loadVideoShelf(user.id, user.ageZone, { limit: 24 });
 
   const profileHref = video.authorSlug ? `/feed/profile/${video.authorSlug}` : null;
   const caption = video.caption && video.caption !== video.title ? video.caption : null;
@@ -83,7 +83,7 @@ export default async function PostVideoPage({
               </div>
             ) : null}
           </div>
-          <VideoShelfRail items={upNext} />
+          <VideoShelfRail items={upNext} currentKey={video.key} />
         </main>
       </div>
       <MobileNav />

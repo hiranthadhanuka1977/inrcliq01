@@ -33,6 +33,7 @@ export default async function VideoWatchPage({
   if (result.kind === "missing") notFound();
 
   const project = result.project;
+  if (project.mediaKind !== "VIDEO") notFound();
   const slug = project.creator.slug;
   let attachment: { href: string; label: string } | null = null;
   if (result.kind === "open" && project.attachmentType === "PRODUCT" && project.attachmentId && slug) {
@@ -49,7 +50,7 @@ export default async function VideoWatchPage({
 
   const mediaUrl = project.mediaUrl && isStudioMediaUrl(project.mediaUrl) ? project.mediaUrl : null;
   const coverUrl = project.thumbnailUrl && isStudioMediaUrl(project.thumbnailUrl) ? project.thumbnailUrl : null;
-  const shelf = await loadVideoShelf(user.id, user.ageZone);
+  const shelf = await loadVideoShelf(user.id, user.ageZone, { limit: 24 });
   const upNext = shelf.videos.filter((item) => item.href !== `/feed/videos/${project.id}`).slice(0, 12);
 
   return (
@@ -76,18 +77,11 @@ export default async function VideoWatchPage({
               </>
             ) : (
               <>
-                {project.mediaKind === "VIDEO" && mediaUrl ? (
+                {mediaUrl ? (
                   <div className="yt-player">
                     <StudioPlayer kind="VIDEO" src={mediaUrl} poster={coverUrl} startMs={project.trimStartMs} endMs={project.trimEndMs} autoPlay />
                   </div>
-                ) : (
-                  <>
-                    {coverUrl ? <img className="video-watch__cover" src={coverUrl} alt="" /> : null}
-                    {mediaUrl ? (
-                      <StudioPlayer kind="AUDIO" src={mediaUrl} startMs={project.trimStartMs} endMs={project.trimEndMs} />
-                    ) : null}
-                  </>
-                )}
+                ) : null}
                 <h1>{project.title || "Untitled"}</h1>
                 <p className="video-watch__meta">
                   {slug ? (
@@ -142,7 +136,7 @@ export default async function VideoWatchPage({
               </>
             )}
           </main>
-          <VideoShelfRail items={upNext} />
+          <VideoShelfRail items={upNext} currentKey={`studio:${project.id}`} />
         </div>
       </div>
       <MobileNav />

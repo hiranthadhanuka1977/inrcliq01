@@ -94,36 +94,85 @@ function studioSeconds(project: { durationMs: number; trimStartMs: number; trimE
   return end - start;
 }
 
+/** Posts whose media JSON actually contains a video. Photo posts stay out of this query. */
+const videoPostWhere: Prisma.FeedPostWhereInput = {
+  OR: [
+    { mediaJson: { path: ["type"], equals: "video" } },
+    { mediaJson: { string_contains: '"type":"video"' } },
+    { mediaJson: { string_contains: '"type": "video"' } },
+  ],
+};
+
+const shelfPostSelect = {
+  id: true,
+  category: true,
+  text: true,
+  mediaJson: true,
+  likes: true,
+  membersOnly: true,
+  postedAt: true,
+  userId: true,
+  creatorId: true,
+  creator: {
+    select: {
+      name: true,
+      handle: true,
+      slug: true,
+      avatarInitials: true,
+      avatarColor: true,
+      avatarUrl: true,
+      userId: true,
+    },
+  },
+} as const;
+
+type ShelfPost = Prisma.FeedPostGetPayload<{ select: typeof shelfPostSelect }>;
+
+function shelfItemFromPost(post: ShelfPost, video: ReturnType<typeof videosFromPostMedia>[number], extracted: ReturnType<typeof videosFromPostMedia>, ordinal: number): VideoShelfItem {
+  const length = video.trim ? video.trim.end - video.trim.start : null;
+  return {
+    key: `post:${post.id}:${video.itemIndex}`,
+    href: `/feed/videos/post/${encodeURIComponent(post.id)}/${video.itemIndex}`,
+    title: postVideoTitle(post.text, video, extracted.length, ordinal),
+    thumbnailUrl: video.poster,
+    previewUrl: video.url,
+    previewSeconds: video.trim ? Math.max(0.1, video.trim.start) : 0.1,
+    durationLabel: length != null ? formatDurationLabel(length) : null,
+    authorName: post.creator.name,
+    authorSlug: authorSlug(post.creator.handle, post.creator.slug),
+    avatarUrl: post.creator.avatarUrl,
+    avatarInitials: post.creator.avatarInitials || post.creator.name.slice(0, 2).toUpperCase(),
+    avatarColor: post.creator.avatarColor || "#5b6cd8",
+    subtitle: joinMeta([formatPostedAgo(post.postedAt), likesLabel(post.likes)]),
+    membersOnly: post.membersOnly,
+    likes: post.likes,
+    category: post.category,
+    postedAtMs: post.postedAt.getTime(),
+    description: post.text,
+    caption: video.caption,
+    playback: {
+      src: video.url,
+      poster: video.poster,
+      startMs: video.trim ? Math.round(video.trim.start * 1000) : 0,
+      endMs: video.trim ? Math.round(video.trim.end * 1000) : null,
+    },
+  };
+}
+
 /** Published videos from posts and Creator Studio, newest first, for the Videos page. */
-export async function loadVideoShelf(viewerId: string, viewerZone: AgeZone | null | undefined): Promise<VideoShelf> {
+export async function loadVideoShelf(
+  viewerId: string,
+  viewerZone: AgeZone | null | undefined,
+  options?: { limit?: number },
+): Promise<VideoShelf> {
   await releaseDueStudioProjects();
 
   const [posts, hiddenIds, subscriptionRows, ownCreator, followed, projects] = await Promise.all([
     prisma.feedPost.findMany({
-      where: { NOT: { mediaJson: { equals: Prisma.DbNull } } },
+      where: videoPostWhere,
       orderBy: { postedAt: "desc" },
-      select: {
-        id: true,
-        category: true,
-        text: true,
-        mediaJson: true,
-        likes: true,
-        membersOnly: true,
-        postedAt: true,
-        userId: true,
-        creatorId: true,
-        creator: {
-          select: {
-            name: true,
-            handle: true,
-            slug: true,
-            avatarInitials: true,
-            avatarColor: true,
-            avatarUrl: true,
-            userId: true,
-          },
-        },
-      },
+      ...(options?.limit ? { take: options.limit } : {}),
+      select: shelfPostSelect,
     }),
     getHiddenPostIdsForUser(viewerId),
     prisma.creatorSubscription.findMany({
@@ -195,34 +244,7 @@ export async function loadVideoShelf(viewerId: string, viewerZone: AgeZone | nul
     if (!canSeeMembersPost(post, viewerId, ownCreatorId, subscribed)) continue;
     const extracted = videosFromPostMedia(post.mediaJson);
     extracted.forEach((video, ordinal) => {
-      const length = video.trim ? video.trim.end - video.trim.start : null;
-      videos.push({
-        key: `post:${post.id}:${video.itemIndex}`,
-        href: `/feed/videos/post/${encodeURIComponent(post.id)}/${video.itemIndex}`,
-        title: postVideoTitle(post.text, video, extracted.length, ordinal),
-        thumbnailUrl: video.poster,
-        previewUrl: video.url,
-        previewSeconds: video.trim ? Math.max(0.1, video.trim.start) : 0.1,
-        durationLabel: length != null ? formatDurationLabel(length) : null,
-        authorName: post.creator.name,
-        authorSlug: authorSlug(post.creator.handle, post.creator.slug),
-        avatarUrl: post.creator.avatarUrl,
-        avatarInitials: post.creator.avatarInitials || post.creator.name.slice(0, 2).toUpperCase(),
-        avatarColor: post.creator.avatarColor || "#5b6cd8",
-        subtitle: joinMeta([formatPostedAgo(post.postedAt), likesLabel(post.likes)]),
-        membersOnly: post.membersOnly,
-        likes: post.likes,
-        category: post.category,
-        postedAtMs: post.postedAt.getTime(),
-        description: post.text,
-        caption: video.caption,
-        playback: {
-          src: video.url,
-          poster: video.poster,
-          startMs: video.trim ? Math.round(video.trim.start * 1000) : 0,
-          endMs: video.trim ? Math.round(video.trim.end * 1000) : null,
-        },
-      });
+      videos.push(shelfItemFromPost(post, video, extracted, ordinal));
     });
   }
 
@@ -264,11 +286,71 @@ export async function loadVideoShelf(viewerId: string, viewerZone: AgeZone | nul
       previewUrl: playable,
       previewSeconds: Math.max(0.1, project.trimStartMs / 1000),
       durationLabel: seconds != null ? formatDurationLabel(seconds) : null,
+      playback: {
+        src: playable,
+        poster: thumb,
+        startMs: Math.max(0, project.trimStartMs),
+        endMs: project.trimEndMs,
+      },
     });
   }
 
   videos.sort((a, b) => b.postedAtMs - a.postedAtMs);
   return { videos };
+}
+
+/** One post video for the watch page, using the same visibility rules as the shelf. */
+export async function loadPostShelfVideo(
+  viewerId: string,
+  viewerZone: AgeZone | null | undefined,
+  postId: string,
+  itemIndex: number,
+): Promise<VideoShelfItem | null> {
+  await releaseDueStudioProjects();
+  const [post, hiddenIds, subscriptionRows, ownCreator, followed, linked] = await Promise.all([
+    prisma.feedPost.findUnique({ where: { id: postId }, select: shelfPostSelect }),
+    getHiddenPostIdsForUser(viewerId),
+    prisma.creatorSubscription.findMany({
+      where: { userId: viewerId, status: "ACTIVE" },
+      select: { creatorId: true },
+    }),
+    prisma.creatorUser.findFirst({
+      where: { userId: viewerId },
+      select: { id: true },
+    }),
+    getFollowedCreatorIdsForUser(viewerId),
+    prisma.studioProject.findFirst({
+      where: {
+        feedPostId: postId,
+        status: "PUBLISHED",
+        mediaKind: "VIDEO",
+        audience: { in: ["PUBLIC", "FOLLOWERS", "MEMBERS"] },
+      },
+      select: {
+        userId: true,
+        creatorId: true,
+        audience: true,
+        ageRating: true,
+        mediaUrl: true,
+      },
+    }),
+  ]);
+  if (!post || hiddenIds.has(post.id)) return null;
+  const subscribed = new Set(subscriptionRows.map((row) => row.creatorId));
+  const ownCreatorId = ownCreator?.id ?? null;
+  if (!canSeeMembersPost(post, viewerId, ownCreatorId, subscribed)) return null;
+  if (
+    linked?.mediaUrl
+    && isStudioMediaUrl(linked.mediaUrl)
+    && canWatchStudio(linked, viewerId, viewerZone, followed, subscribed)
+  ) {
+    return null;
+  }
+  const extracted = videosFromPostMedia(post.mediaJson);
+  const ordinal = extracted.findIndex((video) => video.itemIndex === itemIndex);
+  const video = ordinal >= 0 ? extracted[ordinal] : null;
+  if (!video) return null;
+  return shelfItemFromPost(post, video, extracted, ordinal);
 }
 
 /** Categories that have something on the shelf, in the same order as the home feed. */

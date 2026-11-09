@@ -5,12 +5,12 @@ import ShelfScroller from "@/components/feed/ShelfScroller";
 import VideoShelfCard from "@/components/feed/VideoShelfCard";
 import { VideoShelfToast, visibleShelfItems } from "@/components/feed/VideoThumbMenu";
 import type { VideoShelfItem } from "@/lib/feed/video-shelf";
-import { authorShelfKey, restoreHiddenShelfItems, useShelfPrefs } from "@/lib/feed/video-shelf-menu";
+import { authorShelfKey, isShelfItemHidden, restoreHiddenShelfItems, useShelfPrefs, type ShelfPrefs } from "@/lib/feed/video-shelf-menu";
 
 const RAIL_LIMIT = 12;
 const FOR_YOU_LIMIT = 10;
 
-type ShelfFocus = "latest" | "foryou" | "members" | "liked";
+type ShelfFocus = "latest" | "foryou" | "members" | "liked" | "queue" | "later" | `playlist:${string}`;
 
 type CreatorChip = {
   key: string;
@@ -30,16 +30,9 @@ function byLikes(a: VideoShelfItem, b: VideoShelfItem) {
   return b.likes - a.likes || b.postedAtMs - a.postedAtMs;
 }
 
-/** One video from each category in turn, so the two rows are a mix rather than a copy of Latest. */
-function forYouMix(videos: VideoShelfItem[]) {
-  const groups = new Map<string, VideoShelfItem[]>();
-  for (const video of videos) {
-    const list = groups.get(video.category) ?? [];
-    list.push(video);
-    groups.set(video.category, list);
-  }
-  const queues = [...groups.values()];
-  const mixed: VideoShelfItem[] = [];
+function weave<T>(groups: T[][]) {
+  const queues = groups.map((group) => [...group]);
+  const mixed: T[] = [];
   let pending = true;
   while (pending) {
     pending = false;
@@ -51,6 +44,49 @@ function forYouMix(videos: VideoShelfItem[]) {
     }
   }
   return mixed;
+}
+
+function spreadShelf(videos: VideoShelfItem[]) {
+  const byCategory = new Map<string, VideoShelfItem[]>();
+  for (const video of videos) {
+    const list = byCategory.get(video.category) ?? [];
+    list.push(video);
+    byCategory.set(video.category, list);
+  }
+  const spread = [...byCategory.values()].map((group) => {
+    const byAuthor = new Map<string, VideoShelfItem[]>();
+    for (const video of group) {
+      const list = byAuthor.get(authorShelfKey(video)) ?? [];
+      list.push(video);
+      byAuthor.set(authorShelfKey(video), list);
+    }
+    return weave([...byAuthor.values()]);
+  });
+  return weave(spread);
+}
+
+/** Leaves the Latest row out, then alternates creators so one category is not a copy of that row. */
+function forYouMix(videos: VideoShelfItem[]) {
+  const latest = videos.slice(0, RAIL_LIMIT);
+  const fresh = videos.slice(RAIL_LIMIT);
+  const primary = spreadShelf(fresh.length ? fresh : videos);
+  if (primary.length >= FOR_YOU_LIMIT || !fresh.length) return primary;
+  const used = new Set(primary.map((video) => video.key));
+  return [...primary, ...spreadShelf(latest.filter((video) => !used.has(video.key)))];
+}
+
+function savedVideos(keys: string[], videos: VideoShelfItem[], prefs: ShelfPrefs) {
+  const byKey = new Map(videos.map((video) => [video.key, video]));
+  const picked: VideoShelfItem[] = [];
+  const seen = new Set<string>();
+  for (const key of keys) {
+    if (seen.has(key)) continue;
+    const video = byKey.get(key) ?? prefs.cards[key];
+    if (!video || isShelfItemHidden(prefs, video)) continue;
+    seen.add(key);
+    picked.push(video);
+  }
+  return picked;
 }
 
 function creatorsFrom(videos: VideoShelfItem[]): CreatorChip[] {
@@ -79,11 +115,13 @@ function ShelfRail({
   subtitle,
   items,
   onSeeAll,
+  playHref,
 }: {
   title: string;
   subtitle: string;
   items: VideoShelfItem[];
   onSeeAll: () => void;
+  playHref?: string;
 }) {
   if (!items.length) return null;
   const shown = items.slice(0, RAIL_LIMIT);
@@ -94,10 +132,15 @@ function ShelfRail({
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
-        {items.length > RAIL_LIMIT ? (
-          <button type="button" onClick={onSeeAll}>
-            See all
-          </button>
+        {playHref || items.length > RAIL_LIMIT ? (
+          <div className="yt-shelf__actions">
+            {playHref ? <a href={playHref}>Play</a> : null}
+            {items.length > RAIL_LIMIT ? (
+              <button type="button" onClick={onSeeAll}>
+                See all
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
       <ShelfScroller label={title} resetKey={shown.map((video) => video.key).join("|")}>
@@ -134,6 +177,18 @@ export default function VideoShelfView({
   const forYou = useMemo(() => forYouMix(scoped), [scoped]);
   const members = useMemo(() => scoped.filter((item) => item.membersOnly), [scoped]);
   const liked = useMemo(() => scoped.filter((item) => item.likes > 0).sort(byLikes), [scoped]);
+  const queue = useMemo(() => savedVideos(prefs.queue, available, prefs), [available, prefs]);
+  const watchLater = useMemo(() => savedVideos(prefs.watchLater, available, prefs), [available, prefs]);
+  const playlistShelves = useMemo(
+    () => prefs.playlists
+      .map((playlist) => ({
+        id: playlist.id,
+        name: playlist.name,
+        items: savedVideos(playlist.keys, available, prefs),
+      }))
+      .filter((playlist) => playlist.items.length > 0),
+    [available, prefs],
+  );
   const categoryLabel = category ? labelFor(category) : "";
   const latestSubtitle = category ? `New videos in ${categoryLabel}` : "New videos from every category";
 
@@ -147,6 +202,10 @@ export default function VideoShelfView({
     setFocus(null);
   };
 
+  const playlistFocusId = focus?.startsWith("playlist:") ? focus.slice("playlist:".length) : null;
+  const focusedPlaylist = playlistFocusId
+    ? playlistShelves.find((playlist) => playlist.id === playlistFocusId) ?? null
+    : null;
   const focusedItems =
     focus === "members"
       ? members
@@ -156,7 +215,13 @@ export default function VideoShelfView({
           ? forYou
           : focus === "latest"
             ? scoped
-            : null;
+            : focus === "queue"
+              ? queue
+              : focus === "later"
+                ? watchLater
+                : focusedPlaylist
+                  ? focusedPlaylist.items
+                  : null;
   const focusedTitle =
     focus === "members"
       ? "Members"
@@ -166,7 +231,13 @@ export default function VideoShelfView({
           ? "For you"
           : focus === "latest"
             ? "Latest"
-            : "";
+            : focus === "queue"
+              ? "Queue"
+              : focus === "later"
+                ? "Watch later"
+                : focusedPlaylist
+                  ? focusedPlaylist.name
+                  : "";
 
   return (
     <>
@@ -249,7 +320,35 @@ export default function VideoShelfView({
             ))}
           </div>
         </section>
-      ) : creator ? (
+      ) : (
+        <>
+      {queue.length || watchLater.length || playlistShelves.length ? (
+        <div className="yt-shelves">
+          <ShelfRail
+            title="Queue"
+            subtitle="Plays in the order you added them"
+            items={queue}
+            playHref={queue[0]?.href}
+            onSeeAll={() => setFocus("queue")}
+          />
+          <ShelfRail
+            title="Watch later"
+            subtitle="Saved for later"
+            items={watchLater}
+            onSeeAll={() => setFocus("later")}
+          />
+          {playlistShelves.map((playlist) => (
+            <ShelfRail
+              key={playlist.id}
+              title={playlist.name}
+              subtitle="Playlist"
+              items={playlist.items}
+              onSeeAll={() => setFocus(`playlist:${playlist.id}`)}
+            />
+          ))}
+        </div>
+      ) : null}
+      {creator ? (
         <section className="yt-shelf" aria-label={`Videos by ${creator.name}`}>
           <div className="yt-shelf__head">
             <div>
@@ -297,7 +396,7 @@ export default function VideoShelfView({
               <div className="yt-shelf__head">
                 <div>
                   <h2>For you</h2>
-                  <p>{category ? `A mix from ${categoryLabel}` : "A mix from every category"}</p>
+                  <p>{category ? `More from ${categoryLabel}` : "More videos beyond Latest"}</p>
                 </div>
                 {forYou.length > FOR_YOU_LIMIT ? (
                   <button type="button" onClick={() => setFocus("foryou")}>
@@ -325,6 +424,8 @@ export default function VideoShelfView({
             onSeeAll={() => setFocus("liked")}
           />
         </div>
+      )}
+        </>
       )}
 
       {prefs.hiddenKeys.length || prefs.hiddenAuthors.length ? (

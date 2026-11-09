@@ -276,7 +276,7 @@ export default function VideoThumbMenu({
         label={queued ? "Remove from queue" : "Add to queue"}
         onMouseEnter={() => setPanel(null)}
         onClick={() => {
-          toggleShelfQueue(item.key);
+          toggleShelfQueue(item);
           onClose();
         }}
       />
@@ -285,7 +285,7 @@ export default function VideoThumbMenu({
         label={saved ? "Remove from Watch later" : "Save to Watch later"}
         onMouseEnter={() => setPanel(null)}
         onClick={() => {
-          toggleWatchLater(item.key);
+          toggleWatchLater(item);
           onClose();
         }}
       />
@@ -335,7 +335,7 @@ export default function VideoThumbMenu({
             icon={<ClockIcon />}
             label="Watch later"
             checked={saved}
-            onClick={() => toggleWatchLater(item.key)}
+            onClick={() => toggleWatchLater(item)}
           />
           {prefs.playlists.map((playlist) => (
             <MenuRow
@@ -343,7 +343,7 @@ export default function VideoThumbMenu({
               icon={<PlaylistIcon />}
               label={playlist.name}
               checked={playlist.keys.includes(item.key)}
-              onClick={() => togglePlaylistVideo(playlist.id, item.key)}
+              onClick={() => togglePlaylistVideo(playlist.id, item)}
             />
           ))}
           {creating ? (
@@ -351,7 +351,7 @@ export default function VideoThumbMenu({
               className="yt-menu__create"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (createShelfPlaylist(name, item.key)) {
+                if (createShelfPlaylist(name, item)) {
                   setName("");
                   setCreating(false);
                 }
@@ -390,7 +390,7 @@ export default function VideoThumbMenu({
               className="yt-menu__item"
               role="menuitem"
               onClick={() => {
-                reportShelfVideo(item.key);
+                reportShelfVideo(item.key, reason);
                 onClose();
               }}
             >

@@ -24,14 +24,20 @@ export default function ShelfScroller({
   const rowRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false });
 
+  const edgesRef = useRef(edges);
+
   const update = () => {
     const row = rowRef.current;
     if (!row) return;
     const max = row.scrollWidth - row.clientWidth;
-    setEdges({
+    const next = {
       left: row.scrollLeft > 4,
       right: max > 4 && row.scrollLeft < max - 4,
-    });
+    };
+    const previous = edgesRef.current;
+    if (previous.left === next.left && previous.right === next.right) return;
+    edgesRef.current = next;
+    setEdges(next);
   };
 
   useEffect(() => {

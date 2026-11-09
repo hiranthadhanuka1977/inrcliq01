@@ -249,7 +249,15 @@
   font-size: 0.84rem;
 }
 
-.yt-shelf__head button {
+.yt-shelf__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.yt-shelf__head button,
+.yt-shelf__head a {
   flex: 0 0 auto;
   padding: 0;
   border: 0;
@@ -258,11 +266,14 @@
   font: inherit;
   font-size: 0.88rem;
   font-weight: 650;
+  text-decoration: none;
   cursor: pointer;
 }
 
 .yt-shelf__head button:hover,
-.yt-shelf__head button:focus-visible {
+.yt-shelf__head button:focus-visible,
+.yt-shelf__head a:hover,
+.yt-shelf__head a:focus-visible {
   color: var(--color-text-primary);
 }
 
@@ -779,6 +790,10 @@ a.yt-watch__name:focus-visible {
   .yt-watch {
     grid-template-columns: 1fr;
   }
+
+  .yt-foryou {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .yt-menu {
@@ -977,7 +992,8 @@ a.yt-watch__name:focus-visible {
     padding: 16px 12px 96px;
   }
 
-  .yt-grid {
+  .yt-grid,
+  .yt-foryou {
     grid-template-columns: 1fr;
     gap: 22px;
   }

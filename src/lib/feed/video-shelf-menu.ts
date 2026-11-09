@@ -1,11 +1,17 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import type { VideoShelfItem } from "@/lib/feed/video-shelf";
 
 export type ShelfPlaylist = {
   id: string;
   name: string;
   keys: string[];
+};
+
+export type ShelfReport = {
+  key: string;
+  reason: string;
 };
 
 export type ShelfPrefs = {
@@ -14,6 +20,8 @@ export type ShelfPrefs = {
   playlists: ShelfPlaylist[];
   hiddenKeys: string[];
   hiddenAuthors: string[];
+  reports: ShelfReport[];
+  cards: Record<string, VideoShelfItem>;
 };
 
 type ShelfToast = {
@@ -28,6 +36,8 @@ const EMPTY: ShelfPrefs = {
   playlists: [],
   hiddenKeys: [],
   hiddenAuthors: [],
+  reports: [],
+  cards: {},
 };
 
 let prefs: ShelfPrefs = EMPTY;
@@ -43,6 +53,47 @@ const menuListeners = new Set<(key: string | null) => void>();
 
 function list(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function readReports(value: unknown): ShelfReport[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Partial<ShelfReport>;
+    if (typeof row.key !== "string" || typeof row.reason !== "string" || !row.reason.trim()) return [];
+    return [{ key: row.key, reason: row.reason.trim().slice(0, 80) }];
+  });
+}
+
+function readCards(value: unknown) {
+  const cards: Record<string, VideoShelfItem> = {};
+  if (!value || typeof value !== "object") return cards;
+  for (const [key, card] of Object.entries(value as Record<string, unknown>)) {
+    if (!card || typeof card !== "object") continue;
+    const row = card as Partial<VideoShelfItem>;
+    if (typeof row.key !== "string" || row.key !== key) continue;
+    if (typeof row.href !== "string" || typeof row.title !== "string" || typeof row.authorName !== "string") continue;
+    if (typeof row.postedAtMs !== "number") continue;
+    cards[key] = row as VideoShelfItem;
+  }
+  return cards;
+}
+
+function listedIn(state: ShelfPrefs, key: string) {
+  return state.queue.includes(key)
+    || state.watchLater.includes(key)
+    || state.playlists.some((playlist) => playlist.keys.includes(key));
+}
+
+function putCard(cards: Record<string, VideoShelfItem>, item: VideoShelfItem) {
+  return { ...cards, [item.key]: item };
+}
+
+function dropCard(cards: Record<string, VideoShelfItem>, key: string) {
+  if (!cards[key]) return cards;
+  const next = { ...cards };
+  delete next[key];
+  return next;
 }
 
 function readPrefs(): ShelfPrefs {
@@ -64,6 +115,8 @@ function readPrefs(): ShelfPrefs {
       playlists,
       hiddenKeys: list(parsed.hiddenKeys),
       hiddenAuthors: list(parsed.hiddenAuthors),
+      reports: readReports(parsed.reports),
+      cards: readCards(parsed.cards),
     };
   } catch {
     return EMPTY;
@@ -167,44 +220,51 @@ export function subscribeShelfMenu(listener: (key: string | null) => void) {
   };
 }
 
-export function toggleShelfQueue(key: string) {
+export function toggleShelfQueue(item: VideoShelfItem) {
   ensurePrefs();
-  const saved = prefs.queue.includes(key);
-  updatePrefs({ ...prefs, queue: toggleKey(prefs.queue, key) });
+  const saved = prefs.queue.includes(item.key);
+  const queue = toggleKey(prefs.queue, item.key);
+  const draft = { ...prefs, queue, cards: putCard(prefs.cards, item) };
+  updatePrefs({ ...draft, cards: saved && !listedIn(draft, item.key) ? dropCard(draft.cards, item.key) : draft.cards });
   showShelfToast(saved ? "Removed from queue" : "Added to queue");
 }
 
-export function toggleWatchLater(key: string) {
+export function toggleWatchLater(item: VideoShelfItem) {
   ensurePrefs();
-  const saved = prefs.watchLater.includes(key);
-  updatePrefs({ ...prefs, watchLater: toggleKey(prefs.watchLater, key) });
+  const saved = prefs.watchLater.includes(item.key);
+  const watchLater = toggleKey(prefs.watchLater, item.key);
+  const draft = { ...prefs, watchLater, cards: putCard(prefs.cards, item) };
+  updatePrefs({ ...draft, cards: saved && !listedIn(draft, item.key) ? dropCard(draft.cards, item.key) : draft.cards });
   showShelfToast(saved ? "Removed from Watch later" : "Saved to Watch later");
 }
 
-export function togglePlaylistVideo(playlistId: string, key: string) {
+export function togglePlaylistVideo(playlistId: string, item: VideoShelfItem) {
   ensurePrefs();
-  const playlist = prefs.playlists.find((item) => item.id === playlistId);
+  const playlist = prefs.playlists.find((entry) => entry.id === playlistId);
   if (!playlist) return;
-  const saved = playlist.keys.includes(key);
-  updatePrefs({
-    ...prefs,
-    playlists: prefs.playlists.map((item) =>
-      item.id === playlistId ? { ...item, keys: toggleKey(item.keys, key) } : item,
-    ),
-  });
+  const saved = playlist.keys.includes(item.key);
+  const playlists = prefs.playlists.map((entry) =>
+    entry.id === playlistId ? { ...entry, keys: toggleKey(entry.keys, item.key) } : entry,
+  );
+  const draft = { ...prefs, playlists, cards: putCard(prefs.cards, item) };
+  updatePrefs({ ...draft, cards: saved && !listedIn(draft, item.key) ? dropCard(draft.cards, item.key) : draft.cards });
   showShelfToast(saved ? `Removed from ${playlist.name}` : `Saved to ${playlist.name}`);
 }
 
-export function createShelfPlaylist(name: string, key: string) {
+export function createShelfPlaylist(name: string, item: VideoShelfItem) {
   ensurePrefs();
   const trimmed = name.trim().slice(0, 60);
   if (!trimmed) return false;
   const playlist: ShelfPlaylist = {
     id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
     name: trimmed,
-    keys: [key],
+    keys: [item.key],
   };
-  updatePrefs({ ...prefs, playlists: [...prefs.playlists, playlist] });
+  updatePrefs({
+    ...prefs,
+    playlists: [...prefs.playlists, playlist],
+    cards: putCard(prefs.cards, item),
+  });
   showShelfToast(`Saved to ${trimmed}`);
   return true;
 }
@@ -235,13 +295,20 @@ export function restoreHiddenShelfItems() {
   updatePrefs({ ...prefs, hiddenKeys: [], hiddenAuthors: [] });
 }
 
-export function reportShelfVideo(key: string) {
+export function reportShelfVideo(key: string, reason: string) {
   ensurePrefs();
-  if (!prefs.hiddenKeys.includes(key)) {
-    updatePrefs({ ...prefs, hiddenKeys: [...prefs.hiddenKeys, key] });
-  }
-  showShelfToast("Thanks for reporting. This video is hidden.", () => {
-    updatePrefs({ ...prefs, hiddenKeys: prefs.hiddenKeys.filter((item) => item !== key) });
+  const clean = reason.trim().slice(0, 80);
+  if (!clean) return;
+  const alreadyHidden = prefs.hiddenKeys.includes(key);
+  const reports = [...prefs.reports.filter((item) => item.key !== key), { key, reason: clean }];
+  const hiddenKeys = alreadyHidden ? prefs.hiddenKeys : [...prefs.hiddenKeys, key];
+  updatePrefs({ ...prefs, reports, hiddenKeys });
+  showShelfToast(`Reported for ${clean}. This video is hidden.`, () => {
+    updatePrefs({
+      ...prefs,
+      hiddenKeys: alreadyHidden ? prefs.hiddenKeys : prefs.hiddenKeys.filter((item) => item !== key),
+      reports: prefs.reports.filter((item) => item.key !== key),
+    });
     dismissShelfToast();
   });
 }
