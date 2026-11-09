@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
 import { FeedThemeProvider } from "@/context/feed/FeedThemeContext";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const plusJakarta = localFont({
+  src: "../fonts/plus-jakarta-sans-latin.woff2",
+  weight: "400 800",
+  display: "swap",
   variable: "--font-family-sans",
 });
 
