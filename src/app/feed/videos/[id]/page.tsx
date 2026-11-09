@@ -1,6 +1,8 @@
 import LeftNav from "@/components/feed/LeftNav";
 import MobileNav from "@/components/feed/MobileNav";
 import StudioPlayer from "@/components/feed/StudioPlayer";
+import { VideoShelfRail } from "@/components/feed/VideoShelfCard";
+import { loadVideoShelf } from "@/lib/feed/video-shelf";
 import { addStudioComment } from "@/lib/studio/comment-action";
 import { isStudioMediaUrl, getStudioWatch, studioShapeLabel } from "@/lib/studio/library";
 import { prisma } from "@/lib/prisma";
@@ -47,13 +49,15 @@ export default async function VideoWatchPage({
 
   const mediaUrl = project.mediaUrl && isStudioMediaUrl(project.mediaUrl) ? project.mediaUrl : null;
   const coverUrl = project.thumbnailUrl && isStudioMediaUrl(project.thumbnailUrl) ? project.thumbnailUrl : null;
+  const shelf = await loadVideoShelf(user.id, user.ageZone);
+  const upNext = shelf.videos.filter((item) => item.href !== `/feed/videos/${project.id}`).slice(0, 12);
 
   return (
     <div className="app-shell">
       <LeftNav />
       <div className="main-content">
-        <div className="content-layout">
-          <main className="video-watch">
+        <div className="yt-page yt-watch">
+          <main className="video-watch yt-watch__primary">
             <p className="video-watch__kicker">
               {studioShapeLabel(project.shape)}
               {project.show ? ` · ${project.show.title}` : ""}
@@ -73,7 +77,9 @@ export default async function VideoWatchPage({
             ) : (
               <>
                 {project.mediaKind === "VIDEO" && mediaUrl ? (
-                  <StudioPlayer kind="VIDEO" src={mediaUrl} poster={coverUrl} startMs={project.trimStartMs} endMs={project.trimEndMs} />
+                  <div className="yt-player">
+                    <StudioPlayer kind="VIDEO" src={mediaUrl} poster={coverUrl} startMs={project.trimStartMs} endMs={project.trimEndMs} autoPlay />
+                  </div>
                 ) : (
                   <>
                     {coverUrl ? <img className="video-watch__cover" src={coverUrl} alt="" /> : null}
@@ -136,6 +142,7 @@ export default async function VideoWatchPage({
               </>
             )}
           </main>
+          <VideoShelfRail items={upNext} />
         </div>
       </div>
       <MobileNav />

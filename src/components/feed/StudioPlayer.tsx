@@ -8,12 +8,14 @@ export default function StudioPlayer({
   poster,
   startMs,
   endMs,
+  autoPlay = false,
 }: {
   kind: "VIDEO" | "AUDIO";
   src: string;
   poster?: string | null;
   startMs: number;
   endMs: number | null;
+  autoPlay?: boolean;
 }) {
   const ref = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
 
@@ -59,6 +61,7 @@ export default function StudioPlayer({
         poster={poster ?? undefined}
         controls
         playsInline
+        autoPlay={autoPlay}
       />
     );
   }
