@@ -8,6 +8,7 @@ import {
   createParentApprovalRequest,
   issueChildContinueUrl,
   notifyChildOfParentApproval,
+  sendMinorActivationCodeEmail,
   sendParentInviteEmail,
 } from "@/lib/auth/parent-invite";
 import { declineParentRequestById } from "@/lib/auth/guardian-flow";
@@ -119,9 +120,21 @@ async function resendInvite(userId: string, reason: string): Promise<Result> {
   const current = await latestRequest(user.id);
   if (!current?.parentEmail) return { ok: false, error: "Set a guardian email before resending." };
 
-  const created = await createParentApprovalRequest(user.id, current.parentEmail, { bypassCooldown: true });
+  const created = await createParentApprovalRequest(user.id, current.parentEmail, {
+    bypassCooldown: true,
+    activationCode: current.activationCode,
+    activationCodeSentAt: current.activationCodeSentAt,
+  });
   if (!created.ok) return { ok: false, error: "Unable to create a new invite." };
   await sendParentInviteEmail(current.parentEmail, created.approveUrl, user.firstName ?? "there");
+  if (created.activationCodeIsNew) {
+    await sendMinorActivationCodeEmail(
+      user.email,
+      user.firstName ?? "there",
+      created.activationCode,
+      current.parentEmail,
+    );
+  }
   await prisma.user.update({ where: { id: user.id }, data: { onboardingStep: "waiting" } });
   await writeAdminAudit({
     action: "resend-invite",
@@ -216,6 +229,7 @@ async function changeGuardianEmail(userId: string, reason: string, emailValue: u
   const created = await createParentApprovalRequest(user.id, email, { bypassCooldown: true });
   if (!created.ok) return { ok: false, error: "Unable to send the invite." };
   await sendParentInviteEmail(email, created.approveUrl, user.firstName ?? "there");
+  await sendMinorActivationCodeEmail(user.email, user.firstName ?? "there", created.activationCode, email);
   await prisma.user.update({ where: { id: user.id }, data: { onboardingStep: "waiting" } });
   await writeAdminAudit({
     action: "change-guardian-email",

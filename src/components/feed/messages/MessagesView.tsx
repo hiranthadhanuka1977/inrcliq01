@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -15,7 +16,11 @@ import MobileNav from "@/components/feed/MobileNav";
 import PageBodyClass from "@/components/feed/PageBodyClass";
 import BookingConfirmationCard from "@/components/feed/messages/BookingConfirmationCard";
 import BookingStatusNote from "@/components/feed/messages/BookingStatusNote";
+import MessageBody from "@/components/feed/messages/MessageBody";
+import SharedPostCard from "@/components/feed/messages/SharedPostCard";
+import StartConversationDialog from "@/components/feed/messages/StartConversationDialog";
 import type { Conversation } from "@/lib/feed/messages";
+import type { MessageAttachmentFile } from "@/lib/feed/message-attachment";
 import { mergeConversationLists } from "@/lib/feed/messages-merge";
 import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 
@@ -92,6 +97,76 @@ function enforcementNoticeCopy(notice: {
   return "Messages to accounts under 18 are reviewed for safety. More flagged messages may stop you messaging under-18 accounts.";
 }
 
+function MenuIcon({
+  kind,
+}: {
+  kind: "profile" | "search" | "mute" | "unmute" | "block" | "clear" | "delete" | "report";
+}) {
+  const common = {
+    className: "messages-chat__menu-icon",
+    width: 16,
+    height: 16,
+    viewBox: "0 0 24 24",
+    fill: "none" as const,
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+
+  if (kind === "profile") {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="8" r="3.2" />
+        <path d="M5.5 19.2c1.3-3 3.5-4.5 6.5-4.5s5.2 1.5 6.5 4.5" />
+      </svg>
+    );
+  }
+  if (kind === "search") {
+    return (
+      <svg {...common}>
+        <circle cx="11" cy="11" r="6.5" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+    );
+  }
+  if (kind === "mute" || kind === "unmute") {
+    return (
+      <svg {...common}>
+        <path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 7H3s3 0 3-7" />
+        <path d="M10 20a2 2 0 0 0 4 0" />
+        {kind === "unmute" ? <path d="M4 4l16 16" /> : null}
+      </svg>
+    );
+  }
+  if (kind === "block") {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="m7.5 7.5 9 9" />
+      </svg>
+    );
+  }
+  if (kind === "report") {
+    return (
+      <svg {...common}>
+        <path d="M5 21V4" />
+        <path d="M5 4h11l-2.2 4L16 12H5" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </svg>
+  );
+}
+
 export default function MessagesView({
   initialConversations = [],
 }: {
@@ -106,7 +181,9 @@ export default function MessagesView({
 
   const streamRef = useRef<HTMLDivElement>(null);
   const composerInputRef = useRef<HTMLInputElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const chatMenuRef = useRef<HTMLDivElement>(null);
+  const threadSearchRef = useRef<HTMLInputElement>(null);
   const refocusComposerRef = useRef(false);
   const lastMessageIdRef = useRef<string>("");
   const [conversations, setConversations] = useState(initialConversations);
@@ -123,7 +200,11 @@ export default function MessagesView({
     return initialConversations[0]?.id ?? "";
   });
   const [query, setQuery] = useState("");
+  const [composeOpen, setComposeOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<
+    { id: string; name: string; mime: string; size: number; url?: string; error?: string }[]
+  >([]);
   const [mobileChatOpen, setMobileChatOpen] = useState(
     Boolean(focusSlug || focusThread || focusBooking || focusLatest),
   );
@@ -131,7 +212,15 @@ export default function MessagesView({
   const [sending, setSending] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
-  const [chatConfirm, setChatConfirm] = useState<"clear" | "delete" | null>(null);
+  const [chatConfirm, setChatConfirm] = useState<"clear" | "delete" | "block" | null>(null);
+  const [controlsBusy, setControlsBusy] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [reporting, setReporting] = useState(false);
+  const [threadSearchOpen, setThreadSearchOpen] = useState(false);
+  const [threadQuery, setThreadQuery] = useState("");
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [moderationWarning, setModerationWarning] = useState<{
     title: string;
@@ -162,6 +251,12 @@ export default function MessagesView({
     setMenuThreadId(activeId);
     setChatMenuOpen(false);
     setChatConfirm(null);
+    setReportOpen(false);
+    setReportReason("");
+    setReportError(null);
+    setThreadSearchOpen(false);
+    setThreadQuery("");
+    setActionNotice(null);
   }
   const [pendingScroll, setPendingScroll] = useState<{
     bookingId: string;
@@ -359,17 +454,26 @@ export default function MessagesView({
   const activeMinorRestriction =
     minorRestriction && minorRestriction.threadId === activeConversation?.id ? minorRestriction : null;
   const isDmRestricted = Boolean(activeConversation?.dmRestricted || activeMinorRestriction);
+  const sendLocked = Boolean(activeConversation?.blocked || activeConversation?.blockedByPeer);
   const activeEnforcementNotice =
     enforcementNotice && enforcementNotice.threadId === activeConversation?.id ? enforcementNotice : null;
   const activeMessageCount = activeConversation?.messages.length ?? 0;
   const latestMessageId = activeConversation?.messages[activeMessageCount - 1]?.id ?? "";
 
   function closeChatConfirm() {
-    if (clearing) return;
+    if (clearing || controlsBusy) return;
     setChatConfirm(null);
   }
 
+  const closeReport = useCallback(() => {
+    if (reporting) return;
+    setReportOpen(false);
+    setReportReason("");
+    setReportError(null);
+  }, [reporting]);
+
   const { dialogRef: clearDialogRef } = useDialogA11y(Boolean(chatConfirm), closeChatConfirm);
+  const { dialogRef: reportDialogRef } = useDialogA11y(reportOpen, closeReport);
 
   function scrollStreamToBottom(behavior: ScrollBehavior = "auto") {
     const stream = streamRef.current;
@@ -378,7 +482,7 @@ export default function MessagesView({
   }
 
   useEffect(() => {
-    if (!pendingScroll || !activeConversation || loading) return;
+    if (!pendingScroll || !activeConversation || loading || threadQuery.trim()) return;
     const stream = streamRef.current;
     if (!stream) return;
 
@@ -412,7 +516,7 @@ export default function MessagesView({
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, [pendingScroll, activeConversation, activeMessageCount, loading]);
+  }, [pendingScroll, activeConversation, activeMessageCount, loading, threadQuery]);
 
   // Reset tracking when switching conversations.
   useEffect(() => {
@@ -421,7 +525,7 @@ export default function MessagesView({
 
   // Keep the latest message in view when the thread grows (sent or received).
   useEffect(() => {
-    if (!activeId || loading || !latestMessageId) return;
+    if (!activeId || loading || !latestMessageId || threadQuery.trim()) return;
 
     const previousId = lastMessageIdRef.current;
     if (previousId === latestMessageId) return;
@@ -434,17 +538,17 @@ export default function MessagesView({
     });
     return () => window.cancelAnimationFrame(frame);
     // latestMessageId alone tracks new messages; do not depend on the messages array.
-  }, [activeId, latestMessageId, loading]);
+  }, [activeId, latestMessageId, loading, threadQuery]);
 
   useEffect(() => {
     if (sending || pendingScroll || !refocusComposerRef.current) return;
-    if (isDmRestricted) return;
+    if (isDmRestricted || sendLocked) return;
     refocusComposerRef.current = false;
     const frame = window.requestAnimationFrame(() => {
       composerInputRef.current?.focus({ preventScroll: true });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [sending, pendingScroll, isDmRestricted, activeId]);
+  }, [sending, pendingScroll, isDmRestricted, sendLocked, activeId]);
 
   const filteredConversations = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -458,6 +562,47 @@ export default function MessagesView({
       );
     });
   }, [conversations, query]);
+
+  const threadQueryNormalized = threadQuery.trim().toLowerCase();
+  const searchedMessages = useMemo(() => {
+    const messages = activeConversation?.messages ?? [];
+    if (!threadQueryNormalized) return messages;
+    return messages.filter((message) => message.body.toLowerCase().includes(threadQueryNormalized));
+  }, [activeConversation, threadQueryNormalized]);
+
+  useEffect(() => {
+    if (!threadSearchOpen) return;
+    threadSearchRef.current?.focus();
+  }, [threadSearchOpen, activeId]);
+
+  useEffect(() => {
+    if (!actionNotice) return;
+    const timer = window.setTimeout(() => setActionNotice(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [actionNotice]);
+
+  useEffect(() => {
+    if (!threadSearchOpen || !threadQueryNormalized) return;
+    const match = streamRef.current?.querySelector<HTMLElement>(".is-search-match");
+    match?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [threadSearchOpen, threadQueryNormalized, searchedMessages.length, activeId]);
+
+  const closeCompose = useCallback(() => {
+    setComposeOpen(false);
+  }, []);
+
+  function handleConversationStarted(conversation: Conversation) {
+    setComposeOpen(false);
+    setError(null);
+    setModerationWarning(null);
+    setActiveId(conversation.id);
+    setMobileChatOpen(true);
+    setPendingScroll({ bookingId: "", latest: true });
+    setConversations((current) => {
+      const rest = current.filter((item) => item.id !== conversation.id);
+      return mergeConversationLists([conversation, ...rest], current, conversation.id, conversation);
+    });
+  }
 
   async function openConversation(id: string) {
     setActiveId(id);
@@ -517,8 +662,102 @@ export default function MessagesView({
     setChatConfirm("delete");
   }
 
+  function openThreadSearch() {
+    setChatMenuOpen(false);
+    setThreadSearchOpen(true);
+  }
+
+  function closeThreadSearch() {
+    setThreadSearchOpen(false);
+    setThreadQuery("");
+  }
+
+  function requestBlock() {
+    if (!activeConversation || controlsBusy || !activeConversation.peerResolvable) return;
+    setChatMenuOpen(false);
+    if (activeConversation.blocked) {
+      void patchThreadControls({ blocked: false });
+      return;
+    }
+    setChatConfirm("block");
+  }
+
+  function openReport() {
+    if (!activeConversation?.peerResolvable || reporting) return;
+    setChatMenuOpen(false);
+    setReportError(null);
+    setReportReason("");
+    setReportOpen(true);
+  }
+
+  async function patchThreadControls(body: { muted?: boolean; blocked?: boolean }) {
+    if (!activeConversation || controlsBusy) return false;
+    setControlsBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/feed/messages/${activeConversation.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        conversation?: Conversation;
+      } | null;
+      if (!response.ok || !payload?.conversation) {
+        throw new Error(payload?.error?.trim() || "Could not update this chat.");
+      }
+      const next = payload.conversation;
+      setConversations((current) =>
+        current.map((conversation) => (conversation.id === next.id ? next : conversation)),
+      );
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update this chat.");
+      return false;
+    } finally {
+      setControlsBusy(false);
+    }
+  }
+
+  async function submitReport(event: FormEvent) {
+    event.preventDefault();
+    if (!activeConversation || reporting) return;
+    const reason = reportReason.trim();
+    if (!reason) {
+      setReportError("A reason is required.");
+      return;
+    }
+    setReporting(true);
+    setReportError(null);
+    try {
+      const response = await fetch(`/api/feed/messages/${activeConversation.id}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error?.trim() || "Could not submit report.");
+      }
+      setReportOpen(false);
+      setReportReason("");
+      setActionNotice("Report submitted. Our team will review it.");
+    } catch (err) {
+      setReportError(err instanceof Error ? err.message : "Could not submit report.");
+    } finally {
+      setReporting(false);
+    }
+  }
+
   async function confirmChatAction() {
-    if (!activeConversation || clearing || !chatConfirm) return;
+    if (!activeConversation || !chatConfirm) return;
+    if (chatConfirm === "block") {
+      const ok = await patchThreadControls({ blocked: true });
+      if (ok) setChatConfirm(null);
+      return;
+    }
+    if (clearing) return;
 
     setClearing(true);
     setError(null);
@@ -576,10 +815,73 @@ export default function MessagesView({
     }
   }
 
+  const readyFiles: MessageAttachmentFile[] = pendingFiles.flatMap((file) =>
+    file.url && !file.error ? [{ url: file.url, name: file.name, mime: file.mime, size: file.size }] : [],
+  );
+  const attachmentUploading = pendingFiles.some((file) => !file.url && !file.error);
+
+  async function addAttachments(list: FileList | null) {
+    const selected = Array.from(list ?? []).slice(0, Math.max(0, 4 - pendingFiles.length));
+    if (attachmentInputRef.current) attachmentInputRef.current.value = "";
+    for (const file of selected) {
+      const id = `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      setPendingFiles((current) => [
+        ...current,
+        { id, name: file.name || "Attachment", mime: file.type, size: file.size },
+      ]);
+      const form = new FormData();
+      form.set("file", file);
+      try {
+        const response = await fetch("/api/feed/messages/attachments", { method: "POST", body: form });
+        const data = (await response.json().catch(() => null)) as {
+          error?: string;
+          url?: string;
+          name?: string;
+          mime?: string;
+          size?: number;
+        } | null;
+        if (!response.ok || !data?.url) {
+          setPendingFiles((current) =>
+            current.map((item) =>
+              item.id === id ? { ...item, error: data?.error || "Could not attach that file." } : item,
+            ),
+          );
+          continue;
+        }
+        setPendingFiles((current) =>
+          current.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  url: data.url,
+                  name: data.name || item.name,
+                  mime: data.mime || item.mime,
+                  size: data.size || item.size,
+                }
+              : item,
+          ),
+        );
+      } catch {
+        setPendingFiles((current) =>
+          current.map((item) => (item.id === id ? { ...item, error: "Could not attach that file." } : item)),
+        );
+      }
+    }
+  }
+
   async function sendMessage(event?: FormEvent, opts?: { acceptModeration?: boolean; body?: string }) {
     event?.preventDefault();
     const trimmed = (opts?.body ?? draft).trim();
-    if (!trimmed || !activeConversation || sending) return;
+    const files = readyFiles;
+    if ((!trimmed && files.length === 0) || !activeConversation || sending || attachmentUploading) return;
+    if (activeConversation.blocked || activeConversation.blockedByPeer) {
+      setError(
+        activeConversation.blocked
+          ? "You blocked this person. Unblock them to send a message."
+          : "You can't send messages to this person.",
+      );
+      return;
+    }
 
     setSending(true);
     setError(null);
@@ -593,6 +895,7 @@ export default function MessagesView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: trimmed,
+          ...(files.length ? { attachments: files } : {}),
           ...(opts?.acceptModeration ? { acceptModeration: true } : {}),
         }),
       });
@@ -658,6 +961,7 @@ export default function MessagesView({
       }
 
       setDraft("");
+      setPendingFiles([]);
       setModerationWarning(null);
       if (payload.enforcement) {
         setEnforcementNotice({
@@ -698,7 +1002,14 @@ export default function MessagesView({
             <aside className="messages-sidebar" aria-label="Conversations">
               <header className="messages-sidebar__head">
                 <h1>Messages</h1>
-                <button type="button" className="btn btn--sm btn--icon btn--secondary messages-sidebar__compose" aria-label="New message">
+                <button
+                  type="button"
+                  className="btn btn--sm btn--icon btn--secondary messages-sidebar__compose"
+                  aria-label="New message"
+                  aria-haspopup="dialog"
+                  aria-expanded={composeOpen}
+                  onClick={() => setComposeOpen(true)}
+                >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                     <path d="M12 5v14M5 12h14" />
                   </svg>
@@ -790,6 +1101,8 @@ export default function MessagesView({
                           {activeConversation.participant.online ? (
                             <span className="messages-chat__status"> · Online</span>
                           ) : null}
+                          {activeConversation.muted ? <span> · Muted</span> : null}
+                          {activeConversation.blocked ? <span> · Blocked</span> : null}
                         </p>
                       </div>
                     </div>
@@ -812,6 +1125,74 @@ export default function MessagesView({
                       </button>
                       {chatMenuOpen ? (
                         <div className="messages-chat__menu" role="menu" aria-label="Chat options">
+                          {activeConversation.publicSlug &&
+                          activeConversation.publicSlug.toLowerCase() !== "me" ? (
+                            <Link
+                              href={`/feed/profile/${activeConversation.publicSlug}`}
+                              className="messages-chat__menu-item"
+                              role="menuitem"
+                              onClick={() => setChatMenuOpen(false)}
+                            >
+                              <MenuIcon kind="profile" />
+                              <span>View profile</span>
+                            </Link>
+                          ) : (
+                            <button
+                              type="button"
+                              className="messages-chat__menu-item"
+                              role="menuitem"
+                              disabled
+                              title="This person doesn't have a public profile"
+                            >
+                              <MenuIcon kind="profile" />
+                              <span className="messages-chat__menu-copy">
+                                <span>View profile</span>
+                                <span className="messages-chat__menu-note">No public profile</span>
+                              </span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="messages-chat__menu-item"
+                            role="menuitem"
+                            onClick={openThreadSearch}
+                          >
+                            <MenuIcon kind="search" />
+                            <span>Search</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="messages-chat__menu-item"
+                            role="menuitem"
+                            disabled={controlsBusy}
+                            onClick={() => {
+                              setChatMenuOpen(false);
+                              void patchThreadControls({ muted: !activeConversation.muted });
+                            }}
+                          >
+                            <MenuIcon kind={activeConversation.muted ? "unmute" : "mute"} />
+                            <span>{activeConversation.muted ? "Unmute" : "Mute"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="messages-chat__menu-item"
+                            role="menuitem"
+                            disabled={controlsBusy || !activeConversation.peerResolvable}
+                            title={
+                              activeConversation.peerResolvable
+                                ? undefined
+                                : "This person can't be blocked from here yet."
+                            }
+                            onClick={requestBlock}
+                          >
+                            <MenuIcon kind="block" />
+                            <span className="messages-chat__menu-copy">
+                              <span>{activeConversation.blocked ? "Unblock" : "Block"}</span>
+                              {!activeConversation.peerResolvable ? (
+                                <span className="messages-chat__menu-note">Can't block this account</span>
+                              ) : null}
+                            </span>
+                          </button>
                           <button
                             type="button"
                             className="messages-chat__menu-item"
@@ -819,24 +1200,7 @@ export default function MessagesView({
                             disabled={clearing}
                             onClick={requestClearMessages}
                           >
-                            <svg
-                              className="messages-chat__menu-icon"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                            >
-                              <path d="M3 6h18" />
-                              <path d="M8 6V4h8v2" />
-                              <path d="M19 6l-1 14H6L5 6" />
-                              <path d="M10 11v6" />
-                              <path d="M14 11v6" />
-                            </svg>
+                            <MenuIcon kind="clear" />
                             <span>Clear Messages</span>
                           </button>
                           <button
@@ -846,31 +1210,78 @@ export default function MessagesView({
                             disabled={clearing}
                             onClick={requestDeleteChat}
                           >
-                            <svg
-                              className="messages-chat__menu-icon"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                            >
-                              <path d="M3 6h18" />
-                              <path d="M8 6V4h8v2" />
-                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                              <path d="M10 11v6" />
-                              <path d="M14 11v6" />
-                              <path d="M4 6l1-2h14l1 2" />
-                            </svg>
+                            <MenuIcon kind="delete" />
                             <span>Delete Chat</span>
+                          </button>
+                          <div className="messages-chat__menu-separator" role="separator" />
+                          <button
+                            type="button"
+                            className="messages-chat__menu-item messages-chat__menu-item--danger"
+                            role="menuitem"
+                            disabled={reporting || !activeConversation.peerResolvable}
+                            title={
+                              activeConversation.peerResolvable
+                                ? undefined
+                                : "This person can't be reported from here yet."
+                            }
+                            onClick={openReport}
+                          >
+                            <MenuIcon kind="report" />
+                            <span className="messages-chat__menu-copy">
+                              <span>Report user</span>
+                              {!activeConversation.peerResolvable ? (
+                                <span className="messages-chat__menu-note">Can't report this account</span>
+                              ) : null}
+                            </span>
                           </button>
                         </div>
                       ) : null}
                     </div>
                   </header>
+
+                  {actionNotice ? (
+                    <p className="messages-chat__notice" role="status">
+                      {actionNotice}
+                    </p>
+                  ) : null}
+
+                  {threadSearchOpen ? (
+                    <form
+                      className="messages-thread-search"
+                      role="search"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const match = streamRef.current?.querySelector<HTMLElement>(".is-search-match");
+                        match?.scrollIntoView({ block: "center", behavior: "smooth" });
+                      }}
+                    >
+                      <label className="messages-thread-search__field">
+                        <span className="sr-only">Search this conversation</span>
+                        <input
+                          ref={threadSearchRef}
+                          type="search"
+                          value={threadQuery}
+                          onChange={(event) => setThreadQuery(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              closeThreadSearch();
+                            }
+                          }}
+                          placeholder="Search this conversation"
+                          aria-label="Search this conversation"
+                        />
+                      </label>
+                      <span className="messages-thread-search__count">
+                        {threadQueryNormalized
+                          ? `${searchedMessages.length} match${searchedMessages.length === 1 ? "" : "es"}`
+                          : "Type to filter"}
+                      </span>
+                      <button type="button" className="messages-thread-search__close" onClick={closeThreadSearch}>
+                        Close
+                      </button>
+                    </form>
+                  ) : null}
 
                   <div
                     ref={streamRef}
@@ -879,9 +1290,24 @@ export default function MessagesView({
                     aria-live="polite"
                     aria-relevant="additions"
                   >
-                    {activeConversation.messages.map((message) => {
+                    {threadQueryNormalized && searchedMessages.length === 0 ? (
+                      <p className="messages-chat__search-empty">
+                        No messages match “{threadQuery.trim()}”.
+                      </p>
+                    ) : null}
+                    {searchedMessages.map((message) => {
                       const bookingId = messageBookingId(message);
                       const participantName = activeConversation.participant.name;
+                      if (message.postShare && !(message.contentMasked && message.sender === "them")) {
+                        return (
+                          <SharedPostCard
+                            key={message.id}
+                            share={message.postShare}
+                            time={message.time}
+                            fromMe={message.sender === "me"}
+                          />
+                        );
+                      }
                       if (message.booking) {
                         return (
                           <BookingConfirmationCard
@@ -933,7 +1359,7 @@ export default function MessagesView({
                       return (
                         <article
                           key={message.id}
-                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${recipientRemoved ? " messages-bubble--removed" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}${senderStatus ? ` messages-bubble--${message.deliveryStatus === "NOT_DELIVERED" ? "not-delivered" : "pending-review"}` : ""}`}
+                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${recipientRemoved ? " messages-bubble--removed" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}${senderStatus ? ` messages-bubble--${message.deliveryStatus === "NOT_DELIVERED" ? "not-delivered" : "pending-review"}` : ""}${threadQueryNormalized ? " is-search-match" : ""}`}
                         >
                           {message.contentMasked && message.sender === "them" ? (
                             <div className="messages-bubble__masked">
@@ -955,11 +1381,47 @@ export default function MessagesView({
                               </span>
                               <div className="messages-bubble__masked-copy">
                                 <p className="messages-bubble__masked-label">{maskedLabel}</p>
-                                <p className="messages-bubble__masked-body">{message.body}</p>
+                                <p className="messages-bubble__masked-body">
+                                  <MessageBody text={message.body} />
+                                </p>
                               </div>
                             </div>
                           ) : (
-                            <p>{message.body}</p>
+                            <>
+                              {message.attachment ? (
+                                <div className="messages-bubble__files">
+                                  {message.attachment.files.map((file) =>
+                                    file.mime.startsWith("image/") ? (
+                                      <a
+                                        key={file.url}
+                                        className="messages-bubble__image"
+                                        href={file.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={file.url} alt={file.name} />
+                                      </a>
+                                    ) : (
+                                      <a
+                                        key={file.url}
+                                        className="messages-bubble__file"
+                                        href={file.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {file.name}
+                                      </a>
+                                    ),
+                                  )}
+                                </div>
+                              ) : null}
+                              {message.body ? (
+                                <p>
+                                  <MessageBody text={message.body} />
+                                </p>
+                              ) : null}
+                            </>
                           )}
                           {message.contentMasked && message.sender === "me" ? (
                             <span className="messages-bubble__masked-note">Shown masked to recipient</span>
@@ -978,7 +1440,15 @@ export default function MessagesView({
                   </div>
 
                   <footer className="messages-chat__footer">
-                    {isDmRestricted ? (
+                    {sendLocked ? (
+                      <div className="messages-chat__restricted" role="status">
+                        <span>
+                          {activeConversation.blocked
+                            ? `You blocked ${activeConversation.participant.name}. Unblock them to send messages.`
+                            : "You can't send messages in this chat."}
+                        </span>
+                      </div>
+                    ) : isDmRestricted ? (
                       <div className="messages-chat__restricted" role="status">
                         <svg
                           className="messages-chat__restricted-icon"
@@ -1066,36 +1536,87 @@ export default function MessagesView({
                           </div>
                         ) : null}
                         <form className="messages-composer" onSubmit={(event) => void sendMessage(event)}>
-                          <label className="sr-only" htmlFor="messages-composer-input">
-                            Write a message
-                          </label>
-                          <input
-                            id="messages-composer-input"
-                            ref={composerInputRef}
-                            className="messages-composer__input"
-                            type="text"
-                            value={draft}
-                            onChange={(event) => {
-                              const next = event.target.value;
-                              setDraft(next);
-                              // Only dismiss the warning once the user actually edits the flagged text.
-                              if (
-                                moderationWarning &&
-                                next.trim() !== moderationWarning.pendingBody.trim()
-                              ) {
-                                setModerationWarning(null);
+                          {pendingFiles.length > 0 ? (
+                            <ul className="messages-composer__files">
+                              {pendingFiles.map((file) => (
+                                <li key={file.id} className="messages-composer__file">
+                                  <span>
+                                    {file.error ? file.error : file.url ? file.name : `Attaching ${file.name}…`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    aria-label={`Remove ${file.name}`}
+                                    onClick={() =>
+                                      setPendingFiles((current) => current.filter((item) => item.id !== file.id))
+                                    }
+                                  >
+                                    ×
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                          <div className="messages-composer__row">
+                            <label className="sr-only" htmlFor="messages-composer-input">
+                              Write a message
+                            </label>
+                            <button
+                              type="button"
+                              className="messages-composer__attach"
+                              aria-label="Attach a file"
+                              disabled={sending || pendingFiles.length >= 4}
+                              onClick={() => attachmentInputRef.current?.click()}
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                  d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.83l8.48-8.48"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                            <input
+                              ref={attachmentInputRef}
+                              className="sr-only"
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                              onChange={(event) => void addAttachments(event.target.files)}
+                            />
+                            <input
+                              id="messages-composer-input"
+                              ref={composerInputRef}
+                              className="messages-composer__input"
+                              type="text"
+                              value={draft}
+                              onChange={(event) => {
+                                const next = event.target.value;
+                                setDraft(next);
+                                // Only dismiss the warning once the user actually edits the flagged text.
+                                if (
+                                  moderationWarning &&
+                                  next.trim() !== moderationWarning.pendingBody.trim()
+                                ) {
+                                  setModerationWarning(null);
+                                }
+                              }}
+                              placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
+                              autoComplete="off"
+                            />
+                            <button
+                              type="submit"
+                              className="btn btn--primary btn--sm messages-composer__send"
+                              disabled={
+                                sending ||
+                                attachmentUploading ||
+                                (!draft.trim() && readyFiles.length === 0)
                               }
-                            }}
-                            placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
-                            autoComplete="off"
-                          />
-                          <button
-                            type="submit"
-                            className="btn btn--primary btn--sm messages-composer__send"
-                            disabled={!draft.trim() || sending}
-                          >
-                            {sending ? "Sending…" : "Send"}
-                          </button>
+                            >
+                              {sending ? "Sending…" : "Send"}
+                            </button>
+                          </div>
                         </form>
                         {activeEnforcementNotice ? (
                           <div
@@ -1127,6 +1648,9 @@ export default function MessagesView({
         </main>
         <MobileNav />
       </div>
+      {composeOpen ? (
+        <StartConversationDialog onClose={closeCompose} onStarted={handleConversationStarted} />
+      ) : null}
       {chatConfirm && activeConversation ? (
         <div
           className="modal-backdrop is-open"
@@ -1139,13 +1663,22 @@ export default function MessagesView({
         >
           <div className="modal messages-clear-modal text-center" ref={clearDialogRef} tabIndex={-1}>
             <h2 id="chat-confirm-title">
-              {chatConfirm === "delete" ? "Delete chat?" : "Clear messages?"}
+              {chatConfirm === "delete"
+                ? "Delete chat?"
+                : chatConfirm === "block"
+                  ? `Block ${activeConversation.participant.name}?`
+                  : "Clear messages?"}
             </h2>
             <p className="subtitle mt-4">
               {chatConfirm === "delete" ? (
                 <>
                   Delete your chat with <strong>{activeConversation.participant.name}</strong> and remove
                   them from your messages list? This only affects your inbox and can’t be undone.
+                </>
+              ) : chatConfirm === "block" ? (
+                <>
+                  You won’t be able to message each other until you unblock{" "}
+                  <strong>{activeConversation.participant.name}</strong>.
                 </>
               ) : (
                 <>
@@ -1158,24 +1691,77 @@ export default function MessagesView({
               type="button"
               className="btn btn--primary mt-8"
               onClick={() => void confirmChatAction()}
-              disabled={clearing}
+              disabled={clearing || controlsBusy}
             >
-              {clearing
-                ? chatConfirm === "delete"
-                  ? "Deleting…"
-                  : "Clearing…"
-                : chatConfirm === "delete"
-                  ? "Yes, delete chat"
-                  : "Yes, clear messages"}
+              {chatConfirm === "block"
+                ? controlsBusy
+                  ? "Blocking…"
+                  : "Block"
+                : clearing
+                  ? chatConfirm === "delete"
+                    ? "Deleting…"
+                    : "Clearing…"
+                  : chatConfirm === "delete"
+                    ? "Yes, delete chat"
+                    : "Yes, clear messages"}
             </button>
             <button
               type="button"
               className="btn btn--outline-info mt-3"
               onClick={closeChatConfirm}
-              disabled={clearing}
+              disabled={clearing || controlsBusy}
             >
               Cancel
             </button>
+          </div>
+        </div>
+      ) : null}
+      {reportOpen && activeConversation ? (
+        <div
+          className="modal-backdrop is-open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="chat-report-title"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeReport();
+          }}
+        >
+          <div className="modal messages-clear-modal messages-report-modal" ref={reportDialogRef} tabIndex={-1}>
+            <h2 id="chat-report-title">Report {activeConversation.participant.name}</h2>
+            <p className="subtitle mt-4">
+              Tell us what happened. This report goes to the platform for review.
+            </p>
+            <form onSubmit={(event) => void submitReport(event)}>
+              <label className="messages-report-modal__label" htmlFor="chat-report-reason">
+                Reason
+              </label>
+              <textarea
+                id="chat-report-reason"
+                className="messages-report-modal__reason"
+                value={reportReason}
+                onChange={(event) => setReportReason(event.target.value)}
+                maxLength={1000}
+                rows={4}
+                required
+                placeholder="What should we review?"
+              />
+              {reportError ? <p className="messages-report-modal__error">{reportError}</p> : null}
+              <button
+                type="submit"
+                className="btn btn--primary mt-6"
+                disabled={reporting || !reportReason.trim()}
+              >
+                {reporting ? "Submitting…" : "Submit report"}
+              </button>
+              <button
+                type="button"
+                className="btn btn--outline-info mt-3"
+                onClick={closeReport}
+                disabled={reporting}
+              >
+                Cancel
+              </button>
+            </form>
           </div>
         </div>
       ) : null}

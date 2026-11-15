@@ -2,6 +2,14 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CONVERSATIONS } from "@/lib/feed/messages";
 import type { SenderEnforcement } from "@/lib/guardian/sender-enforcement";
+import { getDmBlockBetween } from "@/lib/feed/dm-participant-controls";
+import {
+  encodeMessageAttachment,
+  messageAttachmentPreview,
+  parseMessageAttachment,
+  sanitizeMessageAttachments,
+} from "@/lib/feed/message-attachment";
+import { parsePostShare, postSharePreview } from "@/lib/feed/post-share-message";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
 type SeedMessage = {
@@ -208,6 +216,19 @@ export async function markThreadRead(userId: string, threadId: string) {
   });
 }
 
+/** Mute stops the unread badge for this chat. Messages still arrive. */
+export async function setThreadNotificationsMuted(userId: string, threadId: string, muted: boolean) {
+  const updated = await prisma.chatThread.updateMany({
+    where: { id: threadId, userId },
+    data: {
+      notificationsMuted: muted,
+      ...(muted ? { unreadCount: 0 } : {}),
+    },
+  });
+  if (updated.count === 0) return null;
+  return getChatThreadForUser(userId, threadId);
+}
+
 function initialsFromName(name: string) {
   const parts = name
     .split(/\s+/)
@@ -229,6 +250,10 @@ function normalizeHandle(value: string | null | undefined, fallback: string) {
 
 export function previewFromBody(body: string) {
   const trimmed = body.trim();
+  const attachment = parseMessageAttachment(trimmed);
+  if (attachment) return messageAttachmentPreview(attachment);
+  const post = parsePostShare(trimmed);
+  if (post) return postSharePreview(post);
   if (trimmed.length <= 140) return trimmed;
   return `${trimmed.slice(0, 137)}…`;
 }
@@ -489,6 +514,11 @@ async function mirrorChatMessageToPeer(
     return;
   }
 
+  const block = await getDmBlockBetween(senderUserId, receiverUserId);
+  if (block.blockedByMe || block.blockedByThem) {
+    return;
+  }
+
   const peer = await resolveSenderPeerDisplay(senderUserId, senderThread);
   if (!peer) {
     console.warn("[chat] mirror skipped — could not build peer display", senderUserId);
@@ -496,6 +526,11 @@ async function mirrorChatMessageToPeer(
   }
 
   const receiverThread = await findOrCreatePeerInboxThread(receiverUserId, peer);
+  const receiverState = await prisma.chatThread.findUnique({
+    where: { id: receiverThread.id },
+    select: { notificationsMuted: true },
+  });
+  const receiverMuted = receiverState?.notificationsMuted === true;
   const { MASKED_DM_BODY, MASKED_DM_PREVIEW } = await import("@/lib/guardian/is-user-minor");
   // Never store the raw flagged text on the recipient thread.
   const recipientBody = contentMasked ? MASKED_DM_BODY : body;
@@ -515,7 +550,7 @@ async function mirrorChatMessageToPeer(
       data: {
         preview,
         lastMessageAt: new Date(),
-        unreadCount: { increment: 1 },
+        ...(receiverMuted ? {} : { unreadCount: { increment: 1 } }),
         ...peerThreadDisplayUpdate(peer),
       },
     }),
@@ -525,6 +560,8 @@ async function mirrorChatMessageToPeer(
 export type SendChatMessageOptions = {
   /** Sender confirmed sending after a content-safety warning. */
   acceptModeration?: boolean;
+  /** Files already stored by the message attachment upload. */
+  attachments?: unknown;
 };
 
 export type DmModerationWarningPayload = {
@@ -541,7 +578,7 @@ export type DmModerationWarningPayload = {
 export type SendChatMessageResult =
   | {
       restricted: true;
-      code: "DM_RESTRICTED" | "DM_MINOR_RESTRICTED";
+      code: "DM_RESTRICTED" | "DM_MINOR_RESTRICTED" | "DM_BLOCKED";
       message: string;
       restrictionEndsAt?: string | null;
     }
@@ -563,8 +600,13 @@ export async function sendChatMessage(
   });
   if (!thread) return null;
 
+  const attachments = sanitizeMessageAttachments(options.attachments);
   const trimmed = body.trim();
-  if (!trimmed) return null;
+  if (!trimmed && attachments.length === 0) return null;
+  const storedBody = attachments.length
+    ? encodeMessageAttachment({ text: trimmed, files: attachments })
+    : trimmed;
+  const moderationText = trimmed || "Sent an attachment";
 
   const { getDirectMessagingRestriction } = await import("@/lib/guardian/dm-contact-controls");
   const restriction = await getDirectMessagingRestriction(userId, thread);
@@ -581,6 +623,19 @@ export async function sendChatMessage(
     console.warn("[moderation] DM receiver unresolved for thread", threadId);
   }
   const recipientUserId = receiverUserId && receiverUserId !== userId ? receiverUserId : null;
+
+  if (recipientUserId) {
+    const block = await getDmBlockBetween(userId, recipientUserId);
+    if (block.blockedByMe || block.blockedByThem) {
+      return {
+        restricted: true,
+        code: "DM_BLOCKED",
+        message: block.blockedByMe
+          ? "You blocked this person. Unblock them to send a message."
+          : "You can't send messages to this person.",
+      };
+    }
+  }
 
   const [
     { loadDmSafetyParticipants },
@@ -613,7 +668,7 @@ export async function sendChatMessage(
   }
 
   // Always re-moderate: `acceptModeration` only expresses the sender's intent.
-  const moderation = await moderateDmText(trimmed, { recipientIsMinor });
+  const moderation = await moderateDmText(moderationText, { recipientIsMinor });
   const verificationFailed = !moderation.allowed && Boolean(moderation.verificationFailed);
   const flagged = !moderation.allowed && !verificationFailed;
   const category = moderation.allowed ? "Neutral" : normalizeDmSafetyCategory(moderation.category);
@@ -639,7 +694,7 @@ export async function sendChatMessage(
   }
 
   if (decision.outcome === "deliver" || moderation.allowed) {
-    return deliverChatMessage(userId, thread, trimmed, false);
+    return deliverChatMessage(userId, thread, storedBody, false);
   }
 
   const canSendAnyway = decision.outcome === "warn";
@@ -690,7 +745,7 @@ export async function sendChatMessage(
   }
 
   if (decision.onSendAnyway === "masked_delivery") {
-    const result = await deliverChatMessage(userId, thread, trimmed, true);
+    const result = await deliverChatMessage(userId, thread, storedBody, true);
     try {
       const { createDmModerationSafetyAlerts } = await import("@/lib/guardian/safety-alerts");
       await createDmModerationSafetyAlerts({
@@ -718,7 +773,7 @@ export async function sendChatMessage(
     senderUserId: userId,
     recipientUserId,
     senderThread: thread,
-    body: trimmed,
+    body: storedBody,
     category: moderation.category,
     severity,
     senderZone: participants.sender.zone,
@@ -917,6 +972,91 @@ export async function ensureChatThreadForCreatorSlug(userId: string, slug: strin
 /** Alias used when opening a DM from a public profile page. */
 export const ensureChatThreadForProfileSlug = ensureChatThreadForCreatorSlug;
 
+function threadInclude() {
+  return {
+    messages: { orderBy: { createdAt: "asc" as const } },
+  };
+}
+
+/**
+ * Open the sender's DM thread with a specific user, using the same slug lookup
+ * as the profile Message button when that user has a public slug.
+ */
+export async function ensureChatThreadForUserId(senderUserId: string, recipientUserId: string) {
+  if (!senderUserId || !recipientUserId || senderUserId === recipientUserId) return null;
+
+  const [creator, profile] = await Promise.all([
+    prisma.creatorUser.findFirst({
+      where: { userId: recipientUserId },
+      select: { slug: true },
+    }),
+    prisma.userProfile.findUnique({
+      where: { userId: recipientUserId },
+      select: { slug: true },
+    }),
+  ]);
+
+  const slugs = [creator?.slug, profile?.slug]
+    .map((value) => value?.trim().replace(/^@/, "") ?? "")
+    .filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
+
+  for (const slug of slugs) {
+    const thread = await ensureChatThreadForCreatorSlug(senderUserId, slug);
+    if (thread) return thread;
+  }
+
+  await seedDefaultChatThreadsForUser(senderUserId);
+  const peer =
+    (await peerDisplayFromCreatorOwner(recipientUserId)) ||
+    (await peerDisplayFromUser(recipientUserId));
+  if (!peer) return null;
+
+  if (peer.peerCreatorId) {
+    const byCreator = await prisma.chatThread.findFirst({
+      where: { userId: senderUserId, peerCreatorId: peer.peerCreatorId },
+      include: threadInclude(),
+    });
+    if (byCreator) return byCreator;
+  }
+
+  if (peer.peerSlug) {
+    const bySlug = await prisma.chatThread.findFirst({
+      where: {
+        userId: senderUserId,
+        peerSlug: { equals: peer.peerSlug, mode: "insensitive" },
+      },
+      include: threadInclude(),
+    });
+    if (bySlug) return bySlug;
+  }
+
+  try {
+    return await prisma.chatThread.create({
+      data: {
+        userId: senderUserId,
+        peerCreatorId: peer.peerCreatorId,
+        peerName: peer.peerName,
+        peerHandle: peer.peerHandle,
+        peerInitials: peer.peerInitials,
+        peerAvatarColor: peer.peerAvatarColor,
+        peerAvatarUrl: peer.peerAvatarUrl,
+        peerSlug: peer.peerSlug,
+        peerOnline: false,
+        preview: null,
+        lastMessageAt: null,
+        unreadCount: 0,
+      },
+      include: threadInclude(),
+    });
+  } catch (error) {
+    if (!isUniqueConstraintError(error) || !peer.peerCreatorId) throw error;
+    return prisma.chatThread.findFirst({
+      where: { userId: senderUserId, peerCreatorId: peer.peerCreatorId },
+      include: threadInclude(),
+    });
+  }
+}
+
 export async function sendBookingConfirmationMessage(
   userId: string,
   threadId: string,
@@ -934,7 +1074,7 @@ export async function sendBookingConfirmationMessage(
   if (!thread) return null;
 
   const fromMe = options?.fromMe ?? false;
-  const incrementUnread = options?.incrementUnread ?? false;
+  const wantsUnread = options?.incrementUnread ?? false;
 
   await prisma.$transaction([
     prisma.chatMessage.create({
@@ -950,7 +1090,11 @@ export async function sendBookingConfirmationMessage(
       data: {
         preview,
         lastMessageAt: new Date(),
-        unreadCount: incrementUnread ? { increment: 1 } : 0,
+        ...(wantsUnread
+          ? thread.notificationsMuted
+            ? {}
+            : { unreadCount: { increment: 1 } }
+          : { unreadCount: 0 }),
       },
     }),
   ]);

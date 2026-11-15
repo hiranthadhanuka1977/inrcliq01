@@ -3,6 +3,7 @@ import { AccountType } from "@/generated/prisma/client";
 import { createApprovalWatchToken } from "@/lib/auth/approval-watch-token";
 import {
   createParentApprovalRequest,
+  sendMinorActivationCodeEmail,
   sendParentInviteEmail,
 } from "@/lib/auth/parent-invite";
 import { requireSessionUser } from "@/lib/api-helpers";
@@ -52,6 +53,13 @@ export async function POST(request: Request) {
       user.firstName ?? "Your child",
     );
 
+    await sendMinorActivationCodeEmail(
+      user.email,
+      user.firstName ?? "there",
+      invite.activationCode,
+      parentEmail,
+    );
+
     await prisma.user.update({
       where: { id: user.id },
       data: { onboardingStep: "waiting" },
@@ -62,6 +70,7 @@ export async function POST(request: Request) {
       redirectTo: "/onboarding/waiting",
       cooldownRemaining: invite.cooldownRemaining,
       approveUrl: invite.approveUrl,
+      activationCode: invite.activationCode,
       watchToken: createApprovalWatchToken(user.id),
     });
   } catch (error) {

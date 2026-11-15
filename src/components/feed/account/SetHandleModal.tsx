@@ -9,17 +9,24 @@ import {
   validateHandle,
 } from "@/lib/form-validation";
 
+function bareHandle(value: string | null | undefined) {
+  return value?.trim().replace(/^@/, "") ?? "";
+}
+
 export default function SetHandleModal({
   open,
   onClose,
   firstName,
   lastName,
+  initialHandle = null,
   onSaved,
 }: {
   open: boolean;
   onClose: () => void;
   firstName: string | null;
   lastName: string | null;
+  /** Current handle when the person is changing one they already have. */
+  initialHandle?: string | null;
   onSaved: (handle: string) => void;
 }) {
   const titleId = useId();
@@ -54,12 +61,14 @@ export default function SetHandleModal({
       return;
     }
     if (!initialized) {
-      setHandle(suggestHandle(firstName ?? "", lastName ?? ""));
+      const existing = bareHandle(initialHandle);
+      setHandle(existing || suggestHandle(firstName ?? "", lastName ?? ""));
       setInitialized(true);
     }
     handleRef.current?.focus();
-  }, [firstName, initialized, lastName, open]);
+  }, [firstName, initialHandle, initialized, lastName, open]);
 
+  const changing = Boolean(bareHandle(initialHandle));
   const requirementMet = isHandleRequirementMet(handle);
 
   async function submit() {
@@ -125,10 +134,12 @@ export default function SetHandleModal({
           ×
         </button>
         <h2 id={titleId} className="set-handle-modal__title">
-          Choose your handle
+          {changing ? "Change your handle" : "Choose your handle"}
         </h2>
         <p className="set-handle-modal__subtitle">
-          Your unique @name on InrCliq — how others find and mention you.
+          {changing
+            ? "Update the @name people use to find and mention you."
+            : "Your unique @name on InrCliq — how others find and mention you."}
         </p>
 
         <div className="field">

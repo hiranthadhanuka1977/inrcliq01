@@ -39,6 +39,24 @@ export async function unfollowCreator(userId: string, creatorId: string) {
   });
 }
 
+/** Drop one inbound follower from the signed-in user's creator profile. */
+export async function removeInboundFollower(ownerUserId: string, followerUserId: string) {
+  if (typeof prisma.creatorFollow?.deleteMany !== "function") {
+    throw new Error("CreatorFollow model is not available.");
+  }
+
+  const creator = await prisma.creatorUser.findFirst({
+    where: { userId: ownerUserId },
+    select: { id: true },
+  });
+  if (!creator) return false;
+
+  const result = await prisma.creatorFollow.deleteMany({
+    where: { userId: followerUserId, creatorId: creator.id },
+  });
+  return result.count > 0;
+}
+
 export async function listFollowedCreatorsForUser(userId: string) {
   return prisma.creatorFollow.findMany({
     where: { userId },

@@ -8,14 +8,19 @@ export const metadata = {
   title: "Profile information · INRCLIQ",
 };
 
-export default async function AccountProfileInfoPage() {
+export default async function AccountProfileInfoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
   const profile = await getAccountProfile();
   if (!profile) redirect("/");
+  const { email } = await searchParams;
 
   return (
     <div className="app-shell">
       <LeftNav firstName={profile.firstName} />
-      <AccountProfileInfoView profile={profile} />
+      <AccountProfileInfoView profile={profile} emailUpdated={email === "updated"} />
       <MobileNav />
     </div>
   );

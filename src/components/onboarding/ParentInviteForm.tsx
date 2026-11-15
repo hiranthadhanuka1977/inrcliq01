@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
+import { ACTIVATION_CODE_KEY } from "@/lib/auth/parent-invite.constants";
 import { DOB_MONTHS, getDefaultAdultDob, getParentEmailValidationError } from "@/lib/form-validation";
 import { Disclosure } from "@/components/auth/Disclosure";
 import { FieldError } from "@/components/ui/FieldError";
@@ -119,6 +120,9 @@ export function ParentInviteForm({
       }
       if (typeof data.watchToken === "string" && data.watchToken) {
         sessionStorage.setItem(PARENT_WATCH_TOKEN_KEY, data.watchToken);
+      }
+      if (typeof data.activationCode === "string" && data.activationCode) {
+        sessionStorage.setItem(ACTIVATION_CODE_KEY, data.activationCode);
       }
 
       router.push(data.redirectTo ?? "/onboarding/waiting");

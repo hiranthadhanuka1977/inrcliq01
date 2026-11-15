@@ -1,6 +1,8 @@
+import { listSavedPostsForUser, markBookmarkedPosts } from "@/lib/feed/bookmarks";
 import { getFollowedCreatorIdsForUser } from "@/lib/feed/follow-service";
 import { getHiddenPostIdsForUser } from "@/lib/feed/post-actions";
 import { getProfileSlugFromHandle, resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
+import { getSessionNavProfile } from "@/lib/feed/session-nav-profile";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { readFeedAudios } from "@/lib/feed/read-audios";
@@ -239,7 +241,7 @@ export async function getFeedData(): Promise<FeedData> {
   const creatorIds = Array.from(new Set(posts.map((post) => post.creatorId)));
   const subscribedCreatorIds = await getSubscribedCreatorIds(creatorIds).catch(() => new Set<string>());
 
-  const items = await excludeHiddenPosts(
+  let items = await excludeHiddenPosts(
     await applyFollowState(
       posts.map((post) =>
         mapPostToFeedItem(post, {
@@ -249,6 +251,13 @@ export async function getFeedData(): Promise<FeedData> {
     ),
   );
 
+  try {
+    const sessionUser = await getSessionUser();
+    items = await markBookmarkedPosts(sessionUser?.id, items);
+  } catch (error) {
+    console.error("getFeedData: bookmark flags skipped", error);
+  }
+
   return {
     version: "1.0",
     description: "INRCLIQ feed (database)",
@@ -257,4 +266,57 @@ export async function getFeedData(): Promise<FeedData> {
     categories: FEED_CATEGORIES,
     items,
   };
+}
+
+/** One post for a permalink or a share page. Hidden-from-feed does not hide it here. */
+export async function getFeedPostById(postId: string): Promise<FeedItem | null> {
+  const id = postId.trim();
+  if (!id) return null;
+
+  const post = await prisma.feedPost.findUnique({
+    where: { id },
+    include: { creator: true },
+  });
+  if (!post) return null;
+
+  const subscribedCreatorIds = await getSubscribedCreatorIds([post.creatorId]).catch(() => new Set<string>());
+  const [item] = await applyFollowState([
+    mapPostToFeedItem(post, { subscribed: subscribedCreatorIds.has(post.creatorId) }),
+  ]);
+  if (!item) return null;
+
+  try {
+    const sessionUser = await getSessionUser();
+    const [marked] = await markBookmarkedPosts(sessionUser?.id, [item]);
+    return marked ?? item;
+  } catch (error) {
+    console.error("getFeedPostById: bookmark flag skipped", error);
+    return item;
+  }
+}
+
+/** Bookmarked posts for the signed-in user, newest bookmark first. Null when signed out. */
+export async function getSavedFeedData(): Promise<{
+  items: FeedItem[];
+  profileHref: string | null;
+} | null> {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) return null;
+
+  const posts = await listSavedPostsForUser(sessionUser.id);
+  const creatorIds = Array.from(new Set(posts.map((post) => post.creatorId)));
+  const subscribedCreatorIds = await getSubscribedCreatorIds(creatorIds).catch(() => new Set<string>());
+
+  const items = (
+    await applyFollowState(
+      posts.map((post) =>
+        mapPostToFeedItem(post, {
+          subscribed: subscribedCreatorIds.has(post.creatorId),
+        }),
+      ),
+    )
+  ).map((item) => ({ ...item, bookmarked: true }));
+
+  const nav = await getSessionNavProfile();
+  return { items, profileHref: nav.profileHref };
 }

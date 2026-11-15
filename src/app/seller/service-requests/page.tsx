@@ -47,6 +47,7 @@ export default async function SellerServiceRequestsPage({ searchParams }: PagePr
       initialBookings={bookings}
       initialUnavailableDates={unavailableDates}
       initialTab={parseTab(tab)}
+      advancedHref="/api/seller-pro/launch?next=/seller-pro/service-requests"
     />
   );
 }

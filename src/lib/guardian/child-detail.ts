@@ -347,7 +347,7 @@ export const getChildDetailForGuardian = cache(async function getChildDetailForG
   const subscriptions: AccountSocialPerson[] = subscriptionRows.map((row) => ({
     id: row.creator.id,
     name: row.creator.name,
-    handle: row.creator.handle,
+    handle: displayHandle(row.creator.handle),
     slug: row.creator.slug,
     href: row.creator.slug ? `/feed/profile/${row.creator.slug}` : null,
     avatarInitials: row.creator.avatarInitials,
@@ -360,14 +360,13 @@ export const getChildDetailForGuardian = cache(async function getChildDetailForG
   const following: AccountSocialPerson[] = followRows.map((row) => ({
     id: row.creator.id,
     name: row.creator.name,
-    handle: row.creator.handle,
+    handle: displayHandle(row.creator.handle),
     slug: row.creator.slug,
     href: row.creator.slug ? `/feed/profile/${row.creator.slug}` : null,
     avatarInitials: row.creator.avatarInitials,
     avatarColor: row.creator.avatarColor,
     avatarUrl: row.creator.avatarUrl,
     verified: row.creator.verified,
-    meta: "Following",
   }));
 
   const followers: AccountSocialPerson[] = followerRows.map((row) => {
@@ -389,7 +388,6 @@ export const getChildDetailForGuardian = cache(async function getChildDetailForG
       avatarColor: profile?.avatarColor?.trim() || "#6b9fff",
       avatarUrl: profile?.avatarUrl?.trim() || null,
       verified: Boolean(profile?.verified),
-      meta: "Follower",
     };
   });
 

@@ -4,8 +4,10 @@ import {
   buildLoginCodeEmail,
   buildParentApprovedChildEmail,
   buildParentDeclinedChildEmail,
+  buildMinorActivationCodeEmail,
   buildParentInviteEmail,
   buildProfileCompleteEmail,
+  buildEmailChangeEmail,
   buildVerificationEmail,
 } from "@/lib/email/templates";
 
@@ -14,9 +16,24 @@ export async function sendVerificationEmail(email: string, verifyUrl: string) {
   await sendEmailSafely({ to: email, ...message }, "verification");
 }
 
+export async function sendEmailChangeEmail(email: string, verifyUrl: string) {
+  const message = buildEmailChangeEmail(verifyUrl);
+  await sendEmailSafely({ to: email, ...message }, "email-change");
+}
+
 export async function sendLoginCodeEmail(email: string, code: string) {
   const message = buildLoginCodeEmail(code);
   return sendEmailSafely({ to: email, ...message }, "login-code");
+}
+
+export async function sendMinorActivationCodeEmail(
+  email: string,
+  firstName: string,
+  code: string,
+  guardianEmail: string,
+) {
+  const message = buildMinorActivationCodeEmail({ firstName, code, guardianEmail });
+  await sendEmailSafely({ to: email, ...message }, "minor-activation-code");
 }
 
 export async function sendParentInviteEmail(

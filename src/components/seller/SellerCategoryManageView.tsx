@@ -7,6 +7,7 @@ import {
   SellerImageUploadField,
   servicePosterUrl,
 } from "@/components/seller/SellerImageUploadField";
+import { useSellerToolPaths } from "@/components/seller/SellerToolPaths";
 import type {
   CreatorRequestsContent,
   RequestCategory,
@@ -39,8 +40,6 @@ const DELIVERY_FORMAT_LABELS: Record<RequestDeliveryFormatKind, string> = {
 };
 
 const CATEGORY_ICONS = ["gift", "coach", "stage"] as const;
-const BACK_HREF = "/seller/service-requests?tab=offerings";
-
 type ServiceEditTarget = {
   service: RequestService;
   isNew: boolean;
@@ -67,6 +66,7 @@ export function SellerCategoryManageView({
   initialConfig,
 }: SellerCategoryManageViewProps) {
   const router = useRouter();
+  const paths = useSellerToolPaths();
   const [enabled, setEnabled] = useState(initialConfig.enabled);
   const [content, setContent] = useState<CreatorRequestsContent>(initialConfig.content);
   const [saving, setSaving] = useState(false);
@@ -339,7 +339,7 @@ export function SellerCategoryManageView({
     });
 
     const ok = await saveConfig(enabled, nextContent);
-    if (ok) router.push(BACK_HREF);
+    if (ok) router.push(paths.serviceRequestsOfferings);
   }
 
   if (!category || !readiness) {
@@ -348,7 +348,7 @@ export function SellerCategoryManageView({
         <div className="seller-empty">
           <strong>Category not found</strong>
           <p>This category may have been deleted. Return to your offerings list to continue.</p>
-          <Link href={BACK_HREF} className="btn btn--secondary btn--sm">
+          <Link href={paths.serviceRequestsOfferings} className="btn btn--secondary btn--sm">
             Back to offerings
           </Link>
         </div>
@@ -361,7 +361,7 @@ export function SellerCategoryManageView({
       <div className="seller-panel__head seller-requests-head">
         <div>
           <p className="seller-breadcrumb">
-            <Link href={BACK_HREF}>Offerings</Link>
+            <Link href={paths.serviceRequestsOfferings}>Offerings</Link>
             <span aria-hidden="true"> / </span>
             <span>Manage category</span>
           </p>
@@ -407,7 +407,7 @@ export function SellerCategoryManageView({
               </div>
             ) : null}
           </div>
-          <Link href={BACK_HREF} className="btn btn--ghost btn--sm">
+          <Link href={paths.serviceRequestsOfferings} className="btn btn--ghost btn--sm">
             Back to list
           </Link>
         </div>

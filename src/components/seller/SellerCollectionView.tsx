@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useSellerToolPaths } from "@/components/seller/SellerToolPaths";
 import {
   getProductReadiness,
   isProductActive,
@@ -16,6 +17,7 @@ type SellerCollectionViewProps = {
   previewHref: string;
   initialConfig: SellerCollectionConfig;
   initialTab?: TabId;
+  advancedHref?: string;
 };
 
 function parseInitialTab(value: TabId | undefined): TabId {
@@ -27,7 +29,9 @@ export function SellerCollectionView({
   previewHref,
   initialConfig,
   initialTab,
+  advancedHref,
 }: SellerCollectionViewProps) {
+  const paths = useSellerToolPaths();
   const [tab, setTab] = useState<TabId>(parseInitialTab(initialTab));
   const [enabled, setEnabled] = useState(() => initialConfig.enabled !== false);
   const [title, setTitle] = useState(() => initialConfig.title ?? "");
@@ -162,11 +166,23 @@ export function SellerCollectionView({
               : `Configure the same products fans see on your profile storefront for @${slug}.`}
           </p>
         </div>
-        {!needsSetupIntro ? (
+        {advancedHref || !needsSetupIntro ? (
           <div className="seller-requests-head__actions">
-            <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
-              Preview storefront
-            </Link>
+            {advancedHref ? (
+              <a
+                className="btn btn--secondary btn--sm"
+                href={advancedHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ST v2.0
+              </a>
+            ) : null}
+            {!needsSetupIntro ? (
+              <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
+                Preview storefront
+              </Link>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -186,7 +202,7 @@ export function SellerCollectionView({
               <li>Keep the storefront hidden until your first product is ready</li>
             </ul>
             <div className="seller-sr-intro__actions">
-              <Link href="/seller/collection/products/new" className="btn btn--primary">
+              <Link href={paths.productNew} className="btn btn--primary">
                 Add your first product
               </Link>
               <button
@@ -326,7 +342,7 @@ export function SellerCollectionView({
                 Collection is live.
               </p>
             </div>
-            <Link href="/seller/collection/products/new" className="btn btn--secondary btn--sm">
+            <Link href={paths.productNew} className="btn btn--secondary btn--sm">
               Add product
             </Link>
           </div>
@@ -335,7 +351,7 @@ export function SellerCollectionView({
             <div className="seller-empty">
               <strong>No products yet</strong>
               <p>Add physical merch or digital downloads fans can buy from your profile.</p>
-              <Link href="/seller/collection/products/new" className="btn btn--primary btn--sm">
+              <Link href={paths.productNew} className="btn btn--primary btn--sm">
                 Add your first product
               </Link>
             </div>
@@ -376,7 +392,7 @@ export function SellerCollectionView({
 
                       <div className="seller-category__summary-actions">
                         <Link
-                          href={`/seller/collection/products/${product.id}`}
+                          href={paths.product(product.id)}
                           className="btn btn--secondary btn--sm"
                         >
                           Manage
@@ -420,7 +436,7 @@ export function SellerCollectionView({
                               aria-label="Product options"
                             >
                               <Link
-                                href={`/seller/collection/products/${product.id}`}
+                                href={paths.product(product.id)}
                                 className="seller-context-menu__item"
                                 role="menuitem"
                                 onClick={() => setMenuProductId(null)}

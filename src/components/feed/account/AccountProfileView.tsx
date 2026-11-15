@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import FollowButton from "@/components/feed/FollowButton";
+import RemoveFollowerButton from "@/components/feed/account/RemoveFollowerButton";
 import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
 import FirstPostPromptCard from "@/components/feed/account/FirstPostPromptCard";
 import SetHandleModal from "@/components/feed/account/SetHandleModal";
@@ -23,11 +24,15 @@ function formatCount(value: number) {
 function PersonRow({
   person,
   showUnfollow,
+  showRemove,
   onUnfollowed,
+  onRemoved,
 }: {
   person: AccountSocialPerson;
   showUnfollow?: boolean;
+  showRemove?: boolean;
   onUnfollowed?: (id: string) => void;
+  onRemoved?: (id: string) => void;
 }) {
   const [following, setFollowing] = useState(true);
 
@@ -92,6 +97,13 @@ function PersonRow({
           }}
         />
       ) : null}
+      {showRemove ? (
+        <RemoveFollowerButton
+          userId={person.id}
+          name={person.name}
+          onRemoved={() => onRemoved?.(person.id)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -126,6 +138,8 @@ export default function AccountProfileView({
   const [tab, setTab] = useState<AccountSocialTab>(initialTab);
   const [followingPeople, setFollowingPeople] = useState(profile.social.following);
   const [followingCount, setFollowingCount] = useState(profile.social.followingCount);
+  const [followerPeople, setFollowerPeople] = useState(profile.social.followers);
+  const [followerCount, setFollowerCount] = useState(profile.social.followersCount);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [editorSrc, setEditorSrc] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState("");
@@ -152,13 +166,13 @@ export default function AccountProfileView({
   }, [profile.avatarUrl]);
 
   const people = useMemo(() => {
-    if (tab === "followers") return profile.social.followers;
+    if (tab === "followers") return followerPeople;
     if (tab === "following") return followingPeople;
     return profile.social.subscriptions;
-  }, [followingPeople, profile.social.followers, profile.social.subscriptions, tab]);
+  }, [followerPeople, followingPeople, profile.social.subscriptions, tab]);
 
   const counts = {
-    followers: profile.social.followersCount,
+    followers: followerCount,
     following: followingCount,
     subscriptions: profile.social.subscriptionsCount,
   };
@@ -447,9 +461,14 @@ export default function AccountProfileView({
                   <PersonRow
                     person={person}
                     showUnfollow={tab === "following"}
+                    showRemove={tab === "followers"}
                     onUnfollowed={(id) => {
                       setFollowingPeople((current) => current.filter((item) => item.id !== id));
                       setFollowingCount((count) => Math.max(0, count - 1));
+                    }}
+                    onRemoved={(id) => {
+                      setFollowerPeople((current) => current.filter((item) => item.id !== id));
+                      setFollowerCount((count) => Math.max(0, count - 1));
                     }}
                   />
                 </li>

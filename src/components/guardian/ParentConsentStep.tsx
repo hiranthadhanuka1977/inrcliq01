@@ -1,21 +1,77 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useState } from "react";
 import { AuthPageCentered } from "@/components/auth/AuthPageCentered";
+import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
 import type { GuardianChildContext } from "@/lib/auth/guardian-flow";
+import { FieldError } from "@/components/ui/FieldError";
 
 export function ParentConsentStep({
   child,
+  token,
+  requiresActivationCode,
   onApprove,
   onDecline,
   isSubmitting,
 }: {
   child: GuardianChildContext;
+  token: string;
+  requiresActivationCode: boolean;
   onApprove: () => void;
   onDecline: () => void;
   isSubmitting?: boolean;
 }) {
   const firstName = child.firstName;
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const closeCodePopup = useCallback(() => {
+    if (isConfirming) return;
+    setCodeOpen(false);
+    setCodeError("");
+  }, [isConfirming]);
+
+  const { dialogRef } = useDialogA11y(codeOpen, closeCodePopup);
+
+  function openCodePopup() {
+    setCode("");
+    setCodeError("");
+    setCodeOpen(true);
+  }
+
+  async function handleConfirmCode() {
+    const entered = code.replace(/\s+/g, "").toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(entered)) {
+      setCodeError(`Enter the 6-character code ${firstName} shared with you.`);
+      return;
+    }
+
+    setIsConfirming(true);
+    setCodeError("");
+
+    try {
+      const response = await fetch("/api/guardian/confirm-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, code: entered }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setCodeError(data.error ?? "That code doesn't match. Check the code your child shared with you.");
+        return;
+      }
+
+      setCodeOpen(false);
+      onApprove();
+    } catch {
+      setCodeError("Unable to confirm the activation code.");
+    } finally {
+      setIsConfirming(false);
+    }
+  }
 
   return (
     <AuthPageCentered innerClassName="parent-consent">
@@ -129,8 +185,9 @@ export function ParentConsentStep({
           <button
             type="button"
             className="btn btn--primary"
-            onClick={onApprove}
-            disabled={isSubmitting}
+            id="btn-setup-parental-control"
+            onClick={requiresActivationCode ? openCodePopup : onApprove}
+            disabled={isSubmitting || isConfirming}
           >
             {isSubmitting ? "Loading…" : `Set up parental control, let ${firstName} join`}
           </button>
@@ -138,6 +195,75 @@ export function ParentConsentStep({
             I want to decline this request
           </button>
         </div>
+
+        {codeOpen ? (
+          <div
+            className="modal-backdrop is-open"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guardian-activation-code-title"
+          >
+            <div className="modal activation-code-modal text-center" ref={dialogRef} tabIndex={-1}>
+              <h2 id="guardian-activation-code-title">Confirm the activation code</h2>
+              <p className="activation-code-modal__note">
+                Enter the code {firstName} shared with you for activation.
+              </p>
+              <div className="field mt-6 text-left">
+                <label className="field-label" htmlFor="guardian-activation-code">
+                  Activation code
+                </label>
+                <input
+                  id="guardian-activation-code"
+                  className={`input activation-code-modal__input${codeError ? " input--error" : ""}`}
+                  value={code}
+                  onChange={(event) => {
+                    setCode(event.target.value.toUpperCase());
+                    if (codeError) setCodeError("");
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void handleConfirmCode();
+                    }
+                  }}
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  maxLength={6}
+                  aria-invalid={Boolean(codeError)}
+                  aria-describedby="guardian-activation-code-error"
+                  disabled={isConfirming}
+                />
+                <FieldError
+                  id="guardian-activation-code-error"
+                  message={codeError}
+                  hidden={!codeError}
+                  defaultMessage={`Enter the 6-character code ${firstName} shared with you.`}
+                />
+              </div>
+              <div className="activation-code-modal__actions">
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  id="btn-confirm-activation-code"
+                  onClick={() => void handleConfirmCode()}
+                  disabled={isConfirming}
+                >
+                  {isConfirming ? "Checking…" : "Confirm"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--outline-info"
+                  onClick={closeCodePopup}
+                  disabled={isConfirming}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
     </AuthPageCentered>
   );
 }

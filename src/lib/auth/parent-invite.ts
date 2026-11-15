@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
+import { randomBytes, randomInt } from "crypto";
 import { ApprovalStatus } from "@/generated/prisma/client";
 import { sendParentApprovedChildEmail } from "@/lib/email/notifications";
 import { prisma } from "@/lib/prisma";
@@ -9,11 +9,34 @@ import {
   PARENT_INVITE_COOLDOWN_SECONDS,
   PARENT_INVITE_EXPIRY_HOURS,
 } from "@/lib/auth/parent-invite.constants";
-import { sendParentInviteEmail as deliverParentInviteEmail } from "@/lib/email/notifications";
+import {
+  sendMinorActivationCodeEmail as deliverMinorActivationCodeEmail,
+  sendParentInviteEmail as deliverParentInviteEmail,
+} from "@/lib/email/notifications";
 import { createSession } from "@/lib/session";
+
+const ACTIVATION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const ACTIVATION_DIGITS = "0123456789";
 
 function generateToken() {
   return randomBytes(32).toString("hex");
+}
+
+/** 6-character code that always includes at least one letter and one digit. */
+export function generateActivationCode() {
+  const chars = [
+    ACTIVATION_LETTERS[randomInt(ACTIVATION_LETTERS.length)],
+    ACTIVATION_DIGITS[randomInt(ACTIVATION_DIGITS.length)],
+  ];
+  const pool = ACTIVATION_LETTERS + ACTIVATION_DIGITS;
+  while (chars.length < 6) {
+    chars.push(pool[randomInt(pool.length)]);
+  }
+  for (let index = chars.length - 1; index > 0; index -= 1) {
+    const swap = randomInt(index + 1);
+    [chars[index], chars[swap]] = [chars[swap], chars[index]];
+  }
+  return chars.join("");
 }
 
 export async function getParentInviteCooldownRemaining(childUserId: string) {
@@ -33,7 +56,11 @@ export async function getParentInviteCooldownRemaining(childUserId: string) {
 export async function createParentApprovalRequest(
   childUserId: string,
   parentEmail: string,
-  options?: { bypassCooldown?: boolean },
+  options?: {
+    bypassCooldown?: boolean;
+    activationCode?: string | null;
+    activationCodeSentAt?: Date | null;
+  },
 ) {
   const normalizedParentEmail = parentEmail.toLowerCase();
   const remaining = options?.bypassCooldown
@@ -44,6 +71,10 @@ export async function createParentApprovalRequest(
     return { ok: false as const, cooldownRemaining: remaining };
   }
 
+  const reusedCode = options?.activationCode?.trim().toUpperCase() || "";
+  const activationCode = reusedCode || generateActivationCode();
+  const activationCodeIsNew = !reusedCode;
+  const activationCodeSentAt = activationCodeIsNew ? new Date() : options?.activationCodeSentAt ?? null;
   const rawToken = generateToken();
   const tokenHash = await bcrypt.hash(rawToken, 10);
   const expiresAt = new Date(Date.now() + PARENT_INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -58,6 +89,8 @@ export async function createParentApprovalRequest(
       childUserId,
       parentEmail: normalizedParentEmail,
       tokenHash,
+      activationCode,
+      activationCodeSentAt,
       expiresAt,
     },
   });
@@ -69,6 +102,8 @@ export async function createParentApprovalRequest(
     request,
     approveUrl,
     rawToken,
+    activationCode,
+    activationCodeIsNew,
     cooldownRemaining: PARENT_INVITE_COOLDOWN_SECONDS,
   };
 }
@@ -241,6 +276,52 @@ export async function approveParentRequest(requestId: string) {
   return request;
 }
 
+export function getActivationCodeEmailCooldownRemaining(sentAt: Date | null | undefined) {
+  if (!sentAt) return 0;
+  const remaining = Math.ceil(
+    (sentAt.getTime() + PARENT_INVITE_COOLDOWN_SECONDS * 1000 - Date.now()) / 1000,
+  );
+  return remaining > 0 ? remaining : 0;
+}
+
+export async function resendMinorActivationCodeEmailToChild(user: {
+  id: string;
+  email: string;
+  firstName: string | null;
+}) {
+  const latest = await getLatestParentRequest(user.id);
+  if (!latest || latest.status !== ApprovalStatus.PENDING) {
+    return { ok: false as const, status: 400, error: "No pending parent invite." };
+  }
+  if (!latest.activationCode) {
+    return { ok: false as const, status: 400, error: "No activation code to send." };
+  }
+
+  const cooldownRemaining = getActivationCodeEmailCooldownRemaining(latest.activationCodeSentAt);
+  if (cooldownRemaining > 0) {
+    return {
+      ok: false as const,
+      status: 429,
+      error: "Please wait before resending.",
+      cooldownRemaining,
+    };
+  }
+
+  await sendMinorActivationCodeEmail(
+    user.email,
+    user.firstName ?? "there",
+    latest.activationCode,
+    latest.parentEmail,
+  );
+
+  await prisma.parentApprovalRequest.update({
+    where: { id: latest.id },
+    data: { activationCodeSentAt: new Date() },
+  });
+
+  return { ok: true as const, cooldownRemaining: PARENT_INVITE_COOLDOWN_SECONDS };
+}
+
 export async function getLatestParentRequest(childUserId: string) {
   return prisma.parentApprovalRequest.findFirst({
     where: { childUserId },
@@ -254,4 +335,13 @@ export async function sendParentInviteEmail(
   childFirstName: string,
 ) {
   await deliverParentInviteEmail(parentEmail, approveUrl, childFirstName);
+}
+
+export async function sendMinorActivationCodeEmail(
+  email: string,
+  firstName: string,
+  code: string,
+  guardianEmail: string,
+) {
+  await deliverMinorActivationCodeEmail(email, firstName, code, guardianEmail);
 }

@@ -15,6 +15,7 @@ export const MOBILE_MEDIA_ITEMS = [
 
 export const MOBILE_MORE_ITEMS = [
   { label: "Explore", href: "#", icon: "explore" },
+  { label: "Saved", href: "/feed/saved", icon: "saved" },
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Calendar", href: "/feed/bookings", icon: "bookings" },
   { label: "Seller Tools", href: "/seller", icon: "seller" },
@@ -94,6 +95,12 @@ export function NavIcon({ name }: { name: NavIconName }) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+        </svg>
+      );
+    case "saved":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
       );
     case "messages":

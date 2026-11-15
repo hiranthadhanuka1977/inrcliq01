@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { mapThreadToConversation } from "@/lib/feed/chat";
+import { conversationFromThread } from "@/lib/feed/messages-with-restrictions";
 import {
   bookingMessagePreview,
   encodeBookingMessage,
@@ -303,7 +303,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      conversation: mapThreadToConversation(fresh),
+      conversation: await conversationFromThread(user.id, fresh),
       threadId: fresh.id,
       specialRequestId: specialRequest.id,
       reference: specialRequest.reference,

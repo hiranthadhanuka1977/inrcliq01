@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { SellerBookingsCalendar } from "@/components/seller/SellerBookingsCalendar";
 import { SellerImageUploadField } from "@/components/seller/SellerImageUploadField";
+import { useSellerMainOrigin, useSellerToolPaths } from "@/components/seller/SellerToolPaths";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
 import { formatDeliverByLabel } from "@/lib/feed/booking-confirmation";
 import type {
@@ -33,6 +34,7 @@ type SellerServiceRequestsViewProps = {
   initialBookings: SettingsBookingRow[];
   initialUnavailableDates?: string[];
   initialTab?: TabId;
+  advancedHref?: string;
 };
 
 function linesToText(lines: string[]) {
@@ -66,6 +68,19 @@ function bookingDetailsHref(bookingId: string) {
   return `/feed/bookings?${params.toString()}`;
 }
 
+function openBookingDetails(
+  bookingId: string,
+  mainOrigin: string,
+  push: (href: string) => void,
+) {
+  const path = bookingDetailsHref(bookingId);
+  if (mainOrigin) {
+    window.open(`${mainOrigin}${path}`, "_blank", "noopener,noreferrer");
+    return;
+  }
+  push(path);
+}
+
 export function SellerServiceRequestsView({
   slug,
   previewHref,
@@ -73,8 +88,11 @@ export function SellerServiceRequestsView({
   initialBookings,
   initialUnavailableDates = [],
   initialTab,
+  advancedHref,
 }: SellerServiceRequestsViewProps) {
   const router = useRouter();
+  const paths = useSellerToolPaths();
+  const mainOrigin = useSellerMainOrigin();
   const [tab, setTab] = useState<TabId>(parseInitialTab(initialTab));
   const [enabled, setEnabled] = useState(initialConfig.enabled);
   const [content, setContent] = useState<CreatorRequestsContent>(initialConfig.content);
@@ -360,11 +378,23 @@ export function SellerServiceRequestsView({
                 "."}
           </p>
         </div>
-        {!needsSetupIntro ? (
+        {advancedHref || !needsSetupIntro ? (
           <div className="seller-requests-head__actions">
-            <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
-              Preview page
-            </Link>
+            {advancedHref ? (
+              <a
+                className="btn btn--secondary btn--sm"
+                href={advancedHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ST v2.0
+              </a>
+            ) : null}
+            {!needsSetupIntro ? (
+              <Link href={previewHref} className="btn btn--secondary btn--sm" target="_blank">
+                Preview page
+              </Link>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -385,7 +415,7 @@ export function SellerServiceRequestsView({
             </ul>
             <div className="seller-sr-intro__actions">
               <Link
-                href="/seller/service-requests/categories/new"
+                href={paths.categoryNew}
                 className="btn btn--primary"
               >
                 Create your first category
@@ -641,7 +671,7 @@ export function SellerServiceRequestsView({
               </p>
             </div>
             <Link
-              href="/seller/service-requests/categories/new"
+              href={paths.categoryNew}
               className="btn btn--secondary btn--sm"
             >
               Add category
@@ -656,7 +686,7 @@ export function SellerServiceRequestsView({
                 can book.
               </p>
               <Link
-                href="/seller/service-requests/categories/new"
+                href={paths.categoryNew}
                 className="btn btn--primary btn--sm"
               >
                 Add your first category
@@ -750,7 +780,7 @@ export function SellerServiceRequestsView({
                               aria-label="Category options"
                             >
                               <Link
-                                href={`/seller/service-requests/categories/${category.id}`}
+                                href={paths.category(category.id)}
                                 className="seller-context-menu__item"
                                 role="menuitem"
                                 onClick={() => setMenuCategoryId(null)}
@@ -871,11 +901,11 @@ export function SellerServiceRequestsView({
                         tabIndex={0}
                         role="link"
                         aria-label={`Open ${booking.requestLabel} (${booking.reference}) in Calendar`}
-                        onClick={() => router.push(bookingDetailsHref(booking.id))}
+                        onClick={() => openBookingDetails(booking.id, mainOrigin, router.push)}
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
-                            router.push(bookingDetailsHref(booking.id));
+                            openBookingDetails(booking.id, mainOrigin, router.push);
                           }
                         }}
                       >

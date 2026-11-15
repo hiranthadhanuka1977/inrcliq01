@@ -4,14 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
 import { SellerProductForm } from "@/components/seller/SellerProductForm";
+import { useSellerToolPaths } from "@/components/seller/SellerToolPaths";
 import {
   getProductReadiness,
   productHasCoreFields,
   type SellerCollectionConfig,
 } from "@/lib/seller/collection-helpers";
 import type { CollectionProduct } from "@/types/feed/collection";
-
-const BACK_HREF = "/seller/collection?tab=products";
 
 type SellerProductManageViewProps = {
   productKey: string;
@@ -23,6 +22,7 @@ export function SellerProductManageView({
   initialConfig,
 }: SellerProductManageViewProps) {
   const router = useRouter();
+  const paths = useSellerToolPaths();
   const [enabled] = useState(initialConfig.enabled);
   const [title] = useState(initialConfig.title);
   const [subtitle] = useState(initialConfig.subtitle);
@@ -69,7 +69,7 @@ export function SellerProductManageView({
 
       setProducts(data.products);
       if (options?.redirectOnDelete) {
-        router.push(BACK_HREF);
+        router.push(paths.collectionProducts);
         router.refresh();
         return true;
       }
@@ -115,7 +115,7 @@ export function SellerProductManageView({
         <div className="seller-empty">
           <strong>Product not found</strong>
           <p>This product may have been deleted.</p>
-          <Link href={BACK_HREF} className="btn btn--primary btn--sm">
+          <Link href={paths.collectionProducts} className="btn btn--primary btn--sm">
             Back to products
           </Link>
         </div>
@@ -128,7 +128,7 @@ export function SellerProductManageView({
       <div className="seller-panel__head">
         <div>
           <p className="seller-panel__eyebrow">
-            <Link href={BACK_HREF}>← Back to products</Link>
+            <Link href={paths.collectionProducts}>← Back to products</Link>
           </p>
           <h1 className="seller-panel__title" id="seller-product-manage-title">
             {displayName}

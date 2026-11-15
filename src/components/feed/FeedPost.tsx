@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import EditPostModal from "@/components/feed/account/EditPostModal";
 import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
@@ -485,9 +486,17 @@ type FeedPostProps = {
   following?: boolean;
   onFollowingChange?: (next: boolean) => void;
   hideFollow?: boolean;
+  onBookmarkChange?: (saved: boolean) => void;
 };
 
-export default function FeedPost({ item, following, onFollowingChange, hideFollow = false }: FeedPostProps) {
+export default function FeedPost({
+  item,
+  following,
+  onFollowingChange,
+  hideFollow = false,
+  onBookmarkChange,
+}: FeedPostProps) {
+  const router = useRouter();
   const { author } = item;
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -497,7 +506,8 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   const [actionError, setActionError] = useState<string | null>(null);
   const [localFollowing, setLocalFollowing] = useState(item.relationship.following);
   const [reaction, setReaction] = useState<FeedReactionId | null>(null);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(Boolean(item.bookmarked));
+  const [bookmarkBusy, setBookmarkBusy] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerMode, setViewerMode] = useState<"media" | "comments">("media");
   const [videoIndex, setVideoIndex] = useState(0);
@@ -513,6 +523,10 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
   useEffect(() => {
     setLocalFollowing(item.relationship.following);
   }, [item.id, item.relationship.following]);
+
+  useEffect(() => {
+    setBookmarked(Boolean(item.bookmarked));
+  }, [item.id, item.bookmarked]);
 
   useEffect(() => {
     if (!menuOpen && !moreOpen) return;
@@ -576,6 +590,29 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "Unable to remove this post from your feed.");
       setActionBusy(false);
+    }
+  }
+
+  async function toggleBookmark() {
+    if (bookmarkBusy) return;
+    const next = !bookmarked;
+    setBookmarked(next);
+    setBookmarkBusy(true);
+    try {
+      const response = await fetch("/api/feed/bookmarks", {
+        method: next ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: item.id }),
+      });
+      if (!response.ok) {
+        setBookmarked(!next);
+        return;
+      }
+      onBookmarkChange?.(next);
+    } catch {
+      setBookmarked(!next);
+    } finally {
+      setBookmarkBusy(false);
     }
   }
 
@@ -868,7 +905,12 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             </svg>
             <span className="post-action__count">{formatCommentCount(item.engagement.comments)}</span>
           </button>
-          <button type="button" className="post-action post-action--share" aria-label="Share">
+          <button
+            type="button"
+            className="post-action post-action--share"
+            aria-label="Share"
+            onClick={() => router.push(`/feed/post/${encodeURIComponent(item.id)}/share`)}
+          >
             <ShareIcon />
           </button>
           <button
@@ -876,7 +918,8 @@ export default function FeedPost({ item, following, onFollowingChange, hideFollo
             className={`post-action post-action--save${bookmarked ? " is-saved" : ""}`}
             aria-label={bookmarked ? "Remove bookmark" : "Bookmark"}
             aria-pressed={bookmarked}
-            onClick={() => setBookmarked((value) => !value)}
+            disabled={bookmarkBusy}
+            onClick={() => void toggleBookmark()}
           >
             <svg
               viewBox="0 0 24 24"

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useSellerMainOrigin } from "@/components/seller/SellerToolPaths";
 import { bookingStatusClass } from "@/lib/feed/booking-status";
 import { formatDeliverByLabel } from "@/lib/feed/booking-confirmation";
 import {
@@ -57,6 +58,7 @@ export function SellerBookingsCalendar({
   bookings,
   initialUnavailableDates = [],
 }: SellerBookingsCalendarProps) {
+  const mainOrigin = useSellerMainOrigin();
   const now = new Date();
   const todayKey = todayDateKey(now);
   const [cursor, setCursor] = useState<CalendarCursor>({
@@ -538,7 +540,13 @@ export function SellerBookingsCalendar({
               return (
               <li key={booking.id}>
                 <Link
-                  href={bookingDetailsHref(booking)}
+                  href={
+                    mainOrigin
+                      ? `${mainOrigin}${bookingDetailsHref(booking)}`
+                      : bookingDetailsHref(booking)
+                  }
+                  target={mainOrigin ? "_blank" : undefined}
+                  rel={mainOrigin ? "noopener noreferrer" : undefined}
                   className="seller-calendar__detail-item"
                   aria-label={`Open ${booking.requestLabel} (${booking.reference}) in Calendar`}
                 >

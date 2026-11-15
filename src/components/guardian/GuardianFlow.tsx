@@ -327,6 +327,8 @@ export function GuardianFlow() {
         {modals}
         <ParentConsentStep
           child={context.child}
+          token={token}
+          requiresActivationCode={context.requiresActivationCode}
           onApprove={handleConsentApprove}
           onDecline={openDecline}
           isSubmitting={isSubmitting}

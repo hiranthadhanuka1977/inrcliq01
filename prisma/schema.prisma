@@ -153,6 +153,7 @@ model User {
   subscriptions                  CreatorSubscription[]
   follows                        CreatorFollow[]
   hiddenFeedPosts                FeedHiddenPost[]
+  feedBookmarks                  FeedBookmark[]
   guardianSafetyAlertsAsGuardian GuardianSafetyAlert[]      @relation("GuardianSafetyAlertsGuardian")
   guardianSafetyAlertsAsChild    GuardianSafetyAlert[]      @relation("GuardianSafetyAlertsChild")
   dmHoldsAsSender                DmModerationHold[]         @relation("DmHoldSender")
@@ -162,11 +163,14 @@ model User {
   dmRestrictions                 UserDmRestriction[]        @relation("UserDmRestrictions")
   safetyReportsFiled             SafetyReport[]             @relation("SafetyReportsFiled")
   safetyReportsAbout             SafetyReport[]             @relation("SafetyReportsAbout")
+  directMessageBlocksCreated     DirectMessageBlock[]       @relation("DirectMessageBlocksCreated")
+  directMessageBlocksReceived    DirectMessageBlock[]       @relation("DirectMessageBlocksReceived")
   specialRequests                SpecialRequest[]
   adminAuditLogs                 AdminAuditLog[]
   creatorProfile                 CreatorUser?
   authoredFeedPosts              FeedPost[]
   profile                        UserProfile?
+  emailChangeRequests            EmailChangeRequest[]
   specialRequestCatalog          SpecialRequestCatalog?
   studioShows                    StudioShow[]
   studioProjects                 StudioProject[]
@@ -228,6 +232,22 @@ model EmailVerificationToken {
   @@index([email])
 }
 
+/// A requested account-email change. The address on `User` stays unchanged until this is confirmed.
+model EmailChangeRequest {
+  id        String    @id @default(cuid())
+  userId    String
+  newEmail  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([newEmail])
+}
+
 model ParentApprovalRequest {
   id                     String         @id @default(cuid())
   childUserId            String
@@ -235,6 +255,10 @@ model ParentApprovalRequest {
   guardianUserId         String?
   status                 ApprovalStatus @default(PENDING)
   tokenHash              String         @unique
+  /// Code the minor shares with their guardian to activate the account.
+  activationCode         String?
+  /// When the activation code was last emailed to the minor.
+  activationCodeSentAt   DateTime?
   expiresAt              DateTime
   sentAt                 DateTime       @default(now())
   resolvedAt             DateTime?
@@ -464,9 +488,10 @@ model FeedPost {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  creator    CreatorUser  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  authorUser User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  partner    FeedPartner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  creator    CreatorUser    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  authorUser User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  partner    FeedPartner?   @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  bookmarks  FeedBookmark[]
 
   @@unique([partnerId, externalId])
   @@index([category])
@@ -583,6 +608,8 @@ model ChatThread {
   preview         String?
   lastMessageAt   DateTime?
   unreadCount     Int       @default(0)
+  /// When true, new messages still arrive but do not increase the unread badge.
+  notificationsMuted Boolean @default(false)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -695,6 +722,20 @@ model UserDmRestriction {
   @@index([userId, scope, endsAt])
 }
 
+/// One user has blocked another from direct messages. Either direction stops new chat messages.
+model DirectMessageBlock {
+  id            String   @id @default(cuid())
+  blockerUserId String
+  blockedUserId String
+  createdAt     DateTime @default(now())
+
+  blocker User @relation("DirectMessageBlocksCreated", fields: [blockerUserId], references: [id], onDelete: Cascade)
+  blocked User @relation("DirectMessageBlocksReceived", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerUserId, blockedUserId])
+  @@index([blockedUserId])
+}
+
 model SafetyReport {
   id                       String             @id @default(cuid())
   /// Null for system reports.
@@ -702,7 +743,9 @@ model SafetyReport {
   subjectUserId            String
   holdId                   String?
   alertId                  String?
-  /// "guardian" | "system"
+  /// Chat thread when a participant reports the other person from the conversation menu.
+  threadId                 String?
+  /// "guardian" | "system" | "dm"
   source                   String
   reason                   String
   details                  String?
@@ -719,6 +762,7 @@ model SafetyReport {
   @@index([status, priority, createdAt])
   @@index([subjectUserId])
   @@index([holdId])
+  @@index([threadId])
   @@index([reporterUserId, alertId])
 }
 
@@ -831,6 +875,21 @@ model FeedHiddenPost {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+  @@index([postId])
+}
+
+/// Posts a signed-in user has saved. Newest bookmark is the latest `createdAt`.
+model FeedBookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@index([userId, createdAt])

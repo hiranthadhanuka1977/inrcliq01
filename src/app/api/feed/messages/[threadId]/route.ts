@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { mapThreadToConversation } from "@/lib/feed/chat";
 import {
   clearChatThreadMessages,
   deleteChatThread,
   getChatThreadForUser,
   markThreadRead,
+  resolveReceiverUserId,
   sendChatMessage,
+  setThreadNotificationsMuted,
 } from "@/lib/feed/chat-service";
-import { getConversationRestriction } from "@/lib/feed/messages-with-restrictions";
+import { setDirectMessageBlock } from "@/lib/feed/dm-participant-controls";
+import { conversationFromThread } from "@/lib/feed/messages-with-restrictions";
 import { getSessionUser } from "@/lib/session";
 
 interface RouteContext {
@@ -32,13 +34,8 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const restriction = await getConversationRestriction(user.id, fresh);
   return NextResponse.json({
-    conversation: {
-      ...mapThreadToConversation(fresh),
-      dmRestricted: restriction.restricted,
-      dmRestrictedMessage: restriction.message,
-    },
+    conversation: await conversationFromThread(user.id, fresh),
   });
 }
 
@@ -53,14 +50,17 @@ export async function POST(request: Request, context: RouteContext) {
     const payload = (await request.json().catch(() => null)) as {
       body?: string;
       acceptModeration?: boolean;
+      attachments?: unknown;
     } | null;
     const body = payload?.body?.trim() ?? "";
-    if (!body) {
-      return NextResponse.json({ error: "Message body is required" }, { status: 400 });
+    const attachments = Array.isArray(payload?.attachments) ? payload.attachments : [];
+    if (!body && attachments.length === 0) {
+      return NextResponse.json({ error: "Write a message or attach a file." }, { status: 400 });
     }
 
     const result = await sendChatMessage(user.id, threadId, body, {
       acceptModeration: payload?.acceptModeration === true,
+      attachments,
     });
     if (!result) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -95,7 +95,7 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     return NextResponse.json({
-      conversation: mapThreadToConversation(result.thread),
+      conversation: await conversationFromThread(user.id, result.thread),
       ...(result.enforcement ? { enforcement: result.enforcement } : {}),
     });
   } catch (error) {
@@ -131,17 +131,67 @@ export async function DELETE(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const restriction = await getConversationRestriction(user.id, thread);
     return NextResponse.json({
       ok: true,
-      conversation: {
-        ...mapThreadToConversation(thread),
-        dmRestricted: restriction.restricted,
-        dmRestrictedMessage: restriction.message,
-      },
+      conversation: await conversationFromThread(user.id, thread),
     });
   } catch (error) {
     console.error("DELETE /api/feed/messages/[threadId] error", error);
+    return NextResponse.json({ error: "Could not update chat." }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
+  try {
+    const user = await getSessionUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { threadId } = await context.params;
+    const payload = (await request.json().catch(() => null)) as {
+      muted?: boolean;
+      blocked?: boolean;
+    } | null;
+    const wantsMute = typeof payload?.muted === "boolean";
+    const wantsBlock = typeof payload?.blocked === "boolean";
+    if (!wantsMute && !wantsBlock) {
+      return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
+    }
+
+    const thread = await getChatThreadForUser(user.id, threadId);
+    if (!thread) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    if (wantsMute) {
+      const muted = await setThreadNotificationsMuted(user.id, threadId, payload!.muted === true);
+      if (!muted) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+    }
+
+    if (wantsBlock) {
+      const peerUserId = await resolveReceiverUserId(thread);
+      if (!peerUserId || peerUserId === user.id) {
+        return NextResponse.json(
+          { error: "This person can't be blocked from here yet." },
+          { status: 400 },
+        );
+      }
+      await setDirectMessageBlock(user.id, peerUserId, payload!.blocked === true);
+    }
+
+    const fresh = await getChatThreadForUser(user.id, threadId);
+    if (!fresh) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      conversation: await conversationFromThread(user.id, fresh),
+    });
+  } catch (error) {
+    console.error("PATCH /api/feed/messages/[threadId] error", error);
     return NextResponse.json({ error: "Could not update chat." }, { status: 500 });
   }
 }

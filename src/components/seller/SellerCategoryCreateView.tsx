@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { SellerImageUploadField } from "@/components/seller/SellerImageUploadField";
+import { useSellerToolPaths } from "@/components/seller/SellerToolPaths";
 import type { CreatorRequestsContent, RequestCategory } from "@/lib/feed/special-requests";
 import {
   createEmptyCategory,
@@ -11,7 +12,6 @@ import {
 } from "@/lib/seller/service-requests-helpers";
 
 const CATEGORY_ICONS = ["gift", "coach", "stage"] as const;
-const BACK_HREF = "/seller/service-requests?tab=offerings";
 
 type SellerCategoryCreateViewProps = {
   initialConfig: SellerServiceRequestsConfig;
@@ -19,6 +19,7 @@ type SellerCategoryCreateViewProps = {
 
 export function SellerCategoryCreateView({ initialConfig }: SellerCategoryCreateViewProps) {
   const router = useRouter();
+  const paths = useSellerToolPaths();
   const [enabled] = useState(initialConfig.enabled);
   const [content] = useState<CreatorRequestsContent>(initialConfig.content);
   const [title, setTitle] = useState("");
@@ -77,7 +78,7 @@ export function SellerCategoryCreateView({ initialConfig }: SellerCategoryCreate
         return;
       }
 
-      router.push(`/seller/service-requests/categories/${category.id}`);
+      router.push(paths.category(category.id));
       router.refresh();
     } catch {
       setError("Unable to save category.");
@@ -87,7 +88,7 @@ export function SellerCategoryCreateView({ initialConfig }: SellerCategoryCreate
   }
 
   function handleCancel() {
-    router.push(BACK_HREF);
+    router.push(paths.serviceRequestsOfferings);
   }
 
   return (
@@ -95,7 +96,7 @@ export function SellerCategoryCreateView({ initialConfig }: SellerCategoryCreate
       <div className="seller-panel__head seller-requests-head">
         <div>
           <p className="seller-breadcrumb">
-            <Link href={BACK_HREF}>Offerings</Link>
+            <Link href={paths.serviceRequestsOfferings}>Offerings</Link>
             <span aria-hidden="true"> / </span>
             <span>Add category</span>
           </p>
@@ -107,7 +108,7 @@ export function SellerCategoryCreateView({ initialConfig }: SellerCategoryCreate
           </p>
         </div>
         <div className="seller-requests-head__actions">
-          <Link href={BACK_HREF} className="btn btn--ghost btn--sm">
+          <Link href={paths.serviceRequestsOfferings} className="btn btn--ghost btn--sm">
             Back to list
           </Link>
         </div>

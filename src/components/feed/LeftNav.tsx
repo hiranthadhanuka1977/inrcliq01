@@ -23,6 +23,7 @@ const navItems: {
   { label: "Videos", href: "/feed/videos", icon: "videos" },
   { label: "Audio", href: "/feed/audio", icon: "audio" },
   { label: "Explore", href: "#", icon: "explore" },
+  { label: "Saved", href: "/feed/saved", icon: "saved" },
   { label: "Purchases", href: "#", icon: "purchases" },
   { label: "Calendar", href: "/feed/bookings", icon: "bookings" },
   { label: "Seller Tools", href: "/seller", icon: "seller" as const },
@@ -63,7 +64,7 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function LeftNav({ firstName }: { firstName?: string | null } = {}) {
   const pathname = usePathname();
-  const { firstName: sessionFirstName, avatarUrl, avatarColor, verified, isGuardian } =
+  const { firstName: sessionFirstName, avatarUrl, avatarColor, verified, isGuardian, profileHref } =
     useFeedSession();
   const visibleNavItems = useMemo(() => {
     const items = [...navItems];
@@ -265,7 +266,7 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
       />
 
       <div className="nav-profile" ref={profileMenuRef}>
-        <Link href="/feed/me?tab=subscriptions" className="nav-profile__link">
+        <Link href={profileHref ?? "/feed/me"} className="nav-profile__link">
           <span
             className="nav-profile__avatar"
             style={{ "--story-color": avatarAccent } as React.CSSProperties}

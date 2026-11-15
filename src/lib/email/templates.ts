@@ -74,6 +74,21 @@ export function buildVerificationEmail(verifyUrl: string) {
   return { subject, text, html };
 }
 
+export function buildEmailChangeEmail(verifyUrl: string) {
+  const subject = "Confirm your new InrCliq email";
+  const text = `Confirm this email address to use it on your InrCliq account.\n\n${verifyUrl}\n\nYour current email stays in place until you open this link. If you did not ask to change it, you can ignore this email.`;
+  const html = layout(
+    subject,
+    `<h1 style="margin:0 0 12px;font-size:24px;line-height:1.2;">Confirm your new email</h1>
+     <p style="margin:0;font-size:16px;line-height:1.6;color:#484848;">
+       Open the link below to start using this address on InrCliq. Your current email stays in place until you confirm.
+     </p>
+     ${button(verifyUrl, "Confirm email")}`,
+  );
+
+  return { subject, text, html };
+}
+
 export function buildLoginCodeEmail(code: string) {
   const subject = "Your InrCliq login code";
   const text = `Your InrCliq login code is ${code}. It expires soon.\n\nIf you did not try to log in, you can ignore this email.`;
@@ -86,6 +101,37 @@ export function buildLoginCodeEmail(code: string) {
      <p style="margin:0;font-size:32px;font-weight:700;letter-spacing:0.24em;color:${BRAND_COLOR};">${escapeHtml(code)}</p>
      <p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#717171;">
        This code expires soon. If you did not try to log in, you can ignore this email.
+     </p>`,
+  );
+
+  return { subject, text, html };
+}
+
+export function buildMinorActivationCodeEmail(params: {
+  firstName: string;
+  code: string;
+  guardianEmail: string;
+}) {
+  const firstName = escapeHtml(params.firstName);
+  const code = escapeHtml(params.code);
+  const guardianEmail = escapeHtml(params.guardianEmail);
+  const subject = "Your InrCliq activation code";
+  const text = `Hi ${params.firstName},
+
+Share this code with your guardian for activation.
+
+Activation code: ${params.code}
+
+We sent an approval request to your parent or guardian at ${params.guardianEmail}. Share this code with them so they can activate your account.`;
+  const html = layout(
+    subject,
+    `<h1 style="margin:0 0 12px;font-size:24px;line-height:1.2;">Your activation code</h1>
+     <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#484848;">
+       Hi ${firstName}, share this code with your guardian for activation.
+     </p>
+     <p style="margin:0;font-size:32px;font-weight:700;letter-spacing:0.24em;color:${BRAND_COLOR};">${code}</p>
+     <p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#717171;">
+       We sent an approval request to your parent or guardian at <strong>${guardianEmail}</strong>. Share this code with them so they can activate your account.
      </p>`,
   );
 

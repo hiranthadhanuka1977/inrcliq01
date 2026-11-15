@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { SellerProductForm } from "@/components/seller/SellerProductForm";
+import { useSellerToolPaths } from "@/components/seller/SellerToolPaths";
 import {
   createEmptyProduct,
   productHasCoreFields,
@@ -12,14 +13,13 @@ import {
 } from "@/lib/seller/collection-helpers";
 import type { CollectionProduct } from "@/types/feed/collection";
 
-const BACK_HREF = "/seller/collection?tab=products";
-
 type SellerProductCreateViewProps = {
   initialConfig: SellerCollectionConfig;
 };
 
 export function SellerProductCreateView({ initialConfig }: SellerProductCreateViewProps) {
   const router = useRouter();
+  const paths = useSellerToolPaths();
   const [config] = useState(initialConfig);
   const [product, setProduct] = useState<CollectionProduct>(() =>
     createEmptyProduct("New product", new Set(initialConfig.products.map((item) => item.id))),
@@ -65,7 +65,7 @@ export function SellerProductCreateView({ initialConfig }: SellerProductCreateVi
         setError(data?.error ?? "Unable to create product.");
         return;
       }
-      router.push(`/seller/collection/products/${payloadProduct.id}`);
+      router.push(paths.product(payloadProduct.id));
       router.refresh();
     } catch {
       setError("Unable to create product.");
@@ -79,7 +79,7 @@ export function SellerProductCreateView({ initialConfig }: SellerProductCreateVi
       <div className="seller-panel__head">
         <div>
           <p className="seller-panel__eyebrow">
-            <Link href={BACK_HREF}>← Back to products</Link>
+            <Link href={paths.collectionProducts}>← Back to products</Link>
           </p>
           <h1 className="seller-panel__title" id="seller-product-create-title">
             Add product
@@ -107,7 +107,7 @@ export function SellerProductCreateView({ initialConfig }: SellerProductCreateVi
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? "Creating…" : "Create product"}
           </button>
-          <Link href={BACK_HREF} className="btn btn--secondary">
+          <Link href={paths.collectionProducts} className="btn btn--secondary">
             Cancel
           </Link>
         </div>

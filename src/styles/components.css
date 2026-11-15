@@ -1687,6 +1687,16 @@ a.btn--ghost:hover {
   margin-top: 0;
 }
 
+.parent-waiting__code-actions {
+  margin-top: var(--space-4);
+}
+
+.parent-waiting__code-notice {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
 .parent-waiting__action-buttons {
   display: flex;
   gap: var(--space-3);
@@ -1821,6 +1831,33 @@ a.parent-waiting__action-btn.btn--secondary:focus-visible {
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-secondary);
+}
+
+.activation-code-modal__code {
+  margin-top: var(--space-6);
+}
+
+.activation-code-modal__note {
+  max-width: 18rem;
+  margin: var(--space-4) auto 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.activation-code-modal__input {
+  text-align: center;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.activation-code-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
 }
 
 @media (max-width: 640px) {

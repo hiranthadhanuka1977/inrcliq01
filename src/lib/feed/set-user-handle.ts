@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseHandle } from "@/lib/validation";
 
@@ -54,15 +55,31 @@ export async function setUserHandle(userId: string, rawHandle: string) {
   }
 
   const handle = parsed.data;
-  const existing = await prisma.user.findFirst({
-    where: {
-      handle: { equals: handle, mode: "insensitive" },
-      NOT: { id: userId },
-    },
-    select: { id: true },
-  });
+  const profileHandle = `@${handle}`;
+  const handleTaken = { equals: handle, mode: "insensitive" as const };
+  const atHandleTaken = { equals: profileHandle, mode: "insensitive" as const };
+  const [userConflict, profileConflict, creatorConflict] = await Promise.all([
+    prisma.user.findFirst({
+      where: { handle: handleTaken, NOT: { id: userId } },
+      select: { id: true },
+    }),
+    prisma.userProfile.findFirst({
+      where: {
+        OR: [{ handle: handleTaken }, { handle: atHandleTaken }],
+        NOT: { userId },
+      },
+      select: { id: true },
+    }),
+    prisma.creatorUser.findFirst({
+      where: {
+        OR: [{ handle: handleTaken }, { handle: atHandleTaken }],
+        NOT: { userId },
+      },
+      select: { id: true },
+    }),
+  ]);
 
-  if (existing) {
+  if (userConflict || profileConflict || creatorConflict) {
     return { ok: false as const, error: "This handle is already taken." };
   }
 
@@ -95,43 +112,49 @@ export async function setUserHandle(userId: string, rawHandle: string) {
     [user.firstName?.trim(), user.lastName?.trim()].filter(Boolean).join(" ") ||
     user.email.split("@")[0] ||
     "Member";
-  const profileHandle = `@${handle}`;
   const slug =
     user.profile?.slug?.trim() || (await uniquePublicSlug(handle, userId));
 
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: userId },
-      data: { handle },
-    });
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { handle },
+      });
 
-    if (user.profile) {
-      await tx.userProfile.update({
+      if (user.profile) {
+        await tx.userProfile.update({
+          where: { userId },
+          data: {
+            handle: profileHandle,
+            slug: user.profile.slug?.trim() ? undefined : slug,
+          },
+        });
+      } else {
+        await tx.userProfile.create({
+          data: {
+            userId,
+            slug,
+            displayName,
+            handle: profileHandle,
+            avatarInitials: initialsFromName(displayName),
+            avatarColor: "#6b9fff",
+            source: "handle-setup",
+          },
+        });
+      }
+
+      await tx.creatorUser.updateMany({
         where: { userId },
-        data: {
-          handle: profileHandle,
-          slug: user.profile.slug?.trim() ? undefined : slug,
-        },
+        data: { handle: profileHandle },
       });
-    } else {
-      await tx.userProfile.create({
-        data: {
-          userId,
-          slug,
-          displayName,
-          handle: profileHandle,
-          avatarInitials: initialsFromName(displayName),
-          avatarColor: "#6b9fff",
-          source: "handle-setup",
-        },
-      });
-    }
-
-    await tx.creatorUser.updateMany({
-      where: { userId },
-      data: { handle: profileHandle },
     });
-  });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { ok: false as const, error: "This handle is already taken." };
+    }
+    throw error;
+  }
 
   return {
     ok: true as const,

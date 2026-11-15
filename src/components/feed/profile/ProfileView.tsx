@@ -57,7 +57,13 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
 
             {hasPosts ? (
               <>
-                {hasPopular ? <ProfilePopularPosts posts={profile.popular_posts} /> : null}
+                {hasPopular && !hasFeed ? (
+                  <div id="profile-feed">
+                    <ProfilePopularPosts posts={profile.popular_posts} />
+                  </div>
+                ) : hasPopular ? (
+                  <ProfilePopularPosts posts={profile.popular_posts} />
+                ) : null}
 
                 {hasFeed ? (
                   <section className="profile-feed" id="profile-feed" aria-labelledby="profile-feed-heading">
@@ -79,7 +85,7 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                 ) : null}
               </>
             ) : profile.is_own ? (
-              <section className="profile-feed" aria-label="Create your first post">
+              <section className="profile-feed" id="profile-feed" aria-label="Create your first post">
                 <FirstPostPromptCard
                   firstName={profile.name.split(/\s+/)[0] || null}
                   dismissKey={profile.slug}
@@ -87,7 +93,7 @@ function ProfileViewContent({ profile }: { profile: ProfileData }) {
                 />
               </section>
             ) : (
-              <section className="profile-feed-empty" aria-labelledby="profile-feed-empty-heading">
+              <section className="profile-feed-empty" id="profile-feed" aria-labelledby="profile-feed-empty-heading">
                 <span className="profile-feed-empty__icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 5h16v14H4z" />

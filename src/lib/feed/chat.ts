@@ -14,6 +14,12 @@ import {
   REMOVED_DM_PREVIEW,
 } from "@/lib/guardian/is-user-minor";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
+import {
+  messageAttachmentPreview,
+  parseMessageAttachment,
+  MESSAGE_ATTACHMENT_PREFIX,
+} from "@/lib/feed/message-attachment";
+import { parsePostShare, postSharePreview, POST_SHARE_PREFIX } from "@/lib/feed/post-share-message";
 
 type DbMessage = {
   id: string;
@@ -91,9 +97,15 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
           creatorName: bookingNoteRaw.creatorName?.trim() || thread.peerName,
         }
       : undefined;
-
-    const isStructured = Boolean(booking || bookingNote);
     const contentMasked = Boolean(message.contentMasked);
+    const postShareRaw = booking || bookingNote ? null : parsePostShare(message.body);
+    const postShare =
+      contentMasked && !message.fromMe ? undefined : postShareRaw ?? undefined;
+    const attachmentRaw = booking || bookingNote || postShare ? null : parseMessageAttachment(message.body);
+    const attachment =
+      contentMasked && !message.fromMe ? undefined : attachmentRaw ?? undefined;
+
+    const isStructured = Boolean(booking || bookingNote || postShare || attachment);
     // Never expose the raw body to the recipient when the message is safety-masked.
     const displayBody =
       contentMasked && !message.fromMe
@@ -106,7 +118,11 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
             )
           : bookingNote
             ? bookingNotePreview(bookingNote)
-            : message.body;
+            : postShare
+              ? postSharePreview(postShare)
+              : attachment
+                ? attachment.text
+                : message.body;
 
     return {
       id: message.id,
@@ -120,6 +136,8 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
           : undefined,
       booking,
       bookingNote,
+      postShare,
+      attachment,
     };
   });
 
@@ -139,15 +157,31 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
   }
 
   const last = messages[messages.length - 1];
-  const previewSource = thread.preview ?? last?.body ?? "";
   const lastDb = thread.messages[thread.messages.length - 1];
+  const storedPreview = thread.preview ?? "";
+  const previewSource =
+    (storedPreview.startsWith(POST_SHARE_PREFIX) && lastDb?.body.startsWith(POST_SHARE_PREFIX)) ||
+    (storedPreview.startsWith(MESSAGE_ATTACHMENT_PREFIX) && lastDb?.body.startsWith(MESSAGE_ATTACHMENT_PREFIX))
+      ? lastDb.body
+      : storedPreview || last?.body || "";
   const previewIsMasked =
-    Boolean(lastDb?.contentMasked) && lastDb?.fromMe === false && !last?.booking && !last?.bookingNote;
+    Boolean(lastDb?.contentMasked) &&
+    lastDb?.fromMe === false &&
+    !last?.booking &&
+    !last?.bookingNote &&
+    !last?.postShare &&
+    !last?.attachment;
   const previewBookingRaw = previewIsMasked ? null : parseBookingMessage(previewSource);
   const previewBooking = previewBookingRaw
     ? withCreatorName(previewBookingRaw, thread.peerName)
     : null;
   const previewNote = previewIsMasked || previewBooking ? null : parseBookingNote(previewSource);
+  const previewPost =
+    previewIsMasked || previewBooking || previewNote ? null : parsePostShare(previewSource);
+  const previewAttachment =
+    previewIsMasked || previewBooking || previewNote || previewPost
+      ? null
+      : parseMessageAttachment(previewSource);
 
   return {
     id: thread.id,
@@ -175,7 +209,15 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
             )
           : last?.bookingNote
             ? bookingNotePreview(last.bookingNote)
-            : previewSource,
+              : previewPost
+              ? postSharePreview(previewPost)
+              : last?.postShare
+                ? postSharePreview(last.postShare)
+                : previewAttachment
+                  ? messageAttachmentPreview(previewAttachment)
+                  : last?.attachment
+                    ? messageAttachmentPreview(last.attachment)
+                    : previewSource,
     previewTime: thread.lastMessageAt ? formatChatTime(thread.lastMessageAt) : "",
     unread: thread.unreadCount,
     messages,

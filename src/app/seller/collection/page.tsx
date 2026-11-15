@@ -33,6 +33,7 @@ export default async function SellerCollectionPage({ searchParams }: PageProps) 
       previewHref={`/feed/profile/${identity.slug}/collection`}
       initialConfig={config}
       initialTab={parseTab(tab)}
+      advancedHref="/api/seller-pro/launch?next=/seller-pro"
     />
   );
 }

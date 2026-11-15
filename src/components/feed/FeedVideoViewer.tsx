@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import ShareIcon from "@/components/feed/ShareIcon";
@@ -277,6 +278,7 @@ export default function FeedVideoViewer({
   /** Clip the viewer asked the mini player to start, so a dock change can be told apart from that. */
   const viewerAudioKeyRef = useRef<string | null>(null);
   const seenAudioItemIdRef = useRef<string | null>(null);
+  const router = useRouter();
   const { activeItemId, close: closePlayback, startPlayback } = useAudioPlayback();
   const lockedScrollYRef = useRef(0);
   const navigatedRef = useRef(false);
@@ -742,7 +744,12 @@ export default function FeedVideoViewer({
               </svg>
               <span>{item.engagement.comments.toLocaleString()}</span>
             </button>
-            <button type="button" className="feed-video-viewer__action feed-video-viewer__action--share" aria-label="Share">
+            <button
+              type="button"
+              className="feed-video-viewer__action feed-video-viewer__action--share"
+              aria-label="Share"
+              onClick={() => router.push(`/feed/post/${encodeURIComponent(item.id)}/share`)}
+            >
               <ShareIcon />
             </button>
           </div>

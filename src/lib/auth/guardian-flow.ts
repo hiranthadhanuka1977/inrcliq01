@@ -58,6 +58,7 @@ export type GuardianContext = {
   guardianRegion: string | null;
   idDocType: IdDocType | null;
   protectionLevel: ProtectionTier | null;
+  requiresActivationCode: boolean;
   simulatedParentName: string;
   simulatedParentDob: string;
   simulatedIdNumber: string;
@@ -166,6 +167,28 @@ export async function resolveGuardianToken(rawToken: string) {
   return verifyParentApprovalToken(rawToken);
 }
 
+export async function confirmMinorActivationCode(rawToken: string, code: string) {
+  const verification = await verifyParentApprovalToken(rawToken);
+  if (!verification.ok || verification.request.status !== ApprovalStatus.PENDING) {
+    return { ok: false as const, error: "Invalid or expired approval link." };
+  }
+
+  const stored = verification.request.activationCode?.trim().toUpperCase() ?? "";
+  if (!stored) {
+    return { ok: false as const, error: "This request does not need an activation code." };
+  }
+
+  const entered = code.replace(/\s+/g, "").toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(entered) || entered !== stored) {
+    return {
+      ok: false as const,
+      error: "That code doesn't match. Check the code your child shared with you.",
+    };
+  }
+
+  return { ok: true as const };
+}
+
 export async function buildGuardianContext(rawToken: string): Promise<
   | { ok: true; context: GuardianContext }
   | { ok: false; reason: "invalid" | "expired" | "resolved"; status?: ApprovalStatus }
@@ -202,6 +225,7 @@ export async function buildGuardianContext(rawToken: string): Promise<
       guardianRegion: request.guardianRegion,
       idDocType: (request.idDocType as IdDocType | null) ?? null,
       protectionLevel: (request.protectionLevel as ProtectionTier | null) ?? null,
+      requiresActivationCode: Boolean(request.activationCode),
       simulatedParentName,
       simulatedParentDob: buildSimulatedParentDob(),
       simulatedIdNumber: simulateExtractedIdNumber(request.parentEmail),

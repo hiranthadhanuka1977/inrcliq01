@@ -26,14 +26,17 @@ type FeedThemeContextValue = {
 
 const FeedThemeContext = createContext<FeedThemeContextValue | null>(null);
 
-export function FeedThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<FeedTheme>("light");
-
+function FeedThemeBootstrap() {
   // Inject FOUC-prevention script into the SSR HTML stream outside the React
   // client tree (avoids the React 19 "script tag while rendering" warning).
   useServerInsertedHTML(() => (
     <script dangerouslySetInnerHTML={{ __html: FEED_THEME_BOOTSTRAP }} />
   ));
+  return null;
+}
+
+export function FeedThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<FeedTheme>("light");
 
   useEffect(() => {
     const initial = readStoredFeedTheme();
@@ -63,13 +66,23 @@ export function FeedThemeProvider({ children }: { children: ReactNode }) {
     [theme, setTheme, toggleTheme],
   );
 
-  return <FeedThemeContext.Provider value={value}>{children}</FeedThemeContext.Provider>;
+  return (
+    <FeedThemeContext.Provider value={value}>
+      <FeedThemeBootstrap />
+      {children}
+    </FeedThemeContext.Provider>
+  );
 }
 
+const fallbackTheme: FeedThemeContextValue = {
+  theme: "dark",
+  setTheme: (next) => persistFeedTheme(next),
+  toggleTheme: () => {
+    const current = readStoredFeedTheme();
+    persistFeedTheme(current === "dark" ? "light" : "dark");
+  },
+};
+
 export function useFeedTheme() {
-  const context = useContext(FeedThemeContext);
-  if (!context) {
-    throw new Error("useFeedTheme must be used within FeedThemeProvider");
-  }
-  return context;
+  return useContext(FeedThemeContext) ?? fallbackTheme;
 }

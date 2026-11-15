@@ -30,6 +30,11 @@ export function mergeConversationLists(
       messages,
       dmRestricted: item.dmRestricted ?? previous.dmRestricted,
       dmRestrictedMessage: item.dmRestrictedMessage ?? previous.dmRestrictedMessage,
+      muted: item.muted ?? previous.muted,
+      blocked: item.blocked ?? previous.blocked,
+      blockedByPeer: item.blockedByPeer ?? previous.blockedByPeer,
+      publicSlug: item.publicSlug !== undefined ? item.publicSlug : previous.publicSlug,
+      peerResolvable: item.peerResolvable ?? previous.peerResolvable,
     };
   });
 }

@@ -189,6 +189,35 @@
   height: 4.5rem;
 }
 
+.account-profile__avatar-column {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.account-profile__avatar-wrap--sm {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.account-profile__avatar-wrap--sm .account-profile__avatar-edit {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.account-profile__avatar-wrap--sm .account-profile__avatar-edit svg {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.account-profile__avatar-column .account-profile__avatar-error {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  width: max-content;
+  max-width: 12rem;
+  text-align: right;
+}
+
 .account-profile__avatar-edit {
   position: absolute;
   right: -0.15rem;
@@ -602,24 +631,44 @@ a.account-profile__person-main:focus-visible {
   word-break: break-word;
 }
 
-.account-profile__privacy {
-  padding: var(--space-4);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-md);
-  background: var(--color-neutral-50, var(--color-neutral-100));
+.account-profile__value--handle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.account-profile__privacy-tier {
-  margin: 0 0 var(--space-2);
-  font-size: 1.05rem;
-  font-weight: 800;
+.account-profile__handle-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-brand-primary);
+  flex-shrink: 0;
+  text-decoration: none;
 }
 
-.account-profile__privacy-desc {
-  margin: 0;
+.account-profile__handle-form {
+  margin-top: var(--space-6);
+}
+
+.account-profile__notice {
+  margin: var(--space-4) 0 0;
   font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
+  font-weight: 600;
+  color: var(--color-brand-primary);
+}
+
+.account-profile__handle-edit svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.account-profile__handle-edit:hover,
+.account-profile__handle-edit:focus-visible {
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
 }
 
 .account-profile__actions {

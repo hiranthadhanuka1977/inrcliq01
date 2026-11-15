@@ -3,7 +3,9 @@ import { AccountType } from "@/generated/prisma/client";
 import { createApprovalWatchToken, verifyApprovalWatchToken } from "@/lib/auth/approval-watch-token";
 import {
   createParentApprovalRequest,
+  getActivationCodeEmailCooldownRemaining,
   getLatestParentRequest,
+  sendMinorActivationCodeEmail,
   sendParentInviteEmail,
 } from "@/lib/auth/parent-invite";
 import { requireSessionUser } from "@/lib/api-helpers";
@@ -23,7 +25,10 @@ export async function POST() {
       return NextResponse.json({ error: "No pending parent invite to resend." }, { status: 400 });
     }
 
-    const invite = await createParentApprovalRequest(user.id, latest.parentEmail);
+    const invite = await createParentApprovalRequest(user.id, latest.parentEmail, {
+      activationCode: latest.activationCode,
+      activationCodeSentAt: latest.activationCodeSentAt,
+    });
 
     if (!invite.ok) {
       return NextResponse.json(
@@ -37,6 +42,15 @@ export async function POST() {
       invite.approveUrl,
       user.firstName ?? "Your child",
     );
+
+    if (invite.activationCodeIsNew) {
+      await sendMinorActivationCodeEmail(
+        user.email,
+        user.firstName ?? "there",
+        invite.activationCode,
+        latest.parentEmail,
+      );
+    }
 
     return NextResponse.json({
       ok: true,
@@ -83,6 +97,12 @@ export async function GET(request: Request) {
       sentAt: latest.sentAt.toISOString(),
       expiresAt: latest.expiresAt.toISOString(),
       childFirstName,
+      ...(latest.status === "PENDING" && latest.activationCode
+        ? {
+            activationCode: latest.activationCode,
+            codeCooldownRemaining: getActivationCodeEmailCooldownRemaining(latest.activationCodeSentAt),
+          }
+        : {}),
     };
 
     const effectiveWatch = watchChildId ? watch : createApprovalWatchToken(childUserId);

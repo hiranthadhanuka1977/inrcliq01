@@ -26,6 +26,31 @@ const SUBSCRIBE_MENU_ITEMS: { id: NotificationLevel | "unsubscribe"; label: stri
   { id: "unsubscribe", label: "Unsubscribe" },
 ];
 
+function countNoun(value: string | number, singular: string, plural: string) {
+  const numeric = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+  return numeric === 1 ? singular : plural;
+}
+
+function StatLink({ href, count, label }: { href: string; count: string; label: string }) {
+  return (
+    <Link href={href} className="profile-header__stat">
+      <strong>{count}</strong> {label}
+    </Link>
+  );
+}
+
+function scrollToProfileFeed() {
+  document.getElementById("profile-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function PostsStat({ count, label }: { count: string; label: string }) {
+  return (
+    <button type="button" className="profile-header__stat" onClick={scrollToProfileFeed}>
+      <strong>{count}</strong> {label}
+    </button>
+  );
+}
+
 const SPECIAL_REQUESTS_SIZE = 72;
 const MENU_GAP = 8;
 const MENU_MIN_WIDTH = 248;
@@ -459,8 +484,8 @@ function ProfileToolbar({
           <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
         </svg>
       </Link>
-      <div className="profile-utility-actions" aria-label="Profile utilities">
-        {showCart ? (
+      {showCart ? (
+        <div className="profile-utility-actions" aria-label="Profile utilities">
           <button
             type="button"
             className="btn btn--warning btn--sm collection-cart"
@@ -477,15 +502,8 @@ function ProfileToolbar({
               {cartCount === 1 ? "1 item" : `${cartCount} items`}
             </span>
           </button>
-        ) : null}
-        <button
-          type="button"
-          className={`btn btn--sm btn--icon${onCover ? " btn--ghost-cover" : " btn--secondary"}`}
-          aria-label="Share profile"
-        >
-          <ShareIcon size={16} />
-        </button>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -676,31 +694,38 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
                 ) : null}
               </p>
               <p className="profile-header__stats">
-                <span>
-                  <strong>{profile.stats.followers}</strong> followers
-                </span>
+                <StatLink
+                  href={`/feed/profile/${profile.slug}/followers`}
+                  count={profile.stats.followers}
+                  label={countNoun(profile.stats.followers, "follower", "followers")}
+                />
                 <span className="profile-header__dot" aria-hidden="true">
                   ·
                 </span>
-                <span>
-                  <strong>{profile.stats.following.toLocaleString()}</strong> following
-                </span>
+                <StatLink
+                  href={`/feed/profile/${profile.slug}/following`}
+                  count={profile.stats.following.toLocaleString()}
+                  label="following"
+                />
                 {hasSubscription ? (
                   <>
                     <span className="profile-header__dot" aria-hidden="true">
                       ·
                     </span>
-                    <span>
-                      <strong>{profile.stats.subscribers.toLocaleString()}</strong> subscribers
-                    </span>
+                    <StatLink
+                      href={`/feed/profile/${profile.slug}/subscribers`}
+                      count={profile.stats.subscribers.toLocaleString()}
+                      label={countNoun(profile.stats.subscribers, "subscriber", "subscribers")}
+                    />
                   </>
                 ) : null}
                 <span className="profile-header__dot" aria-hidden="true">
                   ·
                 </span>
-                <span>
-                  <strong>{profile.stats.posts.toLocaleString()}</strong> posts
-                </span>
+                <PostsStat
+                  count={profile.stats.posts.toLocaleString()}
+                  label={countNoun(profile.stats.posts, "post", "posts")}
+                />
               </p>
             </div>
           </div>
@@ -778,18 +803,40 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
                   </button>
                 )
               ) : null}
-              {showSocialActions ? (
+              <div className="profile-header__trailing">
+                {isOwnProfile ? (
+                  <Link
+                    href="/feed/saved"
+                    className="btn btn--secondary btn--sm btn--icon profile-header__saved"
+                    aria-label="Saved"
+                    title="Saved"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                    </svg>
+                  </Link>
+                ) : null}
                 <Link
-                  href={`/feed/messages?slug=${encodeURIComponent(profile.slug)}`}
-                  className="btn btn--secondary btn--sm btn--icon profile-header__message"
-                  aria-label={`Message ${profile.name}`}
-                  title={`Message ${profile.name}`}
+                  href={`/feed/profile/${profile.slug}/share`}
+                  className="btn btn--secondary btn--sm btn--icon profile-header__share"
+                  aria-label="Share profile"
+                  title="Share profile"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
+                  <ShareIcon size={16} />
                 </Link>
-              ) : null}
+                {showSocialActions ? (
+                  <Link
+                    href={`/feed/messages?slug=${encodeURIComponent(profile.slug)}`}
+                    className="btn btn--secondary btn--sm btn--icon profile-header__message"
+                    aria-label={`Message ${profile.name}`}
+                    title={`Message ${profile.name}`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </div>
 

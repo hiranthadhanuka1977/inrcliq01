@@ -126,3 +126,46 @@ export async function createGuardianSafetyReport(input: {
 
   return { report, created: true as const };
 }
+
+/**
+ * A conversation participant reporting the other person. Stored on `SafetyReport`
+ * (`source: "dm"`) with the thread id. Does not email anyone.
+ */
+export async function createDmUserSafetyReport(input: {
+  reporterUserId: string;
+  subjectUserId: string;
+  threadId: string;
+  reason: string;
+}) {
+  const reason = input.reason.trim().slice(0, REPORT_DETAILS_MAX_LENGTH);
+  if (!reason) {
+    throw new Error("A reason is required.");
+  }
+  if (input.reporterUserId === input.subjectUserId) {
+    throw new Error("You can't report yourself.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const created = await tx.safetyReport.create({
+      data: {
+        reporterUserId: input.reporterUserId,
+        subjectUserId: input.subjectUserId,
+        threadId: input.threadId,
+        source: "dm",
+        reason,
+        priority: "normal",
+      },
+      select: { id: true, createdAt: true },
+    });
+    await recordSafetyAudit(
+      {
+        action: SAFETY_AUDIT_ACTIONS.REPORT_SUBMITTED,
+        actorUserId: input.reporterUserId,
+        subjectUserId: input.subjectUserId,
+        metadata: { source: "dm", threadId: input.threadId, reportId: created.id },
+      },
+      tx,
+    );
+    return created;
+  });
+}

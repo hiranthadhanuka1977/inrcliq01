@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3002",
     "dev:studio": "npm --prefix creator-studio run dev",
+    "dev:seller-pro": "npm --prefix seller-pro run dev",
     "dev:prepare": "prisma generate",
     "build": "node scripts/migrate-deploy.mjs && prisma generate && next build",
     "start": "next start",

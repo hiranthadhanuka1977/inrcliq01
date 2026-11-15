@@ -3,6 +3,8 @@ import type {
   BookingConfirmationPayload,
   BookingNotePayload,
 } from "@/lib/feed/booking-confirmation";
+import type { MessageAttachmentPayload } from "@/lib/feed/message-attachment";
+import type { PostSharePayload } from "@/lib/feed/post-share-message";
 
 export type MessageSender = "me" | "them";
 
@@ -17,6 +19,8 @@ export type ChatMessage = {
   deliveryStatus?: "PENDING_REVIEW" | "NOT_DELIVERED";
   booking?: BookingConfirmationPayload;
   bookingNote?: BookingNotePayload;
+  postShare?: PostSharePayload;
+  attachment?: MessageAttachmentPayload;
 };
 
 export type ConversationParticipant = {
@@ -39,6 +43,16 @@ export type Conversation = {
   messages: ChatMessage[];
   dmRestricted?: boolean;
   dmRestrictedMessage?: string;
+  /** New messages still arrive, but this chat does not add to the unread badge. */
+  muted?: boolean;
+  /** The signed-in user blocked the other person. */
+  blocked?: boolean;
+  /** The other person blocked the signed-in user. */
+  blockedByPeer?: boolean;
+  /** Public `/feed/profile/{slug}` segment. Never `me`. Null when there is no public profile. */
+  publicSlug?: string | null;
+  /** The other person maps to an account that can be blocked or reported. */
+  peerResolvable?: boolean;
 };
 
 /** Seed templates for first-time chat inbox (copied into ChatThread/ChatMessage per user). */

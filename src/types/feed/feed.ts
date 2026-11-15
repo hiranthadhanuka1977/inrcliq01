@@ -110,6 +110,8 @@ export interface FeedItem {
   members_only?: boolean;
   /** True when the logged-in user authored this post. */
   is_own?: boolean;
+  /** True when the logged-in user has saved this post. */
+  bookmarked?: boolean;
 }
 
 export interface FeedData {

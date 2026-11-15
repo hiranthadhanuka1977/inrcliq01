@@ -342,6 +342,7 @@
 .post-delete-modal .btn + .btn {
   display: block;
   width: 100%;
+  margin-top: var(--space-4);
 }
 
 .post-delete-modal .btn--primary {

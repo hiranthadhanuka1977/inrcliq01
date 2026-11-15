@@ -1,6 +1,11 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import AccountProfileAvatar from "@/components/feed/account/AccountProfileAvatar";
 import type { AccountProfile } from "@/lib/feed/account-profile";
+
+function bareHandle(handle: string | null | undefined) {
+  const trimmed = handle?.trim().replace(/^@/, "") ?? "";
+  return trimmed || null;
+}
 
 function ProfileField({ label, value }: { label: string; value: string }) {
   return (
@@ -11,7 +16,15 @@ function ProfileField({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function AccountProfileInfoView({ profile }: { profile: AccountProfile }) {
+export default function AccountProfileInfoView({
+  profile,
+  emailUpdated = false,
+}: {
+  profile: AccountProfile;
+  emailUpdated?: boolean;
+}) {
+  const handle = bareHandle(profile.handle);
+
   return (
     <main className="main-content account-profile" id="main">
       <div className="account-profile__card">
@@ -20,25 +33,15 @@ export default function AccountProfileInfoView({ profile }: { profile: AccountPr
             <p className="account-profile__eyebrow">Account</p>
             <h1 className="account-profile__name">Profile information</h1>
             <p className="account-profile__handle">
-              Basic details for {profile.handle ? `@${profile.handle}` : profile.fullName}
+              Basic details for {handle ? `@${handle}` : profile.fullName}
             </p>
           </div>
-          <span
-            className="account-profile__avatar account-profile__avatar--sm"
-            style={
-              profile.avatarColor
-                ? ({ "--story-color": profile.avatarColor } as CSSProperties)
-                : undefined
-            }
-            aria-hidden="true"
-          >
-            {profile.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatarUrl} alt="" width={52} height={52} />
-            ) : (
-              profile.avatarInitial
-            )}
-          </span>
+          <AccountProfileAvatar
+            avatarUrl={profile.avatarUrl}
+            avatarColor={profile.avatarColor}
+            avatarInitial={profile.avatarInitial}
+            size="sm"
+          />
         </div>
 
         <section className="account-profile__section" aria-labelledby="account-profile-basics">
@@ -46,38 +49,99 @@ export default function AccountProfileInfoView({ profile }: { profile: AccountPr
             Basic information
           </h2>
           <dl className="account-profile__grid">
-            <ProfileField label="Full name" value={profile.fullName} />
-            <ProfileField
-              label="Handle"
-              value={profile.handle ? `@${profile.handle}` : "Not set"}
-            />
-            <ProfileField label="Email" value={profile.email} />
+            <div className="account-profile__field">
+              <dt className="account-profile__label">Full name</dt>
+              <dd className="account-profile__value account-profile__value--handle">
+                <span>{profile.fullName}</span>
+                <Link
+                  href="/feed/me/edit/name"
+                  className="account-profile__handle-edit"
+                  aria-label="Change full name"
+                  title="Change full name"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                  </svg>
+                </Link>
+              </dd>
+            </div>
+            <div className="account-profile__field">
+              <dt className="account-profile__label">Handle</dt>
+              <dd className="account-profile__value account-profile__value--handle">
+                <span>{handle ? `@${handle}` : "Not set"}</span>
+                <Link
+                  href="/feed/me/edit/handle"
+                  className="account-profile__handle-edit"
+                  aria-label={handle ? "Change handle" : "Set handle"}
+                  title={handle ? "Change handle" : "Set handle"}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                  </svg>
+                </Link>
+              </dd>
+            </div>
+            <div className="account-profile__field">
+              <dt className="account-profile__label">Email</dt>
+              <dd className="account-profile__value account-profile__value--handle">
+                <span>{profile.email}</span>
+                <Link
+                  href="/feed/me/edit/email"
+                  className="account-profile__handle-edit"
+                  aria-label="Change email"
+                  title="Change email"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                  </svg>
+                </Link>
+              </dd>
+            </div>
             <ProfileField
               label="Email status"
               value={profile.emailVerified ? "Verified" : "Not verified"}
             />
+            <ProfileField label="Date of birth" value={profile.dateOfBirth ?? "Not provided"} />
             <ProfileField
-              label="Date of birth"
-              value={
-                profile.dateOfBirth
-                  ? `${profile.dateOfBirth}${profile.age != null ? ` (${profile.age})` : ""}`
-                  : "Not provided"
-              }
+              label="Age"
+              value={profile.age != null ? `${profile.age} years` : "Not provided"}
             />
             <ProfileField label="Location" value={profile.locationLabel ?? "Not provided"} />
             <ProfileField label="Member since" value={profile.memberSince} />
             <ProfileField label="Account type" value={profile.accountTypeLabel} />
           </dl>
-        </section>
-
-        <section className="account-profile__section" aria-labelledby="account-profile-privacy">
-          <h2 id="account-profile-privacy" className="account-profile__section-title">
-            Privacy tier
-          </h2>
-          <div className="account-profile__privacy">
-            <p className="account-profile__privacy-tier">{profile.privacyTierLabel}</p>
-            <p className="account-profile__privacy-desc">{profile.privacyTierDescription}</p>
-          </div>
+          {emailUpdated ? (
+            <p className="account-profile__notice" role="status">
+              Your email address is updated.
+            </p>
+          ) : null}
         </section>
 
         <div className="account-profile__actions">

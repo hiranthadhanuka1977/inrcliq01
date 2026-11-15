@@ -1,9 +1,10 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { markBookmarkedPosts } from "@/lib/feed/bookmarks";
 import { getCreatorCollectionRaw } from "@/lib/feed/collection";
 import { getCollectionPreviewProducts } from "@/lib/seller/collection-helpers";
-import { isFollowingCreator } from "@/lib/feed/follow-service";
-import { getSubscriptionForUser } from "@/lib/feed/subscription-service";
+import { countFollowedCreatorsForUser, isFollowingCreator } from "@/lib/feed/follow-service";
+import { countActiveSubscribers, getSubscriptionForUser } from "@/lib/feed/subscription-service";
 import { prisma } from "@/lib/prisma";
 import { resolveSpecialRequestsAvailable, resolveSpecialRequestsEnabled } from "@/lib/seller/service-requests-store";
 import { getSessionUser } from "@/lib/session";
@@ -282,6 +283,22 @@ async function getDbUserProfile(slugOrHandle: string): Promise<DbUserProfile | n
   return { ...row, slug: normalized };
 }
 
+/** Live totals for the profile owner, including seeded showcase profiles. */
+async function loadLiveProfileStats(userId: string, creatorId: string | null) {
+  const [following, followers, subscribers, posts] = await Promise.all([
+    countFollowedCreatorsForUser(userId),
+    creatorId
+      ? prisma.creatorFollow.count({ where: { creatorId } })
+      : Promise.resolve(0),
+    creatorId ? countActiveSubscribers(creatorId) : Promise.resolve(0),
+    prisma.feedPost.count({
+      where: creatorId ? { OR: [{ userId }, { creatorId }] } : { userId },
+    }),
+  ]);
+
+  return { following, followers, subscribers, posts };
+}
+
 function profileFromDbRow(row: DbUserProfile, feedPosts: FeedItem[]): ProfileData {
   const postCount = row.postsCountLabel ?? feedPosts.length;
   return {
@@ -329,13 +346,12 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
     let following = false;
 
     try {
-      const [rawCollection, creator, postCount] = await Promise.all([
+      const [rawCollection, creator] = await Promise.all([
         getCreatorCollectionRaw(publicSlug),
         prisma.creatorUser.findFirst({
           where: { OR: [{ slug: publicSlug }, { userId: dbProfile.userId }] },
           select: { id: true, slug: true },
         }),
-        prisma.feedPost.count({ where: { userId: dbProfile.userId } }),
       ]);
 
       // Keep a preview strip even when the storefront toggle is off (modal on click).
@@ -364,6 +380,8 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         following = isFollowing;
       }
 
+      const liveStatsPromise = loadLiveProfileStats(dbProfile.userId, creator?.id ?? null);
+
       // Rich profiles: pinned order. Stub profiles: all linked FeedPosts.
       if (dbRow.source === "stub") {
         feedPosts = await getFeedPostsForUser(dbRow.userId, { following, subscribed });
@@ -381,12 +399,16 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
         feedPosts = feedPosts.map((post) => ({ ...post, is_own: true }));
       }
 
-      const base = profileFromDbRow(dbRow, feedPosts);
-      if (dbRow.source === "stub") {
-        base.stats.posts = feedPosts.length || postCount;
-      } else if (dbRow.postsCountLabel == null) {
-        base.stats.posts = Math.max(postCount, feedPosts.length);
+      if (sessionUser) {
+        feedPosts = await markBookmarkedPosts(sessionUser.id, feedPosts);
       }
+
+      const base = profileFromDbRow(dbRow, feedPosts);
+      const liveStats = await liveStatsPromise;
+      base.stats.followers = liveStats.followers.toLocaleString();
+      base.stats.following = liveStats.following;
+      base.stats.subscribers = liveStats.subscribers;
+      base.stats.posts = liveStats.posts;
 
       if (!collection.length && !rawCollection) {
         collection = getProfileJsonCollection(publicSlug);
@@ -425,8 +447,22 @@ export async function getProfileData(slug: string): Promise<ProfileData | null> 
       } catch {
         sessionUser = null;
       }
+      const fallback = profileFromDbRow(dbRow, []);
+      try {
+        const creator = await prisma.creatorUser.findFirst({
+          where: { OR: [{ slug: publicSlug }, { userId: dbProfile.userId }] },
+          select: { id: true },
+        });
+        const liveStats = await loadLiveProfileStats(dbProfile.userId, creator?.id ?? null);
+        fallback.stats.followers = liveStats.followers.toLocaleString();
+        fallback.stats.following = liveStats.following;
+        fallback.stats.subscribers = liveStats.subscribers;
+        fallback.stats.posts = liveStats.posts;
+      } catch (statsError) {
+        console.error("getProfileData: live profile stats failed", statsError);
+      }
       return {
-        ...profileFromDbRow(dbRow, []),
+        ...fallback,
         special_requests: specialRequestsAvailable || undefined,
         special_requests_enabled: specialRequestsEnabled,
         is_own: resolveIsOwnProfile(sessionUser, dbRow.userId, dbRow.handle) || undefined,
