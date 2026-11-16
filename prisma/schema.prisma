@@ -23,6 +23,8 @@ enum AccountType {
  */
 enum AgeZone {
   KIDS
+  /// Legacy production value. Read it as TEENS; do not write it.
+  TEEN
   TEENS
   MATURE_TEENS
   ADULT

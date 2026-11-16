@@ -8,7 +8,7 @@ import {
 } from "@/lib/admin-portal/stuck";
 import { isAiUserSignupMethod, isDemoSignupMethod } from "@/lib/settings/users";
 import { prisma } from "@/lib/prisma";
-import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
+import { AGE_ZONE_LABELS, canonicalAgeZone, type AgeZoneCode } from "@/lib/utils/age-zone";
 
 const PAGE_SIZE = 25;
 
@@ -84,7 +84,9 @@ function toRow(user: LoadedUser, now: Date): { row: AdminListRow; includeInQueue
     email: user.email,
     handle: user.handle ? `@${user.handle.replace(/^@/, "")}` : null,
     accountType: user.accountType,
-    ageZoneLabel: user.ageZone ? AGE_ZONE_LABELS[user.ageZone as AgeZoneCode] : "Not set",
+    ageZoneLabel: canonicalAgeZone(user.ageZone)
+      ? AGE_ZONE_LABELS[canonicalAgeZone(user.ageZone)!]
+      : "Not set",
     stepLabel: stepLabel(user.onboardingStep),
     onboardingStep: user.onboardingStep,
     stuck: stuck.reason,

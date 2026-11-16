@@ -35,6 +35,7 @@ import {
   AGE_ZONE_DESCRIPTIONS,
   AGE_ZONE_ICON_BADGE_KEYS,
   AGE_ZONE_LABELS,
+  canonicalAgeZone,
   type AgeZoneCode,
 } from "@/lib/utils/age-zone";
 
@@ -339,7 +340,7 @@ async function buildAlertCards(guardianUserId: string, rows: AlertRow[]): Promis
       holdId: hold?.id ?? null,
       holdStatus: hold?.status ?? null,
       recipientTreatment: hold?.recipientTreatment ?? null,
-      recipientZone: hold?.recipientZone ?? null,
+      recipientZone: canonicalAgeZone(hold?.recipientZone),
       canDecide: hold?.status === "PENDING" && row.status === "AWAITING_DECISION",
       contentAvailable: Boolean(hold && !hold.bodyPurgedAt),
       reviewSettingsHref: childThreadId
@@ -547,7 +548,7 @@ export async function reportFromSafetyAlert(
   if (!row.peerUserId) return { ok: false as const, status: 400, error: "There is no contact to report." };
 
   const details = input.details?.trim().slice(0, REPORT_DETAILS_MAX_LENGTH) || null;
-  const zone = row.hold?.recipientZone ?? resolvePolicyAgeZone(row.child).zone;
+  const zone = canonicalAgeZone(row.hold?.recipientZone) ?? resolvePolicyAgeZone(row.child).zone;
   const mandatoryReportCandidate =
     (zone === "KIDS" || zone === "TEENS") &&
     (input.reason === "sexual_content" || input.reason === "grooming_concern");

@@ -2,6 +2,7 @@ import { AgeZone } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   type AgeZoneCode,
+  canonicalAgeZone,
   AGE_ZONE_DESCRIPTIONS,
   AGE_ZONE_ICON_BADGE_KEYS,
   AGE_ZONE_LABELS,
@@ -48,7 +49,7 @@ function toBadge(row: {
   maxAgeExclusive: number | null;
 }): AgeZoneBadge {
   return {
-    zone: row.zone as AgeZoneCode,
+    zone: canonicalAgeZone(row.zone) ?? "ADULT",
     label: row.label,
     iconBadgeKey: row.iconBadgeKey,
     description: row.description,
@@ -80,7 +81,8 @@ export async function listAgeZoneDefinitions(): Promise<AgeZoneBadge[]> {
     if (rows.length === 0) {
       return (Object.keys(AGE_ZONE_ICON_BADGE_KEYS) as AgeZoneCode[]).map(fallbackBadge);
     }
-    return rows.map(toBadge);
+    const hasTeens = rows.some((row) => row.zone === AgeZone.TEENS);
+    return rows.filter((row) => row.zone !== AgeZone.TEEN || !hasTeens).map(toBadge);
   } catch {
     return (Object.keys(AGE_ZONE_ICON_BADGE_KEYS) as AgeZoneCode[]).map(fallbackBadge);
   }
@@ -117,7 +119,8 @@ export async function getUserCurrentAgeZone(
   if (!user) return null;
 
   const current = resolveAgeZoneFromDateOfBirth(user.dateOfBirth);
-  if (options?.syncCache !== false && current && user.ageZone !== current) {
+  const cached = canonicalAgeZone(user.ageZone);
+  if (options?.syncCache !== false && current && cached !== current) {
     await prisma.user.update({
       where: { id: userId },
       data: { ageZone: ageZoneToPrisma(current) },

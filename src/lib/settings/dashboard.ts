@@ -1,6 +1,6 @@
 import type { AccountType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
+import { AGE_ZONE_LABELS, canonicalAgeZone, type AgeZoneCode } from "@/lib/utils/age-zone";
 import {
   AI_USER_SIGNUP_METHOD,
   DEMO_SEED_SIGNUP_METHOD,
@@ -160,7 +160,8 @@ export async function getSettingsUserSummary(): Promise<SettingsUserSummary> {
   // Same fallback as the DM policy: no cached zone means Kids for minors, Adult otherwise.
   const zoneCounts = new Map<AgeZoneCode, number>();
   for (const row of zoneRows) {
-    const zone: AgeZoneCode = row.ageZone ?? (row.accountType === "MINOR" ? "KIDS" : "ADULT");
+    const zone: AgeZoneCode =
+      canonicalAgeZone(row.ageZone) ?? (row.accountType === "MINOR" ? "KIDS" : "ADULT");
     zoneCounts.set(zone, (zoneCounts.get(zone) ?? 0) + row._count._all);
   }
   const ageZones = AGE_ZONE_ORDER.map((zone) => ({

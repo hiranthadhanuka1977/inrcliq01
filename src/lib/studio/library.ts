@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 const VIEWER_RANK: Record<AgeZone, number> = {
   KIDS: 0,
+  TEEN: 1,
   TEENS: 1,
   MATURE_TEENS: 2,
   ADULT: 3,

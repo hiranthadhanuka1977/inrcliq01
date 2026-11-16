@@ -2,7 +2,7 @@ import type { AccountType, ApprovalStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SEEDED_CREATOR_SOURCES } from "@/lib/settings/feed-dashboard";
 import { formatUserName, isAiUserSignupMethod, isDemoSignupMethod } from "@/lib/settings/users";
-import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
+import { AGE_ZONE_LABELS, canonicalAgeZone, type AgeZoneCode } from "@/lib/utils/age-zone";
 
 const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   ADULT: "Adult",
@@ -199,7 +199,7 @@ export async function getSettingsUserDetail(userId: string): Promise<SettingsUse
     ]);
 
   const policyZone: AgeZoneCode =
-    (user.ageZone as AgeZoneCode | null) ?? (user.accountType === "MINOR" ? "KIDS" : "ADULT");
+    canonicalAgeZone(user.ageZone) ?? (user.accountType === "MINOR" ? "KIDS" : "ADULT");
 
   return {
     id: user.id,

@@ -81,6 +81,13 @@ export function resolveAgeZoneFromDateOfBirth(
   return "ADULT";
 }
 
+/** Map a stored zone onto the four zones the product uses. `TEEN` is the legacy label for Teens. */
+export function canonicalAgeZone(zone: string | null | undefined): AgeZoneCode | null {
+  if (zone === "TEEN" || zone === "TEENS") return "TEENS";
+  if (zone === "KIDS" || zone === "MATURE_TEENS" || zone === "ADULT") return zone;
+  return null;
+}
+
 export function ageZoneLabel(zone: AgeZoneCode | null | undefined): string {
   if (!zone) return "Unknown";
   return AGE_ZONE_LABELS[zone];

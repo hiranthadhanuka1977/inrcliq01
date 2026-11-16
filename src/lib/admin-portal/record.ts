@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ageGateSuggestion, formatStamp, stepLabel, tokenHealth, type RequestSnapshot } from "@/lib/admin-portal/stuck";
 import { getCountryLabel } from "@/lib/constants/locations";
-import { AGE_ZONE_LABELS, type AgeZoneCode } from "@/lib/utils/age-zone";
+import { AGE_ZONE_LABELS, canonicalAgeZone } from "@/lib/utils/age-zone";
 
 function personName(firstName: string | null, lastName: string | null, email: string) {
   const name = [firstName, lastName].filter(Boolean).join(" ").trim();
@@ -83,7 +83,9 @@ export async function getAdminUserRecord(userId: string) {
     lastName: user.lastName ?? "",
     handle: user.handle,
     accountType: user.accountType,
-    ageZoneLabel: user.ageZone ? AGE_ZONE_LABELS[user.ageZone as AgeZoneCode] : "Not set",
+    ageZoneLabel: canonicalAgeZone(user.ageZone)
+      ? AGE_ZONE_LABELS[canonicalAgeZone(user.ageZone)!]
+      : "Not set",
     dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : "",
     country: user.country ?? "",
     countryLabel: user.country ? getCountryLabel(user.country) : "",
