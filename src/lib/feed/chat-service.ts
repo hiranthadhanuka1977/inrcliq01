@@ -587,6 +587,8 @@ export type SendChatMessageResult =
       thread: Awaited<ReturnType<typeof getChatThreadForUser>>;
       message: { id: string };
       enforcement?: SenderEnforcement;
+      /** Stored for the sender, but not delivered until the recipient accepts. */
+      heldAsRequest?: boolean;
     };
 
 export async function sendChatMessage(
@@ -796,6 +798,21 @@ async function deliverChatMessage(
   contentMasked: boolean,
 ) {
   const threadId = thread.id;
+  // A safety mask is still delivered as a mask. Holds never reach here.
+  // The request gate only applies when this message would otherwise be delivered.
+  let requestId: string | null = null;
+  if (!contentMasked) {
+    const recipientUserId = await resolveReceiverUserId(thread);
+    if (recipientUserId && recipientUserId !== userId) {
+      const { messageRequiresRequest, openPendingMessageRequest } = await import(
+        "@/lib/feed/message-requests"
+      );
+      if (await messageRequiresRequest(userId, recipientUserId, thread)) {
+        requestId = await openPendingMessageRequest(userId, recipientUserId);
+      }
+    }
+  }
+
   const [message] = await prisma.$transaction([
     prisma.chatMessage.create({
       data: {
@@ -803,6 +820,8 @@ async function deliverChatMessage(
         body: trimmed,
         fromMe: true,
         contentMasked,
+        deliveryStatus: requestId ? "REQUEST_PENDING" : "DELIVERED",
+        ...(requestId ? { messageRequestId: requestId } : {}),
       },
     }),
     prisma.chatThread.update({
@@ -813,17 +832,28 @@ async function deliverChatMessage(
         unreadCount: 0,
       },
     }),
+    ...(requestId
+      ? [
+          prisma.directMessageRequest.update({
+            where: { id: requestId },
+            data: { updatedAt: new Date() },
+          }),
+        ]
+      : []),
   ]);
 
-  try {
-    await mirrorChatMessageToPeer(userId, thread, trimmed, contentMasked);
-  } catch (error) {
-    console.error("chat mirror to peer failed", error);
+  if (!requestId) {
+    try {
+      await mirrorChatMessageToPeer(userId, thread, trimmed, contentMasked);
+    } catch (error) {
+      console.error("chat mirror to peer failed", error);
+    }
   }
 
   return {
     thread: await getChatThreadForUser(userId, threadId),
     message: { id: message.id },
+    ...(requestId ? { heldAsRequest: true as const } : {}),
   };
 }
 

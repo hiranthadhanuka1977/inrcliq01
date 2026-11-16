@@ -170,10 +170,21 @@ export function profileShareMessage(name: string, slug: string) {
   return `${name}'s profile: ${origin}/feed/profile/${slug}`;
 }
 
-function sentConfirmation(profileName: string, names: string[]) {
-  if (names.length === 1) return `Sent ${profileName}'s profile to ${names[0]}.`;
-  if (names.length === 2) return `Sent ${profileName}'s profile to ${names[0]} and ${names[1]}.`;
-  return `Sent ${profileName}'s profile to ${names[0]}, ${names[1]}, and ${names.length - 2} more.`;
+function nameList(names: string[]) {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names[0]}, ${names[1]}, and ${names.length - 2} more`;
+}
+
+function sentConfirmation(profileName: string, names: string[], requestNames: string[]) {
+  const parts: string[] = [];
+  if (names.length > 0) parts.push(`Sent ${profileName}'s profile to ${nameList(names)}.`);
+  if (requestNames.length > 0) {
+    parts.push(
+      `Message request sent to ${nameList(requestNames)}. They need to accept before this is delivered.`,
+    );
+  }
+  return parts.join(" ");
 }
 
 function failureFromSend(
@@ -223,6 +234,7 @@ export async function shareProfileWithNetwork(
   const body = profileShareMessage(profile.name, profile.slug);
   const sentUserIds: string[] = [];
   const sentNames: string[] = [];
+  const requestNames: string[] = [];
   const failures: ShareProfileFailure[] = [];
 
   for (const person of targets) {
@@ -244,7 +256,8 @@ export async function shareProfileWithNetwork(
     }
 
     sentUserIds.push(person.id);
-    sentNames.push(person.name);
+    if (result && "heldAsRequest" in result && result.heldAsRequest) requestNames.push(person.name);
+    else sentNames.push(person.name);
   }
 
   if (sentUserIds.length === 0) {
@@ -260,7 +273,7 @@ export async function shareProfileWithNetwork(
     ok: true,
     sent: sentUserIds.length,
     sentUserIds,
-    confirmation: sentConfirmation(profile.name, sentNames),
+    confirmation: sentConfirmation(profile.name, sentNames, requestNames),
     failures,
   };
 }

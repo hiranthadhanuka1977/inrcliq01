@@ -468,6 +468,77 @@ body.page-messages .messages-chat,
   outline: none;
 }
 
+.messages-sidebar__lists {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.messages-sidebar__group {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  max-height: 42%;
+  min-height: 0;
+}
+
+.messages-sidebar__section-label {
+  margin: 0;
+  padding: 0.15rem 1.1rem 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.messages-thread-list--requests {
+  flex: 1 1 auto;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.messages-thread__preview--request {
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+.messages-request-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.messages-request-panel__lead {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+
+.messages-request-panel__note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.messages-request-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
 .messages-thread-list {
   display: flex;
   flex-direction: column;
@@ -1030,6 +1101,15 @@ a.messages-chat__menu-item {
 
 .messages-bubble--not-delivered {
   opacity: 0.6;
+}
+
+.messages-bubble--request-pending {
+  opacity: 0.88;
+}
+
+.messages-bubble__delivery--request-pending::before {
+  background: transparent;
+  border: 1.5px solid currentColor;
 }
 
 .messages-bubble__delivery {

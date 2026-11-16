@@ -7,12 +7,16 @@ export const metadata = {
 };
 
 export default async function MessagesPage() {
-  const { conversations } = await getMessagesPageData();
+  const { conversations, messageRequests } = await getMessagesPageData();
 
   return (
     <div className="page-messages">
-      <Suspense fallback={<MessagesView initialConversations={conversations} />}>
-        <MessagesView initialConversations={conversations} />
+      <Suspense
+        fallback={
+          <MessagesView initialConversations={conversations} initialMessageRequests={messageRequests} />
+        }
+      >
+        <MessagesView initialConversations={conversations} initialMessageRequests={messageRequests} />
       </Suspense>
     </div>
   );

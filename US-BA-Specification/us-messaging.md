@@ -5,7 +5,7 @@
 | Audience | Business Analyst — starting point to expand the requirement |
 | Module | Direct messages: inbox, a conversation, starting a chat, and the actions on a chat |
 | Based on | The product as implemented in November 2026 |
-| Updated | 15 November 2026 — sending a post stays on the post, and the chat shows that post as a card with a thumbnail |
+| Updated | 16 November 2026 — message requests: when the sender does not follow the recipient, the recipient must accept before the message is delivered; attachments and shared-post cards stay as before |
 | Actors | Member, Other person, Guardian, Platform |
 | Primary surfaces | `/feed/messages`, profile **Message**, the send sheet on a feed post, a booking confirmation that lands in Messages |
 | Related specs | `us-family-circle-age-zones-parental-controls.md` (section 7 — when a message is held, masked, or stopped for a young person), `us-dm-safety-guardian-review.md` |
@@ -16,9 +16,9 @@
 
 This is a **baseline of what Messages already covers**, written as user stories. It is not a full future specification.
 
-Each story says what a person can do today and the acceptance criteria that match the current behaviour. Section 8 lists behaviour that is **shown in the interface but is not a finished product rule yet**. Those items are the natural places to expand.
+Each story says what a person can do today and the acceptance criteria that match the current behaviour. Section 8 lists behaviour that is **shown in the interface but is not a finished product rule yet**, or a decided rule whose Messages UI is still being finished. Those items are the natural places to expand.
 
-Messages here means a private conversation between two people. It is not comments on a post, and it is not the guardian’s Family Circle. When a message involves someone under 18, the safety rules in the Family Circle baseline still apply. This document describes what the sender and the recipient see in Messages. It does not replace those guardian stories.
+Messages here means a private conversation between two people. It is not comments on a post, and it is not the guardian’s Family Circle. When a message involves someone under 18, the safety rules in the Family Circle baseline still apply. Message requests (US-MSG-18) sit on top of ordinary delivery: safety can still stop or mask a message before a request is even considered. This document describes what the sender and the recipient see in Messages. It does not replace those guardian stories.
 
 Each person has their own copy of a chat. Clearing or deleting a chat changes that person’s inbox. It does not erase the other person’s copy.
 
@@ -49,7 +49,8 @@ A chat can start or reopen in any of these ways:
 | **Message this creator** when a collection or special requests are unavailable | Same as the profile Message button. |
 | After a special-request booking | The member lands in the chat with that creator, on the booking card. |
 | Sharing a profile | The chosen people receive a message that contains the profile link. Sharing itself is chosen on the profile’s share page, and only among people who follow the member or whom the member follows. |
-| **Share** on a post | Opens a send sheet over the post. The member stays on the post. Each chosen person receives a post card in their chat. See US-MSG-17. |
+| **Share** on a post | Opens a send sheet over the post. The member stays on the post. Each chosen person receives a post card in their chat, or a message request when the sender does not follow them. See US-MSG-17 and US-MSG-18. |
+| **Message request** | When the sender does not follow the recipient, the first delivery waits as a request. The recipient accepts or declines before the words, files, or shared post appear in their inbox. See US-MSG-18. |
 
 A new or reopened chat is brought to the top of the member’s list.
 
@@ -85,6 +86,7 @@ On a narrow screen the member sees either the list or the open chat, and can go 
 - A chat with unread messages is marked unread and shows how many are unread.
 - Opening a chat clears that chat’s unread count.
 - The Messages item in the left navigation shows the total unread count across chats. That total refreshes when the member moves to another page. It is not a live badge while they stay on a different page.
+- Pending message requests are not ordinary conversations. They appear under **Requests** in the inbox (US-MSG-18), not as a normal chat row with a message preview.
 - The open chat’s header shows the person’s name and handle. The name opens their public profile when they have one.
 - The header also shows **Online**, **Muted**, or **Blocked** when those apply. See section 8 for Online.
 
@@ -144,24 +146,29 @@ On a narrow screen the member sees either the list or the open chat, and can go 
 
 ## 6. Inside a conversation
 
-### US-MSG-06 — Read and send a text message
+### US-MSG-06 — Read and send a message
 
 **As a** member in a chat  
-**I want to** read the conversation and send a text message  
+**I want to** read the conversation and send a message  
 **So that** I can talk to that person.
 
 **Acceptance criteria**
 
 - Messages from the member appear on one side. Messages from the other person appear on the other side. Each has a time.
-- The composer is a single text line. Send is unavailable until there is text, and while a send is in progress.
-- After a successful send, the composer is cleared and the chat stays scrolled to the latest message.
+- The composer is a single text line. A paperclip, labelled **Attach a file**, sits beside it.
+- The member can send text, one or more attachments, or both. Send stays unavailable until there is text or at least one attachment that is ready. It also stays unavailable while a file is still attaching, and while a send is in progress.
+- The paperclip adds one file at a time, up to 4 files. Each file is a JPG, PNG, WebP, GIF, or PDF, and 8MB or smaller. An accepted file is stored with Messages, under uploads/messages. The paperclip is unavailable once four files are waiting, including one that failed, until the member removes one.
+- A chosen file appears as a chip above the text line and can be removed before it is sent. While it is attaching, the chip says so. When it is ready, the chip shows the file name. If it cannot be attached, the chip says why, and that file is not sent.
+- A photo is checked by the same image safety check used elsewhere before it can be sent. If that check refuses it, the photo is not attached. A PDF is allowed without that image check.
+- A message with no text is sent only when at least one attachment is an accepted photo or PDF stored with Messages. A file that is not one of those, sent with no text, is not sent. Words can still be sent when a file beside them was not accepted; that file is left out.
+- After a successful send, the text and the chips are cleared and the chat stays scrolled to the latest message.
 - The inbox preview and time update to the message just sent, and that chat moves to the top.
-- The other person receives the message in their own inbox. If they have not muted the chat, their unread count goes up by one.
+- When the sender already follows the recipient, or when a message request from this sender was already accepted, or when both people have already exchanged a delivered message in this chat, the other person receives the message in their own inbox straight away. If they have not muted the chat, their unread count goes up by one.
+- When the sender does not follow the recipient and none of those exceptions apply, the send is a message request instead: the sender keeps their copy as pending (not delivered), and the other person does not get the body until they accept. See US-MSG-18.
 - While Messages stays open, the list and the open chat refresh so a new reply can appear without a manual reload.
-- **Attach a file** sits beside the text field. The member can add up to 4 photos (JPG, PNG, WebP, GIF) or PDFs, each 8MB or smaller. A chosen file appears as a removable chip before it is sent. Photos are checked by the same image safety check used elsewhere.
-- Send is available when there is text, at least one ready attachment, or both. It stays unavailable while a file is still uploading.
-- In the chat, a photo appears as a small picture and a PDF appears as a named link, inside the same message as any text. The inbox preview uses the text when there is some, otherwise it names the attachment.
-- Voice notes, video files, and GIFs that are not a still image cannot be attached. A post sent with **Share** is still its own card, not a file from this button. See US-MSG-17 and section 8.
+- In the chat, the files sit in the same message as any text. A photo appears as a picture. A PDF appears as its file name. Choosing either opens it in a new browser tab.
+- The inbox preview uses the text when there is some. With no text and one file, the preview is “Attachment:” and the file name. With no text and more than one file, the preview says how many attachments were sent, as in “Sent 2 attachments”.
+- Voice notes, video files, and any other file type cannot be attached. A post sent with **Share** is still its own card, not a file from the paperclip. See US-MSG-17 and section 8.
 
 ### US-MSG-07 — Open a link in a message
 
@@ -300,10 +307,15 @@ On a narrow screen the member sees either the list or the open chat, and can go 
 
 **Acceptance criteria**
 
-- The check runs when the member sends. An ordinary message is delivered with no warning.
+- The check runs when the member sends. An ordinary message that passes safety is delivered with no warning, unless a message request is required (US-MSG-18).
+- Safety wins over message requests. A blocked or restricted chat cannot send. A message held for a guardian never becomes a message request while it is held. A masked delivery still reaches the recipient as a mask and does not wait for a request accept.
+- A photo or PDF follows the same block, restriction, warning, hold, and mask path as the words it is sent with. A blocked or restricted chat cannot send a file. The files are not delivered on their own if the message is stopped.
+- When the message is held for a guardian, the held copy keeps the files with the words. The other person does not see the photo or the PDF while it is held. If it is later allowed, they receive the words and the files together under the Family Circle delivery rules. A hold is not a message request.
+- When the message is masked, the other person does not see the photo or the PDF. They see the same hidden or removed treatment as for text. The sender still sees the files they sent.
+- The warning looks at the words. A photo is also checked when it is attached, and is refused there if that check fails. A PDF is allowed without that image check, and this warning does not read the PDF. A message that is only a file has no words for the warning to read; it still has to pass the same block, restriction, hold, and mask rules.
 - When the recipient is under 18, a blocked message is titled “Message blocked” and does not tell the sender the category, the severity, the young person’s zone, or that a guardian is involved.
 - When the recipient is an adult, the same warning may include the flagged category and a severity from 1 to 6.
-- Where sending anyway is allowed, the member can edit the text or send it anyway. Sending anyway follows the delivery rules in the Family Circle baseline: a normal delivery, a masked delivery, or a hold for a guardian.
+- Where sending anyway is allowed, the member can edit the text or send it anyway. Sending anyway includes any attachments that are still ready, and follows the delivery rules in the Family Circle baseline: a normal delivery, a masked delivery, or a hold for a guardian.
 - Where sending anyway is not allowed, the member is told this message cannot be sent to this account. They can still edit it.
 - If the safety check itself cannot be completed for a recipient under 18, the title is “Message not sent” and the member can try again. There is no send-anyway option.
 - A guardian restriction, or a limit on messaging anyone under 18, replaces the composer with an explanation and does not offer Send. Those rules are US-DM-02 and US-DM-03 in the Family Circle baseline.
@@ -325,22 +337,45 @@ What the other person sees when a message is held, masked, or not delivered, and
 - Before anything is typed, the sheet lists people the member follows and people who follow the member. If that network is empty, it offers up to 8 other members under **Other people**, so the sheet is not blank.
 - Typing a name or handle searches that network and the rest of the platform, in the same way as New message (US-MSG-04).
 - Tapping a person selects them. Selected people appear as chips and can be removed. **Send** stays unavailable until at least one person is selected, and while a send is in progress.
-- The member can send to up to 20 people. Each person gets the post in their own chat with the sender. That chat moves to the top of the inbox.
-- After a successful send, the sheet says who received it. **Done** closes the sheet.
+- The member can send to up to 20 people. Each person gets the post in their own chat with the sender, or a message request when the sender does not follow them (US-MSG-18). That chat moves to the top of the sender’s inbox.
+- After a successful send, the sheet says who received it. When someone was sent a request instead, the confirmation says a message request was sent and that they need to accept before it is delivered. **Done** closes the sheet.
 - Cancel, clicking outside the sheet, or Escape closes it without sending.
-- In the chat, the shared post is a card, not a text bubble. It sits on the sender’s side of the conversation.
+- In the chat, the shared post is a card, not a text bubble. It sits on the sender’s side of the conversation. Until the recipient accepts a required request, only the sender has that card.
 - A small thumbnail runs down the left edge of the card. It is the photo, or a frame from the video when the post has no photo. A play mark sits on a video. Beside the thumbnail are a quiet **Post** label, the author’s name and handle, a short line of the post, and the time.
 - The card uses the same quiet surface as the chat. It has no coloured border.
 - Choosing the card opens the full post.
 - The inbox preview reads as a shared post — “Shared a post:” plus a short line — not as the stored message text.
 - If the safety check refuses one person, the others can still receive it. The sender sees who did not get it.
 - A blocked person, a suspended account, or the sender themselves cannot be a recipient.
+- Sharing a profile into Messages uses the same request rule: people the sender does not follow get a request confirmation, not an immediate delivery.
+
+### US-MSG-18 — Accept a message request before delivery
+
+**As a** member who receives a message from someone who does not follow them  
+**I want** to accept or decline that message as a request  
+**So that** I only get the words, files, or shared post after I choose to.
+
+**Acceptance criteria**
+
+- A message request is required when the sender does **not** follow the recipient. Follow means the sender follows that recipient’s creator profile on the platform.
+- No request is required, and delivery stays immediate, when any of these is already true:
+  - the sender follows the recipient;
+  - this recipient has already **accepted** a message request from this sender; or
+  - both people already have a real delivered message each way in the recipient’s chat (prototype sample history does not count).
+- Safety still wins. Block, guardian restriction, hold, and mask are decided first. A held message is not turned into a request while it is held. A masked message is delivered as a mask and does not wait for accept. Accept is refused if the sender is suspended, either person has blocked the other, or a restriction still blocks delivery.
+- While a request is pending, the platform keeps one pending request for that pair. Later sends from the same sender attach to that request and are not delivered until accept.
+- The recipient’s **Requests** list shows who sent the request and when. It does **not** show the message body, attachments, or shared-post content. People the recipient has blocked, or who have blocked them, do not appear in the list.
+- **Accept** delivers every pending message from that request into the recipient’s chat, in order, and opens that conversation. From then on, further messages from that sender follow the normal immediate path (unless safety stops them).
+- **Decline** does not deliver those messages. On the sender’s side, the pending copies become not delivered because the request was declined. The declined request is kept so those copies do not fall into the recipient’s inbox. A later send from the same sender creates a new request.
+- On the sender’s side, a pending request copy is marked as a message request that needs accept before it is delivered. After decline, it is marked not delivered because they declined. The sender can still see their own words and files.
+- Accept and decline are offered from the request in Messages. Block remains available from an open chat (US-MSG-11) and is separate from decline.
+- Text, attachments, shared posts, and shared profiles all use this same request rule when they would otherwise be delivered.
 
 ---
 
 ## 8. Shown in the product, not a finished rule yet
 
-Use this list when expanding the requirement. These items appear in Messages, but they are not the full behaviour a later story might assume.
+Use this list when expanding the requirement. These items appear in Messages, or are decided in the product rule, but they are not the full behaviour a later story might assume.
 
 | What the member sees | What is actually true |
 | --- | --- |
@@ -350,9 +385,11 @@ Use this list when expanding the requirement. These items appear in Messages, bu
 | **Other people** in New message | People with a member account, matched on name or handle. A public creator page that is not linked to a member account does not appear here. The profile **Message** button can still open that creator. |
 | The network list and the other-people list | The network list shows up to 40 people. A search shows up to 12 other people. When nothing is typed and the member’s network is empty, up to 8 other members are suggested. Longer lists are cut off. |
 | Inbox search | Matches the name, the handle, and the latest preview only. |
-| Search inside a chat | Hides messages that do not match. It does not step through matches while leaving the rest of the chat visible. |
-| The composer | Photos and PDFs can be attached, up to 4 files of 8MB each. There is still no video, voice note, or other file type. A post sent with **Share** is a card in the chat (US-MSG-17), not a file from **Attach a file**. |
+| Search inside a chat | Hides messages that do not match. It matches the words in the message, not the name of an attached file. It does not step through matches while leaving the rest of the chat visible. |
+| The composer | A paperclip adds one photo or PDF at a time, up to 4 files of 8MB each (JPG, PNG, WebP, GIF, or PDF), stored under uploads/messages. There is still no video, voice note, or other file type. A post sent with **Share** is a card in the chat (US-MSG-17), not a file from the paperclip. |
 | The unread count on Messages in the navigation | Refreshed when the member changes page. It does not tick up on its own while they are elsewhere in the product. |
+| **Requests** in the inbox (US-MSG-18) | The accept-to-message rule is decided and the send path already holds undelivered copies for the sender, lists pending requests for the recipient (sender identity only, no body), and accepts or declines through Messages. The **Requests** section and the pending / declined delivery notes on the sender’s bubbles are still being finished in the Messages screen. Until that UI is complete, treat the story rules above as the product intent. |
+| Message request vs follow direction | The gate is “does the **sender** follow the **recipient**?”, not “does the recipient follow the sender?”. A recipient who does not follow the sender can still get an immediate message when the sender already follows them. |
 
 Also out of this baseline, and useful for a later expansion:
 
@@ -362,14 +399,16 @@ Also out of this baseline, and useful for a later expansion:
 - Notifying the other person that they were reported or blocked, beyond the send being refused.
 - Live online status.
 - Letting New message find a creator who has a public page but no member account, in the same list as everyone else.
+- Whether declining a request should also offer block in the same step (decline and block are separate today).
 
 ---
 
 ## 9. Suggested expansion order
 
-1. Decide whether the sample conversations should remain for new accounts, or whether a new inbox should start empty.
-2. Decide whether **Online** becomes real presence or is removed until it is.
-3. Decide who reviews a member’s report, and whether reporting should also block, mute, or notify anyone.
-4. Decide whether New message should include public creator pages that are not linked to a member account, and whether the 40 / 12 result limits are enough.
-5. Keep clear, delete, and block as inbox actions that do not rewrite the other person’s history, unless a story explicitly says a delete or a block should reach their copy.
-6. Keep the under-18 hold, mask, and guardian rules in the Family Circle baseline unless a story explicitly changes them.
+1. Finish the Messages **Requests** section and the sender-side pending / declined delivery notes so US-MSG-18 is fully visible in the product.
+2. Decide whether the sample conversations should remain for new accounts, or whether a new inbox should start empty.
+3. Decide whether **Online** becomes real presence or is removed until it is.
+4. Decide who reviews a member’s report, and whether reporting should also block, mute, or notify anyone.
+5. Decide whether New message should include public creator pages that are not linked to a member account, and whether the 40 / 12 result limits are enough.
+6. Keep clear, delete, and block as inbox actions that do not rewrite the other person’s history, unless a story explicitly says a delete or a block should reach their copy.
+7. Keep the under-18 hold, mask, and guardian rules in the Family Circle baseline unless a story explicitly changes them.

@@ -24,10 +24,21 @@ export type SharePostOutcome =
 
 export { postSharePayload } from "@/lib/feed/post-share-message";
 
-function sentConfirmation(names: string[]) {
-  if (names.length === 1) return `Sent this post to ${names[0]}.`;
-  if (names.length === 2) return `Sent this post to ${names[0]} and ${names[1]}.`;
-  return `Sent this post to ${names[0]}, ${names[1]}, and ${names.length - 2} more.`;
+function nameList(names: string[]) {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names[0]}, ${names[1]}, and ${names.length - 2} more`;
+}
+
+function sentConfirmation(names: string[], requestNames: string[]) {
+  const parts: string[] = [];
+  if (names.length > 0) parts.push(`Sent this post to ${nameList(names)}.`);
+  if (requestNames.length > 0) {
+    parts.push(
+      `Message request sent to ${nameList(requestNames)}. They need to accept before this is delivered.`,
+    );
+  }
+  return parts.join(" ");
 }
 
 function failureFromSend(result: Awaited<ReturnType<typeof sendChatMessage>>): string | null {
@@ -66,6 +77,7 @@ export async function sharePostWithUsers(
   const body = encodePostShare(postSharePayload(post));
   const sentUserIds: string[] = [];
   const sentNames: string[] = [];
+  const requestNames: string[] = [];
   const failures: SharePostFailure[] = [];
 
   for (const userId of uniqueIds) {
@@ -109,7 +121,8 @@ export async function sharePostWithUsers(
     }
 
     sentUserIds.push(recipient.id);
-    sentNames.push(name);
+    if (result && "heldAsRequest" in result && result.heldAsRequest) requestNames.push(name);
+    else sentNames.push(name);
   }
 
   if (sentUserIds.length === 0) {
@@ -126,7 +139,7 @@ export async function sharePostWithUsers(
     ok: true,
     sent: sentUserIds.length,
     sentUserIds,
-    confirmation: sentConfirmation(sentNames),
+    confirmation: sentConfirmation(sentNames, requestNames),
     failures,
   };
 }

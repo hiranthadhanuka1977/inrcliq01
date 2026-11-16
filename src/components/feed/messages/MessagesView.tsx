@@ -19,7 +19,7 @@ import BookingStatusNote from "@/components/feed/messages/BookingStatusNote";
 import MessageBody from "@/components/feed/messages/MessageBody";
 import SharedPostCard from "@/components/feed/messages/SharedPostCard";
 import StartConversationDialog from "@/components/feed/messages/StartConversationDialog";
-import type { Conversation } from "@/lib/feed/messages";
+import type { Conversation, MessageRequestSummary } from "@/lib/feed/messages";
 import type { MessageAttachmentFile } from "@/lib/feed/message-attachment";
 import { mergeConversationLists } from "@/lib/feed/messages-merge";
 import { useDialogA11y } from "@/lib/accessibility/useDialogA11y";
@@ -75,6 +75,17 @@ function bookingDetailsTab(
   const participant = participantName.trim().toLowerCase();
   if (!actor || !participant) return "outbound";
   return actor === participant ? "outbound" : "inbound";
+}
+
+function requestDeliveryNote(message: Conversation["messages"][number]) {
+  if (message.sender !== "me") return null;
+  if (message.deliveryStatus === "REQUEST_PENDING") {
+    return "Message request — they need to accept before this is delivered";
+  }
+  if (message.deliveryStatus === "REQUEST_DECLINED") {
+    return "Not delivered — they declined this request";
+  }
+  return null;
 }
 
 function enforcementNoticeCopy(notice: {
@@ -169,8 +180,10 @@ function MenuIcon({
 
 export default function MessagesView({
   initialConversations = [],
+  initialMessageRequests = [],
 }: {
   initialConversations?: Conversation[];
+  initialMessageRequests?: MessageRequestSummary[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -187,6 +200,10 @@ export default function MessagesView({
   const refocusComposerRef = useRef(false);
   const lastMessageIdRef = useRef<string>("");
   const [conversations, setConversations] = useState(initialConversations);
+  const [messageRequests, setMessageRequests] = useState(initialMessageRequests);
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const activeRequestIdRef = useRef<string | null>(null);
+  const [requestBusy, setRequestBusy] = useState(false);
   const [activeId, setActiveId] = useState(() => {
     if (focusThread && initialConversations.some((item) => item.id === focusThread)) {
       return focusThread;
@@ -208,7 +225,9 @@ export default function MessagesView({
   const [mobileChatOpen, setMobileChatOpen] = useState(
     Boolean(focusSlug || focusThread || focusBooking || focusLatest),
   );
-  const [loading, setLoading] = useState(initialConversations.length === 0);
+  const [loading, setLoading] = useState(
+    initialConversations.length === 0 && initialMessageRequests.length === 0,
+  );
   const [sending, setSending] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
@@ -245,7 +264,8 @@ export default function MessagesView({
   const activeIdRef = useRef(activeId);
   useEffect(() => {
     activeIdRef.current = activeId;
-  }, [activeId]);
+    activeRequestIdRef.current = activeRequestId;
+  }, [activeId, activeRequestId]);
   const [menuThreadId, setMenuThreadId] = useState(activeId);
   if (menuThreadId !== activeId) {
     setMenuThreadId(activeId);
@@ -278,8 +298,13 @@ export default function MessagesView({
         if (!response.ok) {
           throw new Error(response.status === 401 ? "Sign in to view messages." : "Failed to load messages.");
         }
-        const data = (await response.json()) as { conversations: Conversation[] };
+        const data = (await response.json()) as {
+          conversations: Conversation[];
+          messageRequests?: MessageRequestSummary[];
+        };
         if (cancelled) return;
+
+        setMessageRequests(data.messageRequests ?? []);
 
         let conversations = data.conversations;
         let slugMatch = focusSlug
@@ -414,7 +439,10 @@ export default function MessagesView({
       try {
         const listResponse = await fetch("/api/feed/messages", { cache: "no-store" });
         if (!listResponse.ok || cancelled) return;
-        const listData = (await listResponse.json()) as { conversations: Conversation[] };
+        const listData = (await listResponse.json()) as {
+          conversations: Conversation[];
+          messageRequests?: MessageRequestSummary[];
+        };
 
         let activeConversation: Conversation | null = null;
         if (activeId) {
@@ -429,6 +457,7 @@ export default function MessagesView({
 
         if (cancelled) return;
 
+        setMessageRequests(listData.messageRequests ?? []);
         setConversations((current) =>
           mergeConversationLists(listData.conversations, current, activeId, activeConversation),
         );
@@ -445,7 +474,7 @@ export default function MessagesView({
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [activeId]);
+  }, [activeId, activeRequestId]);
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
@@ -563,6 +592,23 @@ export default function MessagesView({
     });
   }, [conversations, query]);
 
+  const filteredMessageRequests = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return messageRequests;
+    return messageRequests.filter((request) => {
+      const { participant } = request;
+      return (
+        participant.name.toLowerCase().includes(normalized) ||
+        participant.handle.toLowerCase().includes(normalized)
+      );
+    });
+  }, [messageRequests, query]);
+
+  const activeRequest = useMemo(
+    () => messageRequests.find((request) => request.id === activeRequestId) ?? null,
+    [activeRequestId, messageRequests],
+  );
+
   const threadQueryNormalized = threadQuery.trim().toLowerCase();
   const searchedMessages = useMemo(() => {
     const messages = activeConversation?.messages ?? [];
@@ -605,6 +651,7 @@ export default function MessagesView({
   }
 
   async function openConversation(id: string) {
+    setActiveRequestId(null);
     setActiveId(id);
     setModerationWarning(null);
     setMobileChatOpen(true);
@@ -625,6 +672,62 @@ export default function MessagesView({
       setPendingScroll({ bookingId: "", latest: true });
     } catch {
       // Keep optimistic unread clear.
+    }
+  }
+
+  function openMessageRequest(id: string) {
+    setActiveId("");
+    setActiveRequestId(id);
+    setModerationWarning(null);
+    setMobileChatOpen(true);
+    setChatMenuOpen(false);
+    setChatConfirm(null);
+    setReportOpen(false);
+    setThreadSearchOpen(false);
+    setThreadQuery("");
+  }
+
+  async function decideActiveMessageRequest(action: "accept" | "decline") {
+    const requestId = activeRequestIdRef.current;
+    if (!requestId || requestBusy) return;
+    setRequestBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/feed/messages/requests/${requestId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        conversation?: Conversation;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error?.trim() || "Could not update this request.");
+      }
+
+      const decidedName =
+        messageRequests.find((item) => item.id === requestId)?.participant.name ?? "This person";
+      setMessageRequests((current) => current.filter((item) => item.id !== requestId));
+      setActiveRequestId(null);
+
+      if (action === "accept" && payload?.conversation) {
+        const conversation = payload.conversation;
+        setActiveId(conversation.id);
+        setConversations((current) => {
+          const rest = current.filter((item) => item.id !== conversation.id);
+          return mergeConversationLists([conversation, ...rest], current, conversation.id, conversation);
+        });
+        setPendingScroll({ bookingId: "", latest: true });
+        setActionNotice(`You accepted a message from ${decidedName}.`);
+      } else {
+        setActionNotice(`You declined a message from ${decidedName}.`);
+        setMobileChatOpen(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update this request.");
+    } finally {
+      setRequestBusy(false);
     }
   }
 
@@ -1033,44 +1136,145 @@ export default function MessagesView({
               {error ? <p className="messages-sidebar__error">{error}</p> : null}
               {loading ? <p className="messages-sidebar__status">Loading conversations…</p> : null}
 
-              <ul className="messages-thread-list" role="list">
-                {!loading && filteredConversations.length === 0 ? (
-                  <li className="messages-sidebar__status">No conversations yet.</li>
-                ) : null}
-                {filteredConversations.map((conversation) => {
-                  const isActive = conversation.id === activeId;
-                  return (
-                    <li key={conversation.id}>
-                      <button
-                        type="button"
-                        className={`messages-thread${isActive ? " is-active" : ""}${conversation.unread > 0 ? " is-unread" : ""}`}
-                        onClick={() => void openConversation(conversation.id)}
-                        aria-current={isActive ? "true" : undefined}
-                      >
-                        <ConversationAvatar participant={conversation.participant} size="sm" />
-                        <span className="messages-thread__body">
-                          <span className="messages-thread__row">
-                            <strong>{conversation.participant.name}</strong>
-                            <time>{conversation.previewTime}</time>
-                          </span>
-                          <span className="messages-thread__row">
-                            <span className="messages-thread__preview">{conversation.preview}</span>
-                            {conversation.unread > 0 ? (
-                              <span className="messages-thread__badge" aria-label={`${conversation.unread} unread`}>
-                                {conversation.unread}
+              <div className="messages-sidebar__lists">
+                {filteredMessageRequests.length > 0 ? (
+                  <div className="messages-sidebar__group">
+                    <p className="messages-sidebar__section-label" id="messages-requests-label">
+                      Requests
+                    </p>
+                    <ul
+                      className="messages-thread-list messages-thread-list--requests"
+                      role="list"
+                      aria-labelledby="messages-requests-label"
+                    >
+                      {filteredMessageRequests.map((request) => {
+                        const isActive = request.id === activeRequestId;
+                        return (
+                          <li key={request.id}>
+                            <button
+                              type="button"
+                              className={`messages-thread messages-thread--request${isActive ? " is-active" : ""}`}
+                              onClick={() => openMessageRequest(request.id)}
+                              aria-current={isActive ? "true" : undefined}
+                            >
+                              <ConversationAvatar participant={request.participant} size="sm" />
+                              <span className="messages-thread__body">
+                                <span className="messages-thread__row">
+                                  <strong>{request.participant.name}</strong>
+                                  <time>{request.previewTime}</time>
+                                </span>
+                                <span className="messages-thread__row">
+                                  <span className="messages-thread__preview messages-thread__preview--request">
+                                    Wants to send you a message
+                                  </span>
+                                </span>
                               </span>
-                            ) : null}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <ul className="messages-thread-list" role="list">
+                  {!loading &&
+                  filteredConversations.length === 0 &&
+                  filteredMessageRequests.length === 0 ? (
+                    <li className="messages-sidebar__status">No conversations yet.</li>
+                  ) : null}
+                  {filteredConversations.map((conversation) => {
+                    const isActive = conversation.id === activeId && !activeRequestId;
+                    return (
+                      <li key={conversation.id}>
+                        <button
+                          type="button"
+                          className={`messages-thread${isActive ? " is-active" : ""}${conversation.unread > 0 ? " is-unread" : ""}`}
+                          onClick={() => void openConversation(conversation.id)}
+                          aria-current={isActive ? "true" : undefined}
+                        >
+                          <ConversationAvatar participant={conversation.participant} size="sm" />
+                          <span className="messages-thread__body">
+                            <span className="messages-thread__row">
+                              <strong>{conversation.participant.name}</strong>
+                              <time>{conversation.previewTime}</time>
+                            </span>
+                            <span className="messages-thread__row">
+                              <span className="messages-thread__preview">{conversation.preview}</span>
+                              {conversation.unread > 0 ? (
+                                <span className="messages-thread__badge" aria-label={`${conversation.unread} unread`}>
+                                  {conversation.unread}
+                                </span>
+                              ) : null}
+                            </span>
                           </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </aside>
 
             <section className="messages-chat" aria-label="Chat">
-              {activeConversation ? (
+              {activeRequest ? (
+                <>
+                  <header className="messages-chat__head">
+                    <button
+                      type="button"
+                      className="btn btn--sm btn--icon btn--secondary messages-chat__back"
+                      aria-label="Back to conversations"
+                      onClick={handleBackToList}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                      </svg>
+                    </button>
+                    <div className="messages-chat__identity">
+                      <ConversationAvatar participant={activeRequest.participant} />
+                      <div>
+                        <p className="messages-chat__name">
+                          {activeRequest.participant.slug ? (
+                            <Link href={`/feed/profile/${activeRequest.participant.slug}`}>
+                              {activeRequest.participant.name}
+                            </Link>
+                          ) : (
+                            activeRequest.participant.name
+                          )}
+                        </p>
+                        <p className="messages-chat__meta">{activeRequest.participant.handle}</p>
+                      </div>
+                    </div>
+                  </header>
+                  <div className="messages-request-panel">
+                    <p className="messages-request-panel__lead">
+                      <strong>{activeRequest.participant.name}</strong> wants to send you a message.
+                    </p>
+                    <p className="messages-request-panel__note">
+                      You won&apos;t see what they wrote until you accept. Decline and nothing is delivered to your
+                      inbox.
+                    </p>
+                    <div className="messages-request-panel__actions">
+                      <button
+                        type="button"
+                        className="btn btn--primary btn--sm"
+                        disabled={requestBusy}
+                        onClick={() => void decideActiveMessageRequest("accept")}
+                      >
+                        {requestBusy ? "Working…" : "Accept"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--secondary btn--sm"
+                        disabled={requestBusy}
+                        onClick={() => void decideActiveMessageRequest("decline")}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : activeConversation ? (
                 <>
                   <header className="messages-chat__head">
                     <button
@@ -1350,16 +1554,24 @@ export default function MessagesView({
                           : recipientRemoved
                             ? "Removed for safety"
                             : "Hidden by safety filter";
+                      const requestNote = requestDeliveryNote(message);
                       const senderStatus =
                         message.sender === "me" && message.deliveryStatus === "PENDING_REVIEW"
                           ? "Pending review"
                           : message.sender === "me" && message.deliveryStatus === "NOT_DELIVERED"
                             ? "Not delivered"
-                            : null;
+                            : requestNote;
+                      const senderDeliveryTone =
+                        message.deliveryStatus === "NOT_DELIVERED" ||
+                        message.deliveryStatus === "REQUEST_DECLINED"
+                          ? "not-delivered"
+                          : message.deliveryStatus === "REQUEST_PENDING"
+                            ? "request-pending"
+                            : "pending";
                       return (
                         <article
                           key={message.id}
-                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${recipientRemoved ? " messages-bubble--removed" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}${senderStatus ? ` messages-bubble--${message.deliveryStatus === "NOT_DELIVERED" ? "not-delivered" : "pending-review"}` : ""}${threadQueryNormalized ? " is-search-match" : ""}`}
+                          className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${recipientRemoved ? " messages-bubble--removed" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}${senderStatus ? ` messages-bubble--${message.deliveryStatus === "NOT_DELIVERED" || message.deliveryStatus === "REQUEST_DECLINED" ? "not-delivered" : message.deliveryStatus === "REQUEST_PENDING" ? "request-pending" : "pending-review"}` : ""}${threadQueryNormalized ? " is-search-match" : ""}`}
                         >
                           {message.contentMasked && message.sender === "them" ? (
                             <div className="messages-bubble__masked">
@@ -1427,9 +1639,7 @@ export default function MessagesView({
                             <span className="messages-bubble__masked-note">Shown masked to recipient</span>
                           ) : null}
                           {senderStatus ? (
-                            <span
-                              className={`messages-bubble__delivery messages-bubble__delivery--${message.deliveryStatus === "NOT_DELIVERED" ? "not-delivered" : "pending"}`}
-                            >
+                            <span className={`messages-bubble__delivery messages-bubble__delivery--${senderDeliveryTone}`}>
                               {senderStatus}
                             </span>
                           ) : null}
@@ -1640,7 +1850,13 @@ export default function MessagesView({
                 </>
               ) : (
                 <div className="messages-chat__empty">
-                  <p>{loading ? "Loading…" : "Select a conversation to start messaging."}</p>
+                  <p>
+                    {loading
+                      ? "Loading…"
+                      : filteredMessageRequests.length > 0
+                        ? "Select a request or conversation."
+                        : "Select a conversation to start messaging."}
+                  </p>
                 </div>
               )}
             </section>

@@ -4,6 +4,7 @@ import {
   ensureChatThreadForUserId,
   listChatThreadsForUser,
 } from "@/lib/feed/chat-service";
+import { listPendingMessageRequestsForUser } from "@/lib/feed/message-requests";
 import {
   conversationFromThread,
   mapThreadsToConversationsWithRestrictions,
@@ -16,11 +17,14 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const threads = await listChatThreadsForUser(user.id);
+  const [threads, messageRequests] = await Promise.all([
+    listChatThreadsForUser(user.id),
+    listPendingMessageRequestsForUser(user.id),
+  ]);
   const conversations = await mapThreadsToConversationsWithRestrictions(user.id, threads);
   const unreadTotal = conversations.reduce((sum, item) => sum + item.unread, 0);
 
-  return NextResponse.json({ conversations, unreadTotal });
+  return NextResponse.json({ conversations, messageRequests, unreadTotal });
 }
 
 /** Open or create a DM thread for a user, or for a public profile slug. */

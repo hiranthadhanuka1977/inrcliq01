@@ -15,8 +15,8 @@ export type ChatMessage = {
   time: string;
   /** True when the peer sees a safety-masked placeholder instead of the raw body. */
   contentMasked?: boolean;
-  /** Present only when not delivered normally (held for guardian review, or not delivered). */
-  deliveryStatus?: "PENDING_REVIEW" | "NOT_DELIVERED";
+  /** Present only when not delivered normally (safety hold, message request, or not delivered). */
+  deliveryStatus?: "PENDING_REVIEW" | "NOT_DELIVERED" | "REQUEST_PENDING" | "REQUEST_DECLINED";
   booking?: BookingConfirmationPayload;
   bookingNote?: BookingNotePayload;
   postShare?: PostSharePayload;
@@ -53,6 +53,14 @@ export type Conversation = {
   publicSlug?: string | null;
   /** The other person maps to an account that can be blocked or reported. */
   peerResolvable?: boolean;
+};
+
+/** Inbox row for a message request. The message body is never included. */
+export type MessageRequestSummary = {
+  id: string;
+  previewTime: string;
+  participant: ConversationParticipant;
+  publicSlug: string | null;
 };
 
 /** Seed templates for first-time chat inbox (copied into ChatThread/ChatMessage per user). */
