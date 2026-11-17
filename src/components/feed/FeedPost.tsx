@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import EditPostModal from "@/components/feed/account/EditPostModal";
 import AudioFeedPlayer, { resolveAudioContentType } from "@/components/feed/AudioFeedPlayer";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
@@ -68,6 +68,100 @@ function formatPostContext(media: FeedItem["media"]) {
   }
   if (!parts.length) return null;
   return <span className="post-head__context">{parts.join(" · ")}</span>;
+}
+
+/** One in-feed preview at a time, so moving between clips stops the previous one. */
+let activeClipPreview: { stop: () => void } | null = null;
+
+function MutedHoverVideo({
+  src,
+  poster,
+  start = 0,
+  end = null,
+  overlay = false,
+}: {
+  src: string;
+  poster?: string;
+  start?: number;
+  end?: number | null;
+  /** Cover a still image, and only show the moving picture while the pointer is over it. */
+  overlay?: boolean;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const timer = useRef(0);
+  const playing = useRef(false);
+
+  const stop = useCallback(() => {
+    window.clearTimeout(timer.current);
+    playing.current = false;
+    const video = ref.current;
+    video?.parentElement?.classList.remove("is-previewing");
+    if (activeClipPreview?.stop === stop) activeClipPreview = null;
+    if (!video) return;
+    video.pause();
+    if (video.readyState >= 1 && Math.abs(video.currentTime - start) > 0.05) {
+      video.currentTime = start;
+    }
+  }, [start]);
+
+  useEffect(() => {
+    const video = ref.current;
+    const parent = video?.parentElement;
+    if (!video || !parent) return;
+
+    const begin = () => {
+      if (activeClipPreview?.stop !== stop) return;
+      playing.current = true;
+      parent.classList.add("is-previewing");
+      video.muted = true;
+      const playFromStart = () => {
+        if (activeClipPreview?.stop !== stop) return;
+        video.currentTime = start;
+        void video.play().catch(() => {
+          playing.current = false;
+          parent.classList.remove("is-previewing");
+        });
+      };
+      if (video.readyState >= 2) playFromStart();
+      else video.addEventListener("loadeddata", playFromStart, { once: true });
+    };
+
+    const onEnter = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      window.clearTimeout(timer.current);
+      if (activeClipPreview && activeClipPreview.stop !== stop) activeClipPreview.stop();
+      activeClipPreview = { stop };
+      timer.current = window.setTimeout(begin, 180);
+    };
+
+    parent.addEventListener("pointerenter", onEnter);
+    parent.addEventListener("pointerleave", stop);
+    return () => {
+      parent.removeEventListener("pointerenter", onEnter);
+      parent.removeEventListener("pointerleave", stop);
+      stop();
+    };
+  }, [start, stop]);
+
+  return (
+    <video
+      ref={ref}
+      className={overlay ? "post-media__video post-media__hover-video" : "post-media__video"}
+      src={end != null ? trimmedVideoSrc(src, { start, end }) : src}
+      poster={poster}
+      muted
+      playsInline
+      preload="metadata"
+      aria-hidden="true"
+      onTimeUpdate={(event) => {
+        if (end == null || !playing.current) return;
+        if (event.currentTarget.currentTime >= end - 0.05) {
+          event.currentTarget.currentTime = start;
+        }
+      }}
+    />
+  );
 }
 
 function SubscriberMediaLock() {
@@ -284,13 +378,13 @@ function MediaMosaic({
             {thumbnail ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={thumbnail} alt={item.alt} />
-            ) : isVideo && !membersOnly ? (
-              <video
-                src={`${item.url}#t=${item.trim ? item.trim.start : 0.1}`}
-                muted
-                playsInline
-                preload="metadata"
-                aria-hidden="true"
+            ) : null}
+            {isVideo && !membersOnly ? (
+              <MutedHoverVideo
+                src={item.url}
+                start={item.trim?.start ?? 0}
+                end={item.trim?.end ?? null}
+                overlay={Boolean(thumbnail)}
               />
             ) : null}
             {isVideo && !membersOnly && !moreCount ? <MediaPlayOverlay /> : null}
@@ -384,13 +478,6 @@ function PostMedia({
 
   if (!poster && !media.video_url) return null;
 
-  // Without a poster, a #t fragment makes the browser paint an early frame instead of a blank box.
-  const previewSrc = singleTrim
-    ? trimmedVideoSrc(videoSrc, singleTrim)
-    : poster
-      ? videoSrc
-      : `${videoSrc}#t=0.1`;
-
   if (showVideo && onOpenMedia) {
     return (
       <div
@@ -406,13 +493,11 @@ function PostMedia({
           }
         }}
       >
-        <video
-          className="post-media__video"
-          src={previewSrc}
+        <MutedHoverVideo
+          src={videoSrc}
           poster={poster?.url}
-          playsInline
-          preload={poster ? "none" : "metadata"}
-          aria-hidden="true"
+          start={singleTrim?.start ?? 0}
+          end={singleTrim?.end ?? null}
         />
         <MediaPlayOverlay />
       </div>
@@ -428,7 +513,11 @@ function PostMedia({
             <SubscriberMediaLock />
           </>
         ) : (
-          <video className="post-media__video" src={previewSrc} controls playsInline preload="metadata" />
+          <MutedHoverVideo
+            src={videoSrc}
+            start={singleTrim?.start ?? 0}
+            end={singleTrim?.end ?? null}
+          />
         )}
       </div>
     );

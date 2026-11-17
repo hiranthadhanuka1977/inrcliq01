@@ -1515,6 +1515,21 @@ a.nav-profile__dropdown-item {
   transition: transform 0.35s ease;
 }
 
+.post-media__hover-video {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.post-media.is-previewing > .post-media__hover-video,
+.post-media__cell.is-previewing > .post-media__hover-video {
+  opacity: 1;
+}
+
+.post-media--video.is-previewing .post-media__play,
+.post-media__cell--video.is-previewing .post-media__play {
+  opacity: 0;
+}
+
 .post-media__play {
   position: absolute;
   inset: 0;

@@ -977,6 +977,11 @@ a.feed-video-viewer__name:focus-visible {
   opacity: 1;
 }
 
+.feed-surface--simple .post-media--video.is-previewing .post-media__play,
+.feed-surface--simple .post-media__cell--video.is-previewing .post-media__play {
+  opacity: 0;
+}
+
 @media (max-width: 900px) {
   .feed-video-viewer__shell {
     grid-template-columns: 1fr;
