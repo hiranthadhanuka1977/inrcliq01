@@ -181,7 +181,7 @@ export function GuardianFlow() {
     }
 
     if (context.isReturningGuardian) {
-      setStep("protection");
+      setStep("account");
       return;
     }
 
@@ -205,6 +205,7 @@ export function GuardianFlow() {
       return;
     }
 
+    setGuardianCountry(context.authenticatedGuardianCountry ?? context.guardianCountry);
     setStep("protection");
   }
 
@@ -405,25 +406,13 @@ export function GuardianFlow() {
     );
   }
 
-  const loggedInAccount = context.authenticatedGuardian
-    ? {
-        name: context.authenticatedGuardianProfile?.name ?? context.authenticatedGuardianName,
-        email:
-          context.authenticatedGuardianProfile?.email ??
-          context.authenticatedGuardianEmail ??
-          context.parentEmail,
-      }
-    : null;
-
   if (step === "approved" && completion) {
     return (
       <ParentSignupLayout
         stepperStep={5}
         single
         completeCurrentStep
-        loggedInAccount={loggedInAccount}
-        onLogout={handleLogout}
-        isLoggingOut={isLoggingOut}
+        loggedIn={context.authenticatedGuardian}
       >
         <ParentApprovedStep {...completion} onDone={redirectParentToLanding} />
       </ParentSignupLayout>
@@ -457,9 +446,7 @@ export function GuardianFlow() {
         screenId={step === "account" ? "screen-PAR-02" : undefined}
         sidebar={sidebar}
         loginEmail={context.parentEmail}
-        loggedInAccount={loggedInAccount}
-        onLogout={handleLogout}
-        isLoggingOut={isLoggingOut}
+        loggedIn={context.authenticatedGuardian}
         onLoginSuccess={async (sessionToken) => {
           tabSessionRef.current = sessionToken;
           writeGuardianTabSession(sessionToken);

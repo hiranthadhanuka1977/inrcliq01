@@ -210,12 +210,50 @@
   gap: var(--space-4);
 }
 
+.profile-header__avatar-slot {
+  position: relative;
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+}
+
 .profile-header__avatar.story-avatar {
   width: 88px;
   height: 88px;
   margin: 0;
   flex-shrink: 0;
   box-shadow: 0 0 0 4px var(--color-bg-page);
+}
+
+.profile-header__avatar-edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 2px solid var(--color-bg-page);
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-100);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.profile-header__avatar-edit:hover,
+.profile-header__avatar-edit:focus-visible {
+  background: var(--color-neutral-200);
+}
+
+.profile-header__avatar-error {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-danger, #e11d48);
 }
 
 .profile-header__avatar.story-avatar::after {
@@ -1126,6 +1164,7 @@ button.profile-header__stat:focus-visible {
 }
 
 @media (max-width: 560px) {
+  .profile-header__avatar-slot,
   .profile-header__avatar.story-avatar {
     width: 72px;
     height: 72px;

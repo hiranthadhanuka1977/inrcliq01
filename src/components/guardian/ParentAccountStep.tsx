@@ -79,6 +79,7 @@ export function ParentAccountStep({
   const [country, setCountry] = useState("LK");
   const [region, setRegion] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [agreedToVerify, setAgreedToVerify] = useState(false);
   const [fieldError, setFieldError] = useState({ visible: false, message: "" });
 
   useEffect(() => {
@@ -180,11 +181,33 @@ export function ParentAccountStep({
           </div>
         </dl>
 
+        {requiresIdentityVerification ? (
+          <div className="parent-signup__verify-alert mt-8" role="note">
+            <label className="parent-signup__confirm" htmlFor="par-parent-verify-agree">
+              <input
+                type="checkbox"
+                id="par-parent-verify-agree"
+                checked={agreedToVerify}
+                onChange={(event) => setAgreedToVerify(event.target.checked)}
+              />
+              <span>
+                This account is not verified as an adult. I agree to complete ID verification before
+                I can approve this child.
+              </span>
+            </label>
+          </div>
+        ) : null}
+
         <button
           type="button"
-          className="btn btn--primary mt-8"
+          className={`btn btn--primary ${requiresIdentityVerification ? "mt-4" : "mt-8"}`}
           onClick={onContinueAsExistingGuardian}
-          disabled={isSubmitting || isLoggingOut || identityRejected}
+          disabled={
+            isSubmitting ||
+            isLoggingOut ||
+            identityRejected ||
+            (requiresIdentityVerification && !agreedToVerify)
+          }
         >
           {requiresIdentityVerification ? "Continue to identity verification" : "Continue approval"}
         </button>

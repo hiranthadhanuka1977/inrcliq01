@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
 import FollowButton from "@/components/feed/FollowButton";
 import ShareIcon from "@/components/feed/ShareIcon";
 import CollectionCartDrawer from "@/components/feed/profile/CollectionCartDrawer";
@@ -515,6 +516,11 @@ type ProfileHeaderProps = {
 };
 
 export default function ProfileHeader({ profile, following, onFollowingChange }: ProfileHeaderProps) {
+  const router = useRouter();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
+  const [avatarEditorSrc, setAvatarEditorSrc] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState("");
   const [localFollowing, setLocalFollowing] = useState(profile.relationship?.following ?? false);
   const [subscribed, setSubscribed] = useState(profile.relationship?.subscribed ?? false);
   const [notifyLevel, setNotifyLevel] = useState<NotificationLevel>("personalized");
@@ -550,6 +556,47 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
   }, [profile.relationship?.subscribed, profile.slug]);
 
   const isFollowing = following ?? localFollowing;
+
+  useEffect(() => {
+    setAvatarUrl(profile.avatar_url);
+  }, [profile.avatar_url]);
+
+  function openAvatarPicker() {
+    setAvatarError("");
+    avatarInputRef.current?.click();
+  }
+
+  function handleAvatarFile(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Choose an image file.");
+      return;
+    }
+    setAvatarEditorSrc(URL.createObjectURL(file));
+    if (avatarInputRef.current) avatarInputRef.current.value = "";
+  }
+
+  function closeAvatarEditor() {
+    if (avatarEditorSrc?.startsWith("blob:")) URL.revokeObjectURL(avatarEditorSrc);
+    setAvatarEditorSrc(null);
+  }
+
+  async function saveAvatar(file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    const response = await fetch("/api/feed/me/avatar", { method: "POST", body });
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      avatarUrl?: string;
+    };
+    if (!response.ok || !data.avatarUrl) {
+      throw new Error(data.error ?? "Unable to update profile photo.");
+    }
+    setAvatarUrl(data.avatarUrl);
+    closeAvatarEditor();
+    router.refresh();
+  }
 
   useEffect(() => {
     if (!hasSubscription || !showSocialActions) return;
@@ -664,18 +711,53 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
 
         <div className="profile-header__panel">
           <div className="profile-header__identity" aria-labelledby="creator-name">
-            <div
-              className="story-avatar profile-header__avatar"
-              style={{ "--story-color": profile.avatar_color } as React.CSSProperties}
-            >
-              {profile.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={profile.avatar_url} alt={profile.name} width={88} height={88} />
-              ) : (
-                profile.avatar_initials
-              )}
+            <div className="profile-header__avatar-slot">
+              <div
+                className="story-avatar profile-header__avatar"
+                style={{ "--story-color": profile.avatar_color } as React.CSSProperties}
+              >
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt={profile.name} width={88} height={88} />
+                ) : (
+                  profile.avatar_initials
+                )}
+              </div>
+              {isOwnProfile ? (
+                <>
+                  <button
+                    type="button"
+                    className="profile-header__avatar-edit"
+                    aria-label="Edit profile photo"
+                    title="Edit profile photo"
+                    onClick={openAvatarPicker}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 20h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                      <path
+                        d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="sr-only"
+                    onChange={(event) => handleAvatarFile(event.target.files)}
+                  />
+                </>
+              ) : null}
             </div>
             <div className="profile-header__info">
+              {avatarError ? (
+                <p className="profile-header__avatar-error" role="alert">
+                  {avatarError}
+                </p>
+              ) : null}
               <h1 id="creator-name">{profile.name}</h1>
               <p className="profile-header__meta">
                 <span>{handle}</span>
@@ -871,6 +953,16 @@ export default function ProfileHeader({ profile, following, onFollowingChange }:
           checkoutHref={`/feed/profile/${profile.slug}/collection/checkout`}
           onClose={() => setCartOpen(false)}
           onChangeItems={updateCart}
+        />
+      ) : null}
+
+      {avatarEditorSrc ? (
+        <ComposerImageEditor
+          src={avatarEditorSrc}
+          title="Edit profile photo"
+          defaultAspectId="1:1"
+          onCancel={closeAvatarEditor}
+          onSave={saveAvatar}
         />
       ) : null}
     </>

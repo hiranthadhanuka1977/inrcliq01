@@ -17,9 +17,7 @@ export function ParentSignupLayout({
   sidebar,
   onLoginSuccess,
   loginEmail,
-  loggedInAccount,
-  onLogout,
-  isLoggingOut = false,
+  loggedIn = false,
 }: {
   stepperStep: number;
   completeCurrentStep?: boolean;
@@ -30,9 +28,7 @@ export function ParentSignupLayout({
   sidebar?: React.ReactNode;
   onLoginSuccess?: (sessionToken: string) => void | Promise<void>;
   loginEmail?: string;
-  loggedInAccount?: { name: string | null; email: string } | null;
-  onLogout?: () => void | Promise<void>;
-  isLoggingOut?: boolean;
+  loggedIn?: boolean;
 }) {
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -58,32 +54,7 @@ export function ParentSignupLayout({
         <div className="app-frame">
           <section className={sectionClass} id={screenId}>
             <AuthTopbar>
-              {loggedInAccount ? (
-                <p className="auth-topbar__account">
-                  <span>
-                    Logged in as{" "}
-                    <span className="auth-topbar__account-name">
-                      {loggedInAccount.name?.trim() || loggedInAccount.email}
-                    </span>
-                  </span>
-                  {loggedInAccount.name?.trim() ? (
-                    <>
-                      <span className="auth-topbar__account-sep" aria-hidden="true">
-                        ·
-                      </span>
-                      <span className="auth-topbar__account-email">{loggedInAccount.email}</span>
-                    </>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="link-btn"
-                    onClick={() => void onLogout?.()}
-                    disabled={isLoggingOut}
-                  >
-                    {isLoggingOut ? "Logging out…" : "Log out"}
-                  </button>
-                </p>
-              ) : (
+              {loggedIn ? null : (
                 <p className="auth-topbar__prompt-text">
                   Already have an account?{" "}
                   <button type="button" className="link-btn" onClick={() => setLoginOpen(true)}>

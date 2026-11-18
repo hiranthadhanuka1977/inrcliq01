@@ -197,32 +197,6 @@ html:has(.verify-email__inbox-btn) .auth-topbar {
   white-space: nowrap;
 }
 
-.auth-topbar__account {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.auth-topbar__account-name {
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.auth-topbar__account-email {
-  max-width: 14rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.auth-topbar__account-sep {
-  color: var(--color-text-tertiary);
-}
-
 .auth-topbar .theme-switcher {
   pointer-events: auto;
 }
@@ -1350,6 +1324,32 @@ html:has(.verify-email__inbox-btn) .auth-topbar {
   height: 18px;
   margin-top: 2px;
   accent-color: var(--color-brand-primary);
+}
+
+.parent-signup__verify-alert {
+  padding: var(--space-4);
+  border: 1px solid #e0b400;
+  border-radius: var(--radius-md);
+  background: #fff8e6;
+  color: #9a7b00;
+}
+
+.parent-signup__verify-alert .parent-signup__confirm {
+  color: inherit;
+}
+
+.parent-signup__verify-alert .parent-signup__confirm input {
+  accent-color: #c49200;
+}
+
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__verify-alert {
+  color: #f5c518;
+  background: rgba(245, 197, 24, 0.12);
+  border-color: rgba(245, 197, 24, 0.55);
+}
+
+html:has(.auth-path-shell):not([data-feed-theme="light"]) .parent-signup__verify-alert .parent-signup__confirm input {
+  accent-color: #f5c518;
 }
 
 .parent-signup__id-notice {
