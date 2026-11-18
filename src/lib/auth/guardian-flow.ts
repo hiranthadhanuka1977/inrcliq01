@@ -39,6 +39,7 @@ export type AuthenticatedGuardianProfile = {
   statusLabel: string;
   emailVerified: boolean;
   ageVerified: boolean;
+  dateOfBirthDisplay: string | null;
   accountTypeLabel: string;
 };
 
@@ -47,6 +48,10 @@ export type GuardianContext = {
   status: ApprovalStatus;
   parentEmail: string;
   isReturningGuardian: boolean;
+  /** Logged-in adult still needs the ID and selfie steps before this approval can finish. */
+  requiresIdentityVerification: boolean;
+  /** Logged-in account cannot approve because identity review was rejected. */
+  identityRejected: boolean;
   authenticatedGuardian: boolean;
   authenticatedGuardianName: string | null;
   authenticatedGuardianEmail: string | null;
@@ -107,8 +112,37 @@ export function buildAuthenticatedGuardianProfile(user: {
     statusLabel,
     emailVerified: Boolean(user.emailVerified),
     ageVerified,
+    dateOfBirthDisplay: user.dateOfBirth ? formatLongDate(user.dateOfBirth) : null,
     accountTypeLabel,
   };
+}
+
+/** Product ID capture is stored as "submitted". Admin review uses accepted | rejected. */
+export const GUARDIAN_IDENTITY_SUBMITTED = "submitted";
+
+type IdentityUser = {
+  accountType: AccountType;
+  onboardingStep: string | null;
+  guardianIdentityStatus: string | null;
+};
+
+/**
+ * Completed guardians, and anyone who already passed ID capture or admin review,
+ * can approve another child without repeating ID and selfie.
+ */
+export function userCanSkipIdentityVerification(user: IdentityUser) {
+  if (user.guardianIdentityStatus === "rejected") return false;
+  if (
+    user.guardianIdentityStatus === "accepted" ||
+    user.guardianIdentityStatus === GUARDIAN_IDENTITY_SUBMITTED
+  ) {
+    return true;
+  }
+  return user.accountType === AccountType.GUARDIAN && user.onboardingStep === "complete";
+}
+
+export function userNeedsIdentityVerification(user: IdentityUser) {
+  return !userCanSkipIdentityVerification(user);
 }
 
 function buildChildContext(child: {
@@ -214,6 +248,8 @@ export async function buildGuardianContext(rawToken: string): Promise<
       status: request.status,
       parentEmail: request.parentEmail,
       isReturningGuardian: Boolean(returningGuardian),
+      requiresIdentityVerification: false,
+      identityRejected: false,
       authenticatedGuardian: false,
       authenticatedGuardianName: null,
       authenticatedGuardianEmail: null,
@@ -309,6 +345,107 @@ export async function createGuardianAccount(
   });
 
   return { ok: true as const, guardianId: guardian.id };
+}
+
+function approverAge(dateOfBirth: Date | null) {
+  if (!dateOfBirth) return null;
+  return calculateAge(
+    dateOfBirth.getMonth() + 1,
+    dateOfBirth.getDate(),
+    dateOfBirth.getFullYear(),
+  );
+}
+
+function existingAccountCanApprove(
+  user: {
+    id: string;
+    email: string;
+    accountType: AccountType;
+    dateOfBirth: Date | null;
+    suspendedAt: Date | null;
+    guardianIdentityStatus: string | null;
+  },
+  parentEmail: string,
+  childUserId: string,
+) {
+  if (user.suspendedAt) return false;
+  if (user.id === childUserId) return false;
+  if (user.accountType === AccountType.MINOR) return false;
+  if (user.guardianIdentityStatus === "rejected") return false;
+  if (user.email.trim().toLowerCase() !== parentEmail.trim().toLowerCase()) return false;
+  const age = approverAge(user.dateOfBirth);
+  if (age != null && age < 18) return false;
+  return user.accountType === AccountType.ADULT || user.accountType === AccountType.GUARDIAN;
+}
+
+/**
+ * Marks the approver as having finished in-product ID and selfie capture.
+ * New guardians are already linked on the request. Existing adults are linked from the session.
+ */
+export async function recordGuardianIdentityCapture(
+  requestId: string,
+  input: { idDocType: IdDocType; sessionUserId: string | null },
+) {
+  const request = await prisma.parentApprovalRequest.findUnique({
+    where: { id: requestId },
+    include: { guardianUser: true },
+  });
+
+  if (!request || request.status !== ApprovalStatus.PENDING) {
+    return { ok: false as const, error: "Invalid or expired approval link." };
+  }
+
+  let target = request.guardianUser;
+
+  if (!target) {
+    if (!input.sessionUserId) {
+      return { ok: false as const, error: "Log in to verify your identity." };
+    }
+    const sessionUser = await prisma.user.findUnique({ where: { id: input.sessionUserId } });
+    if (
+      !sessionUser ||
+      !existingAccountCanApprove(sessionUser, request.parentEmail, request.childUserId)
+    ) {
+      return {
+        ok: false as const,
+        error: "Log in with the invited email to verify your identity.",
+      };
+    }
+    target = sessionUser;
+  }
+
+  if (target.accountType === AccountType.MINOR || target.id === request.childUserId) {
+    return { ok: false as const, error: "A minor account cannot verify as a guardian." };
+  }
+  if (target.guardianIdentityStatus === "rejected") {
+    return {
+      ok: false as const,
+      error: "Identity verification was rejected. You cannot approve a child until it is accepted.",
+    };
+  }
+
+  const nextStatus =
+    target.guardianIdentityStatus === "accepted"
+      ? "accepted"
+      : GUARDIAN_IDENTITY_SUBMITTED;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: target.id },
+      data: { guardianIdentityStatus: nextStatus },
+    });
+    await tx.parentApprovalRequest.update({
+      where: { id: requestId },
+      data: {
+        guardianUserId: target.id,
+        idDocType: input.idDocType,
+        guardianCountry: request.guardianCountry ?? target.country,
+        guardianRegion: request.guardianRegion ?? target.region,
+      },
+    });
+  });
+
+  return { ok: true as const, guardianId: target.id };
 }
 
 export async function declineParentRequestById(requestId: string) {
@@ -467,6 +604,7 @@ export async function completeGuardianApproval(
     childLocationCountry?: string | null;
     childLocationRegion?: string | null;
   },
+  options?: { sessionUserId?: string | null },
 ) {
   const request = await prisma.parentApprovalRequest.findUnique({
     where: { id: requestId },
@@ -502,18 +640,55 @@ export async function completeGuardianApproval(
   let guardianUserId = request.guardianUserId;
   let guardianCountry = request.guardianCountry;
   let guardianRegion = request.guardianRegion;
+  let approver = request.guardianUser;
 
   if (!guardianUserId) {
     const returningGuardian = await findReturningGuardian(request.parentEmail);
-    if (!returningGuardian) {
+    if (returningGuardian) {
+      guardianUserId = returningGuardian.id;
+      guardianCountry = guardianCountry ?? returningGuardian.country;
+      guardianRegion = guardianRegion ?? returningGuardian.region;
+      approver = returningGuardian;
+    } else if (options?.sessionUserId) {
+      const sessionUser = await prisma.user.findUnique({ where: { id: options.sessionUserId } });
+      if (
+        !sessionUser ||
+        !existingAccountCanApprove(sessionUser, request.parentEmail, request.childUserId)
+      ) {
+        return { ok: false as const, error: "Log in with the invited email to finish this approval." };
+      }
+      guardianUserId = sessionUser.id;
+      guardianCountry = guardianCountry ?? sessionUser.country;
+      guardianRegion = guardianRegion ?? sessionUser.region;
+      approver = sessionUser;
+    } else {
       return { ok: false as const, error: "Guardian account not set up yet." };
     }
-    guardianUserId = returningGuardian.id;
-    guardianCountry = guardianCountry ?? returningGuardian.country;
-    guardianRegion = guardianRegion ?? returningGuardian.region;
+  } else if (!approver) {
+    approver = await prisma.user.findUnique({ where: { id: guardianUserId } });
+  }
+
+  if (!approver || !guardianUserId) {
+    return { ok: false as const, error: "Guardian account not set up yet." };
+  }
+
+  if (approver.guardianIdentityStatus === "rejected") {
+    return {
+      ok: false as const,
+      error: "Identity verification was rejected. You cannot approve a child until it is accepted.",
+    };
+  }
+
+  if (!userCanSkipIdentityVerification(approver)) {
+    return {
+      ok: false as const,
+      error: "Complete identity verification before approving this account.",
+    };
   }
 
   const resolvedAt = new Date();
+  const shouldFinishOnboarding =
+    approver.onboardingStep !== "complete" && approver.accountType !== AccountType.ADULT;
 
   await prisma.$transaction(async (tx) => {
     await tx.parentApprovalRequest.update({
@@ -534,7 +709,10 @@ export async function completeGuardianApproval(
     });
     await tx.user.update({
       where: { id: guardianUserId },
-      data: { onboardingStep: "complete" },
+      data: {
+        accountType: AccountType.GUARDIAN,
+        ...(shouldFinishOnboarding ? { onboardingStep: "complete" } : {}),
+      },
     });
     await tx.user.update({
       where: { id: request.childUserId },

@@ -50,6 +50,11 @@
     font-size: var(--font-size-xs);
     line-height: 1.4;
   }
+
+  .auth-topbar__account-email,
+  .auth-topbar__account-sep {
+    display: none;
+  }
 }
 
 @media (max-width: 767px) and (orientation: landscape) {

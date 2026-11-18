@@ -3,7 +3,7 @@ import { verifyPassword } from "@/lib/auth/credentials";
 import { findUserForLogin } from "@/lib/auth/login-code";
 import { getOnboardingRedirect } from "@/lib/auth/onboarding";
 import { getLatestParentRequest } from "@/lib/auth/parent-invite";
-import { createSession } from "@/lib/session";
+import { createSession, createSessionRecord } from "@/lib/session";
 import { parseEmail } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -52,7 +52,10 @@ export async function POST(request: Request) {
       );
     }
 
-    await createSession(userResult.user.id);
+    const tabSession = body.tabSession === true;
+    const sessionToken = tabSession
+      ? await createSessionRecord(userResult.user.id)
+      : await createSession(userResult.user.id);
 
     const parentRequest =
       userResult.user.accountType === "MINOR"
@@ -62,6 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       redirectTo: getOnboardingRedirect(userResult.user, parentRequest),
+      ...(tabSession ? { sessionToken } : {}),
     });
   } catch (error) {
     console.error("login/password error", error);

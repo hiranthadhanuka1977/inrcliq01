@@ -50,6 +50,8 @@ function EyeToggleIcons({ revealed }: { revealed: boolean }) {
 export function ParentAccountStep({
   parentEmail,
   existingGuardian,
+  requiresIdentityVerification = false,
+  identityRejected = false,
   onContinueAsExistingGuardian,
   onLogout,
   onBack,
@@ -60,6 +62,8 @@ export function ParentAccountStep({
 }: {
   parentEmail: string;
   existingGuardian?: AuthenticatedGuardianProfile | null;
+  requiresIdentityVerification?: boolean;
+  identityRejected?: boolean;
   onContinueAsExistingGuardian?: () => void;
   onLogout?: () => void | Promise<void>;
   onBack: () => void;
@@ -111,7 +115,18 @@ export function ParentAccountStep({
             <path d="M14 6l-6 6 6 6" />
           </svg>
         </button>
-        <h1 className="parent-signup__title">Continue with your parent account</h1>
+        <h1 className="parent-signup__title">Continue with your account</h1>
+        {requiresIdentityVerification ? (
+          <p className="subtitle mt-2">
+            This account has not finished identity verification. You&apos;ll confirm your ID before
+            this approval can be completed.
+          </p>
+        ) : null}
+        {identityRejected ? (
+          <p className="field-error mt-2" role="alert">
+            Identity verification was rejected. You cannot approve a child until it is accepted.
+          </p>
+        ) : null}
         <p className="parent-signup__logged-in">
           <span className="parent-signup__logged-in-label">
             You are logged in as <strong>{existingGuardian.name ?? existingGuardian.email}</strong>
@@ -169,9 +184,9 @@ export function ParentAccountStep({
           type="button"
           className="btn btn--primary mt-8"
           onClick={onContinueAsExistingGuardian}
-          disabled={isSubmitting || isLoggingOut}
+          disabled={isSubmitting || isLoggingOut || identityRejected}
         >
-          Continue approval
+          {requiresIdentityVerification ? "Continue to identity verification" : "Continue approval"}
         </button>
 
         {error ? (

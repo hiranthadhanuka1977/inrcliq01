@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { completeGuardianApproval } from "@/lib/auth/guardian-flow";
 import { resolveParentApprovalRequestByToken } from "@/lib/auth/parent-invite";
+import { GUARDIAN_TAB_SESSION_HEADER } from "@/lib/auth/guardian-tab-session";
+import { getSessionUserByToken } from "@/lib/session";
 import type { ProtectionTier } from "@/lib/guardian/constants";
 import { PROTECTION_TIER_LABELS } from "@/lib/guardian/constants";
 import { COUNTRIES, US_STATES } from "@/lib/constants/locations";
@@ -43,12 +45,19 @@ export async function POST(request: Request) {
       }
     }
 
-    const result = await completeGuardianApproval(verification.request.id, {
-      protectionLevel,
-      childLivesWithGuardian,
-      childLocationCountry,
-      childLocationRegion,
-    });
+    const sessionUser = await getSessionUserByToken(
+      request.headers.get(GUARDIAN_TAB_SESSION_HEADER),
+    );
+    const result = await completeGuardianApproval(
+      verification.request.id,
+      {
+        protectionLevel,
+        childLivesWithGuardian,
+        childLocationCountry,
+        childLocationRegion,
+      },
+      { sessionUserId: sessionUser?.id ?? null },
+    );
 
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });

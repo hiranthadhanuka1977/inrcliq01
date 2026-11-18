@@ -95,7 +95,7 @@ export function GuardianLoginModal({
   open: boolean;
   parentEmail?: string;
   onClose: () => void;
-  onSuccess: () => void | Promise<void>;
+  onSuccess: (sessionToken: string) => void | Promise<void>;
 }) {
   const { dialogRef } = useDialogA11y(open, onClose);
 
@@ -108,13 +108,18 @@ export function GuardianLoginModal({
           ×
         </button>
         <h2 id="guardian-login-title">Log in to continue</h2>
-        <p className="subtitle mt-4">Use your existing guardian account, then continue this approval request.</p>
+        <p className="subtitle mt-4">
+          Log in with your InrCliq account. If this account has not finished identity verification,
+          you&apos;ll do that before the approval can be completed.
+        </p>
         <div className="mt-6">
           <LoginForm
             initialEmail={parentEmail ?? ""}
             suppressRedirect
-            onLoggedIn={async () => {
-              await onSuccess();
+            tabSession
+            onLoggedIn={async (sessionToken) => {
+              if (!sessionToken) return;
+              await onSuccess(sessionToken);
               onClose();
             }}
           />

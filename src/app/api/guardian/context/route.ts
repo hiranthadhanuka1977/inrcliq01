@@ -3,8 +3,10 @@ import { AccountType } from "@/generated/prisma/client";
 import {
   buildAuthenticatedGuardianProfile,
   buildGuardianContext,
+  userNeedsIdentityVerification,
 } from "@/lib/auth/guardian-flow";
-import { getSessionUser } from "@/lib/session";
+import { GUARDIAN_TAB_SESSION_HEADER } from "@/lib/auth/guardian-tab-session";
+import { getSessionUserByToken } from "@/lib/session";
 
 function emailsMatch(a: string | null | undefined, b: string | null | undefined) {
   if (!a || !b) return false;
@@ -32,7 +34,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Invalid or expired approval link." }, { status: 400 });
     }
 
-    const sessionUser = await getSessionUser();
+    const sessionUser = await getSessionUserByToken(
+      request.headers.get(GUARDIAN_TAB_SESSION_HEADER),
+    );
     if (sessionUser) {
       const isChildSession =
         sessionUser.accountType === AccountType.MINOR ||
@@ -53,6 +57,11 @@ export async function GET(request: Request) {
         result.context.authenticatedGuardianCountry = profile.country;
         result.context.authenticatedGuardianRegion = profile.region;
         result.context.authenticatedGuardianProfile = profile;
+        const invitedAccount = emailsMatch(sessionUser.email, result.context.parentEmail);
+        result.context.identityRejected =
+          invitedAccount && sessionUser.guardianIdentityStatus === "rejected";
+        result.context.requiresIdentityVerification =
+          invitedAccount && userNeedsIdentityVerification(sessionUser);
       }
     }
 

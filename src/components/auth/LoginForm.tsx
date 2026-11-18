@@ -51,11 +51,14 @@ type LoginMethod = "code" | "password";
 export function LoginForm({
   initialEmail = "",
   suppressRedirect = false,
+  tabSession = false,
   onLoggedIn,
 }: {
   initialEmail?: string;
   suppressRedirect?: boolean;
-  onLoggedIn?: () => void | Promise<void>;
+  /** Approval tab only. Issues a token and does not replace the site login cookie. */
+  tabSession?: boolean;
+  onLoggedIn?: (sessionToken?: string) => void | Promise<void>;
 }) {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -221,7 +224,7 @@ export function LoginForm({
         const response = await fetch("/api/auth/login/verify-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, code }),
+          body: JSON.stringify({ email, code, ...(tabSession ? { tabSession: true } : {}) }),
         });
 
         const data = await response.json();
@@ -231,12 +234,17 @@ export function LoginForm({
           return;
         }
 
+        if (tabSession && typeof data.sessionToken !== "string") {
+          setOtpError("Unable to start a session for this tab.");
+          return;
+        }
+
         sessionStorage.removeItem(LOGIN_CODE_KEY);
         sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
 
         if (suppressRedirect) {
           if (onLoggedIn) {
-            await onLoggedIn();
+            await onLoggedIn(tabSession ? data.sessionToken : undefined);
           } else {
             router.refresh();
           }
@@ -251,7 +259,7 @@ export function LoginForm({
         setIsLoggingIn(false);
       }
     },
-    [email, onLoggedIn, router, suppressRedirect],
+    [email, onLoggedIn, router, suppressRedirect, tabSession],
   );
 
   async function handleEmailSubmit(event: FormEvent) {
@@ -304,7 +312,7 @@ export function LoginForm({
       const response = await fetch("/api/auth/login/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, ...(tabSession ? { tabSession: true } : {}) }),
       });
 
       const data = await response.json();
@@ -314,12 +322,17 @@ export function LoginForm({
         return;
       }
 
+      if (tabSession && typeof data.sessionToken !== "string") {
+        setPasswordError("Unable to start a session for this tab.");
+        return;
+      }
+
       sessionStorage.removeItem(LOGIN_CODE_KEY);
       sessionStorage.removeItem(LOGIN_CODE_EMAIL_KEY);
 
       if (suppressRedirect) {
         if (onLoggedIn) {
-          await onLoggedIn();
+          await onLoggedIn(tabSession ? data.sessionToken : undefined);
         } else {
           router.refresh();
         }

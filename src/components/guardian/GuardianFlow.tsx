@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChildRequestSidebar } from "@/components/guardian/ChildRequestSidebar";
 import { CaptureSuccessModal, DeclineModal } from "@/components/guardian/GuardianModals";
 import { ParentApprovedStep } from "@/components/guardian/ParentApprovedStep";
@@ -15,6 +15,12 @@ import { AuthPageCentered } from "@/components/auth/AuthPageCentered";
 import { ParentSignupLayout } from "@/components/guardian/ParentSignupLayout";
 import { ParentVerifyIntroStep } from "@/components/guardian/ParentVerifyIntroStep";
 import type { GuardianContext } from "@/lib/auth/guardian-flow";
+import {
+  clearGuardianTabSession,
+  guardianTabFetch,
+  readGuardianTabSession,
+  writeGuardianTabSession,
+} from "@/lib/auth/guardian-tab-session";
 import type { IdDocType, ProtectionTier } from "@/lib/guardian/constants";
 
 type GuardianStep =
@@ -48,6 +54,10 @@ export function GuardianFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
+  const tabSessionRef = useRef<string | null>(null);
+  const approvalFetch = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
+    return guardianTabFetch(input, init, tabSessionRef.current);
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -76,21 +86,23 @@ export function GuardianFlow() {
   }, []);
 
   const reloadContext = useCallback(async () => {
-    if (!token) return;
+    if (!token) return null;
     try {
-      const response = await fetch(`/api/guardian/context?token=${encodeURIComponent(token)}`);
+      const response = await approvalFetch(`/api/guardian/context?token=${encodeURIComponent(token)}`);
       const data = await response.json();
 
       if (!response.ok) {
         setLoadError(data.error ?? "Invalid or expired approval link.");
-        return;
+        return null;
       }
 
       applyLoadedContext(data);
+      return data as GuardianContext;
     } catch {
       setLoadError("Unable to load approval request.");
+      return null;
     }
-  }, [applyLoadedContext, token]);
+  }, [applyLoadedContext, approvalFetch, token]);
 
   useEffect(() => {
     let active = true;
@@ -104,7 +116,7 @@ export function GuardianFlow() {
       }
 
       try {
-        const response = await fetch(`/api/guardian/context?token=${encodeURIComponent(token)}`);
+        const response = await approvalFetch(`/api/guardian/context?token=${encodeURIComponent(token)}`);
         const data = await response.json();
 
         if (!active) return;
@@ -125,11 +137,12 @@ export function GuardianFlow() {
       }
     }
 
+    tabSessionRef.current = readGuardianTabSession();
     void loadInitialContext();
     return () => {
       active = false;
     };
-  }, [applyLoadedContext, token]);
+  }, [applyLoadedContext, approvalFetch, token]);
 
   const openDecline = useCallback(() => setDeclineOpen(true), []);
 
@@ -138,7 +151,7 @@ export function GuardianFlow() {
     setSubmitError("");
 
     try {
-      const response = await fetch("/api/guardian/decline", {
+      const response = await approvalFetch("/api/guardian/decline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
@@ -175,6 +188,26 @@ export function GuardianFlow() {
     setStep("account");
   }
 
+  function continueAsLoggedInAccount() {
+    if (!context) return;
+    setSubmitError("");
+
+    if (context.identityRejected) {
+      setSubmitError(
+        "Identity verification was rejected. You cannot approve a child until it is accepted.",
+      );
+      return;
+    }
+
+    if (context.requiresIdentityVerification) {
+      setGuardianCountry(context.authenticatedGuardianCountry ?? context.guardianCountry);
+      setStep("verify-intro");
+      return;
+    }
+
+    setStep("protection");
+  }
+
   async function handleAccountSubmit(data: {
     password: string;
     country: string;
@@ -184,7 +217,7 @@ export function GuardianFlow() {
     setSubmitError("");
 
     try {
-      const response = await fetch("/api/guardian/account", {
+      const response = await approvalFetch("/api/guardian/account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -217,11 +250,13 @@ export function GuardianFlow() {
     setSubmitError("");
 
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
+      const response = await approvalFetch("/api/guardian/session", { method: "DELETE" });
       if (!response.ok) {
         setSubmitError("Unable to log out.");
         return;
       }
+      tabSessionRef.current = null;
+      clearGuardianTabSession();
       await reloadContext();
       setStep("account");
     } catch {
@@ -236,7 +271,7 @@ export function GuardianFlow() {
     setSubmitError("");
 
     try {
-      const response = await fetch("/api/guardian/complete", {
+      const response = await approvalFetch("/api/guardian/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -271,7 +306,26 @@ export function GuardianFlow() {
     }
   }
 
-  const handleVerifyComplete = useCallback(() => setStep("review"), []);
+  const handleVerifyComplete = useCallback(async () => {
+    setSubmitError("");
+    try {
+      const response = await approvalFetch("/api/guardian/identity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, idDocType }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setSubmitError(data.error ?? "Unable to save identity verification.");
+        setStep("face-scan");
+        return;
+      }
+      setStep("review");
+    } catch {
+      setSubmitError("Unable to save identity verification.");
+      setStep("face-scan");
+    }
+  }, [approvalFetch, idDocType, token]);
 
   if (loading) {
     return (
@@ -351,9 +405,26 @@ export function GuardianFlow() {
     );
   }
 
+  const loggedInAccount = context.authenticatedGuardian
+    ? {
+        name: context.authenticatedGuardianProfile?.name ?? context.authenticatedGuardianName,
+        email:
+          context.authenticatedGuardianProfile?.email ??
+          context.authenticatedGuardianEmail ??
+          context.parentEmail,
+      }
+    : null;
+
   if (step === "approved" && completion) {
     return (
-      <ParentSignupLayout stepperStep={5} single completeCurrentStep>
+      <ParentSignupLayout
+        stepperStep={5}
+        single
+        completeCurrentStep
+        loggedInAccount={loggedInAccount}
+        onLogout={handleLogout}
+        isLoggingOut={isLoggingOut}
+      >
         <ParentApprovedStep {...completion} onDone={redirectParentToLanding} />
       </ParentSignupLayout>
     );
@@ -386,13 +457,32 @@ export function GuardianFlow() {
         screenId={step === "account" ? "screen-PAR-02" : undefined}
         sidebar={sidebar}
         loginEmail={context.parentEmail}
-        onLoginSuccess={async () => {
-          await reloadContext();
+        loggedInAccount={loggedInAccount}
+        onLogout={handleLogout}
+        isLoggingOut={isLoggingOut}
+        onLoginSuccess={async (sessionToken) => {
+          tabSessionRef.current = sessionToken;
+          writeGuardianTabSession(sessionToken);
+          const data = await reloadContext();
+          if (!data) return;
+          if (!data.authenticatedGuardian) {
+            setSubmitError("Log in with the email this request was sent to, then continue.");
+            return;
+          }
+          if (data.identityRejected) {
+            setSubmitError(
+              "Identity verification was rejected. You cannot approve a child until it is accepted.",
+            );
+            return;
+          }
+          setSubmitError("");
         }}
       >
         {step === "account" ? (
           <ParentAccountStep
             parentEmail={context.parentEmail}
+            requiresIdentityVerification={context.requiresIdentityVerification}
+            identityRejected={context.identityRejected}
             existingGuardian={
               context.authenticatedGuardian
                 ? context.authenticatedGuardianProfile ?? {
@@ -402,12 +492,13 @@ export function GuardianFlow() {
                     region: context.authenticatedGuardianRegion,
                     statusLabel: "Active",
                     emailVerified: true,
-                    ageVerified: context.isReturningGuardian,
+                    ageVerified: !context.requiresIdentityVerification,
+                    dateOfBirthDisplay: null,
                     accountTypeLabel: "Guardian",
                   }
                 : null
             }
-            onContinueAsExistingGuardian={() => setStep("protection")}
+            onContinueAsExistingGuardian={continueAsLoggedInAccount}
             onLogout={handleLogout}
             onBack={() => setStep("consent")}
             onSubmit={handleAccountSubmit}
@@ -447,11 +538,19 @@ export function GuardianFlow() {
           />
         ) : null}
 
+        {submitError && step !== "account" && step !== "protection" ? (
+          <p className="field-error mt-4" role="alert">
+            {submitError}
+          </p>
+        ) : null}
+
         {step === "review" ? (
           <ParentIdentityReviewStep
             child={context.child}
-            parentName={context.simulatedParentName}
-            parentDob={context.simulatedParentDob}
+            parentName={context.authenticatedGuardianProfile?.name ?? context.simulatedParentName}
+            parentDob={
+              context.authenticatedGuardianProfile?.dateOfBirthDisplay ?? context.simulatedParentDob
+            }
             idDocType={idDocType}
             guardianCountry={guardianCountry}
             idNumber={context.simulatedIdNumber}

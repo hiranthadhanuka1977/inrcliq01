@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export const SESSION_COOKIE = "inrcliq_session";
 const SESSION_MAX_AGE_DAYS = 30;
 
-export async function createSession(userId: string) {
+export async function createSessionRecord(userId: string) {
   const sessionToken = randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + SESSION_MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
 
@@ -16,6 +16,13 @@ export async function createSession(userId: string) {
       expires,
     },
   });
+
+  return sessionToken;
+}
+
+export async function createSession(userId: string) {
+  const sessionToken = await createSessionRecord(userId);
+  const expires = new Date(Date.now() + SESSION_MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
 
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, sessionToken, {
@@ -29,9 +36,7 @@ export async function createSession(userId: string) {
   return sessionToken;
 }
 
-export async function getSessionUser() {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(SESSION_COOKIE)?.value;
+export async function getSessionUserByToken(sessionToken: string | null | undefined) {
   if (!sessionToken) return null;
 
   const session = await prisma.session.findUnique({
@@ -47,6 +52,16 @@ export async function getSessionUser() {
   }
 
   return session.user;
+}
+
+export async function getSessionUser() {
+  const cookieStore = await cookies();
+  return getSessionUserByToken(cookieStore.get(SESSION_COOKIE)?.value);
+}
+
+export async function destroySessionByToken(sessionToken: string | null | undefined) {
+  if (!sessionToken) return;
+  await prisma.session.deleteMany({ where: { sessionToken } });
 }
 
 export async function destroySession() {
