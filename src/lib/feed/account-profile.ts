@@ -48,6 +48,8 @@ export type AccountProfile = {
   emailVerified: boolean;
   accountType: AccountType;
   accountTypeLabel: string;
+  /** True after in-product ID and selfie capture, or after admin acceptance. */
+  identityVerified: boolean;
   dateOfBirth: string | null;
   age: number | null;
   country: string | null;
@@ -318,6 +320,9 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     emailVerified: Boolean(refreshedUser.emailVerified),
     accountType: refreshedUser.accountType,
     accountTypeLabel: accountTypeLabel(refreshedUser.accountType),
+    identityVerified:
+      refreshedUser.guardianIdentityStatus === "accepted" ||
+      refreshedUser.guardianIdentityStatus === "submitted",
     dateOfBirth,
     age,
     country: refreshedUser.country,

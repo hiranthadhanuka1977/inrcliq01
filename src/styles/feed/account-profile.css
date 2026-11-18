@@ -75,7 +75,8 @@
   margin-top: var(--space-5);
 }
 
-.set-handle-prompt .first-post-prompt__actions {
+.set-handle-prompt .first-post-prompt__actions,
+.confirm-adult-prompt .first-post-prompt__actions {
   margin-top: var(--space-4);
 }
 
@@ -98,12 +99,12 @@
 }
 
 /* Compact progressive prompts — fixed ~8px corners (container + CTAs) */
-.first-post-prompt:is(.first-post-prompt-card, .set-handle-prompt, .share-social-prompt) {
+.first-post-prompt:is(.first-post-prompt-card, .set-handle-prompt, .share-social-prompt, .confirm-adult-prompt) {
   --prompt-radius: 8px;
   border-radius: var(--prompt-radius);
 }
 
-.first-post-prompt:is(.first-post-prompt-card, .set-handle-prompt, .share-social-prompt)
+.first-post-prompt:is(.first-post-prompt-card, .set-handle-prompt, .share-social-prompt, .confirm-adult-prompt)
   .first-post-prompt__actions
   .btn {
   border-radius: var(--prompt-radius);
@@ -586,6 +587,40 @@ a.account-profile__person-main:focus-visible {
   color: var(--color-brand-primary);
 }
 
+.account-profile__chip--privacy .protection-tier-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  background-color: currentColor;
+  -webkit-mask-image: var(--protection-tier-mask);
+  mask-image: var(--protection-tier-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.account-profile__chip--privacy .protection-tier-icon img {
+  opacity: 0;
+}
+
+.account-profile__chip--privacy .protection-tier-icon--strict {
+  --protection-tier-mask: url("/iconography/protection-tier-strict.svg");
+}
+
+.account-profile__chip--privacy .protection-tier-icon--standard {
+  --protection-tier-mask: url("/iconography/protection-tier-standard.svg");
+}
+
+.account-profile__chip--privacy .protection-tier-icon--relaxed {
+  --protection-tier-mask: url("/iconography/protection-tier-relaxed.svg");
+}
+
+.account-profile__chip--privacy .protection-tier-icon--unset {
+  --protection-tier-mask: url("/iconography/protection-tier-unset.svg");
+}
+
 .account-profile__chip--verified {
   gap: 0.3rem;
   background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
@@ -629,6 +664,32 @@ a.account-profile__person-main:focus-visible {
   font-weight: 600;
   color: var(--color-text-primary);
   word-break: break-word;
+}
+
+.account-profile__type-line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+}
+
+.account-profile__confirm-adult {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.account-profile__confirm-adult:hover,
+.account-profile__confirm-adult:focus-visible {
+  color: var(--color-text-primary);
 }
 
 .account-profile__value--handle {

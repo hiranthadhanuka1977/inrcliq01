@@ -135,7 +135,22 @@ export default function AccountProfileInfoView({
             />
             <ProfileField label="Location" value={profile.locationLabel ?? "Not provided"} />
             <ProfileField label="Member since" value={profile.memberSince} />
-            <ProfileField label="Account type" value={profile.accountTypeLabel} />
+            <div className="account-profile__field">
+              <dt className="account-profile__label">Account type</dt>
+              <dd className="account-profile__value">
+                <span className="account-profile__type-line">
+                  <span className="account-profile__chip">{profile.accountTypeLabel}</span>
+                  {profile.accountType === "ADULT" && !profile.identityVerified ? (
+                    <span className="account-profile__chip">Not-verified</span>
+                  ) : null}
+                  {profile.accountType === "ADULT" && !profile.identityVerified ? (
+                    <button type="button" className="account-profile__confirm-adult">
+                      Confirm you are an Adult
+                    </button>
+                  ) : null}
+                </span>
+              </dd>
+            </div>
           </dl>
           {emailUpdated ? (
             <p className="account-profile__notice" role="status">

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import FollowButton from "@/components/feed/FollowButton";
 import RemoveFollowerButton from "@/components/feed/account/RemoveFollowerButton";
 import ComposerImageEditor from "@/components/feed/account/ComposerImageEditor";
+import ConfirmAdultPrompt from "@/components/feed/account/ConfirmAdultPrompt";
 import FirstPostPromptCard from "@/components/feed/account/FirstPostPromptCard";
 import SetHandleModal from "@/components/feed/account/SetHandleModal";
 import SetHandlePrompt from "@/components/feed/account/SetHandlePrompt";
@@ -322,6 +323,9 @@ export default function AccountProfileView({
             </div>
             <div className="account-profile__chips">
               <span className="account-profile__chip">{profile.accountTypeLabel}</span>
+              {profile.accountType === "ADULT" && !profile.identityVerified ? (
+                <span className="account-profile__chip">Not-verified</span>
+              ) : null}
               {profile.verified ? (
                 <span className="account-profile__chip account-profile__chip--verified">
                   <svg
@@ -401,6 +405,10 @@ export default function AccountProfileView({
             </Link>
           </div>
         </div>
+
+        {profile.accountType === "ADULT" && !profile.identityVerified ? (
+          <ConfirmAdultPrompt firstName={profile.firstName} dismissKey={profile.id} />
+        ) : null}
 
         {!hasHandle ? (
           <SetHandlePrompt
