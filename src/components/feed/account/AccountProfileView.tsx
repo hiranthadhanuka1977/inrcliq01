@@ -17,6 +17,7 @@ import type {
   AccountSocialPerson,
   AccountSocialTab,
 } from "@/lib/feed/account-profile";
+import { buildProfileCompletion } from "@/lib/feed/profile-completion";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -152,6 +153,14 @@ export default function AccountProfileView({
   }, [profile.handle]);
 
   const hasHandle = Boolean(currentHandle?.trim());
+  const completion = buildProfileCompletion({
+    hasPassword: profile.hasPassword,
+    handle: currentHandle,
+    postCount: profile.postCount,
+    avatarUrl,
+    identityVerified: profile.identityVerified,
+    accountType: profile.accountType,
+  });
 
   function openHandleModal() {
     setHandleModalOpen(true);
@@ -404,6 +413,29 @@ export default function AccountProfileView({
               </svg>
             </Link>
           </div>
+          <Link
+            href="/feed/me/completion"
+            className="account-profile__completion"
+            aria-label={`Profile completion, ${completion.percent} percent. View remaining items.`}
+          >
+            <div className="account-profile__completion-meta">
+              <span>Profile completion</span>
+              <span>{completion.percent}%</span>
+            </div>
+            <div
+              className="account-profile__completion-track"
+              role="progressbar"
+              aria-valuenow={completion.percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Profile completion"
+            >
+              <span
+                className="account-profile__completion-fill"
+                style={{ width: `${completion.percent}%` }}
+              />
+            </div>
+          </Link>
         </div>
 
         {profile.accountType === "ADULT" && !profile.identityVerified ? (

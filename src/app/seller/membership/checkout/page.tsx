@@ -17,6 +17,12 @@ export default async function SellerMembershipCheckoutPage() {
     redirect("/seller");
   }
 
+  const identityVerified =
+    user.guardianIdentityStatus === "accepted" || user.guardianIdentityStatus === "submitted";
+  if (!identityVerified) {
+    redirect("/seller/membership/verify");
+  }
+
   const firstName = user.firstName ?? identity?.displayName?.split(" ")[0] ?? null;
 
   return <SellerMembershipCheckoutView firstName={firstName} />;

@@ -135,23 +135,25 @@ export default function AccountProfileInfoView({
             />
             <ProfileField label="Location" value={profile.locationLabel ?? "Not provided"} />
             <ProfileField label="Member since" value={profile.memberSince} />
-            <div className="account-profile__field">
-              <dt className="account-profile__label">Account type</dt>
-              <dd className="account-profile__value">
-                <span className="account-profile__type-line">
-                  <span className="account-profile__chip">{profile.accountTypeLabel}</span>
-                  {profile.accountType === "ADULT" && !profile.identityVerified ? (
-                    <span className="account-profile__chip">Not-verified</span>
-                  ) : null}
-                  {profile.accountType === "ADULT" && !profile.identityVerified ? (
-                    <button type="button" className="account-profile__confirm-adult">
-                      Confirm you are an Adult
-                    </button>
-                  ) : null}
-                </span>
-              </dd>
-            </div>
           </dl>
+          <section className="account-profile__account-type" aria-labelledby="account-profile-type">
+            <h3 id="account-profile-type" className="account-profile__label">
+              Account type
+            </h3>
+            <div className="account-profile__account-type-row">
+              <span className="account-profile__type-line">
+                <span className="account-profile__chip">{profile.accountTypeLabel}</span>
+                {profile.accountType === "ADULT" && !profile.identityVerified ? (
+                  <span className="account-profile__chip">Not-verified</span>
+                ) : null}
+              </span>
+              {profile.accountType === "ADULT" && !profile.identityVerified ? (
+                <button type="button" className="account-profile__confirm-adult">
+                  Confirm you are an Adult
+                </button>
+              ) : null}
+            </div>
+          </section>
           {emailUpdated ? (
             <p className="account-profile__notice" role="status">
               Your email address is updated.

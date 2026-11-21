@@ -4,10 +4,16 @@ export function ParentVerifyIntroStep({
   onBack,
   onStart,
   isSubmitting,
+  title = "Eligibility verification",
+  subtitle = "Child safety regulations require us to verify that you meet the minimum requirements.",
+  cardText = "Scan your ID and take a selfie; we'll securely match them and confirm your eligibility to set up parental supervision in line with InrCliq's eSafety guidelines.",
 }: {
   onBack: () => void;
   onStart: () => void;
   isSubmitting?: boolean;
+  title?: string;
+  subtitle?: string;
+  cardText?: string;
 }) {
   return (
     <>
@@ -25,10 +31,8 @@ export function ParentVerifyIntroStep({
         </svg>
       </button>
 
-      <h1 className="parent-signup__title">Eligibility verification</h1>
-      <p className="subtitle mt-2">
-        Child safety regulations require us to verify that you meet the minimum requirements.
-      </p>
+      <h1 className="parent-signup__title">{title}</h1>
+      <p className="subtitle mt-2">{subtitle}</p>
 
       <p className="parent-verify__secure-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -48,10 +52,7 @@ export function ParentVerifyIntroStep({
         </span>
         <div className="parent-verify__card-body">
           <h2 className="parent-verify__card-title">ID + Face Scan</h2>
-          <p className="parent-verify__card-text">
-            Scan your ID and take a selfie; we&apos;ll securely match them and confirm your eligibility to set up
-            parental supervision in line with InrCliq&apos;s eSafety guidelines.
-          </p>
+          <p className="parent-verify__card-text">{cardText}</p>
         </div>
       </div>
 

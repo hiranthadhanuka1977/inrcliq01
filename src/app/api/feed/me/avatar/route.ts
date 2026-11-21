@@ -7,6 +7,20 @@ import { storeUploadedFile } from "@/lib/uploads/store-upload";
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
+async function uniqueProfileHandle(base: string) {
+  const root = base.replace(/^@/, "").replace(/[^a-z0-9._-]/g, "").slice(0, 20) || "member";
+  for (let suffix = 0; suffix < 50; suffix += 1) {
+    const extra = suffix === 0 ? "" : String(suffix);
+    const handle = `@${root.slice(0, 24 - extra.length)}${extra}`;
+    const taken = await prisma.userProfile.findFirst({
+      where: { handle: { equals: handle, mode: "insensitive" } },
+      select: { id: true },
+    });
+    if (!taken) return handle;
+  }
+  return `@member${randomBytes(3).toString("hex")}`;
+}
+
 function extensionFor(type: string) {
   if (type === "image/png") return "png";
   if (type === "image/webp") return "webp";
@@ -48,15 +62,19 @@ export async function POST(request: Request) {
       contentType: file.type,
     });
     const avatarUrl = stored.url;
+    const existing = await prisma.userProfile.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+
     const displayName =
       `${user.firstName?.trim() || ""} ${user.lastName?.trim() || ""}`.trim() ||
       user.email.split("@")[0] ||
       "Member";
     const handleBase =
       user.handle?.replace(/^@/, "").trim() ||
-      displayName.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 24) ||
+      displayName.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 20) ||
       `user${user.id.slice(-6)}`;
-    const handle = handleBase.startsWith("@") ? handleBase : `@${handleBase}`;
     const initials = displayName
       .split(/\s+/)
       .filter(Boolean)
@@ -64,11 +82,6 @@ export async function POST(request: Request) {
       .map((part) => part[0] || "")
       .join("")
       .toUpperCase() || "ME";
-
-    const existing = await prisma.userProfile.findUnique({
-      where: { userId: user.id },
-      select: { id: true },
-    });
 
     await prisma.$transaction([
       existing
@@ -80,7 +93,7 @@ export async function POST(request: Request) {
             data: {
               userId: user.id,
               displayName,
-              handle,
+              handle: await uniqueProfileHandle(handleBase),
               avatarInitials: initials,
               avatarColor: "#6b9fff",
               avatarUrl,

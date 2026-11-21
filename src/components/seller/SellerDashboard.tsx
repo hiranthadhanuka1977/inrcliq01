@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MerchArt, ServicesArt, UnlockArt } from "@/components/seller/SellerIllustrations";
 import {
   formatCompactCount,
   formatCompactMoney,
@@ -159,11 +160,15 @@ function ServiceRequestsViewsChart({
 export function SellerDashboard({
   firstName,
   hasSpecialRequests = false,
+  collectionStarted = false,
+  serviceRequestsStarted = false,
   collectionStats,
   serviceRequestsStats,
 }: {
   firstName?: string | null;
   hasSpecialRequests?: boolean;
+  collectionStarted?: boolean;
+  serviceRequestsStarted?: boolean;
   collectionStats: CollectionSummaryStats;
   serviceRequestsStats?: ServiceRequestsSummaryStats | null;
 }) {
@@ -171,21 +176,57 @@ export function SellerDashboard({
   const cards = BASE_CARDS.filter(
     (card) => !card.requiresSpecialRequests || hasSpecialRequests,
   );
+  const showWelcome = !collectionStarted && !serviceRequestsStarted;
 
   return (
     <section className="seller-panel" aria-labelledby="seller-dash-title">
       <div className="seller-panel__head">
         <h1 className="seller-panel__title" id="seller-dash-title">
-          Seller dashboard
+          {showWelcome ? "Start selling" : "Seller dashboard"}
         </h1>
         <p className="seller-panel__subtitle">
-          Welcome back, {name}. Manage your collection
-          {hasSpecialRequests ? " and service request setup" : ""} from this portal.
+          {showWelcome
+            ? `Welcome, ${name}. Your seller tools are open. Start a collection or set up service requests, and your sales will show up here.`
+            : `Welcome back, ${name}. Manage your collection${
+                hasSpecialRequests ? " and service request setup" : ""
+              } from this portal.`}
         </p>
       </div>
 
-      <div className="seller-dash-grid">
+      {showWelcome ? (
+        <div className="seller-verify__hero">
+          <UnlockArt />
+          <div className="seller-verify__hero-copy">
+            <p className="seller-verify__eyebrow">Seller tools</p>
+            <h2 className="seller-verify__path-title">Nothing to chart yet</h2>
+            <p className="seller-verify__lead">
+              Views, sales, and earnings appear after you list something. Pick a collection, a
+              service fans can book, or both.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      <div className={showWelcome ? "seller-dash-start-grid" : "seller-dash-grid"}>
         {cards.map((card) => {
+          const started = card.id === "collection" ? collectionStarted : serviceRequestsStarted;
+          if (!started) {
+            return (
+              <article key={card.href} className="seller-dash-start">
+                {card.id === "collection" ? <MerchArt /> : <ServicesArt />}
+                <h2>{card.title}</h2>
+                <p>
+                  {card.id === "collection"
+                    ? "List physical merch or digital downloads. Fans buy them from your profile, including people who do not follow you yet."
+                    : "Let fans book personalized text, audio, or video. You set the price, the format, and when it is delivered."}
+                </p>
+                <Link href={card.href} className="btn btn--primary">
+                  {card.id === "collection" ? "Start a collection" : "Set up a service"}
+                </Link>
+              </article>
+            );
+          }
+
           const stats =
             card.id === "collection"
               ? collectionStatsList(collectionStats)

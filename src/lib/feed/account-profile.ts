@@ -18,6 +18,7 @@ import {
   listInboundFollowersForUser,
 } from "@/lib/feed/follow-service";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
+import { isChosenPassword } from "@/lib/feed/profile-completion";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
@@ -46,6 +47,7 @@ export type AccountProfile = {
   handle: string | null;
   email: string;
   emailVerified: boolean;
+  hasPassword: boolean;
   accountType: AccountType;
   accountTypeLabel: string;
   /** True after in-product ID and selfie capture, or after admin acceptance. */
@@ -226,6 +228,7 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     creatorRow?.avatarInitials?.trim() ||
     (resolvedFullName.charAt(0).toUpperCase() || avatarInitial);
   const avatarUrl = profileRow?.avatarUrl?.trim() || creatorRow?.avatarUrl?.trim() || null;
+  const handle = refreshedUser.handle?.trim().replace(/^@/, "") || null;
   const avatarColor =
     profileRow?.avatarColor?.trim() || creatorRow?.avatarColor?.trim() || null;
 
@@ -253,7 +256,11 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
       countFollowedCreatorsForUser(refreshedUser.id),
       listInboundFollowersForUser(refreshedUser.id),
       countInboundFollowersForUser(refreshedUser.id),
-      prisma.feedPost.count({ where: { userId: refreshedUser.id } }),
+      prisma.feedPost.count({
+        where: {
+          OR: [{ userId: refreshedUser.id }, { creator: { userId: refreshedUser.id } }],
+        },
+      }),
     ]);
 
   const subscriptions: AccountSocialPerson[] = subscriptionRows.map((row) => ({
@@ -315,9 +322,10 @@ export async function getAccountProfile(): Promise<AccountProfile | null> {
     firstName,
     lastName,
     fullName: resolvedFullName,
-    handle: refreshedUser.handle?.trim() || null,
+    handle,
     email: refreshedUser.email,
     emailVerified: Boolean(refreshedUser.emailVerified),
+    hasPassword: isChosenPassword(refreshedUser.passwordHash),
     accountType: refreshedUser.accountType,
     accountTypeLabel: accountTypeLabel(refreshedUser.accountType),
     identityVerified:

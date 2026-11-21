@@ -1,5 +1,13 @@
 import Link from "next/link";
 import {
+  ExclusiveArt,
+  GrowthArt,
+  MembershipArt,
+  MerchArt,
+  ServicesArt,
+  UnlockArt,
+} from "@/components/seller/SellerIllustrations";
+import {
   VERIFIED_FOLLOWER_THRESHOLD,
   VERIFIED_MEMBERSHIP_PERIOD_LABEL,
   VERIFIED_MEMBERSHIP_PRICE_LABEL,
@@ -8,48 +16,25 @@ import {
 const BENEFITS = [
   {
     title: "Sell merchandise",
-    copy: "Run a Collection storefront for physical merch and digital downloads fans can buy from your profile.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <path d="M16 10a4 4 0 0 1-8 0" />
-      </svg>
-    ),
-  },
-  {
-    title: "Exclusive content",
-    copy: "Share members-only posts and drops that stay behind your verified creator tools.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
-  },
-  {
-    title: "Fan subscriptions",
-    copy: "Offer a paid membership so fans can support you monthly and unlock your exclusive work.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ),
+    copy: "A verified storefront reaches fans beyond the people who already follow you. They can buy physical merch and downloads from your profile.",
+    art: <MerchArt />,
   },
   {
     title: "Custom service requests",
-    copy: "Let fans book personalized text, audio, or video — with pricing, formats, and delivery you control.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-        <path d="m9 16 2 2 4-4" />
-      </svg>
-    ),
+    copy: "Fans book personalized text, audio, or video. You set the price, the format, and when it is delivered.",
+    art: <ServicesArt />,
   },
-] as const;
+  {
+    title: "Fan subscriptions",
+    copy: "A monthly membership gives fans a way to support you and stay close to the work you publish.",
+    art: <MembershipArt />,
+  },
+  {
+    title: "Exclusive content",
+    copy: "Members-only posts and releases stay behind your verified creator tools, so the people who pay see them first.",
+    art: <ExclusiveArt />,
+  },
+];
 
 function formatFollowers(value: number) {
   return value.toLocaleString();
@@ -71,29 +56,33 @@ export function SellerVerifyMarketingView({
   return (
     <section className="seller-verify" aria-labelledby="seller-verify-title">
       <div className="seller-verify__hero">
-        <p className="seller-verify__eyebrow">Verified creators</p>
-        <h1 className="seller-verify__title" id="seller-verify-title">
-          Unlock Seller Tools
-          <svg
-            className="seller-verify__star"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        </h1>
-        <p className="seller-verify__lead">
-          Welcome, {name}. Seller Tools is for verified creators — the people who can sell, publish
-          exclusives, and take custom bookings. Get verified by growing your audience, or skip the
-          wait with membership.
-        </p>
+        <UnlockArt />
+        <div className="seller-verify__hero-copy">
+          <p className="seller-verify__eyebrow">Verified creators</p>
+          <h1 className="seller-verify__title" id="seller-verify-title">
+            Unlock Seller Tools
+            <svg
+              className="seller-verify__star"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </h1>
+          <p className="seller-verify__lead">
+            Welcome, {name}. Seller Tools is for verified creators — the people who can sell to a
+            wider fan base, publish exclusives, and take custom bookings. Grow your audience, or
+            skip the wait with membership.
+          </p>
+        </div>
       </div>
 
       <div className="seller-verify__paths" aria-label="How to become verified">
         <article className="seller-verify__path">
+          <GrowthArt />
           <p className="seller-verify__path-kicker">Path 1</p>
           <h2 className="seller-verify__path-title">Reach {formatFollowers(goal)} followers</h2>
           <p className="seller-verify__path-copy">
@@ -125,6 +114,7 @@ export function SellerVerifyMarketingView({
         </article>
 
         <article className="seller-verify__path seller-verify__path--featured" id="verified-membership">
+          <MembershipArt />
           <p className="seller-verify__path-kicker">Path 2</p>
           <h2 className="seller-verify__path-title">Pay for Verified membership</h2>
           <p className="seller-verify__path-copy">
@@ -135,7 +125,7 @@ export function SellerVerifyMarketingView({
             <strong>{VERIFIED_MEMBERSHIP_PRICE_LABEL}</strong>
             <span> / {VERIFIED_MEMBERSHIP_PERIOD_LABEL}</span>
           </p>
-          <Link href="/seller/membership/checkout" className="btn btn--primary">
+          <Link href="/seller/membership/verify" className="btn btn--primary">
             Subscribe
           </Link>
         </article>
@@ -146,7 +136,7 @@ export function SellerVerifyMarketingView({
         <ul className="seller-verify__benefit-grid">
           {BENEFITS.map((benefit) => (
             <li key={benefit.title} className="seller-verify__benefit">
-              <span className="seller-verify__benefit-icon">{benefit.icon}</span>
+              {benefit.art}
               <h3>{benefit.title}</h3>
               <p>{benefit.copy}</p>
             </li>

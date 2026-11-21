@@ -122,10 +122,151 @@
 
 .account-profile__hero {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-5);
   padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.account-profile__completion {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.account-profile__completion:hover,
+.account-profile__completion:focus-visible {
+  background: var(--color-bg-subtle);
+}
+
+.account-profile__completion:hover .account-profile__completion-fill,
+.account-profile__completion:focus-visible .account-profile__completion-fill {
+  background: var(--color-brand-primary-hover);
+}
+
+.account-profile__completion-list {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.account-profile__completion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+}
+
+.account-profile__completion-item-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.account-profile__completion-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
+  color: var(--color-brand-primary);
+}
+
+.account-profile__completion-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.account-profile__completion-item-copy {
+  min-width: 0;
+}
+
+.account-profile__completion-item-label {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.account-profile__completion-item-intro {
+  margin: 0.15rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.account-profile__completion-item-status {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.account-profile__completion-tick {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-success);
+}
+
+.account-profile__completion-tick svg {
+  width: 100%;
+  height: 100%;
+}
+
+.account-profile__completion-tick circle {
+  fill: color-mix(in srgb, var(--color-success) 16%, transparent);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.account-profile__completion-tick path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.account-profile__completion-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.account-profile__completion-track {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-200);
+}
+
+.account-profile__completion-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-brand-primary);
 }
 
 .account-profile__hero-copy {
@@ -666,6 +807,22 @@ a.account-profile__person-main:focus-visible {
   word-break: break-word;
 }
 
+.account-profile__account-type {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.account-profile__account-type-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .account-profile__type-line {
   display: inline-flex;
   flex-wrap: wrap;
@@ -674,22 +831,26 @@ a.account-profile__person-main:focus-visible {
 }
 
 .account-profile__confirm-adult {
-  display: inline;
-  padding: 0;
-  border: 0;
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 2rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  border-radius: 8px;
+  background: transparent;
   font: inherit;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-brand-primary);
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-decoration: none;
 }
 
 .account-profile__confirm-adult:hover,
 .account-profile__confirm-adult:focus-visible {
-  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  color: var(--color-brand-primary);
 }
 
 .account-profile__value--handle {
@@ -2692,6 +2853,10 @@ a.account-profile__person-main:focus-visible {
 
   .account-profile__hero {
     align-items: flex-start;
+  }
+
+  .account-profile__completion-item {
+    flex-wrap: wrap;
   }
 
   .account-profile__grid {

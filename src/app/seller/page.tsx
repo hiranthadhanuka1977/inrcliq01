@@ -37,11 +37,16 @@ export default async function SellerDashboardPage() {
     serviceRequestsConfig != null
       ? getServiceRequestsSummaryStats(serviceRequestsConfig.content, bookings, slug)
       : null;
+  const collectionStarted = collectionStats.products > 0;
+  const serviceRequestsStarted =
+    (serviceRequestsConfig?.content.categories.length ?? 0) > 0 || bookings.length > 0;
 
   return (
     <SellerDashboard
       firstName={firstName}
       hasSpecialRequests={Boolean(identity.hasSpecialRequests)}
+      collectionStarted={collectionStarted}
+      serviceRequestsStarted={serviceRequestsStarted}
       collectionStats={collectionStats}
       serviceRequestsStats={serviceRequestsStats}
     />

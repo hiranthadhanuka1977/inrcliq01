@@ -248,23 +248,22 @@ export default function ComposerImageEditor({
     setError("");
     try {
       const natural = rotatedSize(image.naturalWidth, image.naturalHeight, rotation);
+      const longestSide = Math.max(natural.w, natural.h);
+      const scale = longestSide > 2048 ? 2048 / longestSide : 1;
+      const canvasW = Math.max(1, Math.round(natural.w * scale));
+      const canvasH = Math.max(1, Math.round(natural.h * scale));
       const rotated = document.createElement("canvas");
-      rotated.width = natural.w;
-      rotated.height = natural.h;
+      rotated.width = canvasW;
+      rotated.height = canvasH;
       const rotatedCtx = rotated.getContext("2d");
       if (!rotatedCtx) throw new Error("Could not edit this image.");
-      rotatedCtx.translate(natural.w / 2, natural.h / 2);
+      rotatedCtx.translate(canvasW / 2, canvasH / 2);
       rotatedCtx.rotate((rotation * Math.PI) / 180);
+      rotatedCtx.scale(scale, scale);
       rotatedCtx.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
 
-      let outW = Math.round(crop.w * natural.w);
-      let outH = Math.round(crop.h * natural.h);
-      const longest = Math.max(outW, outH);
-      if (longest > 2048) {
-        const scale = 2048 / longest;
-        outW = Math.max(1, Math.round(outW * scale));
-        outH = Math.max(1, Math.round(outH * scale));
-      }
+      const outW = Math.max(1, Math.round(crop.w * canvasW));
+      const outH = Math.max(1, Math.round(crop.h * canvasH));
 
       const output = document.createElement("canvas");
       output.width = outW;
@@ -273,10 +272,10 @@ export default function ComposerImageEditor({
       if (!outputCtx) throw new Error("Could not edit this image.");
       outputCtx.drawImage(
         rotated,
-        crop.x * natural.w,
-        crop.y * natural.h,
-        crop.w * natural.w,
-        crop.h * natural.h,
+        crop.x * canvasW,
+        crop.y * canvasH,
+        crop.w * canvasW,
+        crop.h * canvasH,
         0,
         0,
         outW,
