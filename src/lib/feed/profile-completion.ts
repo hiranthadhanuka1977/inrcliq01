@@ -26,7 +26,7 @@ export type ProfileCompletionItem = {
 };
 
 export function buildProfileCompletion(input: ProfileCompletionInput) {
-  const items: ProfileCompletionItem[] = [
+  const allItems: ProfileCompletionItem[] = [
     {
       id: "password",
       label: "Password setup",
@@ -67,7 +67,8 @@ export function buildProfileCompletion(input: ProfileCompletionInput) {
       actionLabel: null,
       href: null,
     },
-  ].filter((item) => item.id !== "adult" || input.accountType !== "MINOR");
+  ];
+  const items = allItems.filter((item) => item.id !== "adult" || input.accountType !== "MINOR");
 
   const doneCount = items.filter((item) => item.done).length;
   const percent = items.length === 0 ? 0 : Math.round((doneCount / items.length) * 100);
