@@ -185,6 +185,7 @@ model User {
   authoredFeedPosts              FeedPost[]
   profile                        UserProfile?
   emailChangeRequests            EmailChangeRequest[]
+  passwordChangeCodes            PasswordChangeCode[]
   specialRequestCatalog          SpecialRequestCatalog?
   studioShows                    StudioShow[]
   studioProjects                 StudioProject[]
@@ -222,6 +223,19 @@ model Session {
   createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordChangeCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model LoginCode {

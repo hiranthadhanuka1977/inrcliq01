@@ -4,6 +4,7 @@ export function ParentVerifyIntroStep({
   onBack,
   onStart,
   isSubmitting,
+  disabled,
   title = "Eligibility verification",
   subtitle = "Child safety regulations require us to verify that you meet the minimum requirements.",
   cardText = "Scan your ID and take a selfie; we'll securely match them and confirm your eligibility to set up parental supervision in line with InrCliq's eSafety guidelines.",
@@ -11,6 +12,7 @@ export function ParentVerifyIntroStep({
   onBack: () => void;
   onStart: () => void;
   isSubmitting?: boolean;
+  disabled?: boolean;
   title?: string;
   subtitle?: string;
   cardText?: string;
@@ -56,7 +58,7 @@ export function ParentVerifyIntroStep({
         </div>
       </div>
 
-      <button type="button" className="btn btn--primary mt-8" onClick={onStart} disabled={isSubmitting}>
+      <button type="button" className="btn btn--primary mt-8" onClick={onStart} disabled={isSubmitting || disabled}>
         {isSubmitting ? "Starting…" : "Start verification"}
       </button>
 

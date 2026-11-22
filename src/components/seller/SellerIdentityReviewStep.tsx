@@ -12,6 +12,8 @@ export function SellerIdentityReviewStep({
   idDocType,
   isSubmitting,
   onContinue,
+  continueLabel = "Continue to payment",
+  note = "Check these details before you pay. They were read from the ID you just captured.",
 }: {
   fullName: string;
   dateOfBirthDisplay: string;
@@ -20,6 +22,8 @@ export function SellerIdentityReviewStep({
   idDocType: IdDocType;
   isSubmitting?: boolean;
   onContinue: () => void;
+  continueLabel?: string;
+  note?: string;
 }) {
   const [idRevealed, setIdRevealed] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -105,7 +109,7 @@ export function SellerIdentityReviewStep({
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
-        <p>Check these details before you pay. They were read from the ID you just captured.</p>
+        <p>{note}</p>
       </div>
 
       <label className="parent-signup__confirm identity-review__confirm mt-8">
@@ -119,7 +123,7 @@ export function SellerIdentityReviewStep({
         disabled={!confirmed || isSubmitting}
         onClick={onContinue}
       >
-        {isSubmitting ? "Continuing…" : "Continue to payment"}
+        {isSubmitting ? "Continuing…" : continueLabel}
       </button>
     </div>
   );

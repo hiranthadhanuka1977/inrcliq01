@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 
 const STORAGE_KEY = "inrcliq:confirm-adult-prompt-dismissed";
@@ -57,9 +58,9 @@ export default function ConfirmAdultPrompt({
         Confirm with an ID and a selfie that you are 18 or older.
       </p>
       <div className="first-post-prompt__actions">
-        <button type="button" className="btn btn--primary btn--sm first-post-prompt__cta">
+        <Link href="/feed/me/adult" className="btn btn--primary btn--sm first-post-prompt__cta">
           Confirm you are an Adult
-        </button>
+        </Link>
         <button type="button" className="first-post-prompt__later" onClick={dismiss}>
           Later
         </button>

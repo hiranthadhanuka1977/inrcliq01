@@ -148,9 +148,9 @@ export default function AccountProfileInfoView({
                 ) : null}
               </span>
               {profile.accountType === "ADULT" && !profile.identityVerified ? (
-                <button type="button" className="account-profile__confirm-adult">
+                <Link href="/feed/me/adult" className="account-profile__confirm-adult">
                   Confirm you are an Adult
-                </button>
+                </Link>
               ) : null}
             </div>
           </section>

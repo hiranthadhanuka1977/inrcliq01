@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { CaptureSuccessModal } from "@/components/guardian/GuardianModals";
 import { ParentIdentityVerifyStep } from "@/components/guardian/ParentIdentityVerifyStep";
 import { ParentFaceScanStep, ParentIdCaptureStep } from "@/components/guardian/ParentIdVerifySteps";
-import { ParentVerifyIntroStep } from "@/components/guardian/ParentVerifyIntroStep";
+import { AgeIdVerifyStep } from "@/components/identity/AgeIdVerifyStep";
+import { SellerIdentityReviewStep } from "@/components/seller/SellerIdentityReviewStep";
 import {
   AgeCheckArt,
   ExclusiveArt,
@@ -13,7 +14,6 @@ import {
   MerchArt,
   ServicesArt,
 } from "@/components/seller/SellerIllustrations";
-import { SellerIdentityReviewStep } from "@/components/seller/SellerIdentityReviewStep";
 import type { IdDocType } from "@/lib/guardian/constants";
 
 type Step = "consent" | "verify-intro" | "id-capture" | "face-scan" | "verifying" | "review";
@@ -185,12 +185,10 @@ export function SellerMembershipVerifyView({
       ) : null}
 
       {step === "verify-intro" ? (
-        <ParentVerifyIntroStep
+        <AgeIdVerifyStep
           onBack={() => setStep("consent")}
           onStart={() => setStep("id-capture")}
-          title="Age verification"
-          subtitle="Verified membership requires you to be 18 or older. We'll check that with your ID and a selfie."
-          cardText="Scan your ID and take a selfie. We'll match them and confirm you are old enough to pay for Verified membership."
+          disabled={identityRejected}
         />
       ) : null}
 

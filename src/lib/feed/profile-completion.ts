@@ -20,7 +20,7 @@ export type ProfileCompletionItem = {
   label: string;
   intro: string;
   done: boolean;
-  /** Shown only while the item is still open. Adult confirmation has no action yet. */
+  /** Shown only while the item is still open. */
   actionLabel: string | null;
   href: string | null;
 };
@@ -64,8 +64,8 @@ export function buildProfileCompletion(input: ProfileCompletionInput) {
       label: "Confirm you are an adult",
       intro: "Show this account is 18 or older.",
       done: input.identityVerified,
-      actionLabel: null,
-      href: null,
+      actionLabel: "Confirm",
+      href: "/feed/me/adult",
     },
   ];
   const items = allItems.filter((item) => item.id !== "adult" || input.accountType !== "MINOR");

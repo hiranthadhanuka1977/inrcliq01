@@ -156,7 +156,7 @@ export function SellerMembershipCheckoutView({
             />
           </Link>
 
-          <Link href="/seller#verified-membership" className="stripe-checkout__back">
+          <Link href="/seller/membership/plan" className="stripe-checkout__back">
             <svg
               width="16"
               height="16"

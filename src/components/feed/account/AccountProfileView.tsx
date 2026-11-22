@@ -412,6 +412,17 @@ export default function AccountProfileView({
                 <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
               </svg>
             </Link>
+            <Link
+              href="/feed/me/settings"
+              className="account-profile__edit"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </svg>
+            </Link>
           </div>
           <Link
             href="/feed/me/completion"

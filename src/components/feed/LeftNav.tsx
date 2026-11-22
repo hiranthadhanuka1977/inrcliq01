@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PasswordOtpNoticeButton } from "@/components/feed/account/PasswordOtpNoticeButton";
 import ThemeSwitcher from "@/components/feed/ThemeSwitcher";
 import CreatePostModal from "@/components/feed/account/CreatePostModal";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
@@ -160,12 +161,7 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
           </div>
           <div className="left-nav__header-actions">
             <ThemeSwitcher />
-            <a className="nav-notify" href="#" aria-label="Notifications">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-              <span className="nav-notify__dot" aria-hidden="true" />
-            </a>
+            <PasswordOtpNoticeButton />
           </div>
         </div>
         <nav>

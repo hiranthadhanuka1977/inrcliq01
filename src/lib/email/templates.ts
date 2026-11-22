@@ -107,6 +107,24 @@ export function buildLoginCodeEmail(code: string) {
   return { subject, text, html };
 }
 
+export function buildPasswordChangeCodeEmail(code: string) {
+  const subject = "Your InrCliq password code";
+  const text = `Your InrCliq password change code is ${code}. It expires in 10 minutes.\n\nIf you did not try to change your password, you can ignore this email.`;
+  const html = layout(
+    subject,
+    `<h1 style="margin:0 0 12px;font-size:24px;line-height:1.2;">Your password code</h1>
+     <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#484848;">
+       Enter this one-time code to choose a new password:
+     </p>
+     <p style="margin:0;font-size:32px;font-weight:700;letter-spacing:0.24em;color:${BRAND_COLOR};">${escapeHtml(code)}</p>
+     <p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#717171;">
+       This code expires in 10 minutes. If you did not try to change your password, you can ignore this email.
+     </p>`,
+  );
+
+  return { subject, text, html };
+}
+
 export function buildMinorActivationCodeEmail(params: {
   firstName: string;
   code: string;

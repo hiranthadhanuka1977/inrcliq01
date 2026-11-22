@@ -43,9 +43,11 @@ function formatFollowers(value: number) {
 export function SellerVerifyMarketingView({
   firstName,
   followerCount,
+  identityVerified = false,
 }: {
   firstName?: string | null;
   followerCount: number;
+  identityVerified?: boolean;
 }) {
   const name = firstName?.trim() || "Creator";
   const goal = VERIFIED_FOLLOWER_THRESHOLD;
@@ -125,7 +127,10 @@ export function SellerVerifyMarketingView({
             <strong>{VERIFIED_MEMBERSHIP_PRICE_LABEL}</strong>
             <span> / {VERIFIED_MEMBERSHIP_PERIOD_LABEL}</span>
           </p>
-          <Link href="/seller/membership/verify" className="btn btn--primary">
+          <Link
+            href={identityVerified ? "/seller/membership/plan" : "/seller/membership/verify"}
+            className="btn btn--primary"
+          >
             Subscribe
           </Link>
         </article>

@@ -1,5 +1,6 @@
 import { SellerDashboard } from "@/components/seller/SellerDashboard";
 import { SellerVerifyMarketingView } from "@/components/seller/SellerVerifyMarketingView";
+import { hasCompletedAdultIdentity } from "@/lib/auth/adult-identity";
 import { getCreatorCollectionRaw } from "@/lib/feed/collection";
 import { getSessionUser } from "@/lib/session";
 import { listSellerBookings } from "@/lib/seller/bookings";
@@ -19,7 +20,13 @@ export default async function SellerDashboardPage() {
 
   if (!identity?.verified) {
     const followerCount = user?.id ? await countInboundFollowersForUser(user.id) : 0;
-    return <SellerVerifyMarketingView firstName={firstName} followerCount={followerCount} />;
+    return (
+      <SellerVerifyMarketingView
+        firstName={firstName}
+        followerCount={followerCount}
+        identityVerified={hasCompletedAdultIdentity(user?.guardianIdentityStatus)}
+      />
+    );
   }
 
   const slug = identity.slug;

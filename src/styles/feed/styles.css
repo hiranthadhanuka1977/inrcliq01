@@ -17,6 +17,8 @@
 }
 
 .left-nav__header {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -32,14 +34,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 0;
+  padding: 0;
   border-radius: var(--radius-md);
+  background: transparent;
   color: var(--color-text-secondary);
+  cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .nav-notify:hover {
   background: var(--color-neutral-100);
   color: var(--color-text-primary);
+}
+
+.nav-notify--alert,
+.nav-notify--alert:hover {
+  color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
 }
 
 .nav-notify svg {
@@ -56,6 +68,103 @@
   border-radius: 999px;
   background: #ef4444;
   border: 2px solid var(--color-bg-page);
+}
+
+.password-otp-notice {
+  position: relative;
+  z-index: 6;
+}
+
+.password-otp-notice--corner {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--layout-content-padding-sm);
+  z-index: var(--z-toast);
+}
+
+.password-otp-notice--corner .verify-email__inbox-btn {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+@media (min-width: 768px) {
+  .password-otp-notice--corner {
+    top: var(--space-6);
+    right: clamp(var(--space-6), 4vw, var(--space-10));
+  }
+}
+
+.password-otp-notice__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 30;
+  width: min(18rem, calc(100vw - 2rem));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-page);
+  box-shadow: var(--shadow-md);
+  text-align: left;
+}
+
+.left-nav .password-otp-notice__panel {
+  width: calc(var(--nav-width) - (var(--space-5) * 2));
+  max-width: calc(var(--nav-width) - (var(--space-5) * 2));
+}
+
+.password-otp-notice__label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.password-otp-notice__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.password-otp-notice__copy {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.password-otp-notice__code {
+  margin: 0;
+  padding: 0.65rem 0.5rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, var(--color-bg-page));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-align: center;
+  color: var(--color-brand-primary);
+  user-select: all;
+}
+
+.left-nav .password-otp-notice__code {
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
+}
+
+.password-otp-notice__panel .btn {
+  width: 100%;
 }
 
 .dot {

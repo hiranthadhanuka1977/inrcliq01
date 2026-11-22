@@ -2,6 +2,7 @@ import { getAppUrl } from "@/lib/api-helpers";
 import { sendEmailSafely } from "@/lib/email/send";
 import {
   buildLoginCodeEmail,
+  buildPasswordChangeCodeEmail,
   buildParentApprovedChildEmail,
   buildParentDeclinedChildEmail,
   buildMinorActivationCodeEmail,
@@ -24,6 +25,11 @@ export async function sendEmailChangeEmail(email: string, verifyUrl: string) {
 export async function sendLoginCodeEmail(email: string, code: string) {
   const message = buildLoginCodeEmail(code);
   return sendEmailSafely({ to: email, ...message }, "login-code");
+}
+
+export async function sendPasswordChangeCodeEmail(email: string, code: string) {
+  const message = buildPasswordChangeCodeEmail(code);
+  return sendEmailSafely({ to: email, ...message }, "password-change-code");
 }
 
 export async function sendMinorActivationCodeEmail(

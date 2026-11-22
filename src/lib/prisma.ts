@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump whenever Prisma models change so the Next.js global singleton is discarded. */
-const PRISMA_SCHEMA_VERSION = "20261116060000_direct_message_requests";
+const PRISMA_SCHEMA_VERSION = "20261122020000_password_change_code";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -49,7 +49,8 @@ function hasRequiredModels(client: PrismaClient | undefined): client is PrismaCl
       typeof client.safetyAuditEvent?.create === "function" &&
       typeof client.feedPartnerKey?.findUnique === "function" &&
       typeof client.studioProject?.findMany === "function" &&
-      typeof client.emailChangeRequest?.findFirst === "function",
+      typeof client.emailChangeRequest?.findFirst === "function" &&
+      typeof client.passwordChangeCode?.findFirst === "function",
   );
 }
 
@@ -65,7 +66,7 @@ export function getPrisma(): PrismaClient {
 
   if (!hasRequiredModels(client)) {
     throw new Error(
-      "Prisma client is missing required models (FeedBookmark / UserProfile). Run `npx prisma generate` and restart the Next.js dev server.",
+      "Prisma client is missing required models. Run `npx prisma generate` and restart the Next.js dev server.",
     );
   }
 

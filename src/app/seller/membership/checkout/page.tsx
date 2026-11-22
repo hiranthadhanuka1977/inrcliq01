@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { SellerMembershipCheckoutView } from "@/components/seller/SellerMembershipCheckoutView";
+import { hasCompletedAdultIdentity } from "@/lib/auth/adult-identity";
 import { getSessionUser } from "@/lib/session";
 import { getSellerIdentity } from "@/lib/seller/identity";
 
@@ -17,9 +18,7 @@ export default async function SellerMembershipCheckoutPage() {
     redirect("/seller");
   }
 
-  const identityVerified =
-    user.guardianIdentityStatus === "accepted" || user.guardianIdentityStatus === "submitted";
-  if (!identityVerified) {
+  if (!hasCompletedAdultIdentity(user.guardianIdentityStatus)) {
     redirect("/seller/membership/verify");
   }
 
