@@ -52,7 +52,7 @@ export function SellerMembershipVerifyView({
         setError(data.error ?? "Unable to save age verification.");
         return;
       }
-      router.push("/seller/membership/checkout");
+      router.push("/seller/membership/plan");
     } catch {
       setError("Unable to save age verification.");
     } finally {
