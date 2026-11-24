@@ -1,5 +1,5 @@
-import { AccountType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { canAccessFamilyCircle } from "@/lib/guardian/family-circle-access";
 import { getSessionUser } from "@/lib/session";
 import { resolveUserDisplayName, resolveUserFirstName } from "@/lib/auth/display-name";
 import { ensureGuardianUserNames } from "@/lib/auth/guardian-user-names";
@@ -92,7 +92,7 @@ export async function getSessionNavProfile(): Promise<SessionNavProfile> {
     avatarUrl: profile?.avatarUrl?.trim() || creator?.avatarUrl?.trim() || null,
     avatarColor: profile?.avatarColor?.trim() || creator?.avatarColor?.trim() || null,
     verified: Boolean(profile?.verified || creator?.verified),
-    isGuardian: refreshedUser.accountType === AccountType.GUARDIAN,
+    isGuardian: await canAccessFamilyCircle(refreshedUser),
     profileHref: resolveSessionProfileHref(
       profile?.slug ?? creator?.slug,
       refreshedUser.handle ?? profile?.handle ?? creator?.handle,

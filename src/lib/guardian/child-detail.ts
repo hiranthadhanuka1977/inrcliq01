@@ -239,7 +239,7 @@ export const getChildDetailForGuardian = cache(async function getChildDetailForG
   childUserId: string,
 ): Promise<ChildDetailData | null> {
   const user = await getSessionUser();
-  if (!user || user.accountType !== AccountType.GUARDIAN) return null;
+  if (!user) return null;
 
   const link = await prisma.guardianChildLink.findUnique({
     where: {
@@ -536,7 +536,7 @@ export async function getChildDmContactDetailForGuardian(
   threadId: string,
 ): Promise<ChildDmContactDetailData | null> {
   const user = await getSessionUser();
-  if (!user || user.accountType !== AccountType.GUARDIAN) return null;
+  if (!user) return null;
 
   const link = await prisma.guardianChildLink.findUnique({
     where: {

@@ -77,6 +77,16 @@ function bookingDetailsTab(
   return actor === participant ? "outbound" : "inbound";
 }
 
+function canEditMessage(message: Conversation["messages"][number]) {
+  return (
+    message.sender === "me" &&
+    !message.booking &&
+    !message.bookingNote &&
+    !message.postShare &&
+    !message.attachment
+  );
+}
+
 function requestDeliveryNote(message: Conversation["messages"][number]) {
   if (message.sender !== "me") return null;
   if (message.deliveryStatus === "REQUEST_PENDING") {
@@ -219,6 +229,10 @@ export default function MessagesView({
   const [query, setQuery] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [messageMenuId, setMessageMenuId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState<"me" | "everyone" | null>(null);
   const [pendingFiles, setPendingFiles] = useState<
     { id: string; name: string; mime: string; size: number; url?: string; error?: string }[]
   >([]);
@@ -277,7 +291,21 @@ export default function MessagesView({
     setThreadSearchOpen(false);
     setThreadQuery("");
     setActionNotice(null);
+    setMessageMenuId(null);
+    setEditingMessageId(null);
+    setDeleteMessageId(null);
+    setDraft("");
   }
+  useEffect(() => {
+    if (!messageMenuId) return;
+    const close = (event: MouseEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".messages-bubble__actions")) return;
+      setMessageMenuId(null);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [messageMenuId]);
   const [pendingScroll, setPendingScroll] = useState<{
     bookingId: string;
     latest: boolean;
@@ -986,6 +1014,9 @@ export default function MessagesView({
       return;
     }
 
+    const isEdit = Boolean(editingMessageId);
+    if (isEdit && !trimmed) return;
+
     setSending(true);
     setError(null);
     if (!opts?.acceptModeration) {
@@ -993,15 +1024,20 @@ export default function MessagesView({
     }
 
     try {
-      const response = await fetch(`/api/feed/messages/${activeConversation.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          body: trimmed,
-          ...(files.length ? { attachments: files } : {}),
-          ...(opts?.acceptModeration ? { acceptModeration: true } : {}),
-        }),
-      });
+      const response = await fetch(
+        isEdit
+          ? `/api/feed/messages/${activeConversation.id}/messages/${editingMessageId}`
+          : `/api/feed/messages/${activeConversation.id}`,
+        {
+          method: isEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            body: trimmed,
+            ...(!isEdit && files.length ? { attachments: files } : {}),
+            ...(opts?.acceptModeration ? { acceptModeration: true } : {}),
+          }),
+        },
+      );
       const payload = (await response.json().catch(() => null)) as {
         error?: string;
         code?: string;
@@ -1058,13 +1094,14 @@ export default function MessagesView({
         throw new Error(
           payload?.error?.trim() ||
             (response.status === 500
-              ? "Could not send message. If this keeps happening, restart the app and try again."
-              : "Could not send message."),
+              ? `Could not ${isEdit ? "edit" : "send"} message. If this keeps happening, restart the app and try again.`
+              : `Could not ${isEdit ? "edit" : "send"} message.`),
         );
       }
 
       setDraft("");
       setPendingFiles([]);
+      setEditingMessageId(null);
       setModerationWarning(null);
       if (payload.enforcement) {
         setEnforcementNotice({
@@ -1086,10 +1123,56 @@ export default function MessagesView({
       setPendingScroll({ bookingId: "", latest: true });
     } catch (err) {
       setDraft(trimmed);
-      setError(err instanceof Error ? err.message : "Could not send message.");
+      setError(err instanceof Error ? err.message : `Could not ${isEdit ? "edit" : "send"} message.`);
     } finally {
       refocusComposerRef.current = true;
       setSending(false);
+    }
+  }
+
+  function beginEditMessage(message: Conversation["messages"][number]) {
+    setMessageMenuId(null);
+    setDeleteMessageId(null);
+    setModerationWarning(null);
+    setPendingFiles([]);
+    setEditingMessageId(message.id);
+    setDraft(message.body);
+    composerInputRef.current?.focus();
+  }
+
+  function cancelEditMessage() {
+    setEditingMessageId(null);
+    setDraft("");
+    setModerationWarning(null);
+  }
+
+  async function confirmDeleteMessage(scope: "me" | "everyone") {
+    if (!activeConversation || !deleteMessageId || deletingMessage) return;
+    setDeletingMessage(scope);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/api/feed/messages/${activeConversation.id}/messages/${deleteMessageId}?scope=${scope}`,
+        { method: "DELETE" },
+      );
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        conversation?: Conversation;
+      } | null;
+      if (!response.ok || !payload?.conversation) {
+        throw new Error(payload?.error?.trim() || "Could not delete message.");
+      }
+      if (editingMessageId === deleteMessageId) cancelEditMessage();
+      setDeleteMessageId(null);
+      setConversations((current) =>
+        current.map((conversation) =>
+          conversation.id === payload.conversation!.id ? payload.conversation! : conversation,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete message.");
+    } finally {
+      setDeletingMessage(null);
     }
   }
 
@@ -1568,9 +1651,13 @@ export default function MessagesView({
                           : message.deliveryStatus === "REQUEST_PENDING"
                             ? "request-pending"
                             : "pending";
+                      const menuOpen = messageMenuId === message.id;
                       return (
-                        <article
+                        <div
                           key={message.id}
+                          className={`messages-bubble-row${message.sender === "me" ? " messages-bubble-row--mine" : " messages-bubble-row--theirs"}${menuOpen ? " is-menu-open" : ""}`}
+                        >
+                        <article
                           className={`messages-bubble${message.sender === "me" ? " messages-bubble--mine" : " messages-bubble--theirs"}${message.contentMasked && message.sender === "them" ? " messages-bubble--masked" : ""}${recipientRemoved ? " messages-bubble--removed" : ""}${message.contentMasked && message.sender === "me" ? " messages-bubble--masked-sent" : ""}${senderStatus ? ` messages-bubble--${message.deliveryStatus === "NOT_DELIVERED" || message.deliveryStatus === "REQUEST_DECLINED" ? "not-delivered" : message.deliveryStatus === "REQUEST_PENDING" ? "request-pending" : "pending-review"}` : ""}${threadQueryNormalized ? " is-search-match" : ""}`}
                         >
                           {message.contentMasked && message.sender === "them" ? (
@@ -1643,8 +1730,46 @@ export default function MessagesView({
                               {senderStatus}
                             </span>
                           ) : null}
-                          <time>{message.time}</time>
+                          <time>
+                            {message.edited ? "Edited · " : ""}
+                            {message.time}
+                          </time>
                         </article>
+                        <div className="messages-bubble__actions">
+                          <button
+                            type="button"
+                            className="messages-bubble__menu-btn"
+                            aria-label="Message options"
+                            aria-haspopup="menu"
+                            aria-expanded={menuOpen}
+                            onClick={() => setMessageMenuId(menuOpen ? null : message.id)}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                              <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                          {menuOpen ? (
+                            <div className="messages-bubble__menu" role="menu">
+                              {canEditMessage(message) && !sendLocked && !isDmRestricted ? (
+                                <button type="button" role="menuitem" onClick={() => beginEditMessage(message)}>
+                                  Edit
+                                </button>
+                              ) : null}
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="messages-bubble__menu-item--danger"
+                                onClick={() => {
+                                  setMessageMenuId(null);
+                                  setDeleteMessageId(message.id);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -1678,8 +1803,16 @@ export default function MessagesView({
                             "Direct messaging with this contact is restricted by a guardian."}
                         </span>
                       </div>
-                    ) : (
+                        ) : (
                       <>
+                        {editingMessageId ? (
+                          <div className="messages-composer__editing">
+                            <span>Editing message</span>
+                            <button type="button" onClick={cancelEditMessage} disabled={sending}>
+                              Cancel
+                            </button>
+                          </div>
+                        ) : null}
                         {moderationWarning ? (
                           <div
                             className="messages-chat__moderation"
@@ -1774,7 +1907,7 @@ export default function MessagesView({
                               type="button"
                               className="messages-composer__attach"
                               aria-label="Attach a file"
-                              disabled={sending || pendingFiles.length >= 4}
+                              disabled={sending || pendingFiles.length >= 4 || Boolean(editingMessageId)}
                               onClick={() => attachmentInputRef.current?.click()}
                             >
                               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1812,7 +1945,11 @@ export default function MessagesView({
                                   setModerationWarning(null);
                                 }
                               }}
-                              placeholder={`Message ${activeConversation.participant.name.split(" ")[0]}`}
+                              placeholder={
+                                editingMessageId
+                                  ? "Edit message"
+                                  : `Message ${activeConversation.participant.name.split(" ")[0]}`
+                              }
                               autoComplete="off"
                             />
                             <button
@@ -1824,7 +1961,7 @@ export default function MessagesView({
                                 (!draft.trim() && readyFiles.length === 0)
                               }
                             >
-                              {sending ? "Sending…" : "Send"}
+                              {sending ? (editingMessageId ? "Saving…" : "Sending…") : editingMessageId ? "Save" : "Send"}
                             </button>
                           </div>
                         </form>
@@ -1866,6 +2003,46 @@ export default function MessagesView({
       </div>
       {composeOpen ? (
         <StartConversationDialog onClose={closeCompose} onStarted={handleConversationStarted} />
+      ) : null}
+      {deleteMessageId && activeConversation ? (
+        <div
+          className="modal-backdrop is-open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="message-delete-title"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !deletingMessage) setDeleteMessageId(null);
+          }}
+        >
+          <div className="modal messages-clear-modal messages-delete-modal text-center" tabIndex={-1}>
+            <h2 id="message-delete-title">Delete message?</h2>
+            <p className="subtitle mt-4">This can’t be undone.</p>
+            <button
+              type="button"
+              className="btn btn--primary mt-8"
+              onClick={() => void confirmDeleteMessage("everyone")}
+              disabled={Boolean(deletingMessage)}
+            >
+              {deletingMessage === "everyone" ? "Deleting…" : "Delete for everyone"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--outline-info mt-3"
+              onClick={() => void confirmDeleteMessage("me")}
+              disabled={Boolean(deletingMessage)}
+            >
+              {deletingMessage === "me" ? "Deleting…" : "Delete for you"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--outline-info mt-3"
+              onClick={() => setDeleteMessageId(null)}
+              disabled={Boolean(deletingMessage)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       ) : null}
       {chatConfirm && activeConversation ? (
         <div

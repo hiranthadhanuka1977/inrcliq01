@@ -290,6 +290,17 @@ html[data-feed-theme="light"]:has(.feed-path-shell) .messages-chat__menu {
   box-shadow: 0 10px 28px color-mix(in srgb, #0f172a 12%, transparent);
 }
 
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .post-head__others-list {
+  background: var(--feed-card-bg, #fff);
+  border-color: var(--feed-card-border, var(--color-border-default));
+  box-shadow: 0 10px 28px color-mix(in srgb, #0f172a 12%, transparent);
+}
+
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple a.post-head__others-person:hover,
+html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple a.post-head__others-person:focus-visible {
+  background: var(--color-bg-muted);
+}
+
 html[data-feed-theme="light"]:has(.feed-path-shell) .feed-surface--simple .post-head__close-menu {
   background: var(--feed-card-bg, #fff);
   border-color: var(--feed-card-border, var(--color-border-default));

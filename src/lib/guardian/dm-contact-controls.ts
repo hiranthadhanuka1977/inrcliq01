@@ -150,7 +150,7 @@ export async function updateDmContactControlsForSession(input: {
   settings: Partial<DmContactGuardianSettings>;
 }): Promise<DmContactGuardianSettings | null> {
   const user = await getSessionUser();
-  if (!user || user.accountType !== AccountType.GUARDIAN) return null;
+  if (!user) return null;
 
   return upsertDmContactControlsForGuardian({
     guardianUserId: user.id,

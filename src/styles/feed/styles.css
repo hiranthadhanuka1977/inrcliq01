@@ -384,6 +384,12 @@ a.nav-profile__dropdown-item {
   cursor: not-allowed;
 }
 
+.nav-profile__dropdown-separator {
+  height: 1px;
+  margin: var(--space-2) var(--space-3);
+  background: var(--color-neutral-200);
+}
+
 .nav-item {
   display: flex;
   justify-content: space-between;

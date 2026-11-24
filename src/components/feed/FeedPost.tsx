@@ -45,29 +45,101 @@ const lockSvg = (
 const subscriberPopoverText =
   "You need to activate a subscription with this creator to access exclusive content.";
 
+type TaggedPerson = NonNullable<NonNullable<FeedItem["media"]>["tagged"]>[number];
+
+function taggedProfileHref(person: TaggedPerson) {
+  const slug = person.slug?.trim() || person.handle.replace(/^@/, "").trim();
+  return slug ? `/feed/profile/${encodeURIComponent(slug)}` : null;
+}
+
+function TaggedPersonName({ person }: { person: TaggedPerson }) {
+  const href = taggedProfileHref(person);
+  if (!href) return <>{person.name}</>;
+  return (
+    <Link href={href} className="post-head__tagged-name">
+      {person.name}
+    </Link>
+  );
+}
+
+function TaggedOthers({ people }: { people: TaggedPerson[] }) {
+  const label = `${people.length} ${people.length === 1 ? "other" : "others"}`;
+  return (
+    <span className="post-head__others">
+      <button type="button" className="post-head__others-link" aria-haspopup="true">
+        {label}
+      </button>
+      <span className="post-head__others-popover">
+        <ul className="post-head__others-list" aria-label="Other people in this post">
+          {people.map((person) => {
+            const href = taggedProfileHref(person);
+            const handle = person.handle.replace(/^@/, "");
+            const body = (
+              <>
+                <span className="post-head__others-name">{person.name}</span>
+                {handle ? <span className="post-head__others-handle">@{handle}</span> : null}
+              </>
+            );
+            return (
+              <li key={`${person.handle}-${person.name}`}>
+                {href ? (
+                  <Link href={href} className="post-head__others-person">
+                    {body}
+                  </Link>
+                ) : (
+                  <span className="post-head__others-person">{body}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </span>
+    </span>
+  );
+}
+
 function formatPostContext(media: FeedItem["media"]) {
   if (!media) return null;
-  const parts: string[] = [];
-  if (media.feeling) {
+  const parts: React.ReactNode[] = [];
+  const add = (key: string, node: React.ReactNode) => {
     parts.push(
+      <span key={key}>
+        {parts.length ? " · " : null}
+        {node}
+      </span>,
+    );
+  };
+  if (media.feeling) {
+    add(
+      "feeling",
       media.feeling.kind === "activity"
         ? `is ${media.feeling.label} ${media.feeling.emoji}`
         : `is feeling ${media.feeling.label} ${media.feeling.emoji}`,
     );
   }
   if (media.location?.label) {
-    parts.push(`at ${media.location.label.split(",")[0]}`);
+    add("location", `at ${media.location.label.split(",")[0]}`);
   }
   const tagged = media.tagged ?? [];
   if (tagged.length === 1) {
-    parts.push(`with ${tagged[0].name}`);
+    add("tagged", <>with <TaggedPersonName person={tagged[0]} /></>);
   } else if (tagged.length === 2) {
-    parts.push(`with ${tagged[0].name} and ${tagged[1].name}`);
+    add(
+      "tagged",
+      <>
+        with <TaggedPersonName person={tagged[0]} /> and <TaggedPersonName person={tagged[1]} />
+      </>,
+    );
   } else if (tagged.length > 2) {
-    parts.push(`with ${tagged[0].name} and ${tagged.length - 1} others`);
+    add(
+      "tagged",
+      <>
+        with <TaggedPersonName person={tagged[0]} /> and <TaggedOthers people={tagged.slice(1)} />
+      </>,
+    );
   }
   if (!parts.length) return null;
-  return <span className="post-head__context">{parts.join(" · ")}</span>;
+  return <span className="post-head__context">{parts}</span>;
 }
 
 /** One in-feed preview at a time, so moving between clips stops the previous one. */

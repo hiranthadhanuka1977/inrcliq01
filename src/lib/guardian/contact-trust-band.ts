@@ -1,4 +1,3 @@
-import { AccountType } from "@/generated/prisma/client";
 import type { ContactTrustBandId } from "@/lib/guardian/family-center-static";
 import { CONTACT_TRUST_BANDS } from "@/lib/guardian/family-center-static";
 import { prisma } from "@/lib/prisma";
@@ -51,9 +50,9 @@ export async function upsertContactTrustBand(input: {
 }): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
   const guardian = await prisma.user.findUnique({
     where: { id: input.guardianUserId },
-    select: { id: true, accountType: true },
+    select: { id: true },
   });
-  if (!guardian || guardian.accountType !== AccountType.GUARDIAN) {
+  if (!guardian) {
     return { ok: false, error: "Guardian session required.", status: 401 };
   }
 

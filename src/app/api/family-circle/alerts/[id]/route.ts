@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
-import { AccountType } from "@/generated/prisma/client";
+import { canAccessFamilyCircle } from "@/lib/guardian/family-circle-access";
 import {
   applySafetyAlertAction,
   getSafetyAlertDetailForGuardian,
@@ -20,7 +20,7 @@ function isAlertAction(value: unknown): value is AlertAction {
 async function guardianAndAlertId(context: RouteContext) {
   const { user, error } = await requireSessionUser();
   if (error) return { error };
-  if (user.accountType !== AccountType.GUARDIAN) {
+  if (!(await canAccessFamilyCircle(user))) {
     return { error: NextResponse.json({ error: "Guardian access required." }, { status: 403 }) };
   }
   const { id } = await context.params;

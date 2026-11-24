@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { AccountType } from "@/generated/prisma/client";
 import {
   isContactTrustBandId,
   upsertContactTrustBand,
@@ -10,7 +9,7 @@ import { getSessionUser } from "@/lib/session";
 export async function POST(request: Request) {
   try {
     const user = await getSessionUser();
-    if (!user || user.accountType !== AccountType.GUARDIAN) {
+    if (!user) {
       return NextResponse.json({ error: "Guardian session required." }, { status: 401 });
     }
 

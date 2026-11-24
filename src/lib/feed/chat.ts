@@ -27,6 +27,7 @@ type DbMessage = {
   fromMe: boolean;
   contentMasked?: boolean;
   deliveryStatus?: "DELIVERED" | "PENDING_REVIEW" | "NOT_DELIVERED" | "REQUEST_PENDING" | "REQUEST_DECLINED";
+  editedAt?: Date | null;
   createdAt: Date;
 };
 
@@ -129,6 +130,7 @@ export function mapThreadToConversation(thread: DbThread): Conversation {
       sender: message.fromMe ? "me" : "them",
       body: displayBody,
       time: isStructured ? formatChatClock(message.createdAt) : formatChatTime(message.createdAt),
+      edited: Boolean(message.editedAt) || undefined,
       contentMasked: contentMasked || undefined,
       deliveryStatus:
         message.deliveryStatus && message.deliveryStatus !== "DELIVERED"

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import CreatePostModal from "@/components/feed/account/CreatePostModal";
 import { useFeedSession } from "@/context/feed/FeedSessionContext";
 import { useFeedTheme } from "@/context/feed/FeedThemeContext";
@@ -84,7 +84,7 @@ type SheetKind = "media" | "more" | null;
 
 export default function MobileNav() {
   const pathname = usePathname();
-  const { firstName, verified } = useFeedSession();
+  const { firstName, verified, isGuardian } = useFeedSession();
   const { theme, toggleTheme } = useFeedTheme();
   const [openSheet, setOpenSheet] = useState<SheetKind>(null);
   const [selectedMedia, setSelectedMedia] = useState<MediaSelection | null>(null);
@@ -99,6 +99,16 @@ export default function MobileNav() {
 
   const pathMedia = mediaSelectionFromPath(pathname);
   const effectiveMedia: MediaSelection | null = pathMedia ?? selectedMedia;
+  const moreItems = useMemo(() => {
+    if (!isGuardian) return MOBILE_MORE_ITEMS;
+    const sellerIndex = MOBILE_MORE_ITEMS.findIndex((item) => item.label === "Seller Tools");
+    const insertAt = sellerIndex === -1 ? MOBILE_MORE_ITEMS.length : sellerIndex + 1;
+    return [
+      ...MOBILE_MORE_ITEMS.slice(0, insertAt),
+      { label: "Family Circle", href: "/family-circle", icon: "family-circle" as const },
+      ...MOBILE_MORE_ITEMS.slice(insertAt),
+    ];
+  }, [isGuardian]);
 
   useEffect(() => {
     if (pathMedia) return;
@@ -261,7 +271,7 @@ export default function MobileNav() {
           >
             <div className="mobile-more__handle" aria-hidden="true" />
             <ul className="mobile-more__list">
-              {MOBILE_MORE_ITEMS.map((item) => {
+              {moreItems.map((item) => {
                 const active = isActive(pathname, item.href);
                 const action = "action" in item ? item.action : undefined;
                 const isLogout = action === "logout";

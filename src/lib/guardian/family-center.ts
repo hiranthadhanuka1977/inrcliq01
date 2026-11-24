@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { AccountType } from "@/generated/prisma/client";
 import {
   listChildDmContacts,
   type ChildDmContact,
@@ -11,6 +10,7 @@ import {
   type ProtectionTier,
 } from "@/lib/guardian/constants";
 import { ensureChildChatThreadForGuardian } from "@/lib/feed/chat-service";
+import { canAccessFamilyCircle } from "@/lib/guardian/family-circle-access";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { calculateAge } from "@/lib/utils/age";
@@ -86,7 +86,7 @@ function childStatusLabel(onboardingStep: string | null) {
 
 export const getFamilyCenterForSession = cache(async function getFamilyCenterForSession(): Promise<FamilyCenterData | null> {
   const user = await getSessionUser();
-  if (!user || user.accountType !== AccountType.GUARDIAN) return null;
+  if (!user || !(await canAccessFamilyCircle(user))) return null;
 
   const guardianName =
     [user.firstName?.trim(), user.lastName?.trim()].filter(Boolean).join(" ") ||

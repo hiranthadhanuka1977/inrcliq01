@@ -13,6 +13,8 @@ export type ChatMessage = {
   sender: MessageSender;
   body: string;
   time: string;
+  /** True after the sender changes the text. */
+  edited?: boolean;
   /** True when the peer sees a safety-masked placeholder instead of the raw body. */
   contentMasked?: boolean;
   /** Present only when not delivered normally (safety hold, message request, or not delivered). */

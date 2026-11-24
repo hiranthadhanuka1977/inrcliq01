@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>InrCliq prototype — information architecture</title>
+  <style>
+    @page { size: 594mm 420mm; margin: 12mm; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #1b2a4a;
+      font-family: Calibri, "Segoe UI", sans-serif;
+    }
+    body { width: 570mm; }
+    h1, h2, p { margin: 0; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid #2f5d9f;
+    }
+    h1 { font-size: 22pt; font-weight: 700; letter-spacing: -0.02em; }
+    .sub { margin-top: 2px; font-size: 11pt; color: #4b5563; }
+    .legend { display: flex; gap: 16px; font-size: 10pt; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #1b2a4a; background: #fff; }
+    .swatch.missing { background: #e7f0fb; border-color: #2f5d9f; }
+    .root {
+      margin: 10px auto 0;
+      width: 160px;
+      text-align: center;
+      background: #1b2a4a;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13pt;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .spine {
+      height: 16px;
+      margin: 0 28px;
+      border-top: 2px solid #1b2a4a;
+      border-left: 2px solid #1b2a4a;
+      border-right: 2px solid #1b2a4a;
+      border-bottom: none;
+      position: relative;
+      top: 8px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: 0.9fr 1.05fr 1.2fr 0.95fr 1.05fr 0.9fr 0.72fr 1.15fr;
+      gap: 8px;
+      align-items: start;
+    }
+    .col { min-width: 0; }
+    .col h2 {
+      background: #1b2a4a;
+      color: #fff;
+      font-size: 10.5pt;
+      font-weight: 700;
+      padding: 7px 8px;
+      border-radius: 7px;
+      line-height: 1.2;
+    }
+    .col h2 small {
+      display: block;
+      font-weight: 400;
+      font-size: 8pt;
+      color: #d6e2f5;
+      margin-top: 2px;
+    }
+    .col h2::before {
+      content: "";
+      display: block;
+      width: 2px;
+      height: 8px;
+      background: #1b2a4a;
+      margin: -15px auto 6px;
+    }
+    ul { list-style: none; margin: 8px 0 0; padding: 0; }
+    li { margin: 0 0 4px; }
+    .node {
+      display: inline-block;
+      max-width: 100%;
+      background: #fff;
+      border: 1px solid #1b2a4a;
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 8.6pt;
+      line-height: 1.25;
+    }
+    .missing {
+      background: #e7f0fb;
+      border-color: #2f5d9f;
+    }
+    .missing em {
+      font-style: normal;
+      font-size: 7.4pt;
+      color: #2f5d9f;
+      margin-left: 4px;
+    }
+    .branch {
+      margin: 4px 0 2px 8px;
+      padding: 0 0 0 8px;
+      border-left: 1.5px solid #1b2a4a;
+    }
+    .foot {
+      margin-top: 10px;
+      font-size: 8.5pt;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>InrCliq prototype</h1>
+      <p class="sub">Information architecture · as built · 23 November 2026</p>
+    </div>
+    <div class="legend">
+      <span><i class="swatch"></i> Screen</span>
+      <span><i class="swatch missing"></i> Shown, not linked</span>
+    </div>
+  </header>
+  <div class="root">InrCliq</div>
+  <div class="spine"></div>
+  <div class="board">
+    <section class="col">
+      <h2>Join and sign in</h2>
+      <ul>
+        <li><span class="node">Log in</span></li>
+        <li><span class="node">Sign up</span></li>
+        <li><span class="node">Forgot login</span></li>
+        <li><span class="node">Verify email</span></li>
+        <li>
+          <span class="node">Onboarding</span>
+          <ul class="branch">
+            <li><span class="node">Password</span></li>
+            <li><span class="node">Parent invite</span></li>
+            <li><span class="node">Waiting</span></li>
+            <li><span class="node">Approved</span></li>
+            <li><span class="node">Handle</span></li>
+            <li><span class="node">Interests</span></li>
+          </ul>
+        </li>
+        <li><span class="node">Guardian approval</span></li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Feed</h2>
+      <ul>
+        <li>
+          <span class="node">Home</span>
+          <ul class="branch">
+            <li><span class="node">Post</span></li>
+            <li><span class="node">Share post</span></li>
+            <li><span class="node">Create post</span></li>
+          </ul>
+        </li>
+        <li><span class="node">Messages</span></li>
+        <li><span class="node">Snaps</span></li>
+        <li><span class="node">Photos</span></li>
+        <li>
+          <span class="node">Videos</span>
+          <ul class="branch">
+            <li><span class="node">Video</span></li>
+          </ul>
+        </li>
+        <li><span class="node">Audio</span></li>
+        <li><span class="node missing">Explore<em>Not linked</em></span></li>
+        <li><span class="node">Saved</span></li>
+        <li><span class="node missing">Purchases<em>Not linked</em></span></li>
+        <li>
+          <span class="node">Calendar</span>
+          <ul class="branch">
+            <li><span class="node">Booking</span></li>
+            <li><span class="node">Deliver</span></li>
+            <li><span class="node">Balance</span></li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Your account</h2>
+      <ul>
+        <li>
+          <span class="node">Your profile</span>
+          <ul class="branch">
+            <li><span class="node">Followers</span></li>
+            <li><span class="node">Following</span></li>
+            <li><span class="node">Subscriptions</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Profile information</span>
+          <ul class="branch">
+            <li><span class="node">Name</span></li>
+            <li><span class="node">Handle</span></li>
+            <li><span class="node">Email</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Profile completion</span>
+          <ul class="branch">
+            <li><span class="node">Set a password</span></li>
+            <li><span class="node">Confirm you are an adult</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Settings</span>
+          <ul class="branch">
+            <li><span class="node">Password</span></li>
+            <li><span class="node missing">Email<em>Not linked</em></span></li>
+            <li><span class="node missing">Privacy<em>Not linked</em></span></li>
+            <li><span class="node missing">Blocked accounts<em>Not linked</em></span></li>
+            <li><span class="node missing">Notifications<em>Not linked</em></span></li>
+            <li><span class="node missing">Messages<em>Not linked</em></span></li>
+            <li><span class="node missing">Appearance<em>Not linked</em></span></li>
+            <li><span class="node missing">Payment methods<em>Not linked</em></span></li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Creator profile</h2>
+      <ul>
+        <li><span class="node">Profile</span></li>
+        <li><span class="node">Followers</span></li>
+        <li><span class="node">Following</span></li>
+        <li><span class="node">Subscribers</span></li>
+        <li>
+          <span class="node">Collection</span>
+          <ul class="branch">
+            <li><span class="node">Product</span></li>
+            <li><span class="node">Checkout</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Special requests</span>
+          <ul class="branch">
+            <li><span class="node">Choose</span></li>
+            <li><span class="node">Checkout</span></li>
+          </ul>
+        </li>
+        <li><span class="node">Share profile</span></li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Seller Tools</h2>
+      <ul>
+        <li><span class="node">Seller home</span></li>
+        <li>
+          <span class="node">Membership</span>
+          <ul class="branch">
+            <li><span class="node">Verify identity</span></li>
+            <li><span class="node">Review before you pay</span></li>
+            <li><span class="node">Checkout</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Collection</span>
+          <ul class="branch">
+            <li><span class="node">New product</span></li>
+            <li><span class="node">Product</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Service requests</span>
+          <ul class="branch">
+            <li><span class="node">New category</span></li>
+            <li><span class="node">Category</span></li>
+          </ul>
+        </li>
+        <li><span class="node">Subscriptions</span></li>
+        <li><span class="node">Wallet</span></li>
+        <li>
+          <span class="node">Settings</span>
+          <ul class="branch">
+            <li><span class="node">Public profile</span></li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Family Circle<small>Guardians</small></h2>
+      <ul>
+        <li><span class="node">Overview</span></li>
+        <li>
+          <span class="node">Linked accounts</span>
+          <ul class="branch">
+            <li><span class="node">Child account</span></li>
+            <li><span class="node">Message thread</span></li>
+          </ul>
+        </li>
+        <li><span class="node">Controls</span></li>
+        <li><span class="node">Safety alerts</span></li>
+        <li><span class="node">Requests</span></li>
+        <li><span class="node">Activity</span></li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Creator Studio</h2>
+      <ul>
+        <li><span class="node">Studio launch</span></li>
+      </ul>
+    </section>
+
+    <section class="col">
+      <h2>Operator</h2>
+      <ul>
+        <li>
+          <span class="node">Admin</span>
+          <ul class="branch">
+            <li><span class="node">Unlock</span></li>
+            <li><span class="node">Users</span></li>
+            <li><span class="node">Feed</span></li>
+            <li><span class="node">Payments</span></li>
+            <li><span class="node">Creators</span></li>
+            <li><span class="node">Audio</span></li>
+            <li><span class="node">Shop</span></li>
+            <li><span class="node">Requests</span></li>
+            <li><span class="node">Messaging</span></li>
+            <li><span class="node">Safety</span></li>
+            <li><span class="node">Subscriptions</span></li>
+            <li><span class="node">Notifications</span></li>
+            <li><span class="node">Analytics</span></li>
+            <li><span class="node">Support</span></li>
+          </ul>
+        </li>
+        <li>
+          <span class="node">Prototype settings</span>
+          <ul class="branch">
+            <li><span class="node">Unlock</span></li>
+            <li><span class="node">Dashboard</span></li>
+            <li><span class="node">Users</span></li>
+            <li><span class="node">Feed Mgmt</span></li>
+            <li><span class="node">Partners</span></li>
+            <li><span class="node">Reset</span></li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+  </div>
+  <p class="foot">Family Circle is in the guardian navigation. Creator Studio opens from the member navigation. Explore, Purchases, and the account settings rows other than Password are visible and do not open a screen.</p>
+</body>
+</html>

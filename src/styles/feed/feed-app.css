@@ -27,10 +27,18 @@
 /* Messages fills the main column edge-to-edge */
 body.page-bookings .main-content.bookings-page,
 .page-bookings .main-content.bookings-page {
-  width: min(100%, 64rem);
-  max-width: 64rem;
-  margin-inline: auto;
-  align-self: center;
+  width: auto;
+  max-width: none;
+  margin-left: var(--nav-width);
+  margin-right: 0;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  body.page-bookings .main-content.bookings-page,
+  .page-bookings .main-content.bookings-page {
+    margin-left: 0;
+  }
 }
 
 body.page-messages .main-content.messages-page,

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CONVERSATIONS } from "@/lib/feed/messages";
@@ -9,6 +10,7 @@ import {
   parseMessageAttachment,
   sanitizeMessageAttachments,
 } from "@/lib/feed/message-attachment";
+import { parseBookingMessage, parseBookingNote } from "@/lib/feed/booking-confirmation";
 import { parsePostShare, postSharePreview } from "@/lib/feed/post-share-message";
 import { resolveAuthorProfileSlug } from "@/lib/feed/profile-slugs";
 
@@ -502,6 +504,7 @@ async function mirrorChatMessageToPeer(
   },
   body: string,
   contentMasked = false,
+  pairId: string | null = null,
 ) {
   const receiverUserId = await resolveReceiverUserId(senderThread);
   if (!receiverUserId || receiverUserId === senderUserId) {
@@ -543,6 +546,7 @@ async function mirrorChatMessageToPeer(
         body: recipientBody,
         fromMe: false,
         contentMasked,
+        ...(pairId ? { pairId } : {}),
       },
     }),
     prisma.chatThread.update({
@@ -813,6 +817,7 @@ async function deliverChatMessage(
     }
   }
 
+  const pairId = requestId ? null : randomUUID();
   const [message] = await prisma.$transaction([
     prisma.chatMessage.create({
       data: {
@@ -822,6 +827,7 @@ async function deliverChatMessage(
         contentMasked,
         deliveryStatus: requestId ? "REQUEST_PENDING" : "DELIVERED",
         ...(requestId ? { messageRequestId: requestId } : {}),
+        ...(pairId ? { pairId } : {}),
       },
     }),
     prisma.chatThread.update({
@@ -844,7 +850,7 @@ async function deliverChatMessage(
 
   if (!requestId) {
     try {
-      await mirrorChatMessageToPeer(userId, thread, trimmed, contentMasked);
+      await mirrorChatMessageToPeer(userId, thread, trimmed, contentMasked, pairId);
     } catch (error) {
       console.error("chat mirror to peer failed", error);
     }
@@ -890,6 +896,376 @@ export async function deleteChatThread(userId: string, threadId: string) {
 
   await prisma.chatThread.delete({ where: { id: threadId } });
   return { id: threadId };
+}
+
+function isStructuredChatBody(body: string) {
+  return Boolean(
+    parseMessageAttachment(body) ||
+      parsePostShare(body) ||
+      parseBookingMessage(body) ||
+      parseBookingNote(body),
+  );
+}
+
+async function refreshThreadPreview(threadId: string) {
+  const { MASKED_DM_PREVIEW } = await import("@/lib/guardian/is-user-minor");
+  const last = await prisma.chatMessage.findFirst({
+    where: { threadId },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!last) {
+    await prisma.chatThread.update({
+      where: { id: threadId },
+      data: { preview: null, lastMessageAt: null },
+    });
+    return;
+  }
+  const preview =
+    last.contentMasked && !last.fromMe ? MASKED_DM_PREVIEW : previewFromBody(last.body);
+  await prisma.chatThread.update({
+    where: { id: threadId },
+    data: { preview, lastMessageAt: last.createdAt },
+  });
+}
+
+async function findReceiverThreadId(
+  userId: string,
+  thread: { peerCreatorId: string | null; peerSlug: string | null; peerHandle: string },
+) {
+  const receiverUserId = await resolveReceiverUserId(thread);
+  if (!receiverUserId || receiverUserId === userId) return null;
+  const peer = await resolveSenderPeerDisplay(userId, thread);
+  if (!peer) return null;
+  const inbox = await findPeerInboxThread(receiverUserId, peer);
+  return inbox?.id ?? null;
+}
+
+async function findMirroredMessage(
+  message: {
+    id: string;
+    pairId: string | null;
+    body: string;
+    createdAt: Date;
+    contentMasked: boolean;
+    fromMe: boolean;
+  },
+  receiverThreadId: string,
+) {
+  if (message.pairId) {
+    const paired = await prisma.chatMessage.findFirst({
+      where: { pairId: message.pairId, threadId: receiverThreadId, id: { not: message.id } },
+    });
+    if (paired) return paired;
+  }
+
+  const { MASKED_DM_BODY, MASKED_PENDING_BODY } = await import("@/lib/guardian/is-user-minor");
+  const bodies = message.contentMasked
+    ? [MASKED_DM_BODY, MASKED_PENDING_BODY, message.body]
+    : [message.body];
+  const start = new Date(message.createdAt.getTime() - 20_000);
+  const end = new Date(message.createdAt.getTime() + 20_000);
+  const rows = await prisma.chatMessage.findMany({
+    where: {
+      threadId: receiverThreadId,
+      fromMe: !message.fromMe,
+      body: { in: bodies },
+      createdAt: { gte: start, lte: end },
+    },
+  });
+  if (!rows.length) return null;
+  return rows.reduce((closest, row) =>
+    Math.abs(row.createdAt.getTime() - message.createdAt.getTime()) <
+    Math.abs(closest.createdAt.getTime() - message.createdAt.getTime())
+      ? row
+      : closest,
+  );
+}
+
+/** A message stays only in the sender's thread until the other person accepts, or after it was blocked. */
+function messageHasNoPeerCopy(deliveryStatus: string) {
+  return (
+    deliveryStatus === "REQUEST_PENDING" ||
+    deliveryStatus === "REQUEST_DECLINED" ||
+    deliveryStatus === "NOT_DELIVERED"
+  );
+}
+
+async function applyEditedBody(
+  userId: string,
+  thread: { id: string; peerCreatorId: string | null; peerSlug: string | null; peerHandle: string },
+  message: {
+    id: string;
+    pairId: string | null;
+    body: string;
+    createdAt: Date;
+    contentMasked: boolean;
+    fromMe: boolean;
+    deliveryStatus: string;
+    moderationHoldId: string | null;
+  },
+  trimmed: string,
+  contentMasked: boolean,
+) {
+  const { MASKED_DM_BODY } = await import("@/lib/guardian/is-user-minor");
+  const editedAt = new Date();
+  const pairId = message.pairId ?? randomUUID();
+  const localOnly = messageHasNoPeerCopy(message.deliveryStatus);
+
+  await prisma.chatMessage.update({
+    where: { id: message.id },
+    data: {
+      body: trimmed,
+      editedAt,
+      contentMasked,
+      pairId,
+      ...(localOnly ? {} : { deliveryStatus: "DELIVERED" }),
+    },
+  });
+
+  if (message.moderationHoldId) {
+    await prisma.dmModerationHold.update({
+      where: { id: message.moderationHoldId },
+      data: { body: trimmed },
+    });
+  }
+
+  if (!localOnly) {
+    const receiverThreadId = await findReceiverThreadId(userId, thread);
+    if (receiverThreadId) {
+      const peer = await findMirroredMessage(message, receiverThreadId);
+      if (peer) {
+        await prisma.chatMessage.update({
+          where: { id: peer.id },
+          data: {
+            body: contentMasked ? MASKED_DM_BODY : trimmed,
+            contentMasked,
+            editedAt,
+            pairId,
+            deliveryStatus: "DELIVERED",
+          },
+        });
+        await refreshThreadPreview(receiverThreadId);
+      }
+    }
+  }
+
+  await refreshThreadPreview(thread.id);
+}
+
+export async function editChatMessage(
+  userId: string,
+  threadId: string,
+  messageId: string,
+  body: string,
+  options: { acceptModeration?: boolean } = {},
+): Promise<SendChatMessageResult | { error: string } | null> {
+  const thread = await prisma.chatThread.findFirst({
+    where: { id: threadId, userId },
+  });
+  if (!thread) return null;
+
+  const message = await prisma.chatMessage.findFirst({
+    where: { id: messageId, threadId },
+  });
+  if (!message) return null;
+  if (!message.fromMe) return { error: "You can only edit your own messages." };
+  if (message.specialRequestId || isStructuredChatBody(message.body)) {
+    return { error: "This message can't be edited." };
+  }
+  if (message.moderationHoldId) {
+    const hold = await prisma.dmModerationHold.findUnique({
+      where: { id: message.moderationHoldId },
+      select: { status: true },
+    });
+    if (hold?.status === "PENDING") {
+      return { error: "This message is still in review and can't be edited." };
+    }
+  }
+
+  const trimmed = body.trim();
+  if (!trimmed) return { error: "Write a message." };
+  if (trimmed === message.body.trim()) {
+    const unchanged = await getChatThreadForUser(userId, threadId);
+    return unchanged ? { thread: unchanged, message: { id: message.id } } : null;
+  }
+
+  const { getDirectMessagingRestriction } = await import("@/lib/guardian/dm-contact-controls");
+  const restriction = await getDirectMessagingRestriction(userId, thread);
+  if (restriction.restricted) {
+    return {
+      restricted: true,
+      code: "DM_RESTRICTED",
+      message: restriction.message ?? "Direct messaging is restricted for this contact.",
+    };
+  }
+
+  const receiverUserId = await resolveReceiverUserId(thread);
+  const recipientUserId = receiverUserId && receiverUserId !== userId ? receiverUserId : null;
+  if (recipientUserId) {
+    const block = await getDmBlockBetween(userId, recipientUserId);
+    if (block.blockedByMe || block.blockedByThem) {
+      return {
+        restricted: true,
+        code: "DM_BLOCKED",
+        message: block.blockedByMe
+          ? "You blocked this person. Unblock them to send a message."
+          : "You can't send messages to this person.",
+      };
+    }
+  }
+
+  const [
+    { loadDmSafetyParticipants },
+    { evaluateDmSafetyPolicy, normalizeDmSafetyCategory, severityFromConfidence, DM_MINOR_WARNING_COPY },
+    { minorRestrictionMessage },
+    { moderateDmText },
+    { isMinorAgeZone },
+  ] = await Promise.all([
+    import("@/lib/guardian/dm-moderation-hold"),
+    import("@/lib/guardian/dm-safety-policy"),
+    import("@/lib/guardian/sender-enforcement"),
+    import("@/lib/moderation/dm-text-moderation"),
+    import("@/lib/utils/age-zone"),
+  ]);
+
+  const participants = await loadDmSafetyParticipants(userId, recipientUserId);
+  const recipientIsMinor = Boolean(participants.recipient && isMinorAgeZone(participants.recipient.zone));
+  if (recipientIsMinor && participants.senderRestriction) {
+    return {
+      restricted: true,
+      code: "DM_MINOR_RESTRICTED",
+      message: minorRestrictionMessage(participants.senderRestriction.endsAt),
+      restrictionEndsAt: participants.senderRestriction.endsAt
+        ? participants.senderRestriction.endsAt.toISOString()
+        : null,
+    };
+  }
+
+  const moderation = await moderateDmText(trimmed, { recipientIsMinor });
+  const verificationFailed = !moderation.allowed && Boolean(moderation.verificationFailed);
+  const flagged = !moderation.allowed && !verificationFailed;
+  const category = moderation.allowed ? "Neutral" : normalizeDmSafetyCategory(moderation.category);
+  const severity = moderation.allowed ? 0 : severityFromConfidence(moderation.confidence);
+  const decision = evaluateDmSafetyPolicy({
+    flagged,
+    verificationFailed,
+    category,
+    severity,
+    senderZone: participants.sender.zone,
+    senderAgeYears: participants.sender.ageYears,
+    senderMonitored: participants.sender.monitored,
+    recipientZone: participants.recipient?.zone ?? "ADULT",
+    recipientAgeYears: participants.recipient?.ageYears ?? null,
+    recipientMonitored: participants.recipient?.monitored ?? false,
+    senderRestrictedFromMinors: Boolean(participants.senderRestriction),
+    senderIsRecipientGuardian: participants.senderIsRecipientGuardian,
+  });
+
+  if (decision.outcome === "restricted") {
+    return {
+      restricted: true,
+      code: "DM_MINOR_RESTRICTED",
+      message: minorRestrictionMessage(participants.senderRestriction?.endsAt ?? null),
+      restrictionEndsAt: participants.senderRestriction?.endsAt
+        ? participants.senderRestriction.endsAt.toISOString()
+        : null,
+    };
+  }
+
+  const finish = async (contentMasked: boolean) => {
+    await applyEditedBody(userId, thread, message, trimmed, contentMasked);
+    const fresh = await getChatThreadForUser(userId, threadId);
+    return fresh ? { thread: fresh, message: { id: message.id } } : null;
+  };
+
+  if (decision.outcome === "deliver" || moderation.allowed) {
+    return finish(false);
+  }
+
+  const canSendAnyway = decision.outcome === "warn";
+  const warning: DmModerationWarningPayload = {
+    title: moderation.title,
+    message: moderation.message,
+    category: moderation.category,
+    confidence: moderation.confidence,
+    verificationFailed,
+    recipientIsMinor,
+    canSendAnyway,
+    sendAnywayOutcome:
+      decision.onSendAnyway === "hold_withheld" || decision.onSendAnyway === "hold_masked_placeholder"
+        ? "guardian_review"
+        : decision.onSendAnyway === "masked_delivery"
+          ? "masked"
+          : null,
+  };
+  if (recipientIsMinor) {
+    warning.category = "";
+    warning.confidence = 0;
+    warning.sendAnywayOutcome = null;
+    warning.title = verificationFailed
+      ? DM_MINOR_WARNING_COPY.verificationFailedTitle
+      : DM_MINOR_WARNING_COPY.title;
+    warning.message = verificationFailed
+      ? DM_MINOR_WARNING_COPY.verificationFailedMessage
+      : DM_MINOR_WARNING_COPY.message;
+  }
+
+  if (!options.acceptModeration || decision.onSendAnyway === "not_allowed") {
+    return { moderationRequired: true, moderation: warning };
+  }
+
+  const saved = await finish(true);
+  if (saved && "thread" in saved && recipientUserId) {
+    try {
+      const { createDmModerationSafetyAlerts } = await import("@/lib/guardian/safety-alerts");
+      await createDmModerationSafetyAlerts({
+        senderUserId: userId,
+        receiverUserId: recipientUserId,
+        chatThreadId: threadId,
+        chatMessageId: message.id,
+        category: moderation.category,
+        priority: decision.alertPriority,
+        senderIsAdult: participants.sender.zone === "ADULT",
+        recipientIsAdult: !recipientIsMinor,
+      });
+    } catch (error) {
+      console.error("guardian safety alert create failed", error);
+    }
+  }
+  return saved;
+}
+
+/** Delete one message. `everyone` also removes your copy from the other person's chat. */
+export async function deleteChatMessage(
+  userId: string,
+  threadId: string,
+  messageId: string,
+  scope: "me" | "everyone" = "me",
+) {
+  const thread = await prisma.chatThread.findFirst({
+    where: { id: threadId, userId },
+  });
+  if (!thread) return null;
+
+  const message = await prisma.chatMessage.findFirst({
+    where: { id: messageId, threadId },
+  });
+  if (!message) return null;
+
+  if (scope === "everyone" && !messageHasNoPeerCopy(message.deliveryStatus)) {
+    const receiverThreadId = await findReceiverThreadId(userId, thread);
+    if (receiverThreadId) {
+      const peer = await findMirroredMessage(message, receiverThreadId);
+      if (peer) {
+        await prisma.chatMessage.delete({ where: { id: peer.id } });
+        await refreshThreadPreview(receiverThreadId);
+      }
+    }
+  }
+
+  await prisma.chatMessage.delete({ where: { id: message.id } });
+  await refreshThreadPreview(thread.id);
+  return getChatThreadForUser(userId, threadId);
 }
 
 export async function ensureChatThreadForCreatorSlug(userId: string, slug: string) {

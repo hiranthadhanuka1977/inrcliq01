@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/api-helpers";
-import { AccountType } from "@/generated/prisma/client";
+import { canAccessFamilyCircle } from "@/lib/guardian/family-circle-access";
 import { viewHeldMessageForGuardian } from "@/lib/guardian/safety-alerts";
 
 type RouteContext = {
@@ -13,7 +13,7 @@ export async function POST(_request: NextRequest, context: RouteContext) {
   try {
     const { user, error } = await requireSessionUser();
     if (error) return error;
-    if (user.accountType !== AccountType.GUARDIAN) {
+    if (!(await canAccessFamilyCircle(user))) {
       return NextResponse.json({ error: "Guardian access required." }, { status: 403 });
     }
 

@@ -316,6 +316,15 @@ export default function LeftNav({ firstName }: { firstName?: string | null } = {
               >
                 {theme === "dark" ? "Light mode" : "Dark mode"}
               </button>
+              <Link
+                href="/feed/me/settings"
+                className="nav-profile__dropdown-item"
+                role="menuitem"
+                onClick={() => setProfileMenuOpen(false)}
+              >
+                Settings
+              </Link>
+              <div className="nav-profile__dropdown-separator" role="separator" />
               <button
                 type="button"
                 className="nav-profile__dropdown-item"

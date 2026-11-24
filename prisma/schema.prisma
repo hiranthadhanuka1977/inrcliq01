@@ -667,6 +667,9 @@ model ChatMessage {
   moderationHoldId String?
   /// Set on the sender's copy while (and after) a message request. The recipient has no copy until accept.
   messageRequestId String?
+  /// Shared by the sender's copy and the recipient's copy so an edit or delete can find both.
+  pairId           String?
+  editedAt         DateTime?
   createdAt        DateTime         @default(now())
 
   thread         ChatThread             @relation(fields: [threadId], references: [id], onDelete: Cascade)
@@ -678,6 +681,7 @@ model ChatMessage {
   @@index([specialRequestId])
   @@index([moderationHoldId])
   @@index([messageRequestId])
+  @@index([pairId])
 }
 
 /// A flagged DM to a monitored minor awaiting guardian decision.
